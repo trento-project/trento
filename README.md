@@ -1,0 +1,1 @@
+# SUSE Console for SAP

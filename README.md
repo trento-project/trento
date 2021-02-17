@@ -1,1 +1,1 @@
-# SUSE Console for SAP
+# SUSE Console for SAP Applications

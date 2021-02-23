@@ -16,7 +16,7 @@ var cfgFile string
 var rootCmd = &cobra.Command{
 	Use:   "console-for-sap",
 	Short: "A cloud-native, web application to manage OS-related tasks for SAP Applications.",
-	Long: `SUSE Console for SAP is a web application 
+	Long: `SUSE Console for SAP Applications is a web-based graphical user interface 
 that can help you deploy, provision and operate infrastructure for SAP Applications`,
 }
 

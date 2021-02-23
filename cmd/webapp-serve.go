@@ -3,10 +3,8 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"net/http"
-	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 
 	"github.com/SUSE/console-for-sap/webapp"
@@ -16,8 +14,7 @@ import (
 var serveCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "Starts the web application",
-	Long: ``,
-	Run: serve,
+	Run:   serve,
 }
 
 var host string
@@ -30,18 +27,11 @@ func init() {
 	serveCmd.Flags().IntVarP(&port, "port", "p", 8080, "The port for the HTTP service to listen at")
 }
 
-func serve(cmd *cobra.Command, args []string)  {
-	r := mux.NewRouter()
-	r.HandleFunc("/", webapp.HomeHandler)
-	http.Handle("/", r)
+func serve(cmd *cobra.Command, args []string) {
+	engine := gin.Default()
+	engine.LoadHTMLGlob("webapp/templates/*.tpl")
+	engine.GET("/", webapp.Home)
 
-	srv := &http.Server{
-		Handler:      r,
-		Addr:         fmt.Sprintf("%s:%d", host, port),
-		// Good practice: enforce timeouts for servers you create!
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second,
-	}
-
-	log.Fatal(srv.ListenAndServe())
+	listenAddress := fmt.Sprintf("%s:%d", host, port)
+	log.Fatal(engine.Run(listenAddress))
 }

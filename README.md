@@ -8,13 +8,26 @@ This project is a reboot of the [Blue Horizon for SAP](https://github.com/SUSE/b
 
 T.B.D.
 
+## Requirements
+
+- Go 1.16
+- Go Modules (`export GO111MODULES=on`)
+
 ## Installation
 
-T.B.D.
+You can get the project binary via `go get` as usual.
+
+```shell
+go get -u github.com/SUSE/console-for-sap
+```
 
 ## Usage
 
-T.B.D.
+You can start the web application as follows:
+
+```shell
+console-for-sap webapp serve
+```
 
 ## Support
 

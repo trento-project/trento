@@ -2,7 +2,9 @@
 
 A cloud-native, web application to manage OS-related tasks for SAP Applications.
 
-This project is a reboot of the [Blue Horizon for SAP](https://github.com/SUSE/blue-horizon-for-sap) prototype, which is focused on automated infrastructure deployment and provisioning for SAP Applications, which is also known as the first iteration of the "SUSE Console for SAP Applications".
+This project is a reboot of the "SUSE Console for SAP Applications", also known as the [Blue Horizon for SAP](https://github.com/SUSE/blue-horizon-for-sap) prototype, which is focused on automated infrastructure deployment and provisioning for SAP Applications.
+
+As opposed to that first iteration, this new one will focus more on operations of existing clusters, rather than deploying new one.
 
 ## Features
 

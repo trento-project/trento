@@ -12,7 +12,7 @@ T.B.D.
 
 ## Requirements
 
-- Go 1.16
+- Go ^1.16
 - Go Modules (`export GO111MODULES=on`)
 
 ## Installation
@@ -29,6 +29,17 @@ You can start the web application as follows:
 
 ```shell
 console-for-sap webapp serve
+```
+
+## Development
+
+To build the entire application you will need the following additional dependencies:
+- Node.js ^15.x
+- [SASS](https://sass-lang.com/)
+
+We provide a Makefile to build the entire app, including the frontend assets:
+```shell
+make
 ```
 
 ## Support

@@ -2,10 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"html/template"
 	"log"
 
-	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 
 	"github.com/SUSE/console-for-sap/webapp"
@@ -36,11 +34,7 @@ func init() {
 }
 
 func serve(cmd *cobra.Command, args []string) {
-	templates := template.Must(template.New("").ParseFS(webapp.FS, "templates/*.tmpl"))
-
-	engine := gin.Default()
-	engine.SetHTMLTemplate(templates)
-	engine.GET("/", webapp.Home)
+	engine := webapp.Engine()
 
 	listenAddress := fmt.Sprintf("%s:%d", host, port)
 	log.Fatal(engine.Run(listenAddress))

@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Home(c *gin.Context) {
+func homeHandler(c *gin.Context) {
 	viewModel := gin.H{
 		"title": "SUSE Console for SAP Applications",
 	}

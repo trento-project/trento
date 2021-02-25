@@ -1,4 +1,4 @@
-package cmd
+package webapp
 
 import (
 	"net/http"
@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHomeRoute(t *testing.T) {
-	engine := makeEngine()
+func TestHome(t *testing.T) {
+	engine := Engine()
 
 	resp := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/", nil)

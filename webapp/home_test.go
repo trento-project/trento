@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHome(t *testing.T) {
+func Test_homeHandler(t *testing.T) {
 	engine := Engine()
 
 	resp := httptest.NewRecorder()

@@ -35,12 +35,18 @@ func init() {
 	serveCmd.Flags().IntVarP(&port, "port", "p", 8080, "The port for the HTTP service to listen at")
 }
 
-func serve(cmd *cobra.Command, args []string) {
+func makeEngine() *gin.Engine {
 	templates := template.Must(template.New("").ParseFS(webapp.FS, "templates/*.tmpl"))
 
 	engine := gin.Default()
 	engine.SetHTMLTemplate(templates)
 	engine.GET("/", webapp.Home)
+
+	return engine
+}
+
+func serve(cmd *cobra.Command, args []string) {
+	engine := makeEngine()
 
 	listenAddress := fmt.Sprintf("%s:%d", host, port)
 	log.Fatal(engine.Run(listenAddress))

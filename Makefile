@@ -31,4 +31,5 @@ webapp/frontend/node_modules:
 
 webapp-assets: webapp/frontend/assets/stylesheets.css
 webapp/frontend/assets/stylesheets.css: webapp/frontend/node_modules
-	sass webapp/frontend/stylesheets/stylesheets.scss:webapp/frontend/assets/stylesheets.css
+	webapp/frontend/node_modules/.bin/sass \
+		webapp/frontend/stylesheets/stylesheets.scss:webapp/frontend/assets/stylesheets.css

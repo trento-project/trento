@@ -16,7 +16,6 @@ To build the entire application you will need the following dependencies:
 
 - Go ^1.16
 - Node.js ^15.x
-- [SASS](https://sass-lang.com/)
 
 ## Installation
 

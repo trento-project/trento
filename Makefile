@@ -19,7 +19,7 @@ fmt:
 mod-tidy:
 	go mod tidy
 
-test: download
+test: download webapp-assets
 	go test -v ./...
 
 vet-check: download webapp-assets

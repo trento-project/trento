@@ -16,6 +16,6 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-go-
     - name: install sass
-      run: apt install sass
+      run: sudo apt-get install sass
     - name: test
       run: make test

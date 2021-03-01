@@ -9,7 +9,7 @@ import (
 )
 
 func Test_homeHandler(t *testing.T) {
-	engine := Engine()
+	engine := NewEngine()
 
 	resp := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/", nil)

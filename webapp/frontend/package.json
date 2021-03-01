@@ -1,0 +1,12 @@
+{
+  "name": "console-for-sap-frontend",
+  "version": "0.0.1",
+  "author": "SUSE LLC",
+  "license": "Apache-2.0",
+  "description": "A cloud-native, web application to manage OS-related tasks for SAP Applications.",
+  "repository": "SUSE/console-for-sap",
+  "dependencies": {
+    "eos-ds": "^2.5.0",
+    "sass": "^1.32.8"
+  }
+}

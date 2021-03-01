@@ -12,16 +12,22 @@ T.B.D.
 
 ## Requirements
 
-- Go 1.16
-- Go Modules (`export GO111MODULES=on`)
+To build the entire application you will need the following dependencies:
+
+- Go ^1.16
+- Node.js ^15.x
 
 ## Installation
 
-You can get the project binary via `go get` as usual.
+This project is in development so, for the time being, you need to clone it and build it manually: 
 
 ```shell
-go get -u github.com/SUSE/console-for-sap
+git clone github.com/SUSE/console-for-sap
+cd console-for-sap
+make
 ```
+
+Pre-built binaries will be available soon.
 
 ## Usage
 
@@ -30,6 +36,19 @@ You can start the web application as follows:
 ```shell
 console-for-sap webapp serve
 ```
+
+## Development
+
+We use GNU Make as a task manager; here are some common targets:
+```shell
+make clean
+make test
+make fmt
+make webapp-assets
+make build
+```
+
+Feel free to peek at the [Makefile](Makefile) to know more.
 
 ## Support
 

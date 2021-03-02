@@ -2,24 +2,23 @@ package webapp
 
 import (
 	"embed"
-	"html/template"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
-
-//go:embed templates
-var templatesFS embed.FS
 
 //go:embed frontend/assets
 var assetsFS embed.FS
 
 func NewEngine() *gin.Engine {
 
-	templates := template.Must(template.New("").ParseFS(templatesFS, "templates/*.tmpl"))
-
 	engine := gin.Default()
-	engine.SetHTMLTemplate(templates)
+
+	renderer := LayoutRenderer()
+	renderer.AddFromFS(
+		"home",
+		"templates/layout.html.tmpl", "templates/source_footer.html.tmpl", "templates/home.html.tmpl")
+	engine.HTMLRender = renderer
 
 	engine.StaticFS("/static", http.FS(assetsFS))
 	engine.GET("/", homeHandler)

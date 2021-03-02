@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+  <head>
+    <title>{{ .title }}</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="static/frontend/assets/stylesheets/stylesheets.css" />
+    <link rel="stylesheet" type="text/css" href="static/frontend/assets/stylesheets/override.css" />
+    <link rel="stylesheet" type="text/css" href="static/frontend/assets/stylesheets/eos-icons/eos-icons.css" />
+  <body>
+    <aside class="main-menu js-main-menu">
+      <div class="mm-navigation-container">
+        <header>
+          <div class="hide-collapsed">
+            <b>SUSE Console for SAP</b>
+          </div>
+          <div class="mm-navitation-close js-sidebar-toggle">
+            <i class="eos-icons js-sidebar-tooltip js-tooltip" data-placement="bottom" data-original-title="Collapse menu">menu</i>
+          </div>
+        </header>
+        <div class="nav-wrap">
+          <ul class="menu-togglable no-list-style">
+            <li class="menu-item">
+              <div class="menu-element" style="bottom: auto; top: 0px; left: 0px;">
+                <span class="main-collapsed-title">Home</span>
+              </div>
+              <a class="menu-title js-select-current-parent js-feature-flag" href="/">
+                <i class="eos-icons">home</i>
+                <span class="menu-title-content">Home</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <footer class="footer-side-menu">
+        <ul class="footer-list">
+          <li class="footer-list-item">
+            <i class="eos-icons" data-html="true" data-toggle="tooltip" title="{{ template "source_footer" }}" data-trigger="hover click">find_in_page</i>
+          </li>
+          <li class="footer-list-item">
+            <i class="eos-icons" data-html="true" data-toggle="tooltip" title="{{ .footer }}" data-trigger="hover click">info</i>
+          </li>
+        </ul>
+      </footer>
+    </aside>
+    <section class="content">
+      <div class="container">
+        {{ template "content" . }}
+      </div>
+    </section>
+  </body>
+</html>
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+<script src="static/frontend/assets/js/eos-ds/index.js"></script>

@@ -15,9 +15,11 @@ func NewEngine() *gin.Engine {
 	engine := gin.Default()
 
 	renderer := LayoutRenderer()
-	renderer.AddFromFS(
-		"home",
-		"templates/layout.html.tmpl", "templates/source_footer.html.tmpl", "templates/home.html.tmpl")
+	renderer.InitLayout()
+	renderer.AddLayoutData("title", "SUSE Console for SAP Applications")
+	renderer.AddLayoutData("footer", "© 2019-2020 SUSE, all rights reserved.")
+	renderer.AddTemplateFromFS(
+		"home", "templates/home.html.tmpl")
 	engine.HTMLRender = renderer
 
 	engine.StaticFS("/static", http.FS(assetsFS))

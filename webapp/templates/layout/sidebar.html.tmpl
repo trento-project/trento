@@ -1,0 +1,37 @@
+{{ define "sidebar" }}
+<aside class="main-menu js-main-menu">
+  <div class="mm-navigation-container">
+    <header>
+      <div class="hide-collapsed">
+        <b>SUSE Console for SAP</b>
+      </div>
+      <div class="mm-navitation-close js-sidebar-toggle">
+        <i class="eos-icons js-sidebar-tooltip js-tooltip" data-placement="bottom" data-original-title="Collapse menu">menu</i>
+      </div>
+    </header>
+    <div class="nav-wrap">
+      <ul class="menu-togglable no-list-style">
+        <li class="menu-item">
+          <div class="menu-element" style="bottom: auto; top: 0px; left: 0px;">
+            <span class="main-collapsed-title">Home</span>
+          </div>
+          <a class="menu-title js-select-current-parent js-feature-flag" href="/">
+            <i class="eos-icons">home</i>
+            <span class="menu-title-content">Home</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <footer class="footer-side-menu">
+    <ul class="footer-list">
+      <li class="footer-list-item">
+        <i class="eos-icons" title="" data-html="true" data-toggle="tooltip" data-title="{{ .source_footer }}" data-trigger="hover click">find_in_page</i>
+      </li>
+      <li class="footer-list-item">
+        <i class="eos-icons" title="" data-html="true" data-toggle="tooltip" data-title="{{ .footer }}" data-trigger="hover click">info</i>
+      </li>
+    </ul>
+  </footer>
+</aside>
+{{ end }}

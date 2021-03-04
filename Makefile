@@ -47,8 +47,12 @@ stylesheets-override: webapp/frontend/node_modules
 	webapp/frontend/node_modules/.bin/sass \
 		webapp/frontend/stylesheets/override.scss:webapp/frontend/assets/stylesheets/override.css
 
-webapp-assets-javascrips: javascripts-eos-ds
+webapp-assets-javascrips: javascripts-layout javascripts-eos-ds
 	mkdir -p webapp/frontend/assets/js
+
+javascripts-layout: webapp/frontend/node_modules
+	mkdir -p webapp/frontend/assets/js
+	cp webapp/frontend/javascripts/layout.js webapp/frontend/assets/js/layout.js
 
 javascripts-eos-ds: webapp/frontend/node_modules
 	mkdir -p webapp/frontend/assets/js/eos-ds

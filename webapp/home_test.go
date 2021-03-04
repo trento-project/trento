@@ -16,4 +16,5 @@ func Test_homeHandler(t *testing.T) {
 	engine.ServeHTTP(resp, req)
 
 	assert.Equal(t, 200, resp.Code)
+	assert.Contains(t, resp.Body.String(), "This is the home page")
 }

@@ -29,7 +29,7 @@ webapp-deps: webapp/frontend/node_modules
 webapp/frontend/node_modules:
 	cd webapp/frontend; npm install
 
-webapp-assets: webapp-assets-stylesheets webapp-assets-javascrips
+webapp-assets: webapp-images webapp-assets-stylesheets webapp-assets-javascrips
 
 webapp-assets-stylesheets: stylesheets stylesheets-eos-icons stylesheets-override
 	mkdir -p webapp/frontend/assets/stylesheets
@@ -57,3 +57,7 @@ javascripts-layout: webapp/frontend/node_modules
 javascripts-eos-ds: webapp/frontend/node_modules
 	mkdir -p webapp/frontend/assets/js/eos-ds
 	cp webapp/frontend/node_modules/eos-ds/dist/js/index.js webapp/frontend/assets/js/eos-ds/index.js
+
+webapp-images:
+	mkdir -p webapp/frontend/assets/images
+	cp -R webapp/frontend/images webapp/frontend/assets

@@ -1,5 +1,14 @@
 @import "../node_modules/eos-ds/dist/scss/eos-base/variables/branding";
 
+.main-menu {
+  width: 280px;
+  max-width: 280px !important;
+}
+
+.content {
+  margin-left: 280px;
+}
+
 .mm-navigation-container header {
   color: white;
 }

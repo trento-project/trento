@@ -23,6 +23,7 @@ func getLayoutTemplates() []string {
 		"templates/layout/source_footer.html.tmpl",
 		"templates/layout/sidebar.html.tmpl",
 		"templates/layout/header.html.tmpl",
+		"templates/layout/submenu.html.tmpl",
 	}
 }
 

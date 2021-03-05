@@ -25,7 +25,7 @@ func NewLayoutRender(templatesFS fs.FS, data gin.H, templates ...string) *Layout
 	r := &LayoutRender{
 		Data:      data,
 		root:      "templates/layout.html.tmpl",
-		blocks:    []string{"templates/includes/*.html.tmpl"},
+		blocks:    []string{"templates/block/*.html.tmpl"},
 		templates: map[string]*template.Template{},
 	}
 

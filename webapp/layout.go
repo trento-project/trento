@@ -2,44 +2,40 @@ package webapp
 
 import (
 	"bytes"
-	"embed"
 	"fmt"
 	"html/template"
+	"io/fs"
 	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/render"
 )
 
-//go:embed templates
-var templatesFS embed.FS
-
-type Render struct {
-	Data      map[string]interface{}
-	root	  string
-	patterns  []string
+// LayoutRender wraps user templates into a root one which has it's own data and a bunch of inner blocks
+type LayoutRender struct {
+	Data      gin.H
+	root      string   // the root template is separate because it has to be parsed first
+	blocks    []string // blocks are used by the root template and can be redefined in user templates
 	templates map[string]*template.Template
 }
 
-func NewLayout() *Render {
-	r := &Render{
-		Data: map[string]interface{}{},
-		root: "templates/layout/layout.html.tmpl",
-		patterns: []string{
-			"templates/layout/*",
-		},
-		//patterns: []string{"templates/layout/*.tmpl"},
+// The default constructor expects an FS, some data, and user templates;
+// user templates are the ones that can be referenced by the Gin context.
+func NewLayoutRender(templatesFS fs.FS, data gin.H, templates ...string) *LayoutRender {
+	r := &LayoutRender{
+		Data:      data,
+		root:      "templates/layout.html.tmpl",
+		blocks:    []string{"templates/includes/*.html.tmpl"},
 		templates: map[string]*template.Template{},
 	}
 
-	r.Data["title"] = "SUSE Console for SAP Applications"
-	r.Data["copyright"] = "© 2019-2020 SUSE, all rights reserved."
+	r.addGlobFromFS(templatesFS, templates...)
 
 	return r
 }
 
 // Instance returns a render.HTML instance with the associated named Template
-func (r Render) Instance(name string, data interface{}) render.Render {
+func (r *LayoutRender) Instance(name string, data interface{}) render.Render {
 	r.addLayoutData(data)
 	return render.HTML{
 		Template: r.templates[name],
@@ -47,8 +43,44 @@ func (r Render) Instance(name string, data interface{}) render.Render {
 	}
 }
 
-// Add new template
-func (r Render) Add(name string, tmpl *template.Template) {
+// addGlobFromFS expands globs so that each user template is added under a name
+func (r *LayoutRender) addGlobFromFS(templatesFS fs.FS, patterns ...string) {
+	for _, pattern := range patterns {
+		files, err := fs.Glob(templatesFS, pattern)
+		if err != nil {
+			// we exceptionally hard panic in case of glob errors, these should never happen.
+			panic(err)
+		}
+		for _, file := range files {
+			if file == r.root {
+				continue
+			}
+			r.addFileFromFS(templatesFS, file)
+		}
+	}
+}
+
+// addFileFromFS parses the root template with the user
+func (r *LayoutRender) addFileFromFS(templatesFS fs.FS, file string) {
+	var tmpl *template.Template
+
+	name := filepath.Base(file)
+	tmpl = template.New(filepath.Base(r.root))
+	tmpl = tmpl.Funcs(template.FuncMap{
+		"escapedTemplate": func(name string, data interface{}) string {
+			var out bytes.Buffer
+			_ = tmpl.ExecuteTemplate(&out, name, data)
+			return out.String()
+		},
+	})
+	patterns := append([]string{r.root, file}, r.blocks...)
+	tmpl = template.Must(tmpl.ParseFS(templatesFS, patterns...))
+
+	r.addTemplate(name, tmpl)
+}
+
+// addTemplate adds a new user template to the render
+func (r *LayoutRender) addTemplate(name string, tmpl *template.Template) {
 	if tmpl == nil {
 		panic("template can not be nil")
 	}
@@ -61,27 +93,8 @@ func (r Render) Add(name string, tmpl *template.Template) {
 	r.templates[name] = tmpl
 }
 
-func (r Render) AddFromEmbeddedFS(patterns ...string) {
-	for _, pattern := range patterns {
-		var tmpl *template.Template
-
-		name := filepath.Base(pattern)
-		tmpl = template.New(filepath.Base(r.root))
-		tmpl = tmpl.Funcs(template.FuncMap{
-			"escapedTemplate": func(name string, data interface{}) string {
-				var out bytes.Buffer
-				_ = tmpl.ExecuteTemplate(&out, name, data)
-				return out.String()
-			},
-		})
-		tmpl = template.Must(tmpl.ParseFS(templatesFS, append([]string{r.root, pattern}, r.patterns...)...))
-
-		r.Add(name, tmpl)
-	}
-}
-
-// Add layout data to the data interface
-func (r Render) addLayoutData(data interface{}) {
+// addTemplate adds the root template data to the data passed to the user template
+func (r *LayoutRender) addLayoutData(data interface{}) {
 	for key, value := range r.Data {
 		data.(gin.H)[key] = value
 	}

@@ -22,7 +22,7 @@ To build the entire application you will need the following dependencies:
 This project is in development so, for the time being, you need to clone it and build it manually: 
 
 ```shell
-git clone github.com/SUSE/console-for-sap
+git clone github.com/SUSE/console-for-sap-applications
 cd console-for-sap
 make
 ```

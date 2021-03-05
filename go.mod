@@ -1,4 +1,4 @@
-module github.com/SUSE/console-for-sap
+module github.com/SUSE/console-for-sap-applications
 
 go 1.16
 

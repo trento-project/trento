@@ -1,0 +1,14 @@
+<!doctype html>
+<html>
+  {{ template "header" . }}
+  <body>
+    {{ template "sidebar" . }}
+    <section class="content">
+      {{ template "submenu" . }}
+      <div class="container">
+        {{ template "content" . }}
+      </div>
+    </section>
+    {{ template "footer" . }}
+  </body>
+</html>

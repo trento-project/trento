@@ -1,0 +1,18 @@
+@import "../node_modules/eos-ds/dist/scss/eos-base/variables/branding";
+
+.main-menu {
+  width: 280px;
+  max-width: 280px !important;
+}
+
+.content {
+  margin-left: 280px;
+}
+
+.mm-navigation-container header {
+  color: white;
+}
+
+footer.footer-side-menu ul.footer-list {
+  color: $eos-bc-gray-900;
+}

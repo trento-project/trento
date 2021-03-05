@@ -1,3 +1,5 @@
+.PHONY: default build console-for-sap clean download fmt mod-tidy test vet-check webapp-assets
+
 default: clean download mod-tidy fmt vet-check test build
 
 build: webapp-assets console-for-sap
@@ -6,7 +8,7 @@ console-for-sap:
 
 clean:
 	go clean
-	rm -rf webapp/frontend/assets/*.css
+	rm -rf webapp/frontend/assets
 	rm -rf webapp/frontend/node_modules
 
 download:
@@ -29,7 +31,24 @@ webapp-deps: webapp/frontend/node_modules
 webapp/frontend/node_modules:
 	cd webapp/frontend; npm install
 
-webapp-assets: webapp/frontend/assets/stylesheets.css
-webapp/frontend/assets/stylesheets.css: webapp/frontend/node_modules
+webapp-assets: webapp/frontend/assets
+
+webapp/frontend/assets: webapp/frontend/assets/js webapp/frontend/assets/stylesheets webapp/frontend/assets/images
+
+webapp/frontend/assets/js: webapp/frontend/node_modules
+	mkdir -p webapp/frontend/assets/js/eos-ds
+	cp webapp/frontend/javascripts/layout.js webapp/frontend/assets/js/layout.js
+	cp webapp/frontend/node_modules/eos-ds/dist/js/index.js webapp/frontend/assets/js/eos-ds/index.js
+
+webapp/frontend/assets/stylesheets: webapp/frontend/node_modules
+	mkdir -p webapp/frontend/assets/stylesheets/eos-icons
 	webapp/frontend/node_modules/.bin/sass \
-		webapp/frontend/stylesheets/stylesheets.scss:webapp/frontend/assets/stylesheets.css
+		webapp/frontend/stylesheets/stylesheets.scss:webapp/frontend/assets/stylesheets/stylesheets.css
+	cp webapp/frontend/node_modules/eos-ds/dist/vendors/eos-icons/css/eos-icons.css webapp/frontend/assets/stylesheets/eos-icons/eos-icons.css
+	cp -R webapp/frontend/node_modules/eos-ds/dist/vendors/eos-icons/fonts webapp/frontend/assets/stylesheets/
+	webapp/frontend/node_modules/.bin/sass \
+		webapp/frontend/stylesheets/override.scss:webapp/frontend/assets/stylesheets/override.css
+
+webapp/frontend/assets/images:
+	mkdir -p webapp/frontend/assets/images
+	cp -R webapp/frontend/images webapp/frontend/assets

@@ -1,12 +1,4 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <title>{{ .title }}</title>
-    <link rel="stylesheet" type="text/css" href="static/frontend/assets/stylesheets.css" />
-  </head>
-  <body>
-    <div class="container-fluid">
-      <header class="col"><h1>{{ .title }}</h1></header>
-    </div>
-  </body>
-</html>
+{{ define "content" }}
+<h1>{{ .title }}</h1>
+<p>This is the home page</p>
+{{ end }}

@@ -14,7 +14,7 @@ var assetsFS embed.FS
 var templatesFS embed.FS
 
 var layoutData = gin.H{
-	"title": "SUSE Console for SAP Applications",
+	"title":     "SUSE Console for SAP Applications",
 	"copyright": "© 2019-2020 SUSE, all rights reserved.",
 }
 

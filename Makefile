@@ -1,13 +1,17 @@
-.PHONY: default build console-for-sap clean download fmt mod-tidy test vet-check webapp-assets
-
 default: clean download mod-tidy fmt vet-check test build
 
-build: webapp-assets console-for-sap
-console-for-sap:
+.PHONY: build clean clean-binary clean-frontend default download fmt mod-tidy test vet-check webapp-assets
+
+build: console-for-sap-applications
+console-for-sap-applications: webapp-assets
 	go build
 
-clean:
+clean: clean-binary clean-frontend
+
+clean-binary:
 	go clean
+
+clean-frontend:
 	rm -rf webapp/frontend/assets
 	rm -rf webapp/frontend/node_modules
 

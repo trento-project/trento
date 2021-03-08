@@ -9,7 +9,7 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 
-	"github.com/SUSE/console-for-sap/cmd/webapp"
+	"github.com/SUSE/console-for-sap-applications/cmd/webapp"
 )
 
 var cfgFile string

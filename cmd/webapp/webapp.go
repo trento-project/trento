@@ -8,7 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/SUSE/console-for-sap/webapp"
+	"github.com/SUSE/console-for-sap-applications/webapp"
 )
 
 var host string

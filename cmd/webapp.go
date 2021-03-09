@@ -2,12 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"html/template"
 	"log"
+	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/go-chi/chi/v5"
 	"github.com/spf13/cobra"
-
-	"github.com/SUSE/console-for-sap/webapp"
 )
 
 // webappCmd represents the webapp command
@@ -35,10 +35,37 @@ func init() {
 }
 
 func serve(cmd *cobra.Command, args []string) {
-	engine := gin.Default()
-	engine.LoadHTMLGlob("webapp/templates/*.tpl")
-	engine.GET("/", webapp.Home)
+	r := chi.NewRouter()
+
+	r.Get("/", renderTemplate)
+
+	r.Get("/home", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("hi home"))
+	})
 
 	listenAddress := fmt.Sprintf("%s:%d", host, port)
-	log.Fatal(engine.Run(listenAddress))
+
+	http.ListenAndServe(listenAddress, r)
+
+}
+
+// Index data is used for the home template
+type Index struct {
+	Title string
+}
+
+func renderTemplate(w http.ResponseWriter, r *http.Request) {
+	data := Index{
+		Title: "Sapconsole",
+	}
+	parsedTemplate, err := template.ParseFiles("webapp/templates/home.html")
+	if err != nil {
+		log.Println("Error parsing template :", err)
+		return
+	}
+	err = parsedTemplate.Execute(w, data)
+	if err != nil {
+		log.Println("Error executing template :", err)
+		return
+	}
 }

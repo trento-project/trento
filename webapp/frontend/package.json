@@ -6,7 +6,7 @@
   "description": "A cloud-native, web application to manage OS-related tasks for SAP Applications.",
   "repository": "SUSE/console-for-sap",
   "dependencies": {
-    "eos-ds": "^2.5.0",
+    "eos-ds": "^2.5.1",
     "sass": "^1.32.8"
   }
 }

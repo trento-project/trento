@@ -2,13 +2,12 @@ package webapp
 
 import (
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
-	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/spf13/cobra"
-
-	"github.com/SUSE/console-for-sap-applications/webapp"
 )
 
 var host string
@@ -35,15 +34,36 @@ func NewWebappCmd() *cobra.Command {
 }
 
 func serve(cmd *cobra.Command, args []string) {
-	engine := webapp.NewEngine()
+	r := chi.NewRouter()
+	r.Get("/", renderTemplate)
 
-	s := &http.Server{
-		Addr:           fmt.Sprintf("%s:%d", host, port),
-		Handler:        engine,
-		ReadTimeout:    10 * time.Second,
-		WriteTimeout:   10 * time.Second,
-		MaxHeaderBytes: 1 << 20,
+	r.Get("/home", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("hi home"))
+	})
+	listenAddress := fmt.Sprintf("%s:%d", host, port)
+	err := http.ListenAndServe(listenAddress, r)
+	log.Println("Error listening and serving:", err)
+}
+
+// Index data is used for the home template
+type Index struct {
+	Title string
+}
+
+func renderTemplate(w http.ResponseWriter, r *http.Request) {
+	data := Index{
+		Title: "Sapconsole",
 	}
-
-	log.Fatal(s.ListenAndServe())
+	parsedTemplate, err := template.ParseFiles("webapp/templates/home.html.tmpl")
+	if err != nil {
+		log.Println("Error parsing template :", err)
+		http.Error(w, http.StatusText(404), 404)
+		return
+	}
+	err = parsedTemplate.Execute(w, data)
+	if err != nil {
+		log.Println("Error executing template :", err)
+		http.Error(w, http.StatusText(404), 404)
+		return
+	}
 }

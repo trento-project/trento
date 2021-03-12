@@ -2,10 +2,13 @@ package webapp
 
 import (
 	"fmt"
-	"html/template"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
 
+	"github.com/SUSE/console-for-sap-applications/webapp"
 	"github.com/go-chi/chi/v5"
 	"github.com/spf13/cobra"
 )
@@ -35,35 +38,42 @@ func NewWebappCmd() *cobra.Command {
 
 func serve(cmd *cobra.Command, args []string) {
 	r := chi.NewRouter()
-	r.Get("/", renderTemplate)
 
+	r.Get("/", webapp.IndexHandler)
 	r.Get("/home", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("hi home"))
 	})
+
+	// Create a route along /files that will serve contents from
+	// the ./data/ folder.
+	workDir, _ := os.Getwd()
+	filesDir := http.Dir(filepath.Join(workDir, "webapp/frontend/assets/"))
+	FileServer(r, "/static", filesDir)
+
 	listenAddress := fmt.Sprintf("%s:%d", host, port)
 	err := http.ListenAndServe(listenAddress, r)
-	log.Println("Error listening and serving:", err)
+	if err != nil {
+		log.Println("Error while serving HTTP:", err)
+	}
+	log.Printf("serving on port %s", listenAddress)
+
 }
 
-// Index data is used for the home template
-type Index struct {
-	Title string
-}
+func FileServer(r chi.Router, path string, root http.FileSystem) {
+	if strings.ContainsAny(path, "{}*") {
+		panic("FileServer does not permit any URL parameters.")
+	}
 
-func renderTemplate(w http.ResponseWriter, r *http.Request) {
-	data := Index{
-		Title: "Sapconsole",
+	if path != "/" && path[len(path)-1] != '/' {
+		r.Get(path, http.RedirectHandler(path+"/", 301).ServeHTTP)
+		path += "/"
 	}
-	parsedTemplate, err := template.ParseFiles("webapp/templates/home.html.tmpl")
-	if err != nil {
-		log.Println("Error parsing template :", err)
-		http.Error(w, http.StatusText(404), 404)
-		return
-	}
-	err = parsedTemplate.Execute(w, data)
-	if err != nil {
-		log.Println("Error executing template :", err)
-		http.Error(w, http.StatusText(404), 404)
-		return
-	}
+	path += "*"
+
+	r.Get(path, func(w http.ResponseWriter, r *http.Request) {
+		rctx := chi.RouteContext(r.Context())
+		pathPrefix := strings.TrimSuffix(rctx.RoutePattern(), "/*")
+		fs := http.StripPrefix(pathPrefix, http.FileServer(root))
+		fs.ServeHTTP(w, r)
+	})
 }

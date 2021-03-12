@@ -2,10 +2,24 @@ package webapp
 
 import (
 	"net/http"
-
-	"github.com/gin-gonic/gin"
+	"text/template"
 )
 
-func homeHandler(c *gin.Context) {
-	c.HTML(http.StatusOK, "home.html.tmpl", gin.H{})
+// Index data is used for the home template
+type Index struct {
+	Title string
+}
+
+var allTemplates = template.Must(template.ParseGlob("webapp/templates/*.tmpl"))
+
+func IndexHandler(w http.ResponseWriter, r *http.Request) {
+	data := Index{
+		Title: "SUSE Console for SAP Applications",
+	}
+	// you access the cached templates with the defined name, not the filename
+	err := allTemplates.ExecuteTemplate(w, "indexPage", data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }

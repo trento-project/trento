@@ -1,9 +1,9 @@
 default: clean download mod-tidy fmt vet-check test build
 
-.PHONY: build clean clean-binary clean-frontend default download fmt mod-tidy test vet-check webapp-assets
+.PHONY: build clean clean-binary clean-frontend default download fmt mod-tidy test vet-check web-assets
 
 build: console-for-sap-applications
-console-for-sap-applications: webapp-assets
+console-for-sap-applications: web-assets
 	go build
 
 clean: clean-binary clean-frontend
@@ -12,8 +12,8 @@ clean-binary:
 	go clean
 
 clean-frontend:
-	rm -rf webapp/frontend/assets
-	rm -rf webapp/frontend/node_modules
+	rm -rf web/frontend/assets
+	rm -rf web/frontend/node_modules
 
 download:
 	go mod download
@@ -25,34 +25,34 @@ fmt:
 mod-tidy:
 	go mod tidy
 
-test: download webapp-assets
+test: download web-assets
 	go test -v ./...
 
-vet-check: download webapp-assets
+vet-check: download web-assets
 	go vet ./...
 
-webapp-deps: webapp/frontend/node_modules
-webapp/frontend/node_modules:
-	cd webapp/frontend; npm install
+web-deps: web/frontend/node_modules
+web/frontend/node_modules:
+	cd web/frontend; npm install
 
-webapp-assets: webapp/frontend/assets
+web-assets: web/frontend/assets
 
-webapp/frontend/assets: webapp/frontend/assets/js webapp/frontend/assets/stylesheets webapp/frontend/assets/images
+web/frontend/assets: web/frontend/assets/js web/frontend/assets/stylesheets web/frontend/assets/images
 
-webapp/frontend/assets/js: webapp/frontend/node_modules
-	mkdir -p webapp/frontend/assets/js/eos-ds
-	cp webapp/frontend/javascripts/layout.js webapp/frontend/assets/js/layout.js
-	cp webapp/frontend/node_modules/eos-ds/dist/js/index.js webapp/frontend/assets/js/eos-ds/index.js
+web/frontend/assets/js: web/frontend/node_modules
+	mkdir -p web/frontend/assets/js/eos-ds
+	cp web/frontend/javascripts/layout.js web/frontend/assets/js/layout.js
+	cp web/frontend/node_modules/eos-ds/dist/js/index.js web/frontend/assets/js/eos-ds/index.js
 
-webapp/frontend/assets/stylesheets: webapp/frontend/node_modules
-	mkdir -p webapp/frontend/assets/stylesheets/eos-icons
-	webapp/frontend/node_modules/.bin/sass \
-		webapp/frontend/stylesheets/stylesheets.scss:webapp/frontend/assets/stylesheets/stylesheets.css
-	cp webapp/frontend/node_modules/eos-ds/dist/vendors/eos-icons/css/eos-icons.css webapp/frontend/assets/stylesheets/eos-icons/eos-icons.css
-	cp -R webapp/frontend/node_modules/eos-ds/dist/vendors/eos-icons/fonts webapp/frontend/assets/stylesheets/
-	webapp/frontend/node_modules/.bin/sass \
-		webapp/frontend/stylesheets/override.scss:webapp/frontend/assets/stylesheets/override.css
+web/frontend/assets/stylesheets: web/frontend/node_modules
+	mkdir -p web/frontend/assets/stylesheets/eos-icons
+	web/frontend/node_modules/.bin/sass \
+		web/frontend/stylesheets/stylesheets.scss:web/frontend/assets/stylesheets/stylesheets.css
+	cp web/frontend/node_modules/eos-ds/dist/vendors/eos-icons/css/eos-icons.css web/frontend/assets/stylesheets/eos-icons/eos-icons.css
+	cp -R web/frontend/node_modules/eos-ds/dist/vendors/eos-icons/fonts web/frontend/assets/stylesheets/
+	web/frontend/node_modules/.bin/sass \
+		web/frontend/stylesheets/override.scss:web/frontend/assets/stylesheets/override.css
 
-webapp/frontend/assets/images:
-	mkdir -p webapp/frontend/assets/images
-	cp -R webapp/frontend/images webapp/frontend/assets
+web/frontend/assets/images:
+	mkdir -p web/frontend/assets/images
+	cp -R web/frontend/images web/frontend/assets

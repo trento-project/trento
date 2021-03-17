@@ -40,12 +40,7 @@ func serve(cmd *cobra.Command, args []string) {
 	r := chi.NewRouter()
 
 	r.Get("/", webapp.IndexHandler)
-	r.Get("/home", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("hi home"))
-	})
 
-	// Create a route along /files that will serve contents from
-	// the ./data/ folder.
 	workDir, _ := os.Getwd()
 	filesDir := http.Dir(filepath.Join(workDir, "webapp/frontend/assets/"))
 	FileServer(r, "/static", filesDir)

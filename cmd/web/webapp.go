@@ -1,4 +1,4 @@
-package webapp
+package web
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/SUSE/console-for-sap-applications/webapp"
+	"github.com/SUSE/console-for-sap-applications/web"
 )
 
 var host string
@@ -35,7 +35,7 @@ func NewWebappCmd() *cobra.Command {
 }
 
 func serve(cmd *cobra.Command, args []string) {
-	engine := webapp.NewEngine()
+	engine := web.NewEngine()
 
 	s := &http.Server{
 		Addr:           fmt.Sprintf("%s:%d", host, port),

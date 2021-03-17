@@ -1,3 +1,3 @@
 console-for-sap-applications
-webapp/frontend/assets
-webapp/frontend/node_modules
+web/frontend/assets
+web/frontend/node_modules

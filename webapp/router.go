@@ -5,7 +5,6 @@ import (
 	"io/fs"
 	"net/http"
 	"strings"
-	"text/template"
 
 	"github.com/go-chi/chi"
 )
@@ -16,13 +15,11 @@ var templateFS embed.FS
 //go:embed frontend/assets
 var assetsFS embed.FS
 
-var allTemplates = template.Must(template.ParseFS(templateFS, "templates/*.tmpl"))
-
 // InitRouter initialize the http router
 func InitRouter() chi.Router {
 	r := chi.NewRouter()
 
-	r.Get("/", IndexHandler(allTemplates))
+	r.Get("/", IndexHandler(templateFS))
 	filesDir, err := fs.Sub(assetsFS, "frontend/assets")
 	if err != nil {
 		panic(err)

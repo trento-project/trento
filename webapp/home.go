@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"embed"
 	"net/http"
 	"text/template"
 )
@@ -11,13 +12,19 @@ type Index struct {
 	Title string
 }
 
-func IndexHandler(allTemplates *template.Template) http.HandlerFunc {
+func IndexHandler(templateFS embed.FS) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		data := Index{
 			Title: "SUSE Console for SAP Applications",
 		}
-		// you access the cached templates with the defined name, not the filename
-		err := allTemplates.ExecuteTemplate(w, "indexPage", data)
+
+		tmpl, err := template.ParseFS(templateFS, "templates/home.html.tmpl", "templates/base.html.tmpl")
+		// check your err
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		err = tmpl.ExecuteTemplate(w, "base", data)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

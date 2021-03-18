@@ -4,12 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/SUSE/console-for-sap-applications/webapp"
-	"github.com/go-chi/chi/v5"
 	"github.com/spf13/cobra"
 )
 
@@ -37,13 +33,8 @@ func NewWebappCmd() *cobra.Command {
 }
 
 func serve(cmd *cobra.Command, args []string) {
-	r := chi.NewRouter()
 
-	r.Get("/", webapp.IndexHandler)
-
-	workDir, _ := os.Getwd()
-	filesDir := http.Dir(filepath.Join(workDir, "webapp/frontend/assets/"))
-	FileServer(r, "/static", filesDir)
+	r := webapp.InitRouter()
 
 	listenAddress := fmt.Sprintf("%s:%d", host, port)
 	err := http.ListenAndServe(listenAddress, r)
@@ -52,23 +43,4 @@ func serve(cmd *cobra.Command, args []string) {
 	}
 	log.Printf("serving on port %s", listenAddress)
 
-}
-
-func FileServer(r chi.Router, path string, root http.FileSystem) {
-	if strings.ContainsAny(path, "{}*") {
-		panic("FileServer does not permit any URL parameters.")
-	}
-
-	if path != "/" && path[len(path)-1] != '/' {
-		r.Get(path, http.RedirectHandler(path+"/", 301).ServeHTTP)
-		path += "/"
-	}
-	path += "*"
-
-	r.Get(path, func(w http.ResponseWriter, r *http.Request) {
-		rctx := chi.RouteContext(r.Context())
-		pathPrefix := strings.TrimSuffix(rctx.RoutePattern(), "/*")
-		fs := http.StripPrefix(pathPrefix, http.FileServer(root))
-		fs.ServeHTTP(w, r)
-	})
 }

@@ -6,17 +6,19 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"text/template"
 )
 
 func Test_homeHandler(t *testing.T) {
 
+	var allTemplates = template.Must(template.ParseGlob("templates/*.tmpl"))
 	req, err := http.NewRequest("GET", "", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(IndexHandler)
+	handler := http.HandlerFunc(IndexHandler(allTemplates))
 	handler.ServeHTTP(rr, req)
 
 	// Check the status code is what we expect.

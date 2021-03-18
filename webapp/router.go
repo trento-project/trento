@@ -1,24 +1,33 @@
 package webapp
 
 import (
+	"embed"
+	"io/fs"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strings"
+	"text/template"
 
 	"github.com/go-chi/chi"
 )
 
-// Routes creates a REST router for the todos resource
+//go:embed templates
+var templateFS embed.FS
+
+//go:embed frontend/assets
+var assetsFS embed.FS
+
+var allTemplates = template.Must(template.ParseFS(templateFS, "templates/*.tmpl"))
+
+// InitRouter initialize the http router
 func InitRouter() chi.Router {
 	r := chi.NewRouter()
 
-	r.Get("/", IndexHandler)
-
-	workDir, _ := os.Getwd()
-	filesDir := http.Dir(filepath.Join(workDir, "webapp/frontend/assets/"))
-	FileServer(r, "/static", filesDir)
-
+	r.Get("/", IndexHandler(allTemplates))
+	filesDir, err := fs.Sub(assetsFS, "frontend/assets")
+	if err != nil {
+		panic(err)
+	}
+	FileServer(r, "/static", http.FS(filesDir))
 	return r
 }
 

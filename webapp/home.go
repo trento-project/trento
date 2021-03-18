@@ -9,17 +9,18 @@ import (
 // Index data is used for the home template
 
 type Index struct {
-	Title string
+	Title     string
+	Copyright string
 }
 
 func IndexHandler(templateFS embed.FS) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		data := Index{
-			Title: "SUSE Console for SAP Applications",
+			Title:     "SUSE Console for SAP Applications",
+			Copyright: "2019-2021 SUSE, all rights reserved.",
 		}
+		tmpl, err := template.ParseFS(templateFS, "templates/home.html.tmpl", "templates/base.html.tmpl", "templates/blocks/*.html.tmpl")
 
-		tmpl, err := template.ParseFS(templateFS, "templates/home.html.tmpl", "templates/base.html.tmpl")
-		// check your err
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

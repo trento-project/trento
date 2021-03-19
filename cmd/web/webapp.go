@@ -36,10 +36,7 @@ func serve(cmd *cobra.Command, args []string) {
 	r := web.InitRouter()
 
 	listenAddress := fmt.Sprintf("%s:%d", host, port)
-
 	log.Printf("listening on port %s", listenAddress)
-	err := http.ListenAndServe(listenAddress, r)
-	if err != nil {
-		log.Println("Error while serving HTTP:", err)
-	}
+
+	log.Fatal(http.ListenAndServe(listenAddress, r))
 }

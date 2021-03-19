@@ -1,11 +1,11 @@
-package webapp
+package web
 
 import (
 	"fmt"
 	"log"
 	"net/http"
 
-	"github.com/SUSE/console-for-sap-applications/webapp"
+	"github.com/SUSE/console-for-sap-applications/web"
 	"github.com/spf13/cobra"
 )
 
@@ -33,14 +33,13 @@ func NewWebappCmd() *cobra.Command {
 }
 
 func serve(cmd *cobra.Command, args []string) {
-
-	r := webapp.InitRouter()
+	r := web.InitRouter()
 
 	listenAddress := fmt.Sprintf("%s:%d", host, port)
+
+	log.Printf("listening on port %s", listenAddress)
 	err := http.ListenAndServe(listenAddress, r)
 	if err != nil {
 		log.Println("Error while serving HTTP:", err)
 	}
-	log.Printf("serving on port %s", listenAddress)
-
 }

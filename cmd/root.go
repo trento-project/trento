@@ -9,7 +9,7 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 
-	"github.com/SUSE/console-for-sap-applications/cmd/webapp"
+	"github.com/SUSE/console-for-sap-applications/cmd/web"
 )
 
 var cfgFile string
@@ -31,7 +31,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.console-for-sap.yaml)")
-	rootCmd.AddCommand(webapp.NewWebappCmd())
+	rootCmd.AddCommand(web.NewWebappCmd())
 }
 
 // initConfig reads in config file and ENV variables if set.

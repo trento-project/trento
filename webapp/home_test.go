@@ -10,13 +10,15 @@ import (
 
 func Test_homeHandler(t *testing.T) {
 
+	templs := NewTemplateRender(templatesFS, "templates/*.tmpl")
+
 	req, err := http.NewRequest("GET", "", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(IndexHandler(templateFS))
+	handler := http.HandlerFunc(IndexHandler(templs.templates))
 	handler.ServeHTTP(rr, req)
 
 	// Check the status code is what we expect.

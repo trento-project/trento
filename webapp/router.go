@@ -10,20 +10,23 @@ import (
 )
 
 //go:embed templates
-var templateFS embed.FS
+var templatesFS embed.FS
 
 //go:embed frontend/assets
 var assetsFS embed.FS
 
-// InitRouter initialize the http router
 func InitRouter() chi.Router {
 	r := chi.NewRouter()
-
-	r.Get("/", IndexHandler(templateFS))
+	// parse all templates and return a map, which is consumed by each handler
+	templs := NewTemplateRender(templatesFS, "templates/*.tmpl")
+	// filesystem for static file
 	filesDir, err := fs.Sub(assetsFS, "frontend/assets")
 	if err != nil {
 		panic(err)
 	}
+
+	r.Get("/", IndexHandler(templs.templates))
+
 	FileServer(r, "/static", http.FS(filesDir))
 	return r
 }

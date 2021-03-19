@@ -12,7 +12,7 @@ type Index struct {
 	Copyright string
 }
 
-func IndexHandler(templates map[string]*template.Template) http.HandlerFunc {
+func IndexHandler(templates map[string]template.Template) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		data := Index{
 			Title:     "SUSE Console for SAP Applications",

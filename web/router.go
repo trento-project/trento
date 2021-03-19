@@ -17,8 +17,9 @@ var assetsFS embed.FS
 func InitRouter() chi.Router {
 	r := chi.NewRouter()
 	// parse all templates and return a map, which is consumed by each handler
-	templs := NewTemplateRender(templatesFS, "templates/*.tmpl")
-	r.Get("/", IndexHandler(templs.templates))
+
+	templs := AddAllTemplatesFromFS(templatesFS, "templates/*.tmpl")
+	r.Get("/", IndexHandler(templs))
 
 	FileServer(r, "/static", http.FS(assetsFS))
 	return r

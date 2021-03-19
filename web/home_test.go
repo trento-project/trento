@@ -11,7 +11,7 @@ import (
 func Test_homeHandler(t *testing.T) {
 
 	templs := AddAllTemplatesFromFS(templatesFS, "templates/*.tmpl")
-	req, err := http.NewRequest("GET", "", nil)
+	req, err := http.NewRequest("GET", "/", nil)
 	if err != nil {
 		t.Fatal(err)
 	}

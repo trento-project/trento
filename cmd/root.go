@@ -17,7 +17,7 @@ var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "console-for-sap",
+	Use:   "console-for-sap-applications",
 	Short: "A cloud-native, web application to manage OS-related tasks for SAP Applications.",
 	Long: `SUSE Console for SAP Applications is a web-based graphical user interface 
 that can help you deploy, provision and operate infrastructure for SAP Applications`,

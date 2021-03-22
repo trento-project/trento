@@ -1,0 +1,10 @@
+{{ define "content" }}
+<div class="col">
+    <h1>Environments</h1>
+    <ul>
+    {{ range .Environments }}
+        <li>{{ .Name }}</li>
+    {{ end }}
+    </ul>
+</div>
+{{ end }}

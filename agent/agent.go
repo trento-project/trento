@@ -11,10 +11,10 @@ import (
 )
 
 type Agent struct {
-	consul *consulApi.Client
+	consul        *consulApi.Client
 	consulService *consulApi.AgentServiceRegistration
-	ctx context.Context
-	Stop context.CancelFunc
+	ctx           context.Context
+	Stop          context.CancelFunc
 }
 
 type checkFunc func() (string, error)
@@ -75,7 +75,6 @@ func (a *Agent) deregister() {
 	log.Println("Consul service de-registered.")
 }
 
-
 func (a *Agent) startConsulCheckTicker(check checkFunc) error {
 	a.consulCheck(check) // immediate first tick
 
@@ -110,7 +109,7 @@ func (a *Agent) consulCheck(check checkFunc) {
 		ttlStatus = consulApi.HealthPassing
 	}
 
-	err = a.consul.Agent().UpdateTTL("service:" + a.consulService.Name, checkOutput, ttlStatus)
+	err = a.consul.Agent().UpdateTTL("service:"+a.consulService.Name, checkOutput, ttlStatus)
 	if err != nil {
 		log.Println("An error occurred while trying to update TTL with Consul: ", err)
 	}

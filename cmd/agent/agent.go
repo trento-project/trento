@@ -21,7 +21,7 @@ func NewAgentCmd() *cobra.Command {
 	cmdStart := &cobra.Command{
 		Use:   "start",
 		Short: "Start the agent",
-		Run: start,
+		Run:   start,
 	}
 
 	cmdAgent := &cobra.Command{

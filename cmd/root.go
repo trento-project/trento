@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/SUSE/console-for-sap-applications/cmd/web"
+	"github.com/SUSE/console-for-sap-applications/cmd/agent"
 )
 
 var cfgFile string
@@ -32,6 +33,7 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.console-for-sap.yaml)")
 	rootCmd.AddCommand(web.NewWebappCmd())
+	rootCmd.AddCommand(agent.NewAgentCmd())
 }
 
 // initConfig reads in config file and ENV variables if set.

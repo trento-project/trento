@@ -46,19 +46,17 @@ func start(cmd *cobra.Command, args []string) {
 		log.Fatal("Failed to create the agent instance: ", err)
 	}
 
-	defer func() {
-		quit := <-signals
-		log.Printf("Caught %s signal! Stopping the agent...", quit)
-
-		a.Stop()
-
-		log.Println("Agent stopped.")
-	}()
-
 	go func() {
-		err = a.Start()
-		if err != nil {
-			log.Fatal("Failed to start the agent: ", err)
-		}
+		quit := <-signals
+		log.Printf("Caught %s signal!", quit)
+
+		log.Println("Stopping the agent...")
+		a.Stop()
 	}()
+
+	log.Println("Starting the Console Agent...")
+	err = a.Start()
+	if err != nil {
+		log.Fatal("Failed to start the agent: ", err)
+	}
 }

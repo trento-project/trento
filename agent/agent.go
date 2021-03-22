@@ -14,7 +14,7 @@ type Agent struct {
 	consul        *consulApi.Client
 	consulService *consulApi.AgentServiceRegistration
 	ctx           context.Context
-	cancel        context.CancelFunc
+	Stop          context.CancelFunc
 }
 
 type checkFunc func() (string, error)
@@ -44,9 +44,8 @@ func New() (*Agent, error) {
 }
 
 func (a *Agent) Start() error {
-	log.Println("Starting the Console Agent...")
-
 	var err error
+	defer a.deregister()
 
 	log.Println("Registering the agent service with Consul...")
 	err = a.consul.Agent().ServiceRegister(a.consulService)
@@ -55,16 +54,18 @@ func (a *Agent) Start() error {
 	}
 	log.Println("Consul service registered.")
 
-	a.startConsulCheckTicker(func() (string, error) {
+	log.Println("Starting Consul TTL Check loop...")
+	err = a.startConsulCheckTicker(func() (string, error) {
 		return "all is good", nil
 	})
+	if err != nil {
+		return errors.Wrap(err, "could not start Consul TTL Check loop")
+	}
+	log.Println("Consul TTL Check loop stopped.")
 
 	return nil
 }
-
-func (a *Agent) Stop() {
-	a.cancel()
-
+func (a *Agent) deregister() {
 	log.Println("De-registering the agent service with Consul...")
 	err := a.consul.Agent().ServiceDeregister(a.consulService.Name)
 	if err != nil {
@@ -74,10 +75,14 @@ func (a *Agent) Stop() {
 	log.Println("Consul service de-registered.")
 }
 
-func (a *Agent) startConsulCheckTicker(check checkFunc) {
+func (a *Agent) startConsulCheckTicker(check checkFunc) error {
 	a.consulCheck(check) // immediate first tick
 
-	duration, _ := time.ParseDuration(a.consulService.Check.TTL)
+	duration, err := time.ParseDuration(a.consulService.Check.TTL)
+	if err != nil {
+		return errors.Wrap(err, "could not parse TTL duration")
+	}
+
 	ticker := time.NewTicker(duration)
 	defer ticker.Stop()
 	for {
@@ -85,7 +90,7 @@ func (a *Agent) startConsulCheckTicker(check checkFunc) {
 		case <-ticker.C:
 			a.consulCheck(check)
 		case <-a.ctx.Done():
-			return
+			return nil
 		}
 	}
 }

@@ -5,6 +5,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+
+	"github.com/SUSE/console-for-sap-applications/web/envronments"
 )
 
 //go:embed frontend/assets
@@ -25,6 +27,7 @@ func NewEngine() *gin.Engine {
 
 	engine.StaticFS("/static", http.FS(assetsFS))
 	engine.GET("/", homeHandler)
+	engine.GET("/environments", envronments.ListHandler)
 
 	return engine
 }

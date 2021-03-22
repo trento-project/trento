@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/trento-project/trento/web/api"
 	"github.com/trento-project/trento/web/environments"
 )
 
@@ -28,6 +29,11 @@ func NewEngine() *gin.Engine {
 	engine.StaticFS("/static", http.FS(assetsFS))
 	engine.GET("/", homeHandler)
 	engine.GET("/environments", envronments.ListHandler)
+
+	apiGroup := engine.Group("/api")
+	{
+		apiGroup.GET("/ping", api.PingHandler)
+	}
 
 	return engine
 }

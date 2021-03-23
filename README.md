@@ -36,7 +36,7 @@ Pre-built binaries will be available soon.
 You can start the web application as follows:
 
 ```shell
-trento webapp serve
+trento web serve
 ```
 
 ## Development
@@ -46,7 +46,7 @@ We use GNU Make as a task manager; here are some common targets:
 make clean
 make test
 make fmt
-make webapp-assets
+make web-assets
 make build
 ```
 

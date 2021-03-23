@@ -6,13 +6,13 @@ import (
 	"os"
 	"time"
 
-	consulApi "github.com/hashicorp/consul/api"
+	consul "github.com/hashicorp/consul/api"
 	"github.com/pkg/errors"
 )
 
 type Agent struct {
-	consul        *consulApi.Client
-	consulService *consulApi.AgentServiceRegistration
+	consul        *consul.Client
+	consulService *consul.AgentServiceRegistration
 	ctx           context.Context
 	Stop          context.CancelFunc
 }
@@ -25,21 +25,21 @@ func New() (*Agent, error) {
 		return nil, errors.Wrap(err, "could not read the hostname")
 	}
 
-	consul, err := consulApi.NewClient(consulApi.DefaultConfig())
+	client, err := consul.NewClient(consul.DefaultConfig())
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create a Consul client")
 	}
 
-	consulService := &consulApi.AgentServiceRegistration{
+	consulService := &consul.AgentServiceRegistration{
 		Name: name,
-		Check: &consulApi.AgentServiceCheck{
+		Check: &consul.AgentServiceCheck{
 			TTL: "10s",
 		},
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	agent := &Agent{consul, consulService, ctx, cancel}
+	agent := &Agent{client, consulService, ctx, cancel}
 	return agent, nil
 }
 
@@ -83,7 +83,7 @@ func (a *Agent) startConsulCheckTicker(check checkFunc) error {
 		return errors.Wrap(err, "could not parse TTL duration")
 	}
 
-	ticker := time.NewTicker(duration)
+	ticker := time.NewTicker(duration / 2)
 	defer ticker.Stop()
 	for {
 		select {
@@ -104,9 +104,9 @@ func (a *Agent) consulCheck(check checkFunc) {
 	checkOutput, checkErr := check()
 	if checkErr != nil {
 		checkOutput = checkErr.Error()
-		ttlStatus = consulApi.HealthCritical
+		ttlStatus = consul.HealthCritical
 	} else {
-		ttlStatus = consulApi.HealthPassing
+		ttlStatus = consul.HealthPassing
 	}
 
 	err = a.consul.Agent().UpdateTTL("service:"+a.consulService.Name, checkOutput, ttlStatus)
@@ -114,5 +114,5 @@ func (a *Agent) consulCheck(check checkFunc) {
 		log.Println("An error occurred while trying to update TTL with Consul: ", err)
 	}
 
-	log.Printf("Consul check TTL updated. Status: %s", ttlStatus)
+	log.Printf("Consul check TTL updated. Status: %s.", ttlStatus)
 }

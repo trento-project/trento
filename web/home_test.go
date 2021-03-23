@@ -9,11 +9,11 @@ import (
 )
 
 func Test_homeHandler(t *testing.T) {
-	engine := NewEngine()
+	app := NewApp("", 80)
 
 	resp := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/", nil)
-	engine.ServeHTTP(resp, req)
+	app.ServeHTTP(resp, req)
 
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, resp.Body.String(), "This is the home page")

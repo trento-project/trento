@@ -2,7 +2,9 @@ package web
 
 import (
 	"embed"
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -21,8 +23,13 @@ var layoutData = gin.H{
 	"copyright": "© 2019-2020 SUSE, all rights reserved.",
 }
 
-func NewEngine() *gin.Engine {
+type App struct {
+	engine *gin.Engine
+	host   string
+	port   int
+}
 
+func NewApp(host string, port int) *App {
 	engine := gin.Default()
 	engine.HTMLRender = NewLayoutRender(templatesFS, layoutData, "templates/*.tmpl")
 
@@ -35,5 +42,21 @@ func NewEngine() *gin.Engine {
 		apiGroup.GET("/ping", api.PingHandler)
 	}
 
-	return engine
+	return &App{engine, host, port}
+}
+
+func (a *App) Start() error {
+	s := &http.Server{
+		Addr:           fmt.Sprintf("%s:%d", a.host, a.port),
+		Handler:        a,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
+
+	return s.ListenAndServe()
+}
+
+func (a *App) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	a.engine.ServeHTTP(w, req)
 }

@@ -1,10 +1,7 @@
 package web
 
 import (
-	"fmt"
 	"log"
-	"net/http"
-	"time"
 
 	"github.com/spf13/cobra"
 
@@ -14,9 +11,9 @@ import (
 var host string
 var port int
 
-func NewWebappCmd() *cobra.Command {
-	webappCmd := &cobra.Command{
-		Use:   "webapp",
+func NewWebCmd() *cobra.Command {
+	webCmd := &cobra.Command{
+		Use:   "web",
 		Short: "Command tree related to the web application component",
 	}
 
@@ -29,21 +26,16 @@ func NewWebappCmd() *cobra.Command {
 	serveCmd.Flags().StringVar(&host, "host", "0.0.0.0", "The host to bind the HTTP service to")
 	serveCmd.Flags().IntVarP(&port, "port", "p", 8080, "The port for the HTTP service to listen at")
 
-	webappCmd.AddCommand(serveCmd)
+	webCmd.AddCommand(serveCmd)
 
-	return webappCmd
+	return webCmd
 }
 
 func serve(cmd *cobra.Command, args []string) {
-	engine := web.NewEngine()
+	app := web.NewApp(host, port)
 
-	s := &http.Server{
-		Addr:           fmt.Sprintf("%s:%d", host, port),
-		Handler:        engine,
-		ReadTimeout:    10 * time.Second,
-		WriteTimeout:   10 * time.Second,
-		MaxHeaderBytes: 1 << 20,
+	err := app.Start()
+	if err != nil {
+		log.Fatal("Failed to start the web application service: ", err)
 	}
-
-	log.Fatal(s.ListenAndServe())
 }

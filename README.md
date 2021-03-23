@@ -23,7 +23,7 @@ This project is in development so, for the time being, you need to clone it and 
 
 ```shell
 git clone github.com/SUSE/console-for-sap-applications
-cd console-for-sap
+cd console-for-sap-applications
 make
 ```
 
@@ -34,7 +34,7 @@ Pre-built binaries will be available soon.
 You can start the web application as follows:
 
 ```shell
-console-for-sap webapp serve
+console-for-sap-applications web serve
 ```
 
 ## Development
@@ -44,7 +44,7 @@ We use GNU Make as a task manager; here are some common targets:
 make clean
 make test
 make fmt
-make webapp-assets
+make web-assets
 make build
 ```
 

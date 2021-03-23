@@ -32,9 +32,13 @@ func NewWebCmd() *cobra.Command {
 }
 
 func serve(cmd *cobra.Command, args []string) {
-	app := web.NewApp(host, port)
+	var err error
+	app, err := web.NewApp(host, port)
+	if err != nil {
+		log.Fatal("Failed to create the web application instance: ", err)
+	}
 
-	err := app.Start()
+	err = app.Start()
 	if err != nil {
 		log.Fatal("Failed to start the web application service: ", err)
 	}

@@ -1,4 +1,4 @@
-package api
+package web
 
 import (
 	"net/http"
@@ -6,6 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func PingHandler(c *gin.Context) {
+func ApiPingHandler(c *gin.Context) {
 	c.String(http.StatusOK, "pong")
 }

@@ -1,10 +1,17 @@
 {{ define "content" }}
 <div class="col">
     <h1>Environments</h1>
-    <ul>
-    {{ range .Environments }}
-        <li>{{ .Name }}</li>
-    {{ end }}
-    </ul>
+    <dl>
+        {{ range .Environments }}
+        <dt><span class="environment-name">{{ .Name }}</span></dt>
+        <dd>
+            <ul class="list-inline">
+            {{ range .Nodes }}
+                <li class="list-inline-item"><span class="node-name">{{ .Node }}</span></li>
+            {{ end }}
+            </ul>
+        </dd>
+        {{ end }}
+    </dl>
 </div>
 {{ end }}

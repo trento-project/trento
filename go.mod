@@ -10,4 +10,7 @@ require (
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
+	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550 // indirect
 )
+
+replace github.com/trento-project/trento => ./

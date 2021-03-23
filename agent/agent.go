@@ -32,6 +32,7 @@ func New() (*Agent, error) {
 
 	consulService := &consul.AgentServiceRegistration{
 		Name: name,
+		Tags: []string{"console-agent"},
 		Check: &consul.AgentServiceCheck{
 			TTL: "10s",
 		},

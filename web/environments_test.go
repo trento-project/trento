@@ -16,11 +16,11 @@ func TestEnvironmentsListHandler(t *testing.T) {
 	datacenters := []string{"test-environment"}
 	nodes := []*api.Node{
 		{
-			Node: "foo",
+			Node:       "foo",
 			Datacenter: "test-environment",
 		},
 		{
-			Node: "bar",
+			Node:       "bar",
 			Datacenter: "test-environment",
 		},
 	}
@@ -53,4 +53,3 @@ func TestEnvironmentsListHandler(t *testing.T) {
 	assert.Contains(t, resp.Body.String(), "<span class=\"node-name\">foo</span>")
 	assert.Contains(t, resp.Body.String(), "<span class=\"node-name\">bar</span>")
 }
-

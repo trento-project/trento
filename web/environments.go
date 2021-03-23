@@ -8,21 +8,20 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/SUSE/console-for-sap-applications/internal/consul"
-
 )
 
 type Environment struct {
-	Name string
+	Name  string
 	Nodes []*consulApi.Node
 }
 
 type EnvironmentList map[string]*Environment
 
 func NewEnvironmentsListHandler(client consul.Client) gin.HandlerFunc {
-	return func (c *gin.Context) {
+	return func(c *gin.Context) {
 		environments, err := loadEnvironments(client)
 		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
+			c.Error(err)
 			return
 		}
 

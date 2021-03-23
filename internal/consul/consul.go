@@ -15,7 +15,7 @@ type Catalog interface {
 	Nodes(q *consulApi.QueryOptions) ([]*consulApi.Node, *consulApi.QueryMeta, error)
 }
 
-func DefaultClient() (Client, error)  {
+func DefaultClient() (Client, error) {
 	w, err := consulApi.NewClient(consulApi.DefaultConfig())
 	if err != nil {
 		return nil, err
@@ -31,5 +31,3 @@ type client struct {
 func (c *client) Catalog() Catalog {
 	return c.wrapped.Catalog()
 }
-
-

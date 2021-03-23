@@ -1,12 +1,14 @@
+{{- /*gotype: github.com/SUSE/console-for-sap-applications/web.LayoutData*/ -}}
 <!doctype html>
 <html>
   {{ template "header" . }}
   <body>
+    {{ block "errors" . }}{{ end}}
     {{ template "sidebar" . }}
     <section class="content">
-      {{ template "submenu" . }}
+      {{ template "submenu" .Submenu }}
       <div class="container">
-        {{ template "content" . }}
+        {{ template "content" .Content }}
       </div>
     </section>
     {{ template "footer" . }}

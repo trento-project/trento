@@ -7,23 +7,41 @@ import (
 	"io/fs"
 	"path/filepath"
 
-	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/render"
 )
 
 // LayoutRender wraps user templates into a root one which has it's own data and a bunch of inner blocks
 type LayoutRender struct {
-	Data      gin.H
+	data      LayoutData
 	root      string   // the root template is separate because it has to be parsed first
 	blocks    []string // blocks are used by the root template and can be redefined in user templates
 	templates map[string]*template.Template
 }
 
+type LayoutData struct {
+	Title     string
+	Copyright string
+	Submenu   Submenu
+	Content   interface{}
+}
+
+type Submenu []SubmenuItem
+
+type SubmenuItem struct {
+	Label string
+	URL   string
+}
+
+var defaultLayoutData = LayoutData{
+	Title:     "SUSE Console for SAP Applications",
+	Copyright: "© 2019-2020 SUSE, all rights reserved.",
+}
+
 // The default constructor expects an FS, some data, and user templates;
 // user templates are the ones that can be referenced by the Gin context.
-func NewLayoutRender(templatesFS fs.FS, data gin.H, templates ...string) *LayoutRender {
+func NewLayoutRender(templatesFS fs.FS, templates ...string) *LayoutRender {
 	r := &LayoutRender{
-		Data:      data,
+		data:      defaultLayoutData,
 		root:      "templates/layout.html.tmpl",
 		blocks:    []string{"templates/blocks/*.html.tmpl"},
 		templates: map[string]*template.Template{},
@@ -36,10 +54,10 @@ func NewLayoutRender(templatesFS fs.FS, data gin.H, templates ...string) *Layout
 
 // Instance returns a render.HTML instance with the associated named Template
 func (r *LayoutRender) Instance(name string, data interface{}) render.Render {
-	r.addLayoutData(data)
+	r.data.Content = data
 	return render.HTML{
 		Template: r.templates[name],
-		Data:     data,
+		Data:     r.data,
 	}
 }
 
@@ -91,11 +109,4 @@ func (r *LayoutRender) addTemplate(name string, tmpl *template.Template) {
 		panic(fmt.Sprintf("template %s already exists", name))
 	}
 	r.templates[name] = tmpl
-}
-
-// addTemplate adds the root template data to the data passed to the user template
-func (r *LayoutRender) addLayoutData(data interface{}) {
-	for key, value := range r.Data {
-		data.(gin.H)[key] = value
-	}
 }

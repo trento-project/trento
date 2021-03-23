@@ -17,11 +17,6 @@ var assetsFS embed.FS
 //go:embed templates
 var templatesFS embed.FS
 
-var layoutData = gin.H{
-	"title":     "Trento Web Console for SAP Applications administrators",
-	"copyright": "© 2019-2021 SUSE LLC",
-}
-
 type App struct {
 	host string
 	port int
@@ -53,9 +48,10 @@ func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
 	}
 
 	engine := deps.engine
-	engine.HTMLRender = NewLayoutRender(templatesFS, layoutData, "templates/*.tmpl")
+	engine.HTMLRender = NewLayoutRender(templatesFS, "templates/*.tmpl")
+	engine.Use(ErrorHandler)
 	engine.StaticFS("/static", http.FS(assetsFS))
-	engine.GET("/", homeHandler)
+	engine.GET("/", HomeHandler)
 	engine.GET("/environments", NewEnvironmentsListHandler(deps.consul))
 	apiGroup := engine.Group("/api")
 	{
@@ -79,4 +75,20 @@ func (a *App) Start() error {
 
 func (a *App) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	a.engine.ServeHTTP(w, req)
+}
+
+func ErrorHandler(c *gin.Context) {
+	c.Next()
+
+	if len(c.Errors) == 0 {
+		return
+	}
+
+	c.Negotiate(500, gin.Negotiate{
+		Offered:  []string{gin.MIMEJSON, gin.MIMEHTML, gin.MIMEPlain},
+		HTMLName: "error.html.tmpl",
+		Data:     c.Errors,
+	})
+
+	c.Abort()
 }

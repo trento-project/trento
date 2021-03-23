@@ -21,7 +21,7 @@ func NewEnvironmentsListHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		environments, err := loadEnvironments(client)
 		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
+			c.Error(err)
 			return
 		}
 

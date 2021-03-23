@@ -18,11 +18,11 @@ func TestEnvironmentsListHandler(t *testing.T) {
 	datacenters := []string{"test-environment"}
 	nodes := []*api.Node{
 		{
-			Node: "foo",
+			Node:       "foo",
 			Datacenter: "test-environment",
 		},
 		{
-			Node: "bar",
+			Node:       "bar",
 			Datacenter: "test-environment",
 		},
 	}

@@ -8,8 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/SUSE/console-for-sap-applications/web/api"
-	"github.com/SUSE/console-for-sap-applications/web/envronments"
+	"github.com/SUSE/console-for-sap-applications/internal/consul"
 )
 
 //go:embed frontend/assets
@@ -24,25 +23,46 @@ var layoutData = gin.H{
 }
 
 type App struct {
-	engine *gin.Engine
 	host   string
 	port   int
+	Dependencies
 }
 
-func NewApp(host string, port int) *App {
+type Dependencies struct {
+	consul consul.Client
+	engine *gin.Engine
+}
+
+func DefaultDependencies() Dependencies {
+	consulClient, _ := consul.DefaultClient()
 	engine := gin.Default()
-	engine.HTMLRender = NewLayoutRender(templatesFS, layoutData, "templates/*.tmpl")
 
-	engine.StaticFS("/static", http.FS(assetsFS))
-	engine.GET("/", homeHandler)
-	engine.GET("/environments", envronments.ListHandler)
+	return Dependencies{consulClient, engine}
+}
 
-	apiGroup := engine.Group("/api")
-	{
-		apiGroup.GET("/ping", api.PingHandler)
+// shortcut to use default dependencies
+func NewApp(host string, port int) (*App, error) {
+	return NewAppWithDeps(host, port, DefaultDependencies())
+}
+
+func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
+	app := &App{
+		Dependencies: deps,
+		host: host,
+		port: port,
 	}
 
-	return &App{engine, host, port}
+	engine := deps.engine
+	engine.HTMLRender = NewLayoutRender(templatesFS, layoutData, "templates/*.tmpl")
+	engine.StaticFS("/static", http.FS(assetsFS))
+	engine.GET("/", homeHandler)
+	engine.GET("/environments", NewEnvironmentsListHandler(deps.consul))
+	apiGroup := engine.Group("/api")
+	{
+		apiGroup.GET("/ping", ApiPingHandler)
+	}
+
+	return app, nil
 }
 
 func (a *App) Start() error {

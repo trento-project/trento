@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/gin-gonic/gin v1.6.3
+	github.com/golang/mock v1.5.0 // indirect
 	github.com/hashicorp/consul/api v1.1.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/errors v0.8.1

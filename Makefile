@@ -1,9 +1,9 @@
 default: clean download mod-tidy fmt vet-check test build
 
-.PHONY: build clean clean-binary clean-frontend default download fmt mod-tidy test vet-check web-assets
+.PHONY: build clean clean-binary clean-frontend default download fmt generate mod-tidy test vet-check web-assets
 
 build: console-for-sap-applications
-console-for-sap-applications: web-assets
+console-for-sap-applications: download generate web-assets
 	go build
 
 clean: clean-binary clean-frontend
@@ -22,10 +22,13 @@ download:
 fmt:
 	go fmt ./...
 
+generate:
+	go generate ./...
+
 mod-tidy:
 	go mod tidy
 
-test: download web-assets
+test: download generate web-assets
 	go test -v ./...
 
 vet-check: download web-assets

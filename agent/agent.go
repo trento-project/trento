@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"os"
+	"sync"
 	"time"
 
 	consul "github.com/hashicorp/consul/api"
@@ -11,14 +12,19 @@ import (
 )
 
 type Agent struct {
-	cfg       Config
-	check     Check
-	consul    *consul.Client
-	ctx       context.Context
-	ctxCancel context.CancelFunc
+	cfg              Config
+	check            Check
+	consulResultChan chan CheckResult
+	wsResultChan     chan CheckResult
+	webService       *webService
+	consul           *consul.Client
+	ctx              context.Context
+	ctxCancel        context.CancelFunc
 }
 
 type Config struct {
+	WebHost         string
+	WebPort         int
 	InstanceName    string
 	DefinitionsPath string
 	TTL             time.Duration
@@ -40,19 +46,23 @@ func NewWithConfig(cfg Config) (*Agent, error) {
 		return nil, errors.Wrap(err, "could not create a Consul client")
 	}
 
-	checker, err := NewCheck(cfg.DefinitionsPath)
+	check, err := NewCheck(cfg.DefinitionsPath)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create a Checker instance")
 	}
 
 	ctx, ctxCancel := context.WithCancel(context.Background())
 
+	wsResultChan := make(chan CheckResult)
+
 	agent := &Agent{
-		cfg:       cfg,
-		check:     checker,
-		ctx:       ctx,
-		ctxCancel: ctxCancel,
-		consul:    client,
+		cfg:          cfg,
+		check:        check,
+		ctx:          ctx,
+		ctxCancel:    ctxCancel,
+		consul:       client,
+		webService:   newWebService(wsResultChan),
+		wsResultChan: wsResultChan,
 	}
 	return agent, nil
 }
@@ -70,8 +80,49 @@ func DefaultConfig() (Config, error) {
 }
 
 func (a *Agent) Start() error {
+	err := a.registerConsulService()
+	if err != nil {
+		return errors.Wrap(err, "could not register consul service")
+	}
+	defer a.deregisterConsulService()
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+	errs := make(chan error, 2)
+
+	go func(wg *sync.WaitGroup) {
+		defer wg.Done()
+		errs <- a.startCheckTicker()
+	}(&wg)
+	go func(wg *sync.WaitGroup) {
+		defer wg.Done()
+		errs <- a.webService.Start(a.cfg.WebHost, a.cfg.WebPort, a.ctx)
+	}(&wg)
+
+	// As soon as all the goroutines in the Waitgroup are done, close the channel where the errors are sent
+	go func() {
+		wg.Wait()
+		close(errs)
+	}()
+
+	// Scroll the errors channel and return as soon as one of the goroutines fails.
+	// This will block until the errors channel is closed.
+	for err := range errs {
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (a *Agent) Stop() {
+	close(a.wsResultChan)
+	a.ctxCancel()
+}
+
+func (a *Agent) registerConsulService() error {
 	var err error
-	defer a.deregister()
 
 	log.Println("Registering the agent service with Consul...")
 
@@ -92,61 +143,69 @@ func (a *Agent) Start() error {
 	}
 	log.Println("Consul service registered.")
 
-	log.Println("Starting Consul TTL Check loop...")
-	err = a.startConsulCheckTicker(a.check)
-	if err != nil {
-		return errors.Wrap(err, "could not start Consul TTL Check loop")
-	}
-	log.Println("Consul TTL Check loop stopped.")
-
 	return nil
 }
 
-func (a *Agent) Stop() {
-	a.ctxCancel()
-}
-
-func (a *Agent) deregister() {
+func (a *Agent) deregisterConsulService() {
 	log.Println("De-registering the agent service with Consul...")
 	err := a.consul.Agent().ServiceDeregister(a.cfg.InstanceName)
 	if err != nil {
-		log.Println("An error occurred while trying to deregister the agent service with Consul:", err)
+		log.Println("An error occurred while trying to deregisterConsulService the agent service with Consul:", err)
 		return
 	}
 	log.Println("Consul service de-registered.")
 }
 
-func (a *Agent) startConsulCheckTicker(check Check) error {
-	a.consulCheck(check) // immediate first tick
+func (a *Agent) startCheckTicker() error {
+	log.Println("Starting Check loop...")
+	defer log.Println("Check loop stopped.")
 
 	ticker := time.NewTicker(a.cfg.TTL / 2)
 	defer ticker.Stop()
 	for {
 		select {
 		case <-ticker.C:
-			a.consulCheck(check)
+			result, err := a.check()
+			if err != nil {
+				log.Println("An error occurred while running health checks:", err)
+			}
+			go func() {
+				select {
+				case <-a.ctx.Done():
+					return
+				default:
+					a.wsResultChan <- result
+				}
+			}()
+			a.updateConsulCheck(result)
 		case <-a.ctx.Done():
 			return nil
 		}
 	}
 }
 
-func (a *Agent) consulCheck(check Check) {
+func (a *Agent) updateConsulCheck(result CheckResult) {
 	log.Println("Updating Consul check TTL...")
 
 	var err error
+	var status string
 
-	result, err := check()
-	if err != nil {
-		log.Println("An error occurred while running health checks:", err)
-		return
+	summary := result.Summary()
+
+	switch true {
+	case summary.Fail > 0:
+		status = consul.HealthCritical
+	case summary.Warn > 0:
+		status = consul.HealthWarning
+	default:
+		status = consul.HealthPassing
 	}
 
-	err = a.consul.Agent().UpdateTTL("service:"+a.cfg.InstanceName, result.String(), result.Status)
+	err = a.consul.Agent().UpdateTTL("service:"+a.cfg.InstanceName, result.String(), status)
 	if err != nil {
 		log.Println("An error occurred while trying to update TTL with Consul:", err)
 		return
 	}
 
-	log.Printf("Consul check TTL updated. Status: %s.", result.Status)
+	log.Printf("Consul check TTL updated. Status: %s.", status)
 }

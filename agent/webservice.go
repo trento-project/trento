@@ -39,34 +39,32 @@ func (w *webService) Start(host string, port int, ctx context.Context) error {
 		MaxHeaderBytes: 1 << 20,
 	}
 
+	consumerCtx, cancelConsumer := context.WithCancel(context.Background())
+	shutdownCtx, cancelShutdown := context.WithTimeout(context.Background(), time.Second*5)
+
 	go func() {
 		log.Println("Consuming results from the Checker...")
 		defer log.Println("Stopped Checker results consumption.")
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			default:
-				w.checkResult = <-w.checkResultChan
-			}
+
+		defer cancelConsumer()
+		for r := range w.checkResultChan {
+			w.checkResult = r
 		}
 	}()
 
-	pendingConnections := make(chan struct{})
 	go func() {
 		<-ctx.Done()
+		defer cancelShutdown()
 
 		log.Println("Closing pending HTTP connections...")
-		defer log.Println("Pending connections closed.")
-
-		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), time.Second*5)
-		defer shutdownCancel()
 
 		err := server.Shutdown(shutdownCtx)
 		if err != nil {
 			log.Printf("An error occurred while shutting down the agent web service: %v", err)
+			return
 		}
-		close(pendingConnections)
+
+		log.Println("Pending connections closed.")
 	}()
 
 	err := server.ListenAndServe()
@@ -74,7 +72,8 @@ func (w *webService) Start(host string, port int, ctx context.Context) error {
 		return err
 	}
 
-	<-pendingConnections
+	<-consumerCtx.Done()
+	<-shutdownCtx.Done()
 
 	return nil
 }

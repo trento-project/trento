@@ -53,7 +53,7 @@ func NewWithConfig(cfg Config) (*Agent, error) {
 
 	ctx, ctxCancel := context.WithCancel(context.Background())
 
-	wsResultChan := make(chan CheckResult)
+	wsResultChan := make(chan CheckResult, 1)
 
 	agent := &Agent{
 		cfg:          cfg,
@@ -80,19 +80,32 @@ func DefaultConfig() (Config, error) {
 }
 
 func (a *Agent) Start() error {
+	log.Println("Registering the agent service with Consul...")
 	err := a.registerConsulService()
 	if err != nil {
 		return errors.Wrap(err, "could not register consul service")
 	}
-	defer a.deregisterConsulService()
+	log.Println("Consul service registered.")
+
+	defer func() {
+		log.Println("De-registering the agent service with Consul...")
+		err := a.consul.Agent().ServiceDeregister(a.cfg.InstanceName)
+		if err != nil {
+			log.Println("An error occurred while trying to deregisterConsulService the agent service with Consul:", err)
+		} else {
+			log.Println("Consul service de-registered.")
+		}
+	}()
 
 	var wg sync.WaitGroup
 	wg.Add(2)
 	errs := make(chan error, 2)
 
 	go func(wg *sync.WaitGroup) {
+		log.Println("Starting Check loop...")
 		defer wg.Done()
 		errs <- a.startCheckTicker()
+		log.Println("Check loop stopped.")
 	}(&wg)
 	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
@@ -117,14 +130,11 @@ func (a *Agent) Start() error {
 }
 
 func (a *Agent) Stop() {
-	close(a.wsResultChan)
 	a.ctxCancel()
 }
 
 func (a *Agent) registerConsulService() error {
 	var err error
-
-	log.Println("Registering the agent service with Consul...")
 
 	consulService := &consul.AgentServiceRegistration{
 		Name: a.cfg.InstanceName,
@@ -141,25 +151,10 @@ func (a *Agent) registerConsulService() error {
 	if err != nil {
 		return errors.Wrap(err, "could not register the agent service with Consul")
 	}
-	log.Println("Consul service registered.")
 
 	return nil
 }
-
-func (a *Agent) deregisterConsulService() {
-	log.Println("De-registering the agent service with Consul...")
-	err := a.consul.Agent().ServiceDeregister(a.cfg.InstanceName)
-	if err != nil {
-		log.Println("An error occurred while trying to deregisterConsulService the agent service with Consul:", err)
-		return
-	}
-	log.Println("Consul service de-registered.")
-}
-
 func (a *Agent) startCheckTicker() error {
-	log.Println("Starting Check loop...")
-	defer log.Println("Check loop stopped.")
-
 	ticker := time.NewTicker(a.cfg.TTL / 2)
 	defer ticker.Stop()
 	for {
@@ -168,17 +163,12 @@ func (a *Agent) startCheckTicker() error {
 			result, err := a.check()
 			if err != nil {
 				log.Println("An error occurred while running health checks:", err)
+				continue
 			}
-			go func() {
-				select {
-				case <-a.ctx.Done():
-					return
-				default:
-					a.wsResultChan <- result
-				}
-			}()
+			a.wsResultChan <- result
 			a.updateConsulCheck(result)
 		case <-a.ctx.Done():
+			close(a.wsResultChan)
 			return nil
 		}
 	}

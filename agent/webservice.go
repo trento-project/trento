@@ -29,11 +29,13 @@ func newWebService(checkResultChan <-chan CheckResult) *webService {
 }
 
 func (w *webService) Start(host string, port int, ctx context.Context) error {
-	log.Println("Starting agent web service...")
+	address := fmt.Sprintf("%s:%d", host, port)
+
+	log.Printf("Starting agent web service at '%s'...", address)
 	defer log.Println("Agent web service stopped.")
 
 	server := &http.Server{
-		Addr:           fmt.Sprintf("%s:%d", host, port),
+		Addr:           address,
 		Handler:        w.engine,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,

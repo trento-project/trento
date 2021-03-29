@@ -14,29 +14,26 @@ import (
 )
 
 var TTL time.Duration
+var serviceName string
 
 func NewAgentCmd() *cobra.Command {
 
-	cmdRegister := &cobra.Command{
-		Use:   "register",
-		Short: "Register the agent in the system",
-	}
-
-	cmdStart := &cobra.Command{
+	startCmd := &cobra.Command{
 		Use:   "start path/to/definitions.yaml",
 		Short: "Start the agent",
 		Run:   start,
-		Args:  startValidator,
+		Args:  startArgsValidator,
 	}
-	cmdStart.Flags().DurationVar(&TTL, "ttl", time.Second*10, "Duration of Consul TTL checks")
+	startCmd.Flags().DurationVar(&TTL, "ttl", time.Second*10, "Duration of Consul TTL checks")
+	startCmd.Flags().StringVarP(&serviceName, "service-name", "n", "", "The name of the service this agent will monitor")
+	must(startCmd.MarkFlagRequired("service-name"))
 
 	cmdAgent := &cobra.Command{
 		Use:   "agent",
 		Short: "Command tree related to the agent component",
 	}
 
-	cmdAgent.AddCommand(cmdRegister)
-	cmdAgent.AddCommand(cmdStart)
+	cmdAgent.AddCommand(startCmd)
 
 	return cmdAgent
 }
@@ -52,8 +49,9 @@ func start(cmd *cobra.Command, args []string) {
 		log.Fatal("Failed to create the agent configuration: ", err)
 	}
 
-	cfg.TTL = TTL
 	cfg.DefinitionsPath = args[0]
+	cfg.ServiceName = serviceName
+	cfg.TTL = TTL
 
 	a, err := agent.NewWithConfig(cfg)
 	if err != nil {
@@ -75,7 +73,7 @@ func start(cmd *cobra.Command, args []string) {
 	}
 }
 
-func startValidator(cmd *cobra.Command, args []string) error {
+func startArgsValidator(cmd *cobra.Command, args []string) error {
 	if len(args) != 1 {
 		return fmt.Errorf("accepts exactly 1 argument, received %d", len(args))
 	}
@@ -94,4 +92,10 @@ func startValidator(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+func must(err error) {
+	if err != nil {
+		panic(err)
+	}
 }

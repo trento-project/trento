@@ -25,6 +25,7 @@ type Agent struct {
 type Config struct {
 	WebHost         string
 	WebPort         int
+	ServiceName     string
 	InstanceName    string
 	DefinitionsPath string
 	TTL             time.Duration
@@ -137,13 +138,23 @@ func (a *Agent) registerConsulService() error {
 	var err error
 
 	consulService := &consul.AgentServiceRegistration{
-		Name: a.cfg.InstanceName,
+		ID:   a.cfg.InstanceName,
+		Name: a.cfg.ServiceName,
 		Tags: []string{"console-agent"},
-		Check: &consul.AgentServiceCheck{
-			Name:   "HA config checks",
-			Notes:  "Checks whether or not the HA configuration is compliant with the provided best practices",
-			TTL:    a.cfg.TTL.String(),
-			Status: consul.HealthWarning,
+		Checks: consul.AgentServiceChecks{
+			&consul.AgentServiceCheck{
+				CheckID:  "hana_tcp_check",
+				Name:     "HANA TCP check",
+				TCP:      "localhost:50013",
+				Interval: "10s",
+			},
+			{
+				CheckID: "ha_checks",
+				Name:    "HA config checks",
+				Notes:   "Checks whether or not the HA configuration is compliant with the provided best practices",
+				TTL:     a.cfg.TTL.String(),
+				Status:  consul.HealthWarning,
+			},
 		},
 	}
 

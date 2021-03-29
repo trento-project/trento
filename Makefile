@@ -4,7 +4,7 @@ default: clean mod-tidy fmt vet-check test build
 
 build: console-for-sap-applications
 console-for-sap-applications: generate web-assets
-	go build
+	CGO_ENABLED=0 go build -trimpath -ldflags '-s -w'
 
 clean: clean-binary clean-frontend
 

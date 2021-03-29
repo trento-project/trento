@@ -1,6 +1,6 @@
-default: clean download mod-tidy fmt vet-check test build
+default: clean mod-tidy fmt vet-check test build
 
-.PHONY: build clean clean-binary clean-frontend default download fmt mod-tidy test vet-check web-assets
+.PHONY: build clean clean-binary clean-frontend default fmt mod-tidy test vet-check web-assets
 
 build: trento
 trento: web-assets
@@ -15,20 +15,16 @@ clean-frontend:
 	rm -rf web/frontend/assets
 	rm -rf web/frontend/node_modules
 
-download:
-	go mod download
-	go mod verify
-
 fmt:
 	go fmt ./...
 
 mod-tidy:
 	go mod tidy
 
-test: download web-assets
+test: web-assets
 	go test -v ./...
 
-vet-check: download web-assets
+vet-check: web-assets
 	go vet ./...
 
 web-deps: web/frontend/node_modules

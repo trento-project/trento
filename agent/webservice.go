@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -39,21 +40,24 @@ func (w *webService) Start(host string, port int, ctx context.Context) error {
 		MaxHeaderBytes: 1 << 20,
 	}
 
-	consumerCtx, cancelConsumer := context.WithCancel(context.Background())
-	shutdownCtx, cancelShutdown := context.WithTimeout(context.Background(), time.Second*5)
+	var wg sync.WaitGroup
+	wg.Add(2)
 
-	go func() {
+	go func(wg *sync.WaitGroup) {
 		log.Println("Consuming results from the Checker...")
 		defer log.Println("Stopped Checker results consumption.")
 
-		defer cancelConsumer()
+		defer wg.Done()
 		for r := range w.checkResultChan {
 			w.checkResult = r
 		}
-	}()
+	}(&wg)
 
-	go func() {
+	go func(wg *sync.WaitGroup) {
 		<-ctx.Done()
+		defer wg.Done()
+
+		shutdownCtx, cancelShutdown := context.WithTimeout(context.Background(), time.Second*5)
 		defer cancelShutdown()
 
 		log.Println("Closing pending HTTP connections...")
@@ -65,16 +69,14 @@ func (w *webService) Start(host string, port int, ctx context.Context) error {
 		}
 
 		log.Println("Pending connections closed.")
-	}()
+	}(&wg)
 
 	err := server.ListenAndServe()
 	if err != nil && err != http.ErrServerClosed {
 		return err
 	}
 
-	<-consumerCtx.Done()
-	<-shutdownCtx.Done()
-
+	wg.Wait()
 	return nil
 }
 

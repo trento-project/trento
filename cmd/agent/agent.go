@@ -15,6 +15,7 @@ import (
 
 var TTL time.Duration
 var serviceName string
+var port int
 
 func NewAgentCmd() *cobra.Command {
 
@@ -26,6 +27,7 @@ func NewAgentCmd() *cobra.Command {
 	}
 	startCmd.Flags().DurationVar(&TTL, "ttl", time.Second*10, "Duration of Consul TTL checks")
 	startCmd.Flags().StringVarP(&serviceName, "service-name", "n", "", "The name of the service this agent will monitor")
+	startCmd.Flags().IntVarP(&port, "port", "p", 8700, "The TCP port to use for the web service")
 	must(startCmd.MarkFlagRequired("service-name"))
 
 	cmdAgent := &cobra.Command{
@@ -51,6 +53,7 @@ func start(cmd *cobra.Command, args []string) {
 
 	cfg.DefinitionsPath = args[0]
 	cfg.ServiceName = serviceName
+	cfg.WebPort = port
 	cfg.TTL = TTL
 
 	a, err := agent.NewWithConfig(cfg)

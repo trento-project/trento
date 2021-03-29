@@ -2,6 +2,7 @@ package agent
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"sync"
@@ -108,6 +109,7 @@ func (a *Agent) Start() error {
 		errs <- a.startCheckTicker()
 		log.Println("Check loop stopped.")
 	}(&wg)
+
 	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
 		errs <- a.webService.Start(a.cfg.WebHost, a.cfg.WebPort, a.ctx)
@@ -147,6 +149,7 @@ func (a *Agent) registerConsulService() error {
 				Name:     "HANA TCP check",
 				TCP:      "localhost:50013",
 				Interval: "10s",
+				Status:   consul.HealthWarning,
 			},
 			{
 				CheckID: "ha_checks",
@@ -202,7 +205,9 @@ func (a *Agent) updateConsulCheck(result CheckResult) {
 		status = consul.HealthPassing
 	}
 
-	err = a.consul.Agent().UpdateTTL("ha_checks", result.String(), status)
+	checkOutput := fmt.Sprintf("%s\nFor more detailed info, query this service at port %d.",
+		result.String(), a.cfg.WebPort)
+	err = a.consul.Agent().UpdateTTL("ha_checks", checkOutput, status)
 	if err != nil {
 		log.Println("An error occurred while trying to update TTL with Consul:", err)
 		return

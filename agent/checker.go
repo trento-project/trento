@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"fmt"
 	"io/ioutil"
 
 	"github.com/aquasecurity/bench-common/check"
@@ -47,5 +48,8 @@ func (r CheckResult) MarshalJSON() ([]byte, error) {
 }
 
 func (r CheckResult) String() string {
-	return ""
+	summary := r.controls.Summary
+	return fmt.Sprintf("== Summary ==\n%d checks PASS\n%d checks FAIL\n%d checks WARN\n%d checks INFO\n",
+		summary.Pass, summary.Fail, summary.Warn, summary.Info,
+	)
 }

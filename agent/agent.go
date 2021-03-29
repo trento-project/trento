@@ -202,7 +202,7 @@ func (a *Agent) updateConsulCheck(result CheckResult) {
 		status = consul.HealthPassing
 	}
 
-	err = a.consul.Agent().UpdateTTL("service:"+a.cfg.InstanceName, result.String(), status)
+	err = a.consul.Agent().UpdateTTL("ha_checks", result.String(), status)
 	if err != nil {
 		log.Println("An error occurred while trying to update TTL with Consul:", err)
 		return

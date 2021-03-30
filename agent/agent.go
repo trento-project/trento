@@ -14,7 +14,7 @@ import (
 
 type Agent struct {
 	cfg              Config
-	check            Check
+	check            Checker
 	consulResultChan chan CheckResult
 	wsResultChan     chan CheckResult
 	webService       *webService
@@ -48,7 +48,7 @@ func NewWithConfig(cfg Config) (*Agent, error) {
 		return nil, errors.Wrap(err, "could not create a Consul client")
 	}
 
-	check, err := NewCheck(cfg.DefinitionsPath)
+	checker, err := NewChecker(cfg.DefinitionsPath)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create a Checker instance")
 	}
@@ -59,7 +59,7 @@ func NewWithConfig(cfg Config) (*Agent, error) {
 
 	agent := &Agent{
 		cfg:          cfg,
-		check:        check,
+		check:        checker,
 		ctx:          ctx,
 		ctxCancel:    ctxCancel,
 		consul:       client,

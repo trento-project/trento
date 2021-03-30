@@ -8,9 +8,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-type Check func() (CheckResult, error)
+type Checker func() (CheckResult, error)
 
-func NewCheck(definitionsPath string) (Check, error) {
+func NewChecker(definitionsPath string) (Checker, error) {
 	data, err := ioutil.ReadFile(definitionsPath)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not read definitions file")

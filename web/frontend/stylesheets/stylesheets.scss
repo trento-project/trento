@@ -1,3 +1,16 @@
 @import "../node_modules/eos-ds/dist/vendors/bootstrap/css/bootstrap";
 @import "../node_modules/eos-ds/dist/scss/index";
 
+
+.health-critical, .check-state-FAIL {
+  @extend .text-danger
+}
+
+.health-warning, .check-state-WARN {
+  @extend .text-warning
+}
+
+.health-pass, .check-state-PASS {
+  @extend .text-success
+}
+

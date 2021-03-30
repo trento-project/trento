@@ -4,13 +4,21 @@ import (
 	consulApi "github.com/hashicorp/consul/api"
 )
 
+//xgo:xgenerate mockgen -destination ../../test/mock_consul/consul.go . Client,Catalog,Health
+
 type Client interface {
 	Catalog() Catalog
+	Health() Health
 }
 
 type Catalog interface {
 	Datacenters() ([]string, error)
 	Nodes(q *consulApi.QueryOptions) ([]*consulApi.Node, *consulApi.QueryMeta, error)
+}
+
+type Health interface {
+	Node(node string, q *consulApi.QueryOptions) (consulApi.HealthChecks, *consulApi.QueryMeta, error)
+	Service(service, tag string, passingOnly bool, q *consulApi.QueryOptions) ([]*consulApi.ServiceEntry, *consulApi.QueryMeta, error)
 }
 
 func DefaultClient() (Client, error) {
@@ -28,4 +36,8 @@ type client struct {
 
 func (c *client) Catalog() Catalog {
 	return c.wrapped.Catalog()
+}
+
+func (c *client) Health() Health {
+	return c.wrapped.Health()
 }

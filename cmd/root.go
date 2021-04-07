@@ -9,17 +9,17 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 
-	"github.com/SUSE/console-for-sap-applications/cmd/web"
-	"github.com/SUSE/console-for-sap-applications/cmd/agent"
+	"github.com/trento-project/trento/cmd/agent"
+	"github.com/trento-project/trento/cmd/web"
 )
 
 var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "console-for-sap",
-	Short: "A cloud-native, web application to manage OS-related tasks for SAP Applications.",
-	Long: `SUSE Console for SAP Applications is a web-based graphical user interface 
+	Use:   "trento",
+	Short: "An open cloud-native web console improving on the life of SAP Applications administrators.",
+	Long: `Trento is a web-based graphical user interface
 that can help you deploy, provision and operate infrastructure for SAP Applications`,
 }
 
@@ -31,7 +31,7 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.console-for-sap.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.trento.yaml)")
 	rootCmd.AddCommand(web.NewWebappCmd())
 	rootCmd.AddCommand(agent.NewAgentCmd())
 }
@@ -46,9 +46,9 @@ func initConfig() {
 		home, err := homedir.Dir()
 		cobra.CheckErr(err)
 
-		// Search config in home directory with name ".console-for-sap" (without extension).
+		// Search config in home directory with name ".trento" (without extension).
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".console-for-sap")
+		viper.SetConfigName(".trento")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match

@@ -14,8 +14,8 @@ var assetsFS embed.FS
 var templatesFS embed.FS
 
 var layoutData = gin.H{
-	"title":     "SUSE Console for SAP Applications",
-	"copyright": "© 2019-2020 SUSE, all rights reserved.",
+	"title":     "Trento Web Console for SAP Applications administrators",
+	"copyright": "© 2019-2021 SUSE LLC",
 }
 
 func NewEngine() *gin.Engine {

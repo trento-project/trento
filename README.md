@@ -1,8 +1,8 @@
 # Trento
 
-_Trento is a city on the Adige River in Trentino-Alto Adige/Südtirol in Italy. [...] It is one of the nation's wealthiest and most prosperous cities, [...] often ranking highly among Italian cities for quality of life, standard of living, and business and job opportunities._ ([source](https://en.wikipedia.org/wiki/Trento))
+An open cloud-native web console improving on the life of SAP Applications administrators.
 
-An open cloud-native web application, to bring high quality of life to SAP Applications administrators.
+_Trento is a city on the Adige River in Trentino-Alto Adige/Südtirol in Italy. [...] It is one of the nation's wealthiest and most prosperous cities, [...] often ranking highly among Italian cities for quality of life, standard of living, and business and job opportunities._ ([source](https://en.wikipedia.org/wiki/Trento))
 
 This project is a reboot of the "SUSE Console for SAP Applications", also known as the [Blue Horizon for SAP](https://github.com/SUSE/blue-horizon-for-sap) prototype, which is focused on automated infrastructure deployment and provisioning for SAP Applications.
 
@@ -24,8 +24,8 @@ To build the entire application you will need the following dependencies:
 This project is in development so, for the time being, you need to clone it and build it manually: 
 
 ```shell
-git clone github.com/SUSE/console-for-sap-applications
-cd console-for-sap
+git clone github.com/trento-project/trento.git
+cd trento
 make
 ```
 
@@ -36,7 +36,7 @@ Pre-built binaries will be available soon.
 You can start the web application as follows:
 
 ```shell
-console-for-sap webapp serve
+trento webapp serve
 ```
 
 ## Development

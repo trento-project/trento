@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/SUSE/console-for-sap-applications/cmd"
+	"github.com/trento-project/trento/cmd"
 )
 
 func main() {

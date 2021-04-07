@@ -1,4 +1,4 @@
-module github.com/SUSE/console-for-sap-applications
+module github.com/trento-project/trento
 
 go 1.16
 

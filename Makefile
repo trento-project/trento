@@ -2,8 +2,8 @@ default: clean download mod-tidy fmt vet-check test build
 
 .PHONY: build clean clean-binary clean-frontend default download fmt mod-tidy test vet-check web-assets
 
-build: console-for-sap-applications
-console-for-sap-applications: web-assets
+build: trento
+trento: web-assets
 	go build
 
 clean: clean-binary clean-frontend

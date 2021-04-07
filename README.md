@@ -1,6 +1,8 @@
-# SUSE Console for SAP Applications v2
+# Trento
 
-A cloud-native, web application to manage OS-related tasks for SAP Applications.
+_Trento is a city on the Adige River in Trentino-Alto Adige/Südtirol in Italy. [...] It is one of the nation's wealthiest and most prosperous cities, with its province being one of the richest in Italy._
+
+A cloud-native, web application aiming at bringing high quality of life to SAP Applications administrators.
 
 This project is a reboot of the "SUSE Console for SAP Applications", also known as the [Blue Horizon for SAP](https://github.com/SUSE/blue-horizon-for-sap) prototype, which is focused on automated infrastructure deployment and provisioning for SAP Applications.
 

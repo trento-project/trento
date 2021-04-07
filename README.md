@@ -1,8 +1,8 @@
 # Trento
 
-_Trento is a city on the Adige River in Trentino-Alto Adige/Südtirol in Italy. [...] It is one of the nation's wealthiest and most prosperous cities, with its province being one of the richest in Italy._
+_Trento is a city on the Adige River in Trentino-Alto Adige/Südtirol in Italy. [...] It is one of the nation's wealthiest and most prosperous cities, with its province being one of the richest in Italy._ ([source](https://en.wikipedia.org/Trento))
 
-A cloud-native, web application aiming at bringing high quality of life to SAP Applications administrators.
+A cloud-native web application aiming at bringing high quality of life to SAP Applications administrators.
 
 This project is a reboot of the "SUSE Console for SAP Applications", also known as the [Blue Horizon for SAP](https://github.com/SUSE/blue-horizon-for-sap) prototype, which is focused on automated infrastructure deployment and provisioning for SAP Applications.
 

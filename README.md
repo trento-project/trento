@@ -1,6 +1,6 @@
 # Trento
 
-_Trento is a city on the Adige River in Trentino-Alto Adige/Südtirol in Italy. [...] It is one of the nation's wealthiest and most prosperous cities, with its province being one of the richest in Italy._ ([source](https://en.wikipedia.org/Trento))
+_Trento is a city on the Adige River in Trentino-Alto Adige/Südtirol in Italy. [...] It is one of the nation's wealthiest and most prosperous cities, [...] often ranking highly among Italian cities for quality of life, standard of living, and business and job opportunities._ ([source](https://en.wikipedia.org/Trento))
 
 A cloud-native web application aiming at bringing high quality of life to SAP Applications administrators.
 

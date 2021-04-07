@@ -14,9 +14,9 @@ import (
 var host string
 var port int
 
-func NewWebappCmd() *cobra.Command {
-	webappCmd := &cobra.Command{
-		Use:   "webapp",
+func NewWebCmd() *cobra.Command {
+	webCmd := &cobra.Command{
+		Use:   "web",
 		Short: "Command tree related to the web application component",
 	}
 
@@ -29,9 +29,9 @@ func NewWebappCmd() *cobra.Command {
 	serveCmd.Flags().StringVar(&host, "host", "0.0.0.0", "The host to bind the HTTP service to")
 	serveCmd.Flags().IntVarP(&port, "port", "p", 8080, "The port for the HTTP service to listen at")
 
-	webappCmd.AddCommand(serveCmd)
+	webCmd.AddCommand(serveCmd)
 
-	return webappCmd
+	return webCmd
 }
 
 func serve(cmd *cobra.Command, args []string) {

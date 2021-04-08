@@ -145,13 +145,6 @@ func (a *Agent) registerConsulService() error {
 		Tags: []string{"console-agent"},
 		Checks: consul.AgentServiceChecks{
 			&consul.AgentServiceCheck{
-				CheckID:  "hana_tcp_check",
-				Name:     "HANA TCP check",
-				TCP:      "localhost:50013",
-				Interval: "10s",
-				Status:   consul.HealthWarning,
-			},
-			{
 				CheckID: "ha_checks",
 				Name:    "HA config checks",
 				Notes:   "Checks whether or not the HA configuration is compliant with the provided best practices",

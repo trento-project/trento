@@ -19,6 +19,11 @@ var port int
 
 func NewAgentCmd() *cobra.Command {
 
+	agentCmd := &cobra.Command{
+		Use:   "agent",
+		Short: "Command tree related to the agent component",
+	}
+
 	startCmd := &cobra.Command{
 		Use:   "start path/to/definitions.yaml",
 		Short: "Start the agent",
@@ -30,14 +35,9 @@ func NewAgentCmd() *cobra.Command {
 	startCmd.Flags().IntVarP(&port, "port", "p", 8700, "The TCP port to use for the web service")
 	must(startCmd.MarkFlagRequired("service-name"))
 
-	cmdAgent := &cobra.Command{
-		Use:   "agent",
-		Short: "Command tree related to the agent component",
-	}
+	agentCmd.AddCommand(startCmd)
 
-	cmdAgent.AddCommand(startCmd)
-
-	return cmdAgent
+	return agentCmd
 }
 
 func start(cmd *cobra.Command, args []string) {

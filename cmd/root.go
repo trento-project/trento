@@ -32,7 +32,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.trento.yaml)")
-	rootCmd.AddCommand(web.NewWebappCmd())
+	rootCmd.AddCommand(web.NewWebCmd())
 	rootCmd.AddCommand(agent.NewAgentCmd())
 }
 

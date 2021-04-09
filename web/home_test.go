@@ -8,12 +8,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_homeHandler(t *testing.T) {
-	engine := NewEngine()
+func TestHomeHandler(t *testing.T) {
+	app, err := NewApp("", 80)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	resp := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/", nil)
-	engine.ServeHTTP(resp, req)
+	req, err := http.NewRequest("GET", "/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	app.ServeHTTP(resp, req)
 
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, resp.Body.String(), "This is the home page")

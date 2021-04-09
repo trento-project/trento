@@ -1,9 +1,9 @@
 default: clean mod-tidy fmt vet-check test build
 
-.PHONY: build clean clean-binary clean-frontend default fmt mod-tidy test vet-check web-assets
+.PHONY: build clean clean-binary clean-frontend default fmt generate mod-tidy test vet-check web-assets
 
 build: trento
-trento: web-assets
+trento: generate web-assets
 	CGO_ENABLED=0 go build -trimpath -ldflags '-s -w'
 
 clean: clean-binary clean-frontend
@@ -18,10 +18,13 @@ clean-frontend:
 fmt:
 	go fmt ./...
 
+generate:
+	go generate ./...
+
 mod-tidy:
 	go mod tidy
 
-test: web-assets
+test: generate web-assets
 	go test -v ./...
 
 vet-check: web-assets

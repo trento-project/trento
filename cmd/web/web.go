@@ -1,10 +1,7 @@
 package web
 
 import (
-	"fmt"
 	"log"
-	"net/http"
-	"time"
 
 	"github.com/spf13/cobra"
 
@@ -35,15 +32,14 @@ func NewWebCmd() *cobra.Command {
 }
 
 func serve(cmd *cobra.Command, args []string) {
-	engine := web.NewEngine()
-
-	s := &http.Server{
-		Addr:           fmt.Sprintf("%s:%d", host, port),
-		Handler:        engine,
-		ReadTimeout:    10 * time.Second,
-		WriteTimeout:   10 * time.Second,
-		MaxHeaderBytes: 1 << 20,
+	var err error
+	app, err := web.NewApp(host, port)
+	if err != nil {
+		log.Fatal("Failed to create the web application instance: ", err)
 	}
 
-	log.Fatal(s.ListenAndServe())
+	err = app.Start()
+	if err != nil {
+		log.Fatal("Failed to start the web application service: ", err)
+	}
 }

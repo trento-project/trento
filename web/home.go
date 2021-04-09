@@ -6,6 +6,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func homeHandler(c *gin.Context) {
-	c.HTML(http.StatusOK, "home.html.tmpl", gin.H{})
+type HomeData struct {
+	Title     string
+	Paragraph string
+}
+
+func HomeHandler(c *gin.Context) {
+	data := HomeData{
+		Title:     defaultLayoutData.Title,
+		Paragraph: "This is the home page",
+	}
+	c.HTML(http.StatusOK, "home.html.tmpl", data)
 }

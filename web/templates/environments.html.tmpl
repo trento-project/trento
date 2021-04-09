@@ -1,10 +1,42 @@
 {{ define "content" }}
 <div class="col">
     <h1>Environments</h1>
-    <ul>
-    {{ range .Environments }}
-        <li>{{ .Name }}</li>
-    {{ end }}
-    </ul>
+
+    {{- range .Environments }}
+        <h3><em><span class="environment-name">{{ .Name }}</span></em></h3>
+        {{- range .Nodes }}
+        <dl>
+            <dt>Node</dt>
+            <dd><span class="node-name">{{ .Name }}</span></dd>
+
+            <dt>Status</dt>
+            <dd><span class="node-health health-{{ .Health }}">{{ .Health }}</span></dd>
+        </dl>
+        {{ if .Checks }}
+        <h6>HA Checks</h6>
+        <table class="table">
+            {{ range $i, $g := .Checks.Groups }}
+            <tr>
+                <th colspan="2">{{ .ID }} {{ .Description }}</th>
+                <td></td>
+            </tr>
+                {{ range $y, $c := .Checks }}
+                <tr>
+                    <td class="col-10">
+                        <a type="button" data-toggle="collapse" href="#info-{{ $i }}-{{ $y }}" aria-expanded="false" aria-controls="info-{{ $i }}-{{ $y }}">{{ .Description }}</a>
+                        <div class="collapse" id="info-{{ $i }}-{{ $y }}">
+                            <div class="card card-body">
+                                {{ index .TestInfo 0 }}
+                            </div>
+                        </div>
+                    </td>
+                    <td class="col-2 text-center"><span class="check-state-{{ .State }}">{{ .State }}</span></td>
+                </tr>
+                {{ end }}
+            {{ end }}
+        </table>
+        {{ end }}
+        {{- end }}
+    {{- end }}
 </div>
 {{ end }}

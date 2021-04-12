@@ -35,6 +35,11 @@ type CheckResult struct {
 	controls *check.Controls
 }
 
+// I guess, the controls was private for some reason
+func (cr *CheckResult) GetControls() *check.Controls {
+	return cr.controls
+}
+
 func (r CheckResult) Summary() check.Summary {
 	return r.controls.Summary
 }

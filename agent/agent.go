@@ -32,6 +32,8 @@ type Config struct {
 	TTL             time.Duration
 }
 
+func (a *Agent) DoCheck() (CheckResult, error) { return a.check() }
+
 func New() (*Agent, error) {
 	config, err := DefaultConfig()
 	if err != nil {

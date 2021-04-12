@@ -24,6 +24,13 @@ func NewAgentCmd() *cobra.Command {
 		Short: "Command tree related to the agent component",
 	}
 
+	runOnceCmd := &cobra.Command{
+		Use:   "run-once",
+		Short: "run-once",
+		Run:   runOnce,
+		Args:  startArgsValidator,
+	}
+
 	startCmd := &cobra.Command{
 		Use:   "start path/to/definitions.yaml",
 		Short: "Start the agent",
@@ -37,7 +44,34 @@ func NewAgentCmd() *cobra.Command {
 
 	agentCmd.AddCommand(startCmd)
 
+	agentCmd.AddCommand(runOnceCmd)
+
 	return agentCmd
+}
+
+func runOnce(cmd *cobra.Command, args []string) {
+	var err error
+
+	cfg, err := agent.DefaultConfig()
+	if err != nil {
+		log.Fatal("Failed to create the agent configuration: ", err)
+	}
+
+	cfg.DefinitionsPath = args[0]
+	cfg.ServiceName = serviceName
+	cfg.WebPort = port
+	cfg.TTL = TTL
+
+	a, err := agent.NewWithConfig(cfg)
+	if err != nil {
+		log.Fatal("Failed to create the agent: ", err)
+	}
+
+	res, err := a.DoCheck()
+	if err != nil {
+		log.Fatal("Failed to do checks: ", err)
+	}
+	fmt.Println(res.GetControls()) // It's not pretty yet
 }
 
 func start(cmd *cobra.Command, args []string) {

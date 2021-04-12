@@ -53,6 +53,7 @@ func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
 	engine.StaticFS("/static", http.FS(assetsFS))
 	engine.GET("/", HomeHandler)
 	engine.GET("/environments", NewEnvironmentsListHandler(deps.consul))
+	engine.GET("/environments/:name", NewEnvironmentHandler(deps.consul))
 	apiGroup := engine.Group("/api")
 	{
 		apiGroup.GET("/ping", ApiPingHandler)

@@ -14,3 +14,10 @@
   @extend .text-success
 }
 
+tr.clickable {
+  cursor: pointer;
+}
+
+.show-white-space {
+    white-space: pre-wrap;
+}

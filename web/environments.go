@@ -69,6 +69,7 @@ func NewEnvironmentsListHandler(client consul.Client) gin.HandlerFunc {
 			_ = c.Error(err)
 			return
 		}
+
 		c.HTML(http.StatusOK, "environments.html.tmpl", gin.H{"Environments": environments})
 	}
 }
@@ -95,4 +96,30 @@ func loadEnvironments(client consul.Client) (EnvironmentList, error) {
 	}
 
 	return environments, nil
+}
+
+func loadHealthChecks(client consul.Client, node string) ([]*consulApi.HealthCheck, error) {
+
+	checks, _, err := client.Health().Node(node, nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not query Consul for health checks")
+	}
+
+	return checks, nil
+}
+
+func NewEnvironmentHandler(client consul.Client) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		name := c.Param("name")
+		log.Print(name)
+		checks, err := loadHealthChecks(client, name)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+		c.HTML(http.StatusOK, "environment.html.tmpl", gin.H{
+			"NodeName":     name,
+			"HealthChecks": checks,
+		})
+	}
 }

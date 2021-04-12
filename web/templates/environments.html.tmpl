@@ -15,7 +15,7 @@
                 {{- range .Environments }}
                 {{- $Datacenter := .Name }}
                 {{- range .Nodes }}
-                <tr>
+                <tr class='clickable' onclick="window.location='/environments/{{ .Name }}'">
                     <td>
                         {{ .Name }}
                     </td>

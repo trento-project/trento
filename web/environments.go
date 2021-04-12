@@ -69,7 +69,6 @@ func NewEnvironmentsListHandler(client consul.Client) gin.HandlerFunc {
 			_ = c.Error(err)
 			return
 		}
-
 		c.HTML(http.StatusOK, "environments.html.tmpl", gin.H{"Environments": environments})
 	}
 }

@@ -54,6 +54,7 @@ func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
 	engine.GET("/", HomeHandler)
 	engine.GET("/environments", NewEnvironmentsListHandler(deps.consul))
 	engine.GET("/environments/:name", NewEnvironmentHandler(deps.consul))
+	engine.GET("/environments/:name/checks/:checkid", NewCheckHandler(deps.consul))
 	apiGroup := engine.Group("/api")
 	{
 		apiGroup.GET("/ping", ApiPingHandler)

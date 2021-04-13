@@ -15,5 +15,7 @@ jobs:
         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-
+    - name: install-mockery
+      run: go get github.com/vektra/mockery/v2
     - name: test
       run: make test

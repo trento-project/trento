@@ -4,7 +4,7 @@ import (
 	consulApi "github.com/hashicorp/consul/api"
 )
 
-//xgo:xgenerate mockgen -destination ../../test/mock_consul/consul.go . Client,Catalog,Health
+//go:generate mockery --all
 
 type Client interface {
 	Catalog() Catalog

@@ -82,7 +82,7 @@ Feel free to peek at the [Makefile](Makefile) to know more.
 
 > **Note**  
 > The [`mockery`](https://github.com/vektra/mockery) tool is required for the `generate` target, which in turn is required for the `test` target.
-> You can install it with `go get github.com/vektra/mockery/v2`
+> You can install it with `go install github.com/vektra/mockery/v2@latest`
 
 ## Support
 

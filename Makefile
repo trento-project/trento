@@ -19,7 +19,7 @@ fmt:
 	go fmt ./...
 
 generate:
-ifeq (, $(shell which mockery))
+ifeq (, $(shell command -v mockery 2> /dev/null))
 	$(error "'mockery' command not found. You can install it locally with 'go get github.com/vektra/mockery/v2'.")
 endif
 	go generate ./...

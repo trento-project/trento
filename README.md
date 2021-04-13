@@ -35,7 +35,7 @@ build it manually:
 ```shell
 git clone github.com/trento-project/trento.git
 cd trento
-make
+make build
 ```
 
 Pre-built binaries will be available soon.
@@ -69,14 +69,20 @@ See the [Deployment Architecture](./docs/trento-architecture.md) for details.
 We use GNU Make as a task manager; here are some common targets:
 
 ```shell
-make clean
-make test
-make fmt
-make web-assets
-make build
+make # clean, test and build everything
+
+make clean # removes any build artifact
+make test # executes all the tests
+make fmt # fixes code formatting
+make web-assets # invokes the frontend build scripts
+make generate # refresh automatically generated code (e.g. static Go mocks)
 ```
 
 Feel free to peek at the [Makefile](Makefile) to know more.
+
+> **Note**  
+> The [`mockery`](https://github.com/vektra/mockery) tool is required for the `generate` target, which in turn is required for the `test` target.
+> You can install it with `go get github.com/vektra/mockery/v2`
 
 ## Support
 

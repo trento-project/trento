@@ -70,7 +70,8 @@
                         {{- end }}
                     </td>
                     <td>
-                        <span class='badge badge-pill badge-{{ if eq .Health "passing" }}primary{{ else }}danger{{ end }}'>{{ .Health }}</span>
+                        {{- $Health := .Health }}
+                        <span class='badge badge-pill badge-{{ if eq $Health "passing" }}primary{{ else if eq $Health "warning" }}warning{{ else }}danger{{ end }}'>{{ $Health }}</span>
                     </td>
                 </tr>
                 {{- end }}

@@ -43,3 +43,19 @@ func (_m *Client) Health() consul.Health {
 
 	return r0
 }
+
+// KV provides a mock function with given fields:
+func (_m *Client) KV() consul.KV {
+	ret := _m.Called()
+
+	var r0 consul.KV
+	if rf, ok := ret.Get(0).(func() consul.KV); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(consul.KV)
+		}
+	}
+
+	return r0
+}

@@ -13,6 +13,7 @@ type Client interface {
 
 type Catalog interface {
 	Datacenters() ([]string, error)
+	Node(node string, q *consulApi.QueryOptions) (*consulApi.CatalogNode, *consulApi.QueryMeta, error)
 	Nodes(q *consulApi.QueryOptions) ([]*consulApi.Node, *consulApi.QueryMeta, error)
 }
 

@@ -16,18 +16,10 @@
                 {{- $NodeName := .NodeName }}
                 {{- range .HealthChecks }}
                 <tr {{ if eq .CheckID "ha_checks" }}class='clickable' onclick="window.location='/environments/{{ $NodeName }}/checks/{{ .CheckID }}'"{{ end }}>
-                    <td>
-                        {{ .Name }}
-                    </td>
-                    <td>
-                        {{ .CheckID }}
-                    </td>
-                    <td>
-                        {{ .Notes }}
-                    </td>
-                    <td class='show-white-space'>
-                        {{ .Output }}
-                    </td>
+                    <td>{{ .Name }}</td>
+                    <td>{{ .CheckID }}</td>
+                    <td>{{ .Notes }}</td>
+                    <td class='show-white-space'>{{ .Output }}</td>
                     <td>
                         <span class='badge badge-pill badge-{{ if eq .Status "passing" }}primary{{ else }}danger{{ end }}'>{{ .Status }}</span>
                     </td>

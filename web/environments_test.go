@@ -3,10 +3,13 @@ package web
 import (
 	"net/http"
 	"net/http/httptest"
+	"regexp"
 	"testing"
 
 	consulApi "github.com/hashicorp/consul/api"
 	"github.com/stretchr/testify/assert"
+	"github.com/tdewolff/minify/v2"
+	"github.com/tdewolff/minify/v2/html"
 	"github.com/trento-project/trento/internal/consul/mocks"
 )
 
@@ -16,10 +19,12 @@ func TestEnvironmentsListHandler(t *testing.T) {
 		{
 			Node:       "foo",
 			Datacenter: "test-environment",
+			Address:    "192.168.1.1",
 		},
 		{
 			Node:       "bar",
 			Datacenter: "test-environment",
+			Address:    "192.168.1.2",
 		},
 	}
 
@@ -69,10 +74,19 @@ func TestEnvironmentsListHandler(t *testing.T) {
 	catalog.AssertExpectations(t)
 	health.AssertExpectations(t)
 
+	m := minify.New()
+	m.AddFunc("text/html", html.Minify)
+	m.Add("text/html", &html.Minifier{
+		KeepDefaultAttrVals: true,
+		KeepEndTags:         true,
+	})
+	minified, err := m.String("text/html", resp.Body.String())
+	if err != nil {
+		panic(err)
+	}
+
 	assert.Equal(t, 200, resp.Code)
-	assert.Contains(t, resp.Body.String(), "<span class=\"environment-name\">test-environment</span>")
-	assert.Contains(t, resp.Body.String(), "<span class=\"node-name\">foo</span>")
-	assert.Contains(t, resp.Body.String(), "<span class=\"node-name\">bar</span>")
-	assert.Contains(t, resp.Body.String(), "<span class=\"node-health health-passing\">passing</span>")
-	assert.Contains(t, resp.Body.String(), "<span class=\"node-health health-critical\">critical</span>")
+	assert.Contains(t, minified, "Environments")
+	assert.Regexp(t, regexp.MustCompile("<td>foo</td><td>test-environment</td><td>192.168.1.1</td><td>.*passing.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td>bar</td><td>test-environment</td><td>192.168.1.2</td><td>.*critical.*</td>"), minified)
 }

@@ -16,15 +16,9 @@
                 {{- $Datacenter := .Name }}
                 {{- range .Nodes }}
                 <tr class='clickable' onclick="window.location='/environments/{{ .Name }}'">
-                    <td>
-                        {{ .Name }}
-                    </td>
-                    <td>
-                        {{ $Datacenter }}
-                    </td>
-                    <td>
-                        {{ .Address }}
-                    </td>
+                    <td>{{ .Name }}</td>
+                    <td>{{ $Datacenter }}</td>
+                    <td>{{ .Address }}</td>
                     <td>
                         <span class='badge badge-pill badge-{{ if eq .Health "passing" }}primary{{ else }}danger{{ end }}'>{{ .Health }}</span>
                     </td>

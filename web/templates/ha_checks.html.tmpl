@@ -19,18 +19,10 @@
                 {{- $Section := .ID }}
                 {{- range .Checks }}
                 <tr>
-                    <td>
-                        {{ $Section }}
-                    </td>
-                    <td>
-                        {{ .ID }}
-                    </td>
-                    <td>
-                        {{ .Description }}
-                    </td>
-                    <td>
-                        {{ index .TestInfo 0 }}
-                    </td>
+                    <td>{{ $Section }}</td>
+                    <td>{{ .ID }}</td>
+                    <td>{{ .Description }}</td>
+                    <td>{{ index .TestInfo 0 }}</td>
                     <td>
                         <span class='badge badge-pill badge-{{ if eq .State "PASS" }}primary{{ else if eq .State "WARN" }}warning{{ else }}danger{{ end }}'>{{ .State }}</span>
                     </td>

@@ -9,12 +9,18 @@ import (
 type Client interface {
 	Catalog() Catalog
 	Health() Health
+	KV() KV
 }
 
 type Catalog interface {
 	Datacenters() ([]string, error)
 	Node(node string, q *consulApi.QueryOptions) (*consulApi.CatalogNode, *consulApi.QueryMeta, error)
 	Nodes(q *consulApi.QueryOptions) ([]*consulApi.Node, *consulApi.QueryMeta, error)
+}
+
+type KV interface {
+	Get(key string, q *consulApi.QueryOptions) (*consulApi.KVPair, *consulApi.QueryMeta, error)
+	List(prefix string, q *consulApi.QueryOptions) (consulApi.KVPairs, *consulApi.QueryMeta, error)
 }
 
 type Health interface {
@@ -37,6 +43,10 @@ type client struct {
 
 func (c *client) Catalog() Catalog {
 	return c.wrapped.Catalog()
+}
+
+func (c *client) KV() KV {
+	return c.wrapped.KV()
 }
 
 func (c *client) Health() Health {

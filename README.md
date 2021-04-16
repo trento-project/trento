@@ -64,6 +64,44 @@ The Trento agent can then be started:
 
 See the [Deployment Architecture](./docs/trento-architecture.md) for details.
 
+## Tagging the systems
+
+In order to group and filter the systems a tagging mechanism can be used. This tags are placed as
+meta-data in the agent nodes. Find information about how to set meta-data in the agents at: https://www.consul.io/docs/agent/options#node_meta
+
+As an example, check the [meta-data file][./examples/trento-config.json] file. This file must be
+located in the folder set as `-config-dir` during the agent execution.
+
+The next items are reserved:
+- `trento-sap-environment`: Environment in which the system is running
+- `trento-sap-landscape`: Landscape in which the system is running
+- `trento-sap-environment`: SAP system (composed by database and application) in which the system is running
+
+### Setting the tags from the KV storage
+
+These reserved tags can be automatically set and updated using the [consul-template](https://github.com/hashicorp/consul-template).
+To achieve this, the tags information will come from the KV storage.
+
+Set the metadata in the next paths:
+- `trento/nodename/metadata/sap-environment`
+- `trento/nodename/metadata/sap-landscape`
+- `trento/nodename/metadata/sap-system`
+
+Notice that a new entry must exists for every node.
+After that, run the `consul-template` tool with:
+`./consul-template -consul-addr=http://consul-host:8500 -template "examples/trento-config.tpl:consul.d/test/trento-config.json:./consul reload -http-addr=http://consul-host:8500"`
+
+### Filtering the nodes in the wep app
+
+The web app provides the option to filter the systems using the previously commented reserved tags. To achieve this, the tags must be stored in the KV storage.
+Use the next path:
+- `trento/filters/sap-environments`
+- `trento/filters/sap-landscapes`
+- `trento/filters/sap-systems`
+
+Each of them must have a json list format. As example: `["land1", "land2"]`.
+These entries will be available in the filters on the `/environments` page.
+
 ## Development
 
 We use GNU Make as a task manager; here are some common targets:

@@ -20,11 +20,17 @@ func TestEnvironmentsListHandler(t *testing.T) {
 			Node:       "foo",
 			Datacenter: "test-environment",
 			Address:    "192.168.1.1",
+			Meta: map[string]string{
+				"trento-sap-environments": "land1",
+			},
 		},
 		{
 			Node:       "bar",
 			Datacenter: "test-environment",
 			Address:    "192.168.1.2",
+			Meta: map[string]string{
+				"trento-sap-environments": "land2",
+			},
 		},
 	}
 
@@ -40,18 +46,35 @@ func TestEnvironmentsListHandler(t *testing.T) {
 		},
 	}
 
+	filterEnv := &consulApi.KVPair{
+		Value: []byte("[\"env1\", \"env2\"]"),
+	}
+	filterLand := &consulApi.KVPair{
+		Value: []byte("[\"land1\", \"land2\"]"),
+	}
+	filterSys := &consulApi.KVPair{
+		Value: []byte("[\"sys1\", \"sys2\"]"),
+	}
+
 	consul := new(mocks.Client)
 	catalog := new(mocks.Catalog)
 	health := new(mocks.Health)
+	kv := new(mocks.KV)
 
 	consul.On("Catalog").Return(catalog)
 	consul.On("Health").Return(health)
+	consul.On("KV").Return(kv)
 
 	catalog.On("Datacenters").Return(datacenters, nil)
-	catalog.On("Nodes", (*consulApi.QueryOptions)(nil)).Return(nodes, nil, nil)
+	query := &consulApi.QueryOptions{Filter: ""}
+	catalog.On("Nodes", (*consulApi.QueryOptions)(query)).Return(nodes, nil, nil)
 
 	health.On("Node", "foo", (*consulApi.QueryOptions)(nil)).Return(fooHealthChecks, nil, nil)
 	health.On("Node", "bar", (*consulApi.QueryOptions)(nil)).Return(barHealthChecks, nil, nil)
+
+	kv.On("Get", "trento/filters/sap-environments", (*consulApi.QueryOptions)(nil)).Return(filterEnv, nil, nil)
+	kv.On("Get", "trento/filters/sap-landscapes", (*consulApi.QueryOptions)(nil)).Return(filterLand, nil, nil)
+	kv.On("Get", "trento/filters/sap-systems", (*consulApi.QueryOptions)(nil)).Return(filterSys, nil, nil)
 
 	deps := DefaultDependencies()
 	deps.consul = consul
@@ -87,6 +110,9 @@ func TestEnvironmentsListHandler(t *testing.T) {
 
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, minified, "Environments")
-	assert.Regexp(t, regexp.MustCompile("<td>foo</td><td>test-environment</td><td>192.168.1.1</td><td>.*passing.*</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td>bar</td><td>test-environment</td><td>192.168.1.2</td><td>.*critical.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<select name=trento-sap-environment.*>.*env1.*env2.*</select>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<select name=trento-sap-landscape.*>.*land1.*land2.*</select>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<select name=trento-sap-system.*>.*sys1.*sys2.*</select>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td>foo</td><td>test-environment</td><td>192.168.1.1</td><td>.*land1.*</td><td>.*passing.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td>bar</td><td>test-environment</td><td>192.168.1.2</td><td>.*land2.*</td><td>.*critical.*</td>"), minified)
 }

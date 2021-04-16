@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/aquasecurity/bench-common/check"
 	"github.com/gin-gonic/gin"
@@ -14,6 +15,13 @@ import (
 
 	"github.com/trento-project/trento/internal/consul"
 )
+
+const TRENTO_PREFIX string = "trento-"
+const TRENTO_FILTERS_PREFIX string = "trento/filters/"
+
+func TRENTO_FILTERS() []string {
+	return []string{"sap-environments", "sap-landscapes", "sap-systems"}
+}
 
 type Environment struct {
 	Name  string
@@ -34,6 +42,17 @@ func (n *Node) Health() string {
 
 func (n *Node) Name() string {
 	return n.Node.Node
+}
+
+func (n *Node) TrentoMeta() map[string]string {
+	filtered_meta := make(map[string]string)
+
+	for key, value := range n.Node.Meta {
+		if strings.HasPrefix(key, TRENTO_PREFIX) {
+			filtered_meta[key] = value
+		}
+	}
+	return filtered_meta
 }
 
 // todo: this method was rushed, needs to be completely rewritten to have the checker webservice decoupled in a dedicated HTTP client
@@ -62,19 +81,66 @@ func (n *Node) Checks() *check.Controls {
 	return checks
 }
 
+// Use github.com/hashicorp/go-bexpr to create the filter
+// https://github.com/hashicorp/consul/blob/master/agent/consul/catalog_endpoint.go#L298
+func CreateFilterMetaQuery(query map[string][]string) string {
+	var filters []string
+
+	if len(query) != 0 {
+		var filter string
+		for key, values := range query {
+			if strings.HasPrefix(key, TRENTO_PREFIX) {
+				filter = ""
+				for _, value := range values {
+					filter = fmt.Sprintf("%sMeta[\"%s\"] == \"%s\"", filter, key, value)
+					if values[len(values)-1] != value {
+						filter = fmt.Sprintf("%s or ", filter)
+					}
+				}
+				filters = append(filters, filter)
+			}
+		}
+	}
+	return strings.Join(filters, " and ")
+}
+
 func NewEnvironmentsListHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		environments, err := loadEnvironments(client)
+		query := c.Request.URL.Query()
+		query_filter := CreateFilterMetaQuery(query)
+		health_filter := query["health"]
+
+		environments, err := loadEnvironments(client, query_filter, health_filter)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 
-		c.HTML(http.StatusOK, "environments.html.tmpl", gin.H{"Environments": environments})
+		filters, err := loadFilters(client)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
+		c.HTML(http.StatusOK, "environments.html.tmpl", gin.H{
+			"Environments":   environments,
+			"Filters":        filters,
+			"AppliedFilters": query,
+		})
 	}
 }
 
-func loadEnvironments(client consul.Client) (EnvironmentList, error) {
+func contains(s []string, str string) bool {
+	for _, v := range s {
+		if v == str {
+			return true
+		}
+	}
+
+	return false
+}
+
+func loadEnvironments(client consul.Client, query_filter string, health_filter []string) (EnvironmentList, error) {
 	var environments = EnvironmentList{}
 
 	dcs, err := client.Catalog().Datacenters()
@@ -87,15 +153,49 @@ func loadEnvironments(client consul.Client) (EnvironmentList, error) {
 		}
 	}
 
-	nodes, _, err := client.Catalog().Nodes(nil)
+	query := &consulApi.QueryOptions{Filter: query_filter}
+	nodes, _, err := client.Catalog().Nodes(query)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not query Consul for nodes")
 	}
 	for _, node := range nodes {
-		environments[node.Datacenter].Nodes = append(environments[node.Datacenter].Nodes, &Node{*node, client})
+		populated_node := &Node{*node, client}
+		// This check could be done in the frontend maybe
+		if len(health_filter) == 0 || contains(health_filter, populated_node.Health()) {
+			environments[node.Datacenter].Nodes = append(environments[node.Datacenter].Nodes, populated_node)
+		}
 	}
 
 	return environments, nil
+}
+
+func loadFilter(client consul.Client, filter string) ([]string, error) {
+	filters, _, err := client.KV().Get(filter, nil)
+	if filters == nil {
+		return nil, errors.Wrap(err, "could not query Consul for filters on the KV storage")
+	}
+
+	var unmarshalled []string
+	if err := json.Unmarshal([]byte(string(filters.Value)), &unmarshalled); err != nil {
+		return nil, errors.Wrap(err, "error decoding the filter data")
+	}
+
+	return unmarshalled, nil
+}
+
+func loadFilters(client consul.Client) (map[string][]string, error) {
+	//We could use the kV().List to get all the filters too
+	//_, _, _ := client.KV().List("trento/filters/", nil)
+	filter_data := make(map[string][]string)
+	for _, filter := range TRENTO_FILTERS() {
+		filters, err := loadFilter(client, TRENTO_FILTERS_PREFIX+filter)
+		if err != nil {
+			return nil, err
+		}
+		filter_data[filter] = filters
+	}
+
+	return filter_data, nil
 }
 
 func loadHealthChecks(client consul.Client, node string) ([]*consulApi.HealthCheck, error) {

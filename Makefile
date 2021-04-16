@@ -30,7 +30,7 @@ mod-tidy:
 test: generate web-assets
 	go test -v ./...
 
-vet-check: web-assets
+vet-check: generate web-assets
 	go vet ./...
 
 web-deps: web/frontend/node_modules

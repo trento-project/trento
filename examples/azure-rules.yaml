@@ -35,6 +35,15 @@ groups:
         remediation: |
           Adjust the corosync consensus timeout as recommended on the Azure best practices. https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker 
         scored: true
+      - id: 1.1.2.runtime
+        description: "Corosync consensus is set to 36000"
+        audit: 'corosync-cmapctl | grep "runtime.config.totem.consensus (u32) = " | sed "s/^.*= //"'
+        tests:
+          test_items:
+            - flag: 36000
+        remediation: |
+          Adjust the corosync consensus timeout as recommended on the Azure best practices. https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker
+        scored: true
       - id: 1.1.3
         description: "Corosync max_messages is set to 20"
         audit: 'grep -E "^\s*max_messages:\s*20" /etc/corosync/corosync.conf | sed "s/[^0-9]//g"'
@@ -43,6 +52,15 @@ groups:
             - flag: 20
         remediation: |
           Adjust the corosync max_messages parameter as recommended on the Azure best practices. https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker 
+        scored: true
+      - id: 1.1.3.runtime
+        description: "Corosync max_messages is set to 20, check it runtime"
+        audit: 'corosync-cmapctl | grep "runtime.config.totem.max_messages (u32) = " | sed "s/^.*= //"'
+        tests:
+          test_items:
+            - flag: 20
+        remediation: |
+          Adjust the corosync max_messages parameter as recommended on the Azure best practices. https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker
         scored: true
       - id: 1.1.4
         description: "Corosync join parameter is set to 60"
@@ -53,6 +71,15 @@ groups:
         remediation: |
           Adjust the corosync join parameter as recommended on the Azure best practices. https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker 
         scored: true
+      - id: 1.1.4.runtime
+        description: "Corosync join parameter is set to 60, check it runtime"
+        audit: 'corosync-cmapctl | grep "runtime.config.totem.join (u32) = " | sed "s/^.*= //"'
+        tests:
+          test_items:
+            - flag: 60
+        remediation: |
+          Adjust the corosync join parameter as recommended on the Azure best practices. https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker
+        scored: true
       - id: 1.1.5
         description: "Corosync token_retransmits_before_loss_const parameter is set to 10"
         audit: 'grep -E "^\s*token_retransmits_before_loss_const:\s*10" /etc/corosync/corosync.conf | sed "s/[^0-9]//g"'
@@ -61,7 +88,16 @@ groups:
             - flag: 10
         remediation: |
           Adjust the corosync token_retransmits_before_loss_const parameter as recommended on the Azure best practices. https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker 
-        scored: true  
+        scored: true
+      - id: 1.1.5.runtime
+        description: "Corosync token_retransmits_before_loss_const parameter is set to 10, check it runtime"
+        audit: 'corosync-cmapctl | grep "runtime.config.totem.token_retransmits_before_loss_const (u32) = " | sed "s/^.*= //"'
+        tests:
+          test_items:
+            - flag: 10
+        remediation: |
+          Adjust the corosync token_retransmits_before_loss_const parameter as recommended on the Azure best practices. https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker
+        scored: true
       - id: 1.1.6
         description: "Corosync transport parameter is set to udpu"
         audit: 'grep -E "^\s*transport:\s*udpu" /etc/corosync/corosync.conf | sed "s/.*:\s*//"'
@@ -90,6 +126,16 @@ groups:
         remediation: |
           Adjust the corosync two_node parameter to 1 to make sure pacemaker calculates the actions properly for a two-node cluster. 
           Check the Azure best practices for more information. https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker 
+        scored: true
+      - id: 1.1.8.runtime
+        description: "Corosync two_node parameter is set to 1, check it runtime"
+        audit: 'corosync-cmapctl | grep "runtime.votequorum.two_node (u8) = " | sed "s/^.*= //"'
+        tests:
+          test_items:
+            - flag: 1
+        remediation: |
+          Adjust the corosync two_node parameter to 1 to make sure pacemaker calculates the actions properly for a two-node cluster.
+          Check the Azure best practices for more information. https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker
         scored: true
   - id: 1.2
     description: "Pacemaker checks for Azure"

@@ -45,39 +45,6 @@
     </div>
     <hr/>
     <p class='clearfix'/>
-    <div class='table-responsive'>
-        <table class='table eos-table'>
-            <thead>
-                <tr>
-                    <th scope='col'>Name</th>
-                    <th scope='col'>Datacenter</th>
-                    <th scope='col'>Address</th>
-                    <th scope='col'>Tags</th>
-                    <th scope='col'>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                {{- range .Environments }}
-                {{- $Datacenter := .Name }}
-                {{- range .Nodes }}
-                <tr class='clickable' onclick="window.location='/environments/{{ .Name }}'">
-                    <td>{{ .Name }}</td>
-                    <td>{{ $Datacenter }}</td>
-                    <td>{{ .Address }}</td>
-                    <td>
-                        {{- range $Key, $Value := .TrentoMeta }}
-                        <span class='badge badge-pill badge-info'>{{ $Value }}</span>
-                        {{- end }}
-                    </td>
-                    <td>
-                        {{- $Health := .Health }}
-                        <span class='badge badge-pill badge-{{ if eq $Health "passing" }}primary{{ else if eq $Health "warning" }}warning{{ else }}danger{{ end }}'>{{ $Health }}</span>
-                    </td>
-                </tr>
-                {{- end }}
-                {{- end }}
-            </tbody>
-        </table>
-    </div>
+    {{ template "nodes_table" . }}
 </div>
 {{ end }}

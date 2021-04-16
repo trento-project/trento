@@ -1,0 +1,29 @@
+{{ define "content" }}
+<div class="col">
+    <h1>Clusters</h1>
+    <div class='table-responsive'>
+        <table class='table eos-table'>
+            <thead>
+                <tr>
+                    <th scope='col'>Name</th>
+                    <th scope='col'>Nodes number</th>
+                    <th scope='col'>Resource number</th>
+                    <th scope='col'>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{- range .Clusters }}
+                <tr class='clickable' onclick="window.location='/clusters/{{ .Name }}'">
+                    <td>{{ .Name }}</td>
+                    <td>2</td>
+                    <td>4</td>
+                    <td>
+                        <span class='badge badge-pill badge-primary'>passing</span>
+                    </td>
+                </tr>
+                {{- end }}
+            </tbody>
+        </table>
+    </div>
+</div>
+{{ end }}

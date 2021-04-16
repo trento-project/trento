@@ -211,13 +211,19 @@ func loadHealthChecks(client consul.Client, node string) ([]*consulApi.HealthChe
 func NewEnvironmentHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		name := c.Param("name")
+		catalogNode, _, err := client.Catalog().Node(name, nil)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
 		checks, err := loadHealthChecks(client, name)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 		c.HTML(http.StatusOK, "environment.html.tmpl", gin.H{
-			"NodeName":     name,
+			"Node":         &Node{*catalogNode.Node, client},
 			"HealthChecks": checks,
 		})
 	}

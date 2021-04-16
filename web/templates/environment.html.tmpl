@@ -1,6 +1,16 @@
 {{ define "content" }}
 <div class="col">
-    <h1><a href="/environments">Environments</a> > {{ .NodeName }}</h1>
+    <h1><a href="/environments">Environments</a> > {{ .Node.Name }}</h1>
+    <h2>Node details</h2>
+    <dl class="inline">
+      <dt class="inline">Name</dt>
+      <dd class="inline">{{ .Node.Name }}</dd>
+      <dt class="inline">Cluster</dt>
+      <dd class="inline"><a href="/clusters/{{ index .Node.TrentoMeta "trento-ha-cluster" }}">{{ index .Node.TrentoMeta "trento-ha-cluster" }}</a></dd>
+    </dl>
+    <hr/>
+    <p class='clearfix'/>
+    <h2>Checks</h2>
     <div class='table-responsive'>
         <table class='table eos-table'>
             <thead>

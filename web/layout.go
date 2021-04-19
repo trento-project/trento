@@ -33,8 +33,8 @@ type SubmenuItem struct {
 }
 
 var defaultLayoutData = LayoutData{
-	Title:     "SUSE Console for SAP Applications",
-	Copyright: "© 2019-2019 SUSE LLC",
+	Title:     "Trento Console",
+	Copyright: "© 2020-2021 SUSE LLC",
 }
 
 // The default constructor expects an FS, some data, and user templates;

@@ -73,6 +73,7 @@ As an example, check the [meta-data file][./examples/trento-config.json] file. T
 located in the folder set as `-config-dir` during the agent execution.
 
 The next items are reserved:
+- `trento-ha-cluster`: Cluster which the system belongs to
 - `trento-sap-environment`: Environment in which the system is running
 - `trento-sap-landscape`: Landscape in which the system is running
 - `trento-sap-environment`: SAP system (composed by database and application) in which the system is running
@@ -83,6 +84,7 @@ These reserved tags can be automatically set and updated using the [consul-templ
 To achieve this, the tags information will come from the KV storage.
 
 Set the metadata in the next paths:
+- `trento/nodename/metadata/ha-cluster`
 - `trento/nodename/metadata/sap-environment`
 - `trento/nodename/metadata/sap-landscape`
 - `trento/nodename/metadata/sap-system`

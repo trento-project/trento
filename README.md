@@ -88,8 +88,11 @@ Set the metadata in the next paths:
 - `trento/nodename/metadata/sap-system`
 
 Notice that a new entry must exists for every node.
-After that, run the `consul-template` tool with:
-`./consul-template -consul-addr=http://consul-host:8500 -template "examples/trento-config.tpl:consul.d/test/trento-config.json:./consul reload -http-addr=http://consul-host:8500"`
+
+`consul-template` starts directly with the `trento` agent. It provides some configuration options to synchronize the utility with the consul agent.
+
+- `config-dir`: Consul agent configuration files directory. It must be the same used by the consul agent. The `trento` agent creates a new folder with the node name where the trento meta-data configuration file is stored (e.g. `consul.d/node1/trento-config.json`).
+- `consul-template`: Template used to populate the trento meta-data configuration file (by default [meta-data file][./examples/trento-config.json] is used).
 
 ### Filtering the nodes in the wep app
 

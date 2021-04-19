@@ -13,9 +13,13 @@ import (
 	"github.com/trento-project/trento/agent"
 )
 
+const METADATAFILE string = "trento-config.json"
+
 var TTL time.Duration
 var serviceName string
 var port int
+var templatePath string
+var configDir string
 
 func NewAgentCmd() *cobra.Command {
 
@@ -40,6 +44,9 @@ func NewAgentCmd() *cobra.Command {
 	startCmd.Flags().DurationVar(&TTL, "ttl", time.Second*10, "Duration of Consul TTL checks")
 	startCmd.Flags().StringVarP(&serviceName, "service-name", "n", "", "The name of the service this agent will monitor")
 	startCmd.Flags().IntVarP(&port, "port", "p", 8700, "The TCP port to use for the web service")
+	startCmd.Flags().StringVarP(&templatePath, "consul-template", "", "examples/trento-config.tpl", "consul-template template to populate the node meta-data")
+	startCmd.Flags().StringVarP(&configDir, "config-dir", "", "consul.d", "Consul configuration directory used to store the trento meta-data file")
+
 	must(startCmd.MarkFlagRequired("service-name"))
 
 	agentCmd.AddCommand(startCmd)
@@ -86,12 +93,24 @@ func start(cmd *cobra.Command, args []string) {
 		log.Fatal("Failed to create the agent: ", err)
 	}
 
+	consultemplateconfig := &agent.ConsulTemplateConfig{
+		Source:      templatePath,
+		Destination: fmt.Sprintf("%s/%s/%s", configDir, serviceName, METADATAFILE),
+	}
+	runner, err := agent.StartConsulTemplate(a, consultemplateconfig)
+	if err != nil {
+		log.Fatal("could not start consul template: ", err)
+	}
+
 	go func() {
 		quit := <-signals
 		log.Printf("Caught %s signal!", quit)
 
 		log.Println("Stopping the agent...")
 		a.Stop()
+
+		// Stop consul-template
+		agent.StopConsulTemplate(runner)
 	}()
 
 	log.Println("Starting the Console Agent...")

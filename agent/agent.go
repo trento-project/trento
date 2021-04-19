@@ -10,6 +10,7 @@ import (
 
 	consul "github.com/hashicorp/consul/api"
 	"github.com/pkg/errors"
+	"github.com/hashicorp/consul-template/manager"
 )
 
 type Agent struct {
@@ -21,15 +22,18 @@ type Agent struct {
 	consul           *consul.Client
 	ctx              context.Context
 	ctxCancel        context.CancelFunc
+	templateRunner   *manager.Runner
 }
 
 type Config struct {
-	WebHost         string
-	WebPort         int
-	ServiceName     string
-	InstanceName    string
-	DefinitionsPath string
-	TTL             time.Duration
+	WebHost             string
+	WebPort             int
+	ServiceName         string
+	InstanceName        string
+	DefinitionsPath     string
+	TTL                 time.Duration
+	TemplateSource      string
+	TemplateDestination string
 }
 
 func New() (*Agent, error) {
@@ -53,18 +57,24 @@ func NewWithConfig(cfg Config) (*Agent, error) {
 		return nil, errors.Wrap(err, "could not create a Checker instance")
 	}
 
+	templateRunner, err := NewTemplateRunner(cfg.TemplateSource, cfg.TemplateDestination)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not create the consul template runner")
+	}
+
 	ctx, ctxCancel := context.WithCancel(context.Background())
 
 	wsResultChan := make(chan CheckResult, 1)
 
 	agent := &Agent{
-		cfg:          cfg,
-		check:        checker,
-		ctx:          ctx,
-		ctxCancel:    ctxCancel,
-		consul:       client,
-		webService:   newWebService(wsResultChan),
-		wsResultChan: wsResultChan,
+		cfg:            cfg,
+		check:          checker,
+		ctx:            ctx,
+		ctxCancel:      ctxCancel,
+		consul:         client,
+		webService:     newWebService(wsResultChan),
+		wsResultChan:   wsResultChan,
+		templateRunner: templateRunner,
 	}
 	return agent, nil
 }
@@ -100,8 +110,9 @@ func (a *Agent) Start() error {
 	}()
 
 	var wg sync.WaitGroup
-	wg.Add(2)
-	errs := make(chan error, 2)
+	// This number must match the number threads attached to the WaitGroup object
+	wg.Add(3)
+	errs := make(chan error, 3)
 
 	go func(wg *sync.WaitGroup) {
 		log.Println("Starting Check loop...")
@@ -113,6 +124,13 @@ func (a *Agent) Start() error {
 	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
 		errs <- a.webService.Start(a.cfg.WebHost, a.cfg.WebPort, a.ctx)
+	}(&wg)
+
+	go func(wg *sync.WaitGroup) {
+		log.Println("Starting consul-template loop...")
+		defer wg.Done()
+		errs <- a.startConsulTemplate()
+		log.Println("consul-template loop stopped.")
 	}(&wg)
 
 	// As soon as all the goroutines in the Waitgroup are done, close the channel where the errors are sent

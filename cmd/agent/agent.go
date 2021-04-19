@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"path"
 	"syscall"
 	"time"
 
@@ -87,19 +88,12 @@ func start(cmd *cobra.Command, args []string) {
 	cfg.ServiceName = serviceName
 	cfg.WebPort = port
 	cfg.TTL = TTL
+	cfg.TemplateSource = templatePath
+	cfg.TemplateDestination = path.Join(configDir, serviceName, METADATAFILE)
 
 	a, err := agent.NewWithConfig(cfg)
 	if err != nil {
 		log.Fatal("Failed to create the agent: ", err)
-	}
-
-	consultemplateconfig := &agent.ConsulTemplateConfig{
-		Source:      templatePath,
-		Destination: fmt.Sprintf("%s/%s/%s", configDir, serviceName, METADATAFILE),
-	}
-	runner, err := agent.StartConsulTemplate(a, consultemplateconfig)
-	if err != nil {
-		log.Fatal("could not start consul template: ", err)
 	}
 
 	go func() {
@@ -108,9 +102,6 @@ func start(cmd *cobra.Command, args []string) {
 
 		log.Println("Stopping the agent...")
 		a.Stop()
-
-		// Stop consul-template
-		agent.StopConsulTemplate(runner)
 	}()
 
 	log.Println("Starting the Console Agent...")

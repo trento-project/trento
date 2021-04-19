@@ -1,0 +1,47 @@
+{{ define "content" }}
+<div class="col">
+    <h1><a href="/clusters">Clusters</a> > {{ .Cluster.Name }}</h1>
+    <h2>Cluster details</h2>
+    <dl class="inline">
+      <dt class="inline">Name</dt>
+      <dd class="inline">{{ .Cluster.Name }}</dd>
+      <dt class="inline">Nodes number</dt>
+      <dd class="inline">{{ len .Environments  }}</a></dd>
+      <dt class="inline">Resource number</dt>
+      <dd class="inline">4</a></dd>
+    </dl>
+    <h2>Nodes</h2>
+    {{ template "nodes_table" . }}
+    <hr/>
+    <p class='clearfix'/>
+    <h2>Resources</h2>
+    <div class='table-responsive'>
+        <table class='table eos-table'>
+            <thead>
+                <tr>
+                    <th scope='col'>test</th>
+                    <th scope='col'>test2</th>
+                </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class='badge badge-pill badge-primary'>rsc_ip_PRD_HDB00</span></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td><span class='badge badge-pill badge-primary'>rsc_SAPHana_PRD_HDB00</span></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td><span class='badge badge-pill badge-primary'>rsc_SAPHanaTopology_PRD_HDB00</span></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td></td>
+                <td><span class='badge badge-pill badge-primary'>rsc_SAPHanaTopology_PRD_HDB00</span></td>
+              </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{{- end }}

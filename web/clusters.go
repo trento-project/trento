@@ -78,17 +78,17 @@ func loadClusters(client consul.Client, cluster_name string) (ClusterList, error
 		cluster_id := key_values[len(key_values)-2]
 
 		if strings.HasSuffix(entry.Key, "/") {
-			clusters[cluster_id] = &Cluster{}
+			clusters[cluster_id] = &Cluster{Name: cluster_id}
 			continue
 		}
 
-		value := key_values[len(key_values)-1]
+		//value := key_values[len(key_values)-1]
 		// This could be done with a more automatic way in the future when we define the
 		// Cluster and KV structure
-		switch value {
-		case "name":
-			clusters[cluster_id].Name = string(entry.Value)
-		}
+		//switch value {
+		//case "name":
+		//	clusters[cluster_id].Name = string(entry.Value)
+		//}
 
 	}
 	return clusters, nil

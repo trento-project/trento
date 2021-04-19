@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	//consulApi "github.com/hashicorp/consul/api"
 	"github.com/pkg/errors"
 
 	"github.com/trento-project/trento/internal/consul"
@@ -23,7 +22,7 @@ type ClusterList map[string]*Cluster
 
 func NewClustersListHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		clusters, err := loadClusters(client)
+		clusters, err := loadClusters(client, "")
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -35,10 +34,36 @@ func NewClustersListHandler(client consul.Client) gin.HandlerFunc {
 	}
 }
 
-func loadClusters(client consul.Client) (ClusterList, error) {
+func NewClusterHandler(client consul.Client) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		cluster_name := c.Param("name")
+
+		cluster, err := loadClusters(client, cluster_name)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
+		filter_query := fmt.Sprintf("Meta[\"trento-ha-cluster\"] == \"%s\"", cluster_name)
+		environments, err := loadEnvironments(client, filter_query, nil)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
+		c.HTML(http.StatusOK, "cluster.html.tmpl", gin.H{
+			"Cluster":      cluster[cluster_name],
+			"Environments": environments,
+		})
+	}
+}
+
+func loadClusters(client consul.Client, cluster_name string) (ClusterList, error) {
 	var clusters = ClusterList{}
 
-	entries, _, err := client.KV().List(KV_CLUSTERS_PATH, nil)
+	kv_path := fmt.Sprintf("%s/%s", KV_CLUSTERS_PATH, cluster_name)
+
+	entries, _, err := client.KV().List(kv_path, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not query Consul for Cluster KV values")
 	}
@@ -49,63 +74,22 @@ func loadClusters(client consul.Client) (ClusterList, error) {
 		}
 
 		key_values := strings.Split(entry.Key, "/")
+		// 2 is used as Split creates a last empty entry
+		cluster_id := key_values[len(key_values)-2]
 
 		if strings.HasSuffix(entry.Key, "/") {
-			// 2 is used as Split creates a last empty entry
-			last_key := key_values[len(key_values)-2]
-			clusters[last_key] = &Cluster{}
+			clusters[cluster_id] = &Cluster{}
 			continue
 		}
 
-		cluster_id := key_values[len(key_values)-2]
-		key := key_values[len(key_values)-1]
+		value := key_values[len(key_values)-1]
 		// This could be done with a more automatic way in the future when we define the
 		// Cluster and KV structure
-		switch key {
+		switch value {
 		case "name":
 			clusters[cluster_id].Name = string(entry.Value)
 		}
 
 	}
 	return clusters, nil
-}
-
-func NewClusterHandler(client consul.Client) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		var cluster = Cluster{}
-
-		cluster_name := c.Param("name")
-
-		cluster_data, _, err := client.KV().List(fmt.Sprintf("%s/%s", KV_CLUSTERS_PATH, cluster_name), nil)
-		if err != nil {
-			_ = c.Error(err)
-			return
-		}
-
-		for _, entry := range cluster_data {
-			if strings.HasSuffix(entry.Key, "/") {
-				continue
-			}
-
-			key_values := strings.Split(entry.Key, "/")
-			key := key_values[len(key_values)-1]
-			// This could be done with a more automatic way in the future when we define the
-			// Cluster and KV structure
-			switch key {
-			case "name":
-				cluster.Name = string(entry.Value)
-			}
-		}
-
-		environments, err := loadEnvironments(client, fmt.Sprintf("Meta[\"trento-ha-cluster\"] == \"%s\"", cluster_name), nil)
-		if err != nil {
-			_ = c.Error(err)
-			return
-		}
-
-		c.HTML(http.StatusOK, "cluster.html.tmpl", gin.H{
-			"Cluster":      cluster,
-			"Environments": environments,
-		})
-	}
 }

@@ -10,19 +10,20 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/tdewolff/minify/v2"
 	"github.com/tdewolff/minify/v2/html"
+	consul_internal "github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/consul/mocks"
 )
 
 func TestClustersListHandler(t *testing.T) {
 	clusters := consulApi.KVPairs{
 		&consulApi.KVPair{
-			Key: "trento/clusters/",
+			Key: consul_internal.KvClustersPath + "/",
 		},
 		&consulApi.KVPair{
-			Key: "trento/clusters/cluster1/",
+			Key: consul_internal.KvClustersPath + "/cluster1/",
 		},
 		&consulApi.KVPair{
-			Key: "trento/clusters/cluster2/",
+			Key: consul_internal.KvClustersPath + "/cluster2/",
 		},
 	}
 
@@ -31,7 +32,7 @@ func TestClustersListHandler(t *testing.T) {
 
 	consul.On("KV").Return(kv)
 
-	kv.On("List", "trento/clusters/", (*consulApi.QueryOptions)(nil)).Return(clusters, nil, nil)
+	kv.On("List", consul_internal.KvClustersPath+"/", (*consulApi.QueryOptions)(nil)).Return(clusters, nil, nil)
 
 	deps := DefaultDependencies()
 	deps.consul = consul

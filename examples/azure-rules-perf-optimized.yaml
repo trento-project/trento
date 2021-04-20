@@ -19,3 +19,74 @@ groups:
         remediation: |
           Install a SUSE supported OS release
         scored: true
+      - id: 2.1.2
+        description: "Check the pacemaker version IS"
+        audit: 'rpm -qv pacemaker | sed -e "s/pacemaker-\(.*\)+.*/\1/"'
+        tests:
+          bin_op: or
+          test_items:
+            - flag: '2.0.3'
+        remediation: |
+          Update pacemaker packages
+        scored: true
+      - id: 2.1.2.exclude
+        description: "Check the pacemaker version IS NOT"
+        audit: 'rpm -q --qf "%{VERSION}\n" pacemaker'
+        tests:
+          bin_op: and
+          test_items:
+          - flag: '2.0.3+20200511.2b248d828'
+            compare:
+              op: noteq
+              value: '2.0.3+20200511.2b248d828'
+            set: true
+        remediation: |
+          Update pacemaker packages
+        scored: true
+      - id: 2.1.3
+        description: "Check the corosync version IS"
+        audit: 'rpm -qv corosync'
+        tests:
+          bin_op: or
+          test_items:
+            - flag: 'corosync-2.4.5-5.8.x86_64'
+        remediation: |
+          Update corosync packages
+        scored: true
+      - id: 2.1.4
+        description: "Check the sbd version IS"
+        audit: 'rpm -qv sbd | sed -e "s/sbd-\(.*\)+.*/\1/"'
+        tests:
+          bin_op: or
+          test_items:
+            - flag: '1.4.0'
+        remediation: |
+          Update sbd packages
+        scored: true
+      - id: 2.1.4.exclude
+        description: "Check the sbd version IS NOT"
+        audit: 'rpm -q --qf "%{VERSION}\n" sbd'
+        tests:
+          bin_op: and
+          test_items:
+          - flag: '1.4.0+20190326.c38c5e6'
+            compare:
+              op: noteq
+              value: '1.4.0+20190326.c38c5e6'
+            set: true
+        remediation: |
+          Update sbd packages
+        scored: true
+      - id: 2.1.5
+        description: "Check python version"
+        audit: 'python3 --version'
+        tests:
+          bin_op: or
+          test_items:
+            - flag: 'Python 3.6.5'
+            - flag: 'Python 3.6.6'
+            - flag: 'Python 3.6.7'
+            - flag: 'Python 3.6.8'
+        remediation: |
+          Update python packages
+        scored: true

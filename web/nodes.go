@@ -23,12 +23,7 @@ func TRENTO_FILTERS() []string {
 	return []string{"sap-environments", "sap-landscapes", "sap-systems"}
 }
 
-type Environment struct {
-	Name  string
-	Nodes []*Node
-}
-
-type EnvironmentList map[string]*Environment
+type NodeList []*Node
 
 type Node struct {
 	consulApi.Node
@@ -104,13 +99,13 @@ func CreateFilterMetaQuery(query map[string][]string) string {
 	return strings.Join(filters, " and ")
 }
 
-func NewEnvironmentsListHandler(client consul.Client) gin.HandlerFunc {
+func NewNodesListHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		query := c.Request.URL.Query()
 		query_filter := CreateFilterMetaQuery(query)
 		health_filter := query["health"]
 
-		environments, err := loadEnvironments(client, query_filter, health_filter)
+		nodes, err := loadNodes(client, query_filter, health_filter)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -122,8 +117,8 @@ func NewEnvironmentsListHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		c.HTML(http.StatusOK, "environments.html.tmpl", gin.H{
-			"Environments":   environments,
+		c.HTML(http.StatusOK, "nodes.html.tmpl", gin.H{
+			"Nodes":          nodes,
 			"Filters":        filters,
 			"AppliedFilters": query,
 		})
@@ -140,33 +135,23 @@ func contains(s []string, str string) bool {
 	return false
 }
 
-func loadEnvironments(client consul.Client, query_filter string, health_filter []string) (EnvironmentList, error) {
-	var environments = EnvironmentList{}
-
-	dcs, err := client.Catalog().Datacenters()
-	if err != nil {
-		return nil, errors.Wrap(err, "could not query Consul for datacenters")
-	}
-	for _, dc := range dcs {
-		environments[dc] = &Environment{
-			Name: dc,
-		}
-	}
+func loadNodes(client consul.Client, query_filter string, health_filter []string) (NodeList, error) {
+	var nodes = NodeList{}
 
 	query := &consulApi.QueryOptions{Filter: query_filter}
-	nodes, _, err := client.Catalog().Nodes(query)
+	consul_nodes, _, err := client.Catalog().Nodes(query)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not query Consul for nodes")
 	}
-	for _, node := range nodes {
+	for _, node := range consul_nodes {
 		populated_node := &Node{*node, client}
 		// This check could be done in the frontend maybe
 		if len(health_filter) == 0 || contains(health_filter, populated_node.Health()) {
-			environments[node.Datacenter].Nodes = append(environments[node.Datacenter].Nodes, populated_node)
+			nodes = append(nodes, populated_node)
 		}
 	}
 
-	return environments, nil
+	return nodes, nil
 }
 
 func loadFilter(client consul.Client, filter string) ([]string, error) {
@@ -208,7 +193,7 @@ func loadHealthChecks(client consul.Client, node string) ([]*consulApi.HealthChe
 	return checks, nil
 }
 
-func NewEnvironmentHandler(client consul.Client) gin.HandlerFunc {
+func NewNodeHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		name := c.Param("name")
 		catalogNode, _, err := client.Catalog().Node(name, nil)
@@ -222,7 +207,7 @@ func NewEnvironmentHandler(client consul.Client) gin.HandlerFunc {
 			_ = c.Error(err)
 			return
 		}
-		c.HTML(http.StatusOK, "environment.html.tmpl", gin.H{
+		c.HTML(http.StatusOK, "node.html.tmpl", gin.H{
 			"Node":         &Node{*catalogNode.Node, client},
 			"HealthChecks": checks,
 		})

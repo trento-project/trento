@@ -45,15 +45,15 @@ func NewClusterHandler(client consul.Client) gin.HandlerFunc {
 		}
 
 		filter_query := fmt.Sprintf("Meta[\"trento-ha-cluster\"] == \"%s\"", cluster_name)
-		environments, err := loadEnvironments(client, filter_query, nil)
+		nodes, err := loadNodes(client, filter_query, nil)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 
 		c.HTML(http.StatusOK, "cluster.html.tmpl", gin.H{
-			"Cluster":      cluster[cluster_name],
-			"Environments": environments,
+			"Cluster": cluster[cluster_name],
+			"Nodes":   nodes,
 		})
 	}
 }

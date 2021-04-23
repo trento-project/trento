@@ -77,15 +77,15 @@ func TestHostsListHandler(t *testing.T) {
 	catalog.On("Nodes", (*consulApi.QueryOptions)(query)).Return(nodes, nil, nil)
 
 	filterSys1 := &consulApi.QueryOptions{
-		Filter: "Meta[\"trento-sap-environment\"] == \"env1\" and Meta[\"trento-sap-landscape\"] == \"land1\" and Meta[\"trento-sap-system\"] == \"sys1\""}
+		Filter: "(Meta[\"trento-sap-environment\"] == \"env1\") and (Meta[\"trento-sap-landscape\"] == \"land1\") and (Meta[\"trento-sap-system\"] == \"sys1\")"}
 	catalog.On("Nodes", (filterSys1)).Return(nodes, nil, nil)
 
 	filterSys2 := &consulApi.QueryOptions{
-		Filter: "Meta[\"trento-sap-environment\"] == \"env1\" and Meta[\"trento-sap-landscape\"] == \"land2\" and Meta[\"trento-sap-system\"] == \"sys2\""}
+		Filter: "(Meta[\"trento-sap-environment\"] == \"env1\") and (Meta[\"trento-sap-landscape\"] == \"land2\") and (Meta[\"trento-sap-system\"] == \"sys2\")"}
 	catalog.On("Nodes", (filterSys2)).Return(nodes, nil, nil)
 
 	filterSys3 := &consulApi.QueryOptions{
-		Filter: "Meta[\"trento-sap-environment\"] == \"env2\" and Meta[\"trento-sap-landscape\"] == \"land3\" and Meta[\"trento-sap-system\"] == \"sys3\""}
+		Filter: "(Meta[\"trento-sap-environment\"] == \"env2\") and (Meta[\"trento-sap-landscape\"] == \"land3\") and (Meta[\"trento-sap-system\"] == \"sys3\")"}
 	catalog.On("Nodes", (filterSys3)).Return(nodes, nil, nil)
 
 	health.On("Node", "foo", (*consulApi.QueryOptions)(nil)).Return(fooHealthChecks, nil, nil)

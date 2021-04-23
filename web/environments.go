@@ -1,7 +1,7 @@
 package web
 
 import (
-	"log"
+	//"log"
 	"net/http"
 	"strings"
 

@@ -100,7 +100,7 @@ func CreateFilterMetaQuery(query map[string][]string) string {
 						filter = fmt.Sprintf("%s or ", filter)
 					}
 				}
-				filters = append(filters, filter)
+				filters = append(filters, fmt.Sprintf("(%s)", filter))
 			}
 		}
 	}

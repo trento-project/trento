@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"sort"
 	"strings"
 
 	"github.com/aquasecurity/bench-common/check"
@@ -71,16 +72,28 @@ func (n *Host) Checks() *check.Controls {
 	return checks
 }
 
+func sortKeys(m map[string][]string) []string {
+	var keys []string
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
 // Use github.com/hashicorp/go-bexpr to create the filter
 // https://github.com/hashicorp/consul/blob/master/agent/consul/catalog_endpoint.go#L298
 func CreateFilterMetaQuery(query map[string][]string) string {
 	var filters []string
+	// Need to sort the keys to have stable output. Mostly for unit testing
+	sortedQuery := sortKeys(query)
 
 	if len(query) != 0 {
 		var filter string
-		for key, values := range query {
+		for _, key := range sortedQuery {
 			if strings.HasPrefix(key, TrentoPrefix) {
 				filter = ""
+				values := query[key]
 				for _, value := range values {
 					filter = fmt.Sprintf("%sMeta[\"%s\"] == \"%s\"", filter, key, value)
 					if values[len(values)-1] != value {

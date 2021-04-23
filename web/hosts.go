@@ -125,16 +125,6 @@ func NewHostsListHandler(client consul.Client) gin.HandlerFunc {
 	}
 }
 
-func contains(s []string, str string) bool {
-	for _, v := range s {
-		if v == str {
-			return true
-		}
-	}
-
-	return false
-}
-
 func loadHosts(client consul.Client, query_filter string, health_filter []string) (HostList, error) {
 	var hosts = HostList{}
 

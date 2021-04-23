@@ -1,6 +1,6 @@
 {{ define "content" }}
 <div class="col">
-    <h1>Nodes</h1>
+    <h1>Hosts</h1>
     <div class="filters">
       <script>
         $(document).ready(function(){
@@ -12,7 +12,7 @@
           });
         });
       </script>
-      <form method="GET" action="/nodes">
+      <form method="GET" action="/hosts">
         <select name="trento-sap-environment" id="trento-sap-environment" class="selectpicker" multiple data-selected-text-format="count > 3" data-actions-box="true" title="SAP environment...">
           {{- range index .Filters "sap-environments" }}
           <option value="{{ . }}">{{ . }}</option>
@@ -45,6 +45,6 @@
     </div>
     <hr/>
     <p class='clearfix'/>
-    {{ template "nodes_table" . }}
+    {{ template "hosts_table" . }}
 </div>
 {{ end }}

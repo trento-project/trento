@@ -13,7 +13,7 @@ import (
 	"github.com/trento-project/trento/internal/consul/mocks"
 )
 
-func TestNodesListHandler(t *testing.T) {
+func TestHostsListHandler(t *testing.T) {
 	nodes := []*consulApi.Node{
 		{
 			Node:       "foo",
@@ -84,7 +84,7 @@ func TestNodesListHandler(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/nodes", nil)
+	req, err := http.NewRequest("GET", "/hosts", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -107,7 +107,7 @@ func TestNodesListHandler(t *testing.T) {
 	}
 
 	assert.Equal(t, 200, resp.Code)
-	assert.Contains(t, minified, "Nodes")
+	assert.Contains(t, minified, "Hosts")
 	assert.Regexp(t, regexp.MustCompile("<select name=trento-sap-environment.*>.*env1.*env2.*</select>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<select name=trento-sap-landscape.*>.*land1.*land2.*</select>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<select name=trento-sap-system.*>.*sys1.*sys2.*</select>"), minified)

@@ -5,13 +5,13 @@
     <dl class="inline">
       <dt class="inline">Name</dt>
       <dd class="inline">{{ .Cluster.Name }}</dd>
-      <dt class="inline">Nodes number</dt>
-      <dd class="inline">{{ len .Nodes  }}</a></dd>
+      <dt class="inline">Hosts number</dt>
+      <dd class="inline">{{ len .Hosts  }}</a></dd>
       <dt class="inline">Resource number</dt>
       <dd class="inline">4</a></dd>
     </dl>
-    <h2>Nodes</h2>
-    {{ template "nodes_table" . }}
+    <h2>Hosts</h2>
+    {{ template "hosts_table" . }}
     <hr/>
     <p class='clearfix'/>
     <h2>Resources</h2>

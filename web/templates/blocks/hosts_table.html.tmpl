@@ -1,4 +1,4 @@
-{{ define "nodes_table" }}
+{{ define "hosts_table" }}
 <div class='table-responsive'>
     <table class='table eos-table'>
         <thead>
@@ -11,8 +11,8 @@
             </tr>
         </thead>
         <tbody>
-            {{- range .Nodes }}
-            <tr class='clickable' onclick="window.location='/nodes/{{ .Name }}'">
+            {{- range .Hosts }}
+            <tr class='clickable' onclick="window.location='/hosts/{{ .Name }}'">
                 <td>{{ .Name }}</td>
                 <td>{{ .Address }}</td>
                 <td><a href="/clusters/{{ index .TrentoMeta "trento-ha-cluster" }}">{{ index .TrentoMeta "trento-ha-cluster" }}</a></td>

@@ -16,12 +16,7 @@ import (
 	"github.com/trento-project/trento/internal/consul"
 )
 
-const TRENTO_PREFIX string = "trento-"
-const TRENTO_FILTERS_PREFIX string = "trento/filters/"
-
-func TRENTO_FILTERS() []string {
-	return []string{"sap-environments", "sap-landscapes", "sap-systems"}
-}
+const TrentoPrefix string = "trento-"
 
 type HostList []*Host
 
@@ -43,7 +38,7 @@ func (n *Host) TrentoMeta() map[string]string {
 	filtered_meta := make(map[string]string)
 
 	for key, value := range n.Node.Meta {
-		if strings.HasPrefix(key, TRENTO_PREFIX) {
+		if strings.HasPrefix(key, TrentoPrefix) {
 			filtered_meta[key] = value
 		}
 	}
@@ -84,7 +79,7 @@ func CreateFilterMetaQuery(query map[string][]string) string {
 	if len(query) != 0 {
 		var filter string
 		for key, values := range query {
-			if strings.HasPrefix(key, TRENTO_PREFIX) {
+			if strings.HasPrefix(key, TrentoPrefix) {
 				filter = ""
 				for _, value := range values {
 					filter = fmt.Sprintf("%sMeta[\"%s\"] == \"%s\"", filter, key, value)
@@ -144,30 +139,22 @@ func loadHosts(client consul.Client, query_filter string, health_filter []string
 	return hosts, nil
 }
 
-func loadFilter(client consul.Client, filter string) ([]string, error) {
-	filters, _, err := client.KV().Get(filter, nil)
-	if filters == nil {
-		return nil, errors.Wrap(err, "could not query Consul for filters on the KV storage")
-	}
-
-	var unmarshalled []string
-	if err := json.Unmarshal([]byte(string(filters.Value)), &unmarshalled); err != nil {
-		return nil, errors.Wrap(err, "error decoding the filter data")
-	}
-
-	return unmarshalled, nil
-}
-
 func loadFilters(client consul.Client) (map[string][]string, error) {
-	//We could use the kV().List to get all the filters too
-	//_, _, _ := client.KV().List("trento/filters/", nil)
 	filter_data := make(map[string][]string)
-	for _, filter := range TRENTO_FILTERS() {
-		filters, err := loadFilter(client, TRENTO_FILTERS_PREFIX+filter)
-		if err != nil {
-			return nil, err
+
+	environments, err := loadEnvironments(client)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not get the filters")
+	}
+
+	for envKey, envValue := range environments {
+		filter_data["environments"] = append(filter_data["environments"], envKey)
+		for landKey, landValue := range envValue.Landscapes {
+			filter_data["landscapes"] = append(filter_data["landscapes"], landKey)
+			for sysKey, _ := range landValue.SAPSystems {
+				filter_data["sapsystems"] = append(filter_data["sapsystems"], sysKey)
+			}
 		}
-		filter_data[filter] = filters
 	}
 
 	return filter_data, nil

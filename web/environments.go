@@ -1,7 +1,7 @@
 package web
 
 import (
-	//"log"
+	"log"
 	"net/http"
 	"strings"
 
@@ -98,6 +98,24 @@ func NewSAPSystemHostsListHandler(client consul.Client) gin.HandlerFunc {
 	}
 }
 
+/* loadEnvironments needs a fixed kv structure to work. Here an example
+trento/environments/
+trento/environments/env1/
+trento/environments/env1/landscapes/
+trento/environments/env1/landscapes/land1/
+trento/environments/env1/landscapes/land1/sapsystems/
+trento/environments/env1/landscapes/land1/sapsystems/sys1/
+trento/environments/env1/landscapes/land1/sapsystems/sys2/
+trento/environments/env1/landscapes/land2/
+trento/environments/env1/landscapes/land2/sapsystems/
+trento/environments/env1/landscapes/land2/sapsystems/sys3/
+trento/environments/env1/landscapes/land2/sapsystems/sys4/
+trento/environments/env2/
+trento/environments/env2/landscapes/
+trento/environments/env2/landscapes/land3/
+trento/environments/env2/landscapes/land3/sapsystems/
+trento/environments/env2/landscapes/land3/sapsystems/sys5/
+*/
 func loadEnvironments(client consul.Client) (EnvironmentList, error) {
 	var (
 		environments = EnvironmentList{}
@@ -160,6 +178,7 @@ func loadSAPSystems(client consul.Client, environments EnvironmentList, values [
 	if lastKeyParent == "sapsystems" && !sysFound {
 		envName := values[envIndex]
 		landName := values[landIndex]
+		// Get the nodes with these meta-data entries
 		query := CreateFilterMetaQuery(map[string][]string{
 			"trento-sap-environment": []string{envName},
 			"trento-sap-landscape":   []string{landName},

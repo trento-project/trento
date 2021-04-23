@@ -5,6 +5,15 @@
     <dl class="inline">
       <dt class="inline">Name</dt>
       <dd class="inline">{{ .Host.Name }}</dd>
+      {{ $Env := index .Host.TrentoMeta "trento-sap-environment" }}
+      {{ $Land := index .Host.TrentoMeta "trento-sap-landscape" }}
+      {{ $SAPSys := index .Host.TrentoMeta "trento-sap-system" }}
+      <dt class="inline">Environment</dt>
+      <dd class="inline"><a href="/environments/{{ $Env }}">{{ $Env }}</a></dd>
+      <dt class="inline">Landscape</dt>
+      <dd class="inline"><a href="/environments/{{ $Env }}/landscapes/{{ $Land }}">{{ $Land }}</a></dd>
+      <dt class="inline">SAP System</dt>
+      <dd class="inline"><a href="/environments/{{ $Env }}/landscapes/{{ $Land }}/sapsystems/{{ $SAPSys }}">{{ $SAPSys }}</a></dd>
       <dt class="inline">Cluster</dt>
       <dd class="inline"><a href="/clusters/{{ index .Host.TrentoMeta "trento-ha-cluster" }}">{{ index .Host.TrentoMeta "trento-ha-cluster" }}</a></dd>
     </dl>

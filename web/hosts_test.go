@@ -45,14 +45,21 @@ func TestHostsListHandler(t *testing.T) {
 		},
 	}
 
-	filterEnv := &consulApi.KVPair{
-		Value: []byte("[\"env1\", \"env2\"]"),
-	}
-	filterLand := &consulApi.KVPair{
-		Value: []byte("[\"land1\", \"land2\"]"),
-	}
-	filterSys := &consulApi.KVPair{
-		Value: []byte("[\"sys1\", \"sys2\"]"),
+	filters := []string{
+		"trento/environments/",
+		"trento/environments/env1/",
+		"trento/environments/env1/landscapes/",
+		"trento/environments/env1/landscapes/land1/",
+		"trento/environments/env1/landscapes/land1/sapsystems/",
+		"trento/environments/env1/landscapes/land1/sapsystems/sys1/",
+		"trento/environments/env1/landscapes/land2/",
+		"trento/environments/env1/landscapes/land2/sapsystems/",
+		"trento/environments/env1/landscapes/land2/sapsystems/sys2/",
+		"trento/environments/env2/",
+		"trento/environments/env2/landscapes/",
+		"trento/environments/env2/landscapes/land3/",
+		"trento/environments/env2/landscapes/land3/sapsystems/",
+		"trento/environments/env2/landscapes/land3/sapsystems/sys3/",
 	}
 
 	consul := new(mocks.Client)
@@ -64,15 +71,25 @@ func TestHostsListHandler(t *testing.T) {
 	consul.On("Health").Return(health)
 	consul.On("KV").Return(kv)
 
+	kv.On("Keys", "trento/environments", "", (*consulApi.QueryOptions)(nil)).Return(filters, nil, nil)
+
 	query := &consulApi.QueryOptions{Filter: ""}
 	catalog.On("Nodes", (*consulApi.QueryOptions)(query)).Return(nodes, nil, nil)
 
+	filterSys1 := &consulApi.QueryOptions{
+		Filter: "Meta[\"trento-sap-environment\"] == \"env1\" and Meta[\"trento-sap-landscape\"] == \"land1\" and Meta[\"trento-sap-system\"] == \"sys1\""}
+	catalog.On("Nodes", (filterSys1)).Return(nodes, nil, nil)
+
+	filterSys2 := &consulApi.QueryOptions{
+		Filter: "Meta[\"trento-sap-environment\"] == \"env1\" and Meta[\"trento-sap-landscape\"] == \"land2\" and Meta[\"trento-sap-system\"] == \"sys2\""}
+	catalog.On("Nodes", (filterSys2)).Return(nodes, nil, nil)
+
+	filterSys3 := &consulApi.QueryOptions{
+		Filter: "Meta[\"trento-sap-environment\"] == \"env2\" and Meta[\"trento-sap-landscape\"] == \"land3\" and Meta[\"trento-sap-system\"] == \"sys3\""}
+	catalog.On("Nodes", (filterSys3)).Return(nodes, nil, nil)
+
 	health.On("Node", "foo", (*consulApi.QueryOptions)(nil)).Return(fooHealthChecks, nil, nil)
 	health.On("Node", "bar", (*consulApi.QueryOptions)(nil)).Return(barHealthChecks, nil, nil)
-
-	kv.On("Get", "trento/filters/sap-environments", (*consulApi.QueryOptions)(nil)).Return(filterEnv, nil, nil)
-	kv.On("Get", "trento/filters/sap-landscapes", (*consulApi.QueryOptions)(nil)).Return(filterLand, nil, nil)
-	kv.On("Get", "trento/filters/sap-systems", (*consulApi.QueryOptions)(nil)).Return(filterSys, nil, nil)
 
 	deps := DefaultDependencies()
 	deps.consul = consul
@@ -109,8 +126,8 @@ func TestHostsListHandler(t *testing.T) {
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, minified, "Hosts")
 	assert.Regexp(t, regexp.MustCompile("<select name=trento-sap-environment.*>.*env1.*env2.*</select>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<select name=trento-sap-landscape.*>.*land1.*land2.*</select>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<select name=trento-sap-system.*>.*sys1.*sys2.*</select>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<select name=trento-sap-landscape.*>.*land1.*land2.*land3.*</select>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<select name=trento-sap-system.*>.*sys1.*sys2.*sys3.*</select>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td>foo</td><td>192.168.1.1</td><td>.*land1.*</td><td>.*passing.*</td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td>bar</td><td>192.168.1.2</td><td>.*land2.*</td><td>.*critical.*</td>"), minified)
 }

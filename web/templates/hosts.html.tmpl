@@ -14,18 +14,18 @@
       </script>
       <form method="GET" action="/hosts">
         <select name="trento-sap-environment" id="trento-sap-environment" class="selectpicker" multiple data-selected-text-format="count > 3" data-actions-box="true" title="SAP environment...">
-          {{- range index .Filters "sap-environments" }}
+          {{- range index .Filters "environments" }}
           <option value="{{ . }}">{{ . }}</option>
           {{- end }}
         </select>
         <select name="trento-sap-landscape" id="trento-sap-landscape" class="selectpicker" multiple data-selected-text-format="count > 3" data-actions-box="true" title="SAP landscape...">
-          {{- range index .Filters "sap-landscapes" }}
+          {{- range index .Filters "landscapes" }}
           <option value="{{ . }}">{{ . }}</option>
           {{- end }}
         </select>
 
         <select name="trento-sap-system" id="trento-sap-system" class="selectpicker" multiple data-selected-text-format="count > 3" data-actions-box="true" title="SAP system...">
-          {{- range index .Filters "sap-systems" }}
+          {{- range index .Filters "sapsystems" }}
           <option value="{{ . }}">{{ . }}</option>
           {{- end }}
         </select>

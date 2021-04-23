@@ -170,6 +170,10 @@ func loadFilters(client consul.Client) (map[string][]string, error) {
 		}
 	}
 
+	sort.Strings(filter_data["environments"])
+	sort.Strings(filter_data["landscapes"])
+	sort.Strings(filter_data["sapsystems"])
+
 	return filter_data, nil
 }
 

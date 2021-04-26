@@ -14,22 +14,65 @@ import (
 )
 
 func setupTest() (*mocks.Client, *mocks.Catalog) {
-	nodes := []*consulApi.Node{
+	nodes1 := []*consulApi.Node{
 		{
-			Node:       "foo",
-			Datacenter: "dc1",
+			Node:       "node1",
+			Datacenter: "dc",
 			Address:    "192.168.1.1",
 			Meta: map[string]string{
 				"trento-sap-environments": "land1",
 			},
 		},
 		{
-			Node:       "bar",
+			Node:       "node2",
 			Datacenter: "dc",
+			Address:    "192.168.1.2",
+			Meta: map[string]string{
+				"trento-sap-environments": "land1",
+			},
+		},
+	}
+
+	nodes2 := []*consulApi.Node{
+		{
+			Node:       "node3",
+			Datacenter: "dc1",
 			Address:    "192.168.1.2",
 			Meta: map[string]string{
 				"trento-sap-environments": "land2",
 			},
+		},
+		{
+			Node:       "node4",
+			Datacenter: "dc",
+			Address:    "192.168.1.3",
+			Meta: map[string]string{
+				"trento-sap-environments": "land2",
+			},
+		},
+	}
+
+	node1HealthChecks := consulApi.HealthChecks{
+		&consulApi.HealthCheck{
+			Status: consulApi.HealthPassing,
+		},
+	}
+
+	node2HealthChecks := consulApi.HealthChecks{
+		&consulApi.HealthCheck{
+			Status: consulApi.HealthPassing,
+		},
+	}
+
+	node3HealthChecks := consulApi.HealthChecks{
+		&consulApi.HealthCheck{
+			Status: consulApi.HealthPassing,
+		},
+	}
+
+	node4HealthChecks := consulApi.HealthChecks{
+		&consulApi.HealthCheck{
+			Status: consulApi.HealthCritical,
 		},
 	}
 
@@ -52,24 +95,31 @@ func setupTest() (*mocks.Client, *mocks.Catalog) {
 
 	consul := new(mocks.Client)
 	catalog := new(mocks.Catalog)
+	health := new(mocks.Health)
 	kv := new(mocks.KV)
 
 	consul.On("Catalog").Return(catalog)
+	consul.On("Health").Return(health)
 	consul.On("KV").Return(kv)
 
 	kv.On("Keys", "trento/environments", "", (*consulApi.QueryOptions)(nil)).Return(filters, nil, nil)
 
 	filterSys1 := &consulApi.QueryOptions{
 		Filter: "(Meta[\"trento-sap-environment\"] == \"env1\") and (Meta[\"trento-sap-landscape\"] == \"land1\") and (Meta[\"trento-sap-system\"] == \"sys1\")"}
-	catalog.On("Nodes", (filterSys1)).Return(nodes, nil, nil)
+	catalog.On("Nodes", (filterSys1)).Return(nodes1, nil, nil)
 
 	filterSys2 := &consulApi.QueryOptions{
 		Filter: "(Meta[\"trento-sap-environment\"] == \"env1\") and (Meta[\"trento-sap-landscape\"] == \"land2\") and (Meta[\"trento-sap-system\"] == \"sys2\")"}
-	catalog.On("Nodes", (filterSys2)).Return(nodes, nil, nil)
+	catalog.On("Nodes", (filterSys2)).Return(nodes1, nil, nil)
 
 	filterSys3 := &consulApi.QueryOptions{
 		Filter: "(Meta[\"trento-sap-environment\"] == \"env2\") and (Meta[\"trento-sap-landscape\"] == \"land3\") and (Meta[\"trento-sap-system\"] == \"sys3\")"}
-	catalog.On("Nodes", (filterSys3)).Return(nodes, nil, nil)
+	catalog.On("Nodes", (filterSys3)).Return(nodes2, nil, nil)
+
+	health.On("Node", "node1", (*consulApi.QueryOptions)(nil)).Return(node1HealthChecks, nil, nil)
+	health.On("Node", "node2", (*consulApi.QueryOptions)(nil)).Return(node2HealthChecks, nil, nil)
+	health.On("Node", "node3", (*consulApi.QueryOptions)(nil)).Return(node3HealthChecks, nil, nil)
+	health.On("Node", "node4", (*consulApi.QueryOptions)(nil)).Return(node4HealthChecks, nil, nil)
 
 	return consul, catalog
 }
@@ -110,8 +160,8 @@ func TestEnvironmentsListHandler(t *testing.T) {
 
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, minified, "Environments")
-	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/environments/env1'\".*<td>env1</td><td>2</td><td>2</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/environments/env2'\".*<td>env2</td><td>1</td><td>1</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/environments/env1'\".*<td>env1</td><td>2</td><td>2</td><td>.*passing.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/environments/env2'\".*<td>env2</td><td>1</td><td>1</td><td>.*critical.*</td>"), minified)
 }
 
 func TestLandscapesListHandler(t *testing.T) {
@@ -149,8 +199,8 @@ func TestLandscapesListHandler(t *testing.T) {
 	}
 
 	assert.Equal(t, 200, resp.Code)
-	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/environments/env1/landscapes/land1'\".*<td>land1</td><td>1</td><td>2</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/environments/env1/landscapes/land2'\".*<td>land2</td><td>1</td><td>2</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/environments/env1/landscapes/land1'\".*<td>land1</td><td>1</td><td>2</td><td>.*passing.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/environments/env1/landscapes/land2'\".*<td>land2</td><td>1</td><td>2</td><td>.*passing.*</td>"), minified)
 }
 
 func TestSAPSystemsListHandler(t *testing.T) {
@@ -188,5 +238,5 @@ func TestSAPSystemsListHandler(t *testing.T) {
 	}
 
 	assert.Equal(t, 200, resp.Code)
-	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/environments/env1/landscapes/land1/sapsystems/sys1'\".*<td>sys1</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/environments/env1/landscapes/land1/sapsystems/sys1'\".*<td>sys1</td><td>.*passing.*</td>"), minified)
 }

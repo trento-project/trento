@@ -28,8 +28,9 @@
                     <td>{{ $SAPSystemNumber }}</td>
                     <td>{{ $HostsNumber }}</td>
                     <td>
-                        {{- $Health := "passing" }}
-                        <span class='badge badge-pill badge-{{ if eq $Health "passing" }}primary{{ else if eq $Health "warning" }}warning{{ else }}danger{{ end }}'>{{ $Health }} (hardcoded)</span>
+                        {{- $Health := .Health }}
+                        {{- /* I`t would be nice to show the summary of the the health as tooltip. How many passing, critical and warning in a nice an visual way */ -}}
+                        <span class='badge badge-pill badge-{{ if eq $Health.Health "passing" }}primary{{ else if eq $Health.Health "warning" }}warning{{ else }}danger{{ end }}'>{{ $Health.Health }}</span>
                     </td>
                 </tr>
                 {{- end }}

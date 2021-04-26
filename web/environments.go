@@ -15,12 +15,43 @@ const KVEnvironmentsPath string = "trento/environments"
 const envIndex int = 2
 const landIndex int = 4
 
+type EnvironmentHealth struct {
+	Health    string
+	HealthMap map[string]string
+}
+
+func (e *EnvironmentHealth) updateHealth(n string, h string) EnvironmentHealth {
+	e.HealthMap[n] = h
+
+	if h == "critical" {
+		e.Health = h
+	} else if h == "warning" && e.Health != "critical" {
+		e.Health = h
+	}
+
+	return *e
+}
+
 type SAPSystem struct {
 	Name  string
 	Hosts HostList
 }
 
 type SAPSystemList map[string]*SAPSystem
+
+func (s *SAPSystem) Health() EnvironmentHealth {
+	var health = EnvironmentHealth{
+		Health:    "passing",
+		HealthMap: make(map[string]string),
+	}
+
+	for _, host := range s.Hosts {
+		h := host.Health()
+		health = health.updateHealth(host.Name(), h)
+	}
+
+	return health
+}
 
 type Landscape struct {
 	Name       string
@@ -29,12 +60,40 @@ type Landscape struct {
 
 type LandscapeList map[string]*Landscape
 
+func (l *Landscape) Health() EnvironmentHealth {
+	var health = EnvironmentHealth{
+		Health:    "passing",
+		HealthMap: make(map[string]string),
+	}
+
+	for _, system := range l.SAPSystems {
+		h := system.Health().Health
+		health = health.updateHealth(system.Name, h)
+	}
+
+	return health
+}
+
 type Environment struct {
 	Name       string
 	Landscapes LandscapeList
 }
 
 type EnvironmentList map[string]*Environment
+
+func (l *Environment) Health() EnvironmentHealth {
+	var health = EnvironmentHealth{
+		Health:    "passing",
+		HealthMap: make(map[string]string),
+	}
+
+	for _, land := range l.Landscapes {
+		h := land.Health().Health
+		health = health.updateHealth(land.Name, h)
+	}
+
+	return health
+}
 
 func NewEnvironmentsListHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {

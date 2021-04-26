@@ -128,6 +128,11 @@ func loadEnvironments(client consul.Client) (EnvironmentList, error) {
 	}
 
 	for _, entry := range entries {
+		// Remove individual values, even though there is not any defined by now.
+		if !strings.HasSuffix(entry, "/") {
+			continue
+		}
+
 		keyValues := strings.Split(strings.TrimSuffix(entry, "/"), "/")
 		lastKey := keyValues[len(keyValues)-1]
 		lastKeyParent := keyValues[len(keyValues)-2]

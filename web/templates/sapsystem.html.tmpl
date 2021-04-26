@@ -1,6 +1,7 @@
 {{ define "content" }}
 <div class="col">
-    <h1><a href="/environments">Environments</a> > <a href="/environments/{{ .EnvName }}">{{ .EnvName }}</a> > <a href="/environments/{{ .EnvName }}/landscapes/{{ .LandName }}">{{ .LandName }}</a> > {{ .SAPSysName}}</h1>
+    <h6><a href="/environments">Environments</a> > <a href="/environments/{{ .EnvName }}">{{ .EnvName }}</a> > <a href="/environments/{{ .EnvName }}/landscapes/{{ .LandName }}">{{ .LandName }}</a> > {{ .SAPSysName}}</h6>
+    <h1>Nodes</h1>
     {{ $EnvName := .EnvName }}
     {{ $LandName := .LandName }}
     {{ $Env := index .Environments .EnvName }}

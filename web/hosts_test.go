@@ -13,12 +13,11 @@ import (
 	"github.com/trento-project/trento/internal/consul/mocks"
 )
 
-func TestEnvironmentsListHandler(t *testing.T) {
-	datacenters := []string{"test-environment"}
+func TestHostsListHandler(t *testing.T) {
 	nodes := []*consulApi.Node{
 		{
 			Node:       "foo",
-			Datacenter: "test-environment",
+			Datacenter: "dc1",
 			Address:    "192.168.1.1",
 			Meta: map[string]string{
 				"trento-sap-environments": "land1",
@@ -26,7 +25,7 @@ func TestEnvironmentsListHandler(t *testing.T) {
 		},
 		{
 			Node:       "bar",
-			Datacenter: "test-environment",
+			Datacenter: "dc",
 			Address:    "192.168.1.2",
 			Meta: map[string]string{
 				"trento-sap-environments": "land2",
@@ -65,7 +64,6 @@ func TestEnvironmentsListHandler(t *testing.T) {
 	consul.On("Health").Return(health)
 	consul.On("KV").Return(kv)
 
-	catalog.On("Datacenters").Return(datacenters, nil)
 	query := &consulApi.QueryOptions{Filter: ""}
 	catalog.On("Nodes", (*consulApi.QueryOptions)(query)).Return(nodes, nil, nil)
 
@@ -86,7 +84,7 @@ func TestEnvironmentsListHandler(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/environments", nil)
+	req, err := http.NewRequest("GET", "/hosts", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -109,10 +107,10 @@ func TestEnvironmentsListHandler(t *testing.T) {
 	}
 
 	assert.Equal(t, 200, resp.Code)
-	assert.Contains(t, minified, "Environments")
+	assert.Contains(t, minified, "Hosts")
 	assert.Regexp(t, regexp.MustCompile("<select name=trento-sap-environment.*>.*env1.*env2.*</select>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<select name=trento-sap-landscape.*>.*land1.*land2.*</select>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<select name=trento-sap-system.*>.*sys1.*sys2.*</select>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td>foo</td><td>test-environment</td><td>192.168.1.1</td><td>.*land1.*</td><td>.*passing.*</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td>bar</td><td>test-environment</td><td>192.168.1.2</td><td>.*land2.*</td><td>.*critical.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td>foo</td><td>192.168.1.1</td><td>.*land1.*</td><td>.*passing.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td>bar</td><td>192.168.1.2</td><td>.*land2.*</td><td>.*critical.*</td>"), minified)
 }

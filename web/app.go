@@ -52,9 +52,9 @@ func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
 	engine.Use(ErrorHandler)
 	engine.StaticFS("/static", http.FS(assetsFS))
 	engine.GET("/", HomeHandler)
-	engine.GET("/environments", NewEnvironmentsListHandler(deps.consul))
-	engine.GET("/environments/:name", NewEnvironmentHandler(deps.consul))
-	engine.GET("/environments/:name/checks/:checkid", NewCheckHandler(deps.consul))
+	engine.GET("/hosts", NewHostsListHandler(deps.consul))
+	engine.GET("/hosts/:name", NewHostHandler(deps.consul))
+	engine.GET("/hosts/:name/checks/:checkid", NewCheckHandler(deps.consul))
 	engine.GET("/clusters", NewClustersListHandler(deps.consul))
 	engine.GET("/clusters/:name", NewClusterHandler(deps.consul))
 

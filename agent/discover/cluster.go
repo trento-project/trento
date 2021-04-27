@@ -14,7 +14,7 @@ import (
 )
 
 const crm_monPath string = "/usr/sbin/crm_mon"
-const cib_admPath string = "/usr/bin/cibadmin"
+const cib_admPath string = "/usr/sbin/cibadmin"
 
 //const crm_monPath string = "./test/fake/crm_mon.sh"
 //const cib_admPath string = "./test/fake_cibadmin.sh"

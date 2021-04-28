@@ -81,7 +81,6 @@
     |                                                                                                                                                            |
     +------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
-
 ## Trento Agent
 
 The Trento Agent is to be set up on every node that should be handled by Trento,
@@ -99,3 +98,30 @@ the data is unconditionally overwritten.
 ## Checker Loop
 
 TBD
+
+
+# Nomenclature
+
+## SAP Host
+
+This is a physical or a virtual server ("node") running a Linux Operating System on which SAP system components are installed and running on (potentially supervised
+by cluster management software like for example pacemaker).
+
+## SAP System
+
+This uses a very traditional multi-tier client server setup:
+
+* Presentation Layer: Web Browser, Dedicated GUI or 3rd Party Application between End-User and Application Servers. Out of control for Trento.
+
+* Application Server Layer: Business applications which the end users interact with (can be written in ABAP programming language, for example)
+
+* Database Server Layer: Contains the customer data and all the ABAP code which is run by the application servers. Most often this is SAP HANA.
+
+## SAP Landscape
+
+A SAP Landscape is one or more SAP Systems, usually combined in a Staging Systems Setup: DEV -> QA -> PRD
+
+## SAP Environment
+
+In cases when there are multiple SAP applications to manage, each business application can be deployed in its own SAP Landscape. It could also be
+that the same business application is replicated (sharded) in multiple SAP Landscapes (one for each Business Unit for example). Often this is also referred to as a `SAP Landscape`.

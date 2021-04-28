@@ -81,6 +81,7 @@
     |                                                                                                                                                            |
     +------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
+
 ## Trento Agent
 
 The Trento Agent is to be set up on every node that should be handled by Trento,
@@ -101,6 +102,10 @@ TBD
 
 
 # Nomenclature
+
+Whenever the Trento user is exposed to concepts, the following naming should
+be used consistently in the user visible dialogs, messages and templates. For
+code internal usages the `SAP` prefix should be omitted.
 
 ## SAP Host
 

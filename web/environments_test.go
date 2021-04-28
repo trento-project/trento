@@ -161,7 +161,7 @@ func TestEnvironmentsListHandler(t *testing.T) {
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, minified, "Environments")
 	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/environments/env1'\".*<td>env1</td><td>2</td><td>2</td><td>.*passing.*</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/environments/env2'\".*<td>env2</td><td>1</td><td>1</td><td>.*critical.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/environments/env1'\".*<td>env2</td><td>1</td><td>1</td><td>.*critical.*</td>"), minified)
 }
 
 func TestLandscapesListHandler(t *testing.T) {
@@ -177,7 +177,7 @@ func TestLandscapesListHandler(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/environments/env1", nil)
+	req, err := http.NewRequest("GET", "/landscapes", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -199,8 +199,9 @@ func TestLandscapesListHandler(t *testing.T) {
 	}
 
 	assert.Equal(t, 200, resp.Code)
-	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/environments/env1/landscapes/land1'\".*<td>land1</td><td>1</td><td>2</td><td>.*passing.*</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/environments/env1/landscapes/land2'\".*<td>land2</td><td>1</td><td>2</td><td>.*passing.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/landscapes/land1\\?environment=env1'\"><td>land1</td><td>.*env1.*</td><td>1</td><td>2</td><td>.*passing.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/landscapes/land2\\?environment=env1'\".*<td>land2</td><td>.*env1.*<td>1</td><td>2</td><td>.*passing.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/landscapes/land3\\?environment=env2'\".*<td>land3</td><td>.*env2.*<td>1</td><td>2</td><td>.*critical.*</td>"), minified)
 }
 
 func TestSAPSystemsListHandler(t *testing.T) {
@@ -216,7 +217,7 @@ func TestSAPSystemsListHandler(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/environments/env1/landscapes/land1", nil)
+	req, err := http.NewRequest("GET", "/sapsystems", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -238,5 +239,7 @@ func TestSAPSystemsListHandler(t *testing.T) {
 	}
 
 	assert.Equal(t, 200, resp.Code)
-	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/environments/env1/landscapes/land1/sapsystems/sys1'\".*<td>sys1</td><td>.*passing.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/sapsystems/sys1\\?environment=env1&landscape=land1'\".*<td>sys1</td><td>.*passing.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/sapsystems/sys2\\?environment=env1&landscape=land2'\".*<td>sys2</td><td>.*passing.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/sapsystems/sys3\\?environment=env2&landscape=land3'\".*<td>sys3</td><td>.*critical.*</td>"), minified)
 }

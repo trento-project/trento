@@ -11,9 +11,9 @@
       <dt class="inline">Environment</dt>
       <dd class="inline"><a href="/environments/{{ $Env }}">{{ $Env }}</a></dd>
       <dt class="inline">Landscape</dt>
-      <dd class="inline"><a href="/environments/{{ $Env }}/landscapes/{{ $Land }}">{{ $Land }}</a></dd>
+      <dd class="inline"><a href="/landscapes/{{ $Land }}?environment={{ $Env }}">{{ $Land }}</a></dd>
       <dt class="inline">SAP System</dt>
-      <dd class="inline"><a href="/environments/{{ $Env }}/landscapes/{{ $Land }}/sapsystems/{{ $SAPSys }}">{{ $SAPSys }}</a></dd>
+      <dd class="inline"><a href="/sapsystems/{{ $SAPSys }}?environment={{ $Env }}&landscape={{ $Land }}">{{ $SAPSys }}</a></dd>
       <dt class="inline">Cluster</dt>
       <dd class="inline"><a href="/clusters/{{ index .Host.TrentoMeta "trento-ha-cluster" }}">{{ index .Host.TrentoMeta "trento-ha-cluster" }}</a></dd>
     </dl>

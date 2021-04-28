@@ -1,0 +1,21 @@
+---
+controls:
+version: 1.0.0
+id: 2
+description: "HA Checker for SAPHanaSR Scale-up Perf-Optimized"
+type: "master"
+groups:
+  - id: 2.1
+    description: "Check OS and package versions are supported and up-to-date"
+    checks:
+      - id: 2.1.1
+        description: "Check the base product"
+        # Assume the perf-optimized scenario and
+        # check only that the base probuct is always sles_sap.prod (case-insensitively)
+        audit: 'readlink /etc/products.d/baseproduct | sed -e "s/\(.*\)/\L\1/"'
+        tests:
+          test_items:
+            - flag: 'sles_sap.prod'
+        remediation: |
+          Install a SUSE supported OS release
+        scored: true

@@ -45,6 +45,38 @@ func (_m *KV) Get(key string, q *api.QueryOptions) (*api.KVPair, *api.QueryMeta,
 	return r0, r1, r2
 }
 
+// Keys provides a mock function with given fields: prefix, separator, q
+func (_m *KV) Keys(prefix string, separator string, q *api.QueryOptions) ([]string, *api.QueryMeta, error) {
+	ret := _m.Called(prefix, separator, q)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(string, string, *api.QueryOptions) []string); ok {
+		r0 = rf(prefix, separator, q)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 *api.QueryMeta
+	if rf, ok := ret.Get(1).(func(string, string, *api.QueryOptions) *api.QueryMeta); ok {
+		r1 = rf(prefix, separator, q)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*api.QueryMeta)
+		}
+	}
+
+	var r2 error
+	if rf, ok := ret.Get(2).(func(string, string, *api.QueryOptions) error); ok {
+		r2 = rf(prefix, separator, q)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // List provides a mock function with given fields: prefix, q
 func (_m *KV) List(prefix string, q *api.QueryOptions) (api.KVPairs, *api.QueryMeta, error) {
 	ret := _m.Called(prefix, q)

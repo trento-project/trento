@@ -1,0 +1,17 @@
+{{ define "content" }}
+<div class="col">
+    <h6><a href="/environments">Environments</a> > <a href="/environments/{{ .EnvName }}">{{ .EnvName }}</a> > <a href="/landscapes/{{ .LandName }}?environment={{ .EnvName }}">{{ .LandName }}</a> > {{ .SAPSysName}}</h6>
+    <h1>SAP System details</h1>
+    <dl class="inline">
+      <dt class="inline">Name</dt>
+      <dd class="inline">{{ .SAPSysName }}</dd>
+    </dl>
+    <hr/>
+    <h1>Nodes</h1>
+    {{ $EnvName := .EnvName }}
+    {{ $LandName := .LandName }}
+    {{ $Env := index .Environments .EnvName }}
+    {{ $Land := index $Env.Landscapes .LandName }}
+    {{ $SAPSystem := index $Land.SAPSystems .SAPSysName }}
+    {{ template "hosts_table" $SAPSystem }}
+{{ end }}

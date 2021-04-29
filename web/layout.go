@@ -90,6 +90,9 @@ func (r *LayoutRender) addFileFromFS(templatesFS fs.FS, file string) {
 			_ = tmpl.ExecuteTemplate(&out, name, data)
 			return out.String()
 		},
+		"sum": func(a int, b int) int {
+			return a + b
+		},
 	})
 	patterns := append([]string{r.root, file}, r.blocks...)
 	tmpl = template.Must(tmpl.ParseFS(templatesFS, patterns...))

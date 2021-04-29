@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"sort"
 	"strings"
 
 	"github.com/aquasecurity/bench-common/check"
@@ -16,12 +17,7 @@ import (
 	"github.com/trento-project/trento/internal/consul"
 )
 
-const TRENTO_PREFIX string = "trento-"
-const TRENTO_FILTERS_PREFIX string = "trento/filters/"
-
-func TRENTO_FILTERS() []string {
-	return []string{"sap-environments", "sap-landscapes", "sap-systems"}
-}
+const TrentoPrefix string = "trento-"
 
 type HostList []*Host
 
@@ -43,7 +39,7 @@ func (n *Host) TrentoMeta() map[string]string {
 	filtered_meta := make(map[string]string)
 
 	for key, value := range n.Node.Meta {
-		if strings.HasPrefix(key, TRENTO_PREFIX) {
+		if strings.HasPrefix(key, TrentoPrefix) {
 			filtered_meta[key] = value
 		}
 	}
@@ -76,23 +72,35 @@ func (n *Host) Checks() *check.Controls {
 	return checks
 }
 
+func sortKeys(m map[string][]string) []string {
+	var keys []string
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
 // Use github.com/hashicorp/go-bexpr to create the filter
 // https://github.com/hashicorp/consul/blob/master/agent/consul/catalog_endpoint.go#L298
 func CreateFilterMetaQuery(query map[string][]string) string {
 	var filters []string
+	// Need to sort the keys to have stable output. Mostly for unit testing
+	sortedQuery := sortKeys(query)
 
 	if len(query) != 0 {
 		var filter string
-		for key, values := range query {
-			if strings.HasPrefix(key, TRENTO_PREFIX) {
+		for _, key := range sortedQuery {
+			if strings.HasPrefix(key, TrentoPrefix) {
 				filter = ""
+				values := query[key]
 				for _, value := range values {
 					filter = fmt.Sprintf("%sMeta[\"%s\"] == \"%s\"", filter, key, value)
 					if values[len(values)-1] != value {
 						filter = fmt.Sprintf("%s or ", filter)
 					}
 				}
-				filters = append(filters, filter)
+				filters = append(filters, fmt.Sprintf("(%s)", filter))
 			}
 		}
 	}
@@ -125,16 +133,6 @@ func NewHostsListHandler(client consul.Client) gin.HandlerFunc {
 	}
 }
 
-func contains(s []string, str string) bool {
-	for _, v := range s {
-		if v == str {
-			return true
-		}
-	}
-
-	return false
-}
-
 func loadHosts(client consul.Client, query_filter string, health_filter []string) (HostList, error) {
 	var hosts = HostList{}
 
@@ -154,31 +152,27 @@ func loadHosts(client consul.Client, query_filter string, health_filter []string
 	return hosts, nil
 }
 
-func loadFilter(client consul.Client, filter string) ([]string, error) {
-	filters, _, err := client.KV().Get(filter, nil)
-	if filters == nil {
-		return nil, errors.Wrap(err, "could not query Consul for filters on the KV storage")
-	}
-
-	var unmarshalled []string
-	if err := json.Unmarshal([]byte(string(filters.Value)), &unmarshalled); err != nil {
-		return nil, errors.Wrap(err, "error decoding the filter data")
-	}
-
-	return unmarshalled, nil
-}
-
 func loadFilters(client consul.Client) (map[string][]string, error) {
-	//We could use the kV().List to get all the filters too
-	//_, _, _ := client.KV().List("trento/filters/", nil)
 	filter_data := make(map[string][]string)
-	for _, filter := range TRENTO_FILTERS() {
-		filters, err := loadFilter(client, TRENTO_FILTERS_PREFIX+filter)
-		if err != nil {
-			return nil, err
-		}
-		filter_data[filter] = filters
+
+	environments, err := loadEnvironments(client)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not get the filters")
 	}
+
+	for envKey, envValue := range environments {
+		filter_data["environments"] = append(filter_data["environments"], envKey)
+		for landKey, landValue := range envValue.Landscapes {
+			filter_data["landscapes"] = append(filter_data["landscapes"], landKey)
+			for sysKey, _ := range landValue.SAPSystems {
+				filter_data["sapsystems"] = append(filter_data["sapsystems"], sysKey)
+			}
+		}
+	}
+
+	sort.Strings(filter_data["environments"])
+	sort.Strings(filter_data["landscapes"])
+	sort.Strings(filter_data["sapsystems"])
 
 	return filter_data, nil
 }

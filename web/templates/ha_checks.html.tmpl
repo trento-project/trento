@@ -1,8 +1,7 @@
 {{ define "content" }}
 <div class="col">
-    <h1><a href="/hosts">Hosts</a> > <a href="/hosts/{{ .HostName }}">{{ .HostName }}</a> > {{ .CheckID }}</h1>
-
-    <h4>{{ .CheckContent.Description  }}</h4>
+    <h6><a href="/hosts">Hosts</a> > <a href="/hosts/{{ .HostName }}">{{ .HostName }}</a> > {{ .CheckID }}</h6>
+    <h1>{{ .CheckContent.Description  }}</h1>
     <div class='table-responsive'>
         <table class='table eos-table'>
             <thead>

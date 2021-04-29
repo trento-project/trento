@@ -193,16 +193,17 @@ Notice that a new entry must exists for every node.
 - `config-dir`: Consul agent configuration files directory. It must be the same used by the consul agent. The `trento` agent creates a new folder with the node name where the trento meta-data configuration file is stored (e.g. `consul.d/node1/trento-config.json`).
 - `consul-template`: Template used to populate the trento meta-data configuration file (by default [meta-data file][./examples/trento-config.json] is used).
 
-### Filtering the nodes in the wep app
+### Grouping and filtering the nodes in the wep app
 
-The web app provides the option to filter the systems using the previously commented reserved tags. To achieve this, the tags must be stored in the KV storage.
+The app provides the option to see the environment composed by the nodes and filter the systems using the previously commented reserved tags. To achieve this, the tags must be stored in the KV storage.
 Use the next path:
-- `trento/filters/sap-environments`
-- `trento/filters/sap-landscapes`
-- `trento/filters/sap-systems`
+- `trento/environments/$yourenv/`
+- `trento/environments/$yourenv/landscapes/$yourland/`
+- `trento/environments/$yourenv/landscapes/$yourland/sapsystems/$yoursapsy`
 
-Each of them must have a json list format. As example: `["land1", "land2"]`.
-These entries will be available in the filters on the `/environments` page.
+Keep in mind that the created environments, landscapes and sap systems are directories themselves, and there can be multiple of them.
+The possibility to have multiple landscapes with the same name in different environments (and the same for SAP systems) is possible.
+Be aware that the nodes meta-data tags are not strictly linked to these names, they are soft relations (this means that only the string matches, there is no any real relationship between them).
 
 # Development
 

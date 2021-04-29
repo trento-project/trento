@@ -14,7 +14,7 @@ import (
 	"github.com/trento-project/trento/agent"
 )
 
-const METADATAFILE string = "trento-config.json"
+const metaDataFile string = "trento-config.json"
 
 var TTL time.Duration
 var serviceName string
@@ -89,7 +89,7 @@ func start(cmd *cobra.Command, args []string) {
 	cfg.WebPort = port
 	cfg.TTL = TTL
 	cfg.TemplateSource = templatePath
-	cfg.TemplateDestination = path.Join(configDir, serviceName, METADATAFILE)
+	cfg.TemplateDestination = path.Join(configDir, metaDataFile)
 
 	a, err := agent.NewWithConfig(cfg)
 	if err != nil {

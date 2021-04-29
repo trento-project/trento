@@ -8,30 +8,33 @@ import (
 	"sync"
 	"time"
 
+	"github.com/hashicorp/consul-template/manager"
 	consul "github.com/hashicorp/consul/api"
 	"github.com/pkg/errors"
-	"github.com/hashicorp/consul-template/manager"
+	"github.com/trento-project/trento/agent/discover"
 )
 
 type Agent struct {
 	cfg              Config
 	check            Checker
+	discoveries      []discover.Discoverer
 	consulResultChan chan CheckResult
 	wsResultChan     chan CheckResult
 	webService       *webService
-	consul           *consul.Client
+	consul           consul.Client
 	ctx              context.Context
 	ctxCancel        context.CancelFunc
 	templateRunner   *manager.Runner
 }
 
 type Config struct {
+	CheckerTTL          time.Duration
 	WebHost             string
 	WebPort             int
 	ServiceName         string
 	InstanceName        string
 	DefinitionsPath     string
-	TTL                 time.Duration
+	DiscoverInterval    time.Duration
 	TemplateSource      string
 	TemplateDestination string
 }
@@ -71,7 +74,8 @@ func NewWithConfig(cfg Config) (*Agent, error) {
 		check:          checker,
 		ctx:            ctx,
 		ctxCancel:      ctxCancel,
-		consul:         client,
+		consul:         *client,
+		discoveries:    []discover.Discoverer{discover.NewHanaClusterDiscover(*client)},
 		webService:     newWebService(wsResultChan),
 		wsResultChan:   wsResultChan,
 		templateRunner: templateRunner,
@@ -86,11 +90,13 @@ func DefaultConfig() (Config, error) {
 	}
 
 	return Config{
-		InstanceName: hostname,
-		TTL:          10 * time.Second,
+		InstanceName:     hostname,
+		DiscoverInterval: 15 * time.Second,
+		CheckerTTL:       10 * time.Second,
 	}, nil
 }
 
+// Start the Agent which includes the registration against Consul Agent
 func (a *Agent) Start() error {
 	log.Println("Registering the agent service with Consul...")
 	err := a.registerConsulService()
@@ -111,14 +117,26 @@ func (a *Agent) Start() error {
 
 	var wg sync.WaitGroup
 	// This number must match the number threads attached to the WaitGroup object
-	wg.Add(3)
-	errs := make(chan error, 3)
+	wg.Add(4)
+	errs := make(chan error, 4)
 
+	// The Checker Loop is handling the compliance-checks being executed regularly
+	// and reporting a Service Status (WARN/FAIL)
 	go func(wg *sync.WaitGroup) {
 		log.Println("Starting Check loop...")
 		defer wg.Done()
 		errs <- a.startCheckTicker()
 		log.Println("Check loop stopped.")
+	}(&wg)
+
+	// The Discover Loop is executing at a much slower pace than the Checker Loop
+	// and will keep namespaces in Key-Value Consul store updated with specific facts
+	// discovered on the node
+	go func(wg *sync.WaitGroup) {
+		log.Println("Starting Discover loop...")
+		defer wg.Done()
+		errs <- a.startDiscoverTicker()
+		log.Println("Discover loop stopped.")
 	}(&wg)
 
 	go func(wg *sync.WaitGroup) {
@@ -160,13 +178,20 @@ func (a *Agent) registerConsulService() error {
 	consulService := &consul.AgentServiceRegistration{
 		ID:   a.cfg.InstanceName,
 		Name: a.cfg.ServiceName,
-		Tags: []string{"console-agent"},
+		Tags: []string{"trento-agent"},
 		Checks: consul.AgentServiceChecks{
 			&consul.AgentServiceCheck{
 				CheckID: "ha_checks",
 				Name:    "HA config checks",
 				Notes:   "Checks whether or not the HA configuration is compliant with the provided best practices",
-				TTL:     a.cfg.TTL.String(),
+				TTL:     a.cfg.CheckerTTL.String(),
+				Status:  consul.HealthWarning,
+			},
+			&consul.AgentServiceCheck{
+				CheckID: "discover_cluster",
+				Name:    "Node Cluster State Discovery",
+				Notes:   "Collects details about Cluster State",
+				TTL:     "30m",
 				Status:  consul.HealthWarning,
 			},
 		},
@@ -179,8 +204,9 @@ func (a *Agent) registerConsulService() error {
 
 	return nil
 }
+
 func (a *Agent) startCheckTicker() error {
-	ticker := time.NewTicker(a.cfg.TTL / 2)
+	ticker := time.NewTicker(a.cfg.CheckerTTL / 2)
 	defer ticker.Stop()
 	for {
 		select {
@@ -199,6 +225,33 @@ func (a *Agent) startCheckTicker() error {
 	}
 }
 
+// Start a Ticker loop that will iterate over the hardcoded list of Discovery backends
+// and execute them. The initial run will happen relatively quickly after Agent launch
+// subsequent runs are done with a 15 minute delay. The effectiveness of the discoveries
+// is reported back in the "discover_cluster" Service in consul under a TTL of 60 minutes
+func (a *Agent) startDiscoverTicker() error {
+	ticker := time.NewTicker(a.cfg.DiscoverInterval / 2)
+	// Repeat after 15 minutes
+	if a.cfg.DiscoverInterval < time.Minute {
+		a.cfg.DiscoverInterval = 15 * time.Minute
+	}
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			for i := 0; i < len(a.discoveries); i++ {
+				err := a.discoveries[i].Discover()
+				if err != nil {
+					log.Println("Error while discovering: ", err)
+				}
+			}
+			a.consul.Agent().UpdateTTL("discover_cluster", "", consul.HealthPassing)
+		case <-a.ctx.Done():
+			return nil
+		}
+	}
+}
+
 func (a *Agent) updateConsulCheck(result CheckResult) {
 	log.Println("Updating Consul check TTL...")
 
@@ -207,7 +260,7 @@ func (a *Agent) updateConsulCheck(result CheckResult) {
 
 	summary := result.Summary()
 
-	switch true {
+	switch {
 	case summary.Fail > 0:
 		status = consul.HealthCritical
 	case summary.Warn > 0:

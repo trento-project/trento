@@ -12,8 +12,6 @@ import (
 	"github.com/trento-project/trento/internal/consul"
 )
 
-const KV_CLUSTERS_PATH string = "trento/clusters"
-
 type Cluster struct {
 	Name string
 }
@@ -61,7 +59,7 @@ func NewClusterHandler(client consul.Client) gin.HandlerFunc {
 func loadClusters(client consul.Client, cluster_name string) (ClusterList, error) {
 	var clusters = ClusterList{}
 
-	kv_path := fmt.Sprintf("%s/%s", KV_CLUSTERS_PATH, cluster_name)
+	kv_path := fmt.Sprintf("%s/%s", consul.KvClustersPath, cluster_name)
 
 	entries, _, err := client.KV().List(kv_path, nil)
 	if err != nil {
@@ -77,7 +75,8 @@ func loadClusters(client consul.Client, cluster_name string) (ClusterList, error
 		// 2 is used as Split creates a last empty entry
 		cluster_id := key_values[len(key_values)-2]
 
-		if strings.HasSuffix(entry.Key, "/") {
+		_, inCluster := clusters[cluster_id]
+		if len(cluster_id) > 0 && !inCluster {
 			clusters[cluster_id] = &Cluster{Name: cluster_id}
 			continue
 		}

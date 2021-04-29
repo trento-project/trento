@@ -37,7 +37,7 @@ type CheckResult struct {
 	controls *check.Controls
 }
 
-func (cr *CheckResult) PrettyPrint(sw io.StringWriter) {
+func (cr *CheckResult) CheckPrettyPrint(sw io.StringWriter) {
 	sw.WriteString("== Summary ==\n")
 	sw.WriteString(strconv.Itoa(cr.controls.Summary.Pass) + " checks PASS\n")
 	sw.WriteString(strconv.Itoa(cr.controls.Summary.Fail) + " checks FAIL\n")

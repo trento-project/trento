@@ -70,7 +70,7 @@ func runOnce(cmd *cobra.Command, args []string) {
 		log.Fatal("Failed to do checks: ", err)
 	}
 
-	res.PrettyPrint(os.Stdout)
+	res.CheckPrettyPrint(os.Stdout)
 }
 
 func start(cmd *cobra.Command, args []string) {
@@ -87,7 +87,7 @@ func start(cmd *cobra.Command, args []string) {
 	cfg.DefinitionsPath = args[0]
 	cfg.ServiceName = serviceName
 	cfg.WebPort = port
-	cfg.TTL = TTL
+	cfg.CheckerTTL = TTL
 	cfg.TemplateSource = templatePath
 	cfg.TemplateDestination = path.Join(configDir, metaDataFile)
 

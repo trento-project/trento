@@ -116,7 +116,7 @@ mkdir consul.d
 
 Now we can start the agent:
 ```shell
-./consul agent -node=test -data-dir=consul-agent-data -bind=127.0.0.2 -client=127.0.0.2 -retry-join=127.0.0.1 -ui -config-dir=./consul.d/test
+./consul agent -node=test -data-dir=consul-agent-data -bind=127.0.0.2 -client=127.0.0.2 -retry-join=127.0.0.1 -ui -config-dir=./consul.d
 ```
 
 
@@ -190,7 +190,7 @@ Notice that a new entry must exists for every node.
 
 `consul-template` starts directly with the `trento` agent. It provides some configuration options to synchronize the utility with the consul agent.
 
-- `config-dir`: Consul agent configuration files directory. It must be the same used by the consul agent. The `trento` agent creates a new folder with the node name where the trento meta-data configuration file is stored (e.g. `consul.d/node1/trento-config.json`).
+- `config-dir`: Consul agent configuration files directory. It must be the same used by the consul agent. The `trento` agent creates a new folder with the node name where the trento meta-data configuration file is stored (e.g. `consul.d/trento-config.json`).
 - `consul-template`: Template used to populate the trento meta-data configuration file (by default [meta-data file][./examples/trento-config.json] is used).
 
 ### Grouping and filtering the nodes in the wep app

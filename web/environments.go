@@ -11,9 +11,8 @@ import (
 	"github.com/trento-project/trento/internal/consul"
 )
 
-const KVEnvironmentsPath string = "trento/environments"
-const envIndex int = 2
-const landIndex int = 4
+const envIndex int = 3
+const landIndex int = 5
 
 type EnvironmentHealth struct {
 	Health    string
@@ -227,22 +226,22 @@ func NewSAPSystemHostsListHandler(client consul.Client) gin.HandlerFunc {
 }
 
 /* loadEnvironments needs a fixed kv structure to work. Here an example
-trento/environments/
-trento/environments/env1/
-trento/environments/env1/landscapes/
-trento/environments/env1/landscapes/land1/
-trento/environments/env1/landscapes/land1/sapsystems/
-trento/environments/env1/landscapes/land1/sapsystems/sys1/
-trento/environments/env1/landscapes/land1/sapsystems/sys2/
-trento/environments/env1/landscapes/land2/
-trento/environments/env1/landscapes/land2/sapsystems/
-trento/environments/env1/landscapes/land2/sapsystems/sys3/
-trento/environments/env1/landscapes/land2/sapsystems/sys4/
-trento/environments/env2/
-trento/environments/env2/landscapes/
-trento/environments/env2/landscapes/land3/
-trento/environments/env2/landscapes/land3/sapsystems/
-trento/environments/env2/landscapes/land3/sapsystems/sys5/
+trento/v0/environments/
+trento/v0/environments/env1/
+trento/v0/environments/env1/landscapes/
+trento/v0/environments/env1/landscapes/land1/
+trento/v0/environments/env1/landscapes/land1/sapsystems/
+trento/v0/environments/env1/landscapes/land1/sapsystems/sys1/
+trento/v0/environments/env1/landscapes/land1/sapsystems/sys2/
+trento/v0/environments/env1/landscapes/land2/
+trento/v0/environments/env1/landscapes/land2/sapsystems/
+trento/v0/environments/env1/landscapes/land2/sapsystems/sys3/
+trento/v0/environments/env1/landscapes/land2/sapsystems/sys4/
+trento/v0/environments/env2/
+trento/v0/environments/env2/landscapes/
+trento/v0/environments/env2/landscapes/land3/
+trento/v0/environments/env2/landscapes/land3/sapsystems/
+trento/v0/environments/env2/landscapes/land3/sapsystems/sys5/
 */
 func loadEnvironments(client consul.Client) (EnvironmentList, error) {
 	var (
@@ -250,7 +249,7 @@ func loadEnvironments(client consul.Client) (EnvironmentList, error) {
 		reserveKeys  = []string{"environments", "landscapes", "sapsystems"}
 	)
 
-	entries, _, err := client.KV().Keys(KVEnvironmentsPath, "", nil)
+	entries, _, err := client.KV().Keys(consul.KvEnvironmentsPath, "", nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not query Consul for Environments KV values")
 	}

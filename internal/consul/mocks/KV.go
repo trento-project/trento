@@ -108,3 +108,26 @@ func (_m *KV) List(prefix string, q *api.QueryOptions) (api.KVPairs, *api.QueryM
 
 	return r0, r1, r2
 }
+
+// Put provides a mock function with given fields: p, q
+func (_m *KV) Put(p *api.KVPair, q *api.WriteOptions) (*api.WriteMeta, error) {
+	ret := _m.Called(p, q)
+
+	var r0 *api.WriteMeta
+	if rf, ok := ret.Get(0).(func(*api.KVPair, *api.WriteOptions) *api.WriteMeta); ok {
+		r0 = rf(p, q)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*api.WriteMeta)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*api.KVPair, *api.WriteOptions) error); ok {
+		r1 = rf(p, q)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}

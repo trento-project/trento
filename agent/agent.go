@@ -9,9 +9,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/consul-template/manager"
-	consul "github.com/hashicorp/consul/api"
+	consulApi "github.com/hashicorp/consul/api"
 	"github.com/pkg/errors"
+
 	"github.com/trento-project/trento/agent/discover"
+	"github.com/trento-project/trento/internal/consul"
 )
 
 type Agent struct {
@@ -50,7 +52,7 @@ func New() (*Agent, error) {
 
 // returns a new instance of Agent with the given configuration
 func NewWithConfig(cfg Config) (*Agent, error) {
-	client, err := consul.NewClient(consul.DefaultConfig())
+	client, err := consul.DefaultClient()
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create a Consul client")
 	}
@@ -74,8 +76,8 @@ func NewWithConfig(cfg Config) (*Agent, error) {
 		check:          checker,
 		ctx:            ctx,
 		ctxCancel:      ctxCancel,
-		consul:         *client,
-		discoveries:    []discover.Discoverer{discover.NewHanaClusterDiscover(*client)},
+		consul:         client,
+		discoveries:    []discover.Discoverer{discover.NewHanaClusterDiscover(client)},
 		webService:     newWebService(wsResultChan),
 		wsResultChan:   wsResultChan,
 		templateRunner: templateRunner,
@@ -175,24 +177,24 @@ func (a *Agent) Stop() {
 func (a *Agent) registerConsulService() error {
 	var err error
 
-	consulService := &consul.AgentServiceRegistration{
+	consulService := &consulApi.AgentServiceRegistration{
 		ID:   a.cfg.InstanceName,
 		Name: a.cfg.ServiceName,
 		Tags: []string{"trento-agent"},
-		Checks: consul.AgentServiceChecks{
-			&consul.AgentServiceCheck{
+		Checks: consulApi.AgentServiceChecks{
+			&consulApi.AgentServiceCheck{
 				CheckID: "ha_checks",
 				Name:    "HA config checks",
 				Notes:   "Checks whether or not the HA configuration is compliant with the provided best practices",
 				TTL:     a.cfg.CheckerTTL.String(),
-				Status:  consul.HealthWarning,
+				Status:  consulApi.HealthWarning,
 			},
-			&consul.AgentServiceCheck{
+			&consulApi.AgentServiceCheck{
 				CheckID: "discover_cluster",
 				Name:    "Node Cluster State Discovery",
 				Notes:   "Collects details about Cluster State",
 				TTL:     "30m",
-				Status:  consul.HealthWarning,
+				Status:  consulApi.HealthWarning,
 			},
 		},
 	}
@@ -245,7 +247,7 @@ func (a *Agent) startDiscoverTicker() error {
 					log.Println("Error while discovering: ", err)
 				}
 			}
-			a.consul.Agent().UpdateTTL("discover_cluster", "", consul.HealthPassing)
+			a.consul.Agent().UpdateTTL("discover_cluster", "", consulApi.HealthPassing)
 		case <-a.ctx.Done():
 			return nil
 		}
@@ -262,11 +264,11 @@ func (a *Agent) updateConsulCheck(result CheckResult) {
 
 	switch {
 	case summary.Fail > 0:
-		status = consul.HealthCritical
+		status = consulApi.HealthCritical
 	case summary.Warn > 0:
-		status = consul.HealthWarning
+		status = consulApi.HealthWarning
 	default:
-		status = consul.HealthPassing
+		status = consulApi.HealthPassing
 	}
 
 	checkOutput := fmt.Sprintf("%s\nFor more detailed info, query this service at port %d.",

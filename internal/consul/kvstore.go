@@ -10,7 +10,6 @@ package consul
 // that records constants that need to be in sync or have compat behavior between
 // Console and Agent
 
-
 const KvClustersPath string = "trento/v0/clusters"
 const KvHostsPath string = "trento/v0/hosts"
 const KvEnvironmentsPath string = "trento/v0/environments"

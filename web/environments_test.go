@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/tdewolff/minify/v2"
 	"github.com/tdewolff/minify/v2/html"
+	consul_internal "github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/consul/mocks"
 )
 
@@ -77,20 +78,20 @@ func setupTest() (*mocks.Client, *mocks.Catalog) {
 	}
 
 	filters := []string{
-		"trento/environments/",
-		"trento/environments/env1/",
-		"trento/environments/env1/landscapes/",
-		"trento/environments/env1/landscapes/land1/",
-		"trento/environments/env1/landscapes/land1/sapsystems/",
-		"trento/environments/env1/landscapes/land1/sapsystems/sys1/",
-		"trento/environments/env1/landscapes/land2/",
-		"trento/environments/env1/landscapes/land2/sapsystems/",
-		"trento/environments/env1/landscapes/land2/sapsystems/sys2/",
-		"trento/environments/env2/",
-		"trento/environments/env2/landscapes/",
-		"trento/environments/env2/landscapes/land3/",
-		"trento/environments/env2/landscapes/land3/sapsystems/",
-		"trento/environments/env2/landscapes/land3/sapsystems/sys3/",
+		consul_internal.KvEnvironmentsPath + "/",
+		consul_internal.KvEnvironmentsPath + "/env1/",
+		consul_internal.KvEnvironmentsPath + "/env1/landscapes/",
+		consul_internal.KvEnvironmentsPath + "/env1/landscapes/land1/",
+		consul_internal.KvEnvironmentsPath + "/env1/landscapes/land1/sapsystems/",
+		consul_internal.KvEnvironmentsPath + "/env1/landscapes/land1/sapsystems/sys1/",
+		consul_internal.KvEnvironmentsPath + "/env1/landscapes/land2/",
+		consul_internal.KvEnvironmentsPath + "/env1/landscapes/land2/sapsystems/",
+		consul_internal.KvEnvironmentsPath + "/env1/landscapes/land2/sapsystems/sys2/",
+		consul_internal.KvEnvironmentsPath + "/env2/",
+		consul_internal.KvEnvironmentsPath + "/env2/landscapes/",
+		consul_internal.KvEnvironmentsPath + "/env2/landscapes/land3/",
+		consul_internal.KvEnvironmentsPath + "/env2/landscapes/land3/sapsystems/",
+		consul_internal.KvEnvironmentsPath + "/env2/landscapes/land3/sapsystems/sys3/",
 	}
 
 	consul := new(mocks.Client)
@@ -102,7 +103,7 @@ func setupTest() (*mocks.Client, *mocks.Catalog) {
 	consul.On("Health").Return(health)
 	consul.On("KV").Return(kv)
 
-	kv.On("Keys", "trento/environments", "", (*consulApi.QueryOptions)(nil)).Return(filters, nil, nil)
+	kv.On("Keys", consul_internal.KvEnvironmentsPath, "", (*consulApi.QueryOptions)(nil)).Return(filters, nil, nil)
 
 	filterSys1 := &consulApi.QueryOptions{
 		Filter: "(Meta[\"trento-sap-environment\"] == \"env1\") and (Meta[\"trento-sap-landscape\"] == \"land1\") and (Meta[\"trento-sap-system\"] == \"sys1\")"}

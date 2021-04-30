@@ -35,7 +35,7 @@ of existing clusters, rather than deploying new one.
 - [Support](#support)
 - [Contributing](#contributing)
 - [License](#license)
-  
+
 # Features
 
 T.B.D.
@@ -52,7 +52,7 @@ To build the entire application you will need the following dependencies:
 ## Runtime dependencies
 
 Running the application will require:
-  - A running [`consul`](https://www.consul.io/downloads) cluster. 
+  - A running [`consul`](https://www.consul.io/downloads) cluster.
 
 >We have only tested version `1.9.x` and while it *should* work with any consul agents that implement consul protocol version 3, we can´t guarantee it at the moment.
 
@@ -85,11 +85,11 @@ To run trento in our development environment we need at least:
 
 ## Consul
 
-The web application needs one or more agents registered against against 
-[Consul](https://consul.io/). A consul server needs to be paired with the 
+The web application needs one or more agents registered against against
+[Consul](https://consul.io/). A consul server needs to be paired with the
 Trento Web Application.
 
-Each [Trento agent node](##trento-agents) also needs a consul agent started. 
+Each [Trento agent node](##trento-agents) also needs a consul agent started.
 Follow the [Running An Agent](https://www.consul.io/docs/agent#running-an-agent)
 more detailed steps for starting it prior running the Trento Agent.
 
@@ -99,7 +99,7 @@ To start the consul agent as server:
 ./consul agent -server -bootstrap-expect=1 -bind=127.0.0.1 -data-dir=consul-data -ui
 ```
 
-This will start consul, binding to `127.0.0.1` and use `consul-data` as 
+This will start consul, binding to `127.0.0.1` and use `consul-data` as
 directory to persist data.
 
 Another agent in client mode is also required. For development purposes, to be
@@ -120,7 +120,7 @@ Now we can start the agent:
 ```
 
 
-> Production deployments require multiple instances for the consult agents. Be 
+> Production deployments require multiple instances for the consult agents. Be
 > sure to check [consul's deployment guide](https://learn.hashicorp.com/tutorials/consul/deployment-guide#configure-consul-agents)
 
 ## Trento agents
@@ -181,10 +181,10 @@ These reserved tags can be automatically set and updated using the [consul-templ
 To achieve this, the tags information will come from the KV storage.
 
 Set the metadata in the next paths:
-- `trento/nodename/metadata/ha-cluster`
-- `trento/nodename/metadata/sap-environment`
-- `trento/nodename/metadata/sap-landscape`
-- `trento/nodename/metadata/sap-system`
+- `trento/v0/hosts/$nodename/metadata/ha-cluster`
+- `trento/v0/hosts/$nodename/metadata/sap-environment`
+- `trento/v0/hosts/$nodename/metadata/sap-landscape`
+- `trento/v0/hosts/$nodename/metadata/sap-system`
 
 Notice that a new entry must exists for every node.
 
@@ -197,9 +197,9 @@ Notice that a new entry must exists for every node.
 
 The app provides the option to see the environment composed by the nodes and filter the systems using the previously commented reserved tags. To achieve this, the tags must be stored in the KV storage.
 Use the next path:
-- `trento/environments/$yourenv/`
-- `trento/environments/$yourenv/landscapes/$yourland/`
-- `trento/environments/$yourenv/landscapes/$yourland/sapsystems/$yoursapsy`
+- `trento/v0/environments/$yourenv/`
+- `trento/v0/environments/$yourenv/landscapes/$yourland/`
+- `trento/v0/environments/$yourenv/landscapes/$yourland/sapsystems/$yoursapsy`
 
 Keep in mind that the created environments, landscapes and sap systems are directories themselves, and there can be multiple of them.
 The possibility to have multiple landscapes with the same name in different environments (and the same for SAP systems) is possible.
@@ -234,7 +234,7 @@ You can install it with `go install github.com/vektra/mockery/v2@latest`.
 # Support
 
 As the project is currently in its early stages, we suggest that any question or
-issue is directed to our [Issues](https://github.com/trento-project/trento/issues) 
+issue is directed to our [Issues](https://github.com/trento-project/trento/issues)
 section in GitHub.
 
 # Contributing

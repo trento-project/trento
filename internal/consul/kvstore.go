@@ -10,11 +10,10 @@ package consul
 // that records constants that need to be in sync or have compat behavior between
 // Console and Agent
 
-// ### add landscape and system to the name
-const KvClustersPath string = "trento/v0/clusters"
 
-// ### add landscame and system to the host name
+const KvClustersPath string = "trento/v0/clusters"
 const KvHostsPath string = "trento/v0/hosts"
+const KvEnvironmentsPath string = "trento/v0/environments"
 
 type ClusterStonithType int
 

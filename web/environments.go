@@ -3,7 +3,7 @@ package web
 import (
 	//"log"
 	"net/http"
-	"strings"
+	//"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -244,86 +244,58 @@ trento/v0/environments/env2/landscapes/land3/sapsystems/
 trento/v0/environments/env2/landscapes/land3/sapsystems/sys5/
 */
 func loadEnvironments(client consul.Client) (EnvironmentList, error) {
-	var (
-		environments = EnvironmentList{}
-		reserveKeys  = []string{"environments", "landscapes", "sapsystems"}
-	)
+	var environments = EnvironmentList{}
 
-	entries, _, err := client.KV().Keys(consul.KvEnvironmentsPath, "", nil)
+	envs, err := consul.Maps(client, consul.KvEnvironmentsPath, consul.KvEnvironmentsPath+"/")
 	if err != nil {
-		return nil, errors.Wrap(err, "could not query Consul for Environments KV values")
+		return nil, errors.Wrap(err, "Error getting the environments data")
 	}
 
-	for _, entry := range entries {
-		// Remove individual values, even though there is not any defined by now.
-		if !strings.HasSuffix(entry, "/") {
-			continue
-		}
-
-		keyValues := strings.Split(strings.TrimSuffix(entry, "/"), "/")
-		lastKey := keyValues[len(keyValues)-1]
-		lastKeyParent := keyValues[len(keyValues)-2]
-
-		if contains(reserveKeys, lastKey) {
-			continue
-		}
-
-		_, envFound := environments[lastKeyParent]
-		if lastKeyParent == "environments" && !envFound {
-			env := &Environment{Name: lastKey, Landscapes: make(LandscapeList)}
-			environments[lastKey] = env
-		}
-
-		environments, err = loadLandscapes(client, environments, keyValues)
+	for env, envValue := range envs {
+		landscapes, err := loadLandscapes(client, env, envValue)
 		if err != nil {
-			return nil, errors.Wrap(err, "could not get the SAP landscapes")
+			return nil, err
 		}
+		environments[env] = &Environment{Name: env, Landscapes: landscapes}
 	}
 
 	return environments, nil
 }
 
-func loadLandscapes(client consul.Client, environments EnvironmentList, values []string) (EnvironmentList, error) {
-	lastKey := values[len(values)-1]
-	lastKeyParent := values[len(values)-2]
+func loadLandscapes(client consul.Client, env string, envValue interface{}) (LandscapeList, error) {
+	var landscapes = LandscapeList{}
 
-	_, landFound := environments[lastKeyParent]
-	if lastKeyParent == "landscapes" && !landFound {
-		land := &Landscape{Name: lastKey, SAPSystems: make(SAPSystemList)}
-		envName := values[envIndex]
-		environments[envName].Landscapes[lastKey] = land
+	lands := envValue.(map[string]interface{})["landscapes"]
+
+	for land, landValue := range lands.(map[string]interface{}) {
+		sapsystems, err := loadSAPSystems(client, env, land, landValue)
+		if err != nil {
+			return nil, err
+		}
+		landscapes[land] = &Landscape{Name: land, SAPSystems: sapsystems}
 	}
 
-	environments, err := loadSAPSystems(client, environments, values)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not get the SAP systems")
-	}
-
-	return environments, nil
+	return landscapes, nil
 }
 
-func loadSAPSystems(client consul.Client, environments EnvironmentList, values []string) (EnvironmentList, error) {
-	lastKey := values[len(values)-1]
-	lastKeyParent := values[len(values)-2]
+func loadSAPSystems(client consul.Client, env string, land string, landValue interface{}) (SAPSystemList, error) {
+	var sapsystems = SAPSystemList{}
 
-	_, sysFound := environments[lastKeyParent]
-	if lastKeyParent == "sapsystems" && !sysFound {
-		envName := values[envIndex]
-		landName := values[landIndex]
-		// Get the nodes with these meta-data entries
+	syss := landValue.(map[string]interface{})["sapsystems"]
+
+	for sys, _ := range syss.(map[string]interface{}) {
 		query := CreateFilterMetaQuery(map[string][]string{
-			"trento-sap-environment": []string{envName},
-			"trento-sap-landscape":   []string{landName},
-			"trento-sap-system":      []string{lastKey},
+			"trento-sap-environment": []string{env},
+			"trento-sap-landscape":   []string{land},
+			"trento-sap-system":      []string{sys},
 		})
 		hosts, err := loadHosts(client, query, []string{})
 		if err != nil {
 			return nil, errors.Wrap(err, "could not query Consul for hosts")
 		}
-		sapsystem := &SAPSystem{Name: lastKey, Hosts: hosts}
 
-		environments[envName].Landscapes[landName].SAPSystems[lastKey] = sapsystem
+		sapsystems[sys] = &SAPSystem{Name: sys, Hosts: hosts}
 	}
 
-	return environments, nil
+	return sapsystems, nil
 }

@@ -1,5 +1,11 @@
 package consul
 
+import (
+	"strings"
+
+	"github.com/pkg/errors"
+)
+
 // The Trento Agent is periodically updating data structures in the Consul Key-Value Store
 // to be consumed by the Trento Web Console
 //
@@ -21,3 +27,46 @@ const (
 	ClusterStonithSBD
 	ClusterStonithUnknown
 )
+
+// Method to convert the KVs output to a Map
+// prefix -> The KV prefix to get the data
+// offset -> Remove the offset from the outgoing map
+// 	         (used to remove initial key from the map like trento/v0/)
+func Maps(c Client, prefix, offset string) (map[string]interface{}, error) {
+	result := make(map[string]interface{})
+
+	entries, _, err := c.KV().List(prefix, nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not query Consul for KV values")
+	}
+
+	currentItem := result
+
+	for _, entry := range entries {
+		modEntry := strings.TrimPrefix(strings.Trim(entry.Key, " "), offset)
+		if len(modEntry) == 0 {
+			continue
+		}
+
+		currentItem = result
+		keys := strings.Split(modEntry, "/")
+		for i, key := range keys {
+
+			if len(key) == 0 {
+				break
+			} else if i == len(keys)-1 {
+				currentItem[key] = string(entry.Value)
+				break
+			}
+
+			if _, ok := currentItem[key]; !ok {
+				currentItem[key] = make(map[string]interface{})
+			}
+
+			item, _ := currentItem[key].(map[string]interface{})
+			currentItem = item
+		}
+	}
+
+	return result, nil
+}

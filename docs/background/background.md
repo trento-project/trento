@@ -14,7 +14,7 @@ Here we collect information feeding into Trento
 ## SAP HANA Scale-Up Performance Optimized
 
 ### SUSE Best Practice
-* [Local Repo copy with references to Trento check ID number and CFSA ID:](./background/SAP_HANA_System_Replication_Scale-Up/SAP_HANA_System_Replication_Scale-Up_-_Performance_Optimized_Scenario_SUSE_Linux_Enterprise_Server_for_SAP_Applications_15.html)
+* [Local Repo copy with references to Trento check ID number and CFSA ID](https://htmlpreview.github.io/?https://github.com/trento-project/trento/blob/main/docs/background/SAP_HANA_System_Replication_Scale-Up/SAP_HANA_System_Replication_Scale-Up_-_Performance_Optimized_Scenario_SUSE_Linux_Enterprise_Server_for_SAP_Applications_15.html)
 * [Original](https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/) 
 
 

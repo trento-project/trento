@@ -1,6 +1,8 @@
 package consul
 
 import (
+	"os"
+
 	consulApi "github.com/hashicorp/consul/api"
 )
 
@@ -39,7 +41,15 @@ type Health interface {
 }
 
 func DefaultClient() (Client, error) {
-	w, err := consulApi.NewClient(consulApi.DefaultConfig())
+	config := consulApi.DefaultConfig()
+	addrVal, addrPresent := os.LookupEnv("CONSUL_ADDR")
+	if addrPresent {
+		config.Address = addrVal
+	} else {
+		config.Address = "127.0.0.1:8500"
+	}
+
+	w, err := consulApi.NewClient(config)
 	if err != nil {
 		return nil, err
 	}

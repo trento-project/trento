@@ -108,3 +108,26 @@ func (_m *KV) List(prefix string, q *api.QueryOptions) (api.KVPairs, *api.QueryM
 
 	return r0, r1, r2
 }
+
+// Maps provides a mock function with given fields: prefix, offset
+func (_m *KV) Maps(prefix string, offset string) (map[string]interface{}, error) {
+	ret := _m.Called(prefix, offset)
+
+	var r0 map[string]interface{}
+	if rf, ok := ret.Get(0).(func(string, string) map[string]interface{}); ok {
+		r0 = rf(prefix, offset)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]interface{})
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(prefix, offset)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}

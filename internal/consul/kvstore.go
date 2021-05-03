@@ -4,6 +4,8 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+
+	consulApi "github.com/hashicorp/consul/api"
 )
 
 // The Trento Agent is periodically updating data structures in the Consul Key-Value Store
@@ -32,10 +34,10 @@ const (
 // prefix -> The KV prefix to get the data
 // offset -> Remove the offset from the outgoing map
 // 	         (used to remove initial key from the map like trento/v0/)
-func Maps(c Client, prefix, offset string) (map[string]interface{}, error) {
+func Maps(k *consulApi.KV, prefix, offset string) (map[string]interface{}, error) {
 	result := make(map[string]interface{})
 
-	entries, _, err := c.KV().List(prefix, nil)
+	entries, _, err := k.List(prefix, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not query Consul for KV values")
 	}

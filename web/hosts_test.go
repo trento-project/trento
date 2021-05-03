@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/tdewolff/minify/v2"
 	"github.com/tdewolff/minify/v2/html"
-	consul_internal "github.com/trento-project/trento/internal/consul"
+	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/consul/mocks"
 )
 
@@ -72,16 +72,16 @@ func TestHostsListHandler(t *testing.T) {
 		},
 	}
 
-	consul := new(mocks.Client)
+	consulInst := new(mocks.Client)
 	catalog := new(mocks.Catalog)
 	health := new(mocks.Health)
 	kv := new(mocks.KV)
 
-	consul.On("Catalog").Return(catalog)
-	consul.On("Health").Return(health)
-	consul.On("KV").Return(kv)
+	consulInst.On("Catalog").Return(catalog)
+	consulInst.On("Health").Return(health)
+	consulInst.On("KV").Return(kv)
 
-	kv.On("Maps", consul_internal.KvEnvironmentsPath, consul_internal.KvEnvironmentsPath).Return(filters, nil)
+	kv.On("Maps", consul.KvEnvironmentsPath, consul.KvEnvironmentsPath).Return(filters, nil)
 
 	query := &consulApi.QueryOptions{Filter: ""}
 	catalog.On("Nodes", (*consulApi.QueryOptions)(query)).Return(nodes, nil, nil)
@@ -102,7 +102,7 @@ func TestHostsListHandler(t *testing.T) {
 	health.On("Node", "bar", (*consulApi.QueryOptions)(nil)).Return(barHealthChecks, nil, nil)
 
 	deps := DefaultDependencies()
-	deps.consul = consul
+	deps.consul = consulInst
 
 	var err error
 	app, err := NewAppWithDeps("", 80, deps)
@@ -118,7 +118,7 @@ func TestHostsListHandler(t *testing.T) {
 
 	app.ServeHTTP(resp, req)
 
-	consul.AssertExpectations(t)
+	consulInst.AssertExpectations(t)
 	catalog.AssertExpectations(t)
 	health.AssertExpectations(t)
 

@@ -34,6 +34,7 @@ type KV interface {
 	Get(key string, q *consulApi.QueryOptions) (*consulApi.KVPair, *consulApi.QueryMeta, error)
 	List(prefix string, q *consulApi.QueryOptions) (consulApi.KVPairs, *consulApi.QueryMeta, error)
 	Keys(prefix, separator string, q *consulApi.QueryOptions) ([]string, *consulApi.QueryMeta, error)
+	Put(p *consulApi.KVPair, q *consulApi.WriteOptions) (*consulApi.WriteMeta, error)
 	Maps(prefix, offset string) (map[string]interface{}, error)
 }
 
@@ -56,6 +57,10 @@ func (k *kv) Get(key string, q *consulApi.QueryOptions) (*consulApi.KVPair, *con
 
 func (k *kv) Keys(prefix, separator string, q *consulApi.QueryOptions) ([]string, *consulApi.QueryMeta, error) {
 	return k.wrapped.Keys(prefix, separator, q)
+}
+
+func (k *kv) Put(p *consulApi.KVPair, q *consulApi.WriteOptions) (*consulApi.WriteMeta, error) {
+	return k.wrapped.Put(p, q)
 }
 
 func (k *kv) List(prefix string, q *consulApi.QueryOptions) (consulApi.KVPairs, *consulApi.QueryMeta, error) {

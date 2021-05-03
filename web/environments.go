@@ -246,7 +246,7 @@ trento/v0/environments/env2/landscapes/land3/sapsystems/sys5/
 func loadEnvironments(client consul.Client) (EnvironmentList, error) {
 	var environments = EnvironmentList{}
 
-	envs, err := consul.Maps(client, consul.KvEnvironmentsPath, consul.KvEnvironmentsPath+"/")
+	envs, err := client.KV().Maps(consul.KvEnvironmentsPath, consul.KvEnvironmentsPath+"/")
 	if err != nil {
 		return nil, errors.Wrap(err, "Error getting the environments data")
 	}

@@ -18,13 +18,6 @@ type Catalog interface {
 	Nodes(q *consulApi.QueryOptions) ([]*consulApi.Node, *consulApi.QueryMeta, error)
 }
 
-type KV interface {
-	Get(key string, q *consulApi.QueryOptions) (*consulApi.KVPair, *consulApi.QueryMeta, error)
-	List(prefix string, q *consulApi.QueryOptions) (consulApi.KVPairs, *consulApi.QueryMeta, error)
-	Keys(prefix, separator string, q *consulApi.QueryOptions) ([]string, *consulApi.QueryMeta, error)
-	Maps(prefix, offset string) (map[string]interface{}, error)
-}
-
 type Health interface {
 	Node(node string, q *consulApi.QueryOptions) (consulApi.HealthChecks, *consulApi.QueryMeta, error)
 	Service(service, tag string, passingOnly bool, q *consulApi.QueryOptions) ([]*consulApi.ServiceEntry, *consulApi.QueryMeta, error)
@@ -52,26 +45,5 @@ func (c *client) Health() Health {
 }
 
 func (c *client) KV() KV {
-	return &kv{c.wrapped.KV()}
-}
-
-type kv struct {
-	kv *consulApi.KV
-}
-
-func (k *kv) Get(key string, q *consulApi.QueryOptions) (*consulApi.KVPair, *consulApi.QueryMeta, error) {
-	return k.kv.Get(key, q)
-}
-
-func (k *kv) Keys(prefix, separator string, q *consulApi.QueryOptions) ([]string, *consulApi.QueryMeta, error) {
-	return k.kv.Keys(prefix, separator, q)
-}
-
-
-func (k *kv) List(prefix string, q *consulApi.QueryOptions) (consulApi.KVPairs, *consulApi.QueryMeta, error) {
-	return k.kv.List(prefix, q)
-}
-
-func (k *kv) Maps(prefix, offset string) (map[string]interface{}, error) {
-	return Maps(k.kv, prefix, offset)
+	return newKV(c.wrapped.KV())
 }

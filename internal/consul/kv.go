@@ -3,9 +3,8 @@ package consul
 import (
 	"strings"
 
-	"github.com/pkg/errors"
-
 	consulApi "github.com/hashicorp/consul/api"
+	"github.com/pkg/errors"
 )
 
 // The Trento Agent is periodically updating data structures in the Consul Key-Value Store
@@ -30,14 +29,46 @@ const (
 	ClusterStonithUnknown
 )
 
-// Method to convert the KVs output to a Map
+type KV interface {
+	Get(key string, q *consulApi.QueryOptions) (*consulApi.KVPair, *consulApi.QueryMeta, error)
+	List(prefix string, q *consulApi.QueryOptions) (consulApi.KVPairs, *consulApi.QueryMeta, error)
+	Keys(prefix, separator string, q *consulApi.QueryOptions) ([]string, *consulApi.QueryMeta, error)
+	Maps(prefix, offset string) (map[string]interface{}, error)
+}
+
+func newKV(wrapped *consulApi.KV) KV {
+	return &kv{
+		wrapped,
+		wrapped.List,
+	}
+}
+
+type kv struct {
+	wrapped *consulApi.KV
+	// we need this dedicated function field because the Maps method depends on it and we want to mock it internally
+	list func(prefix string, q *consulApi.QueryOptions) (consulApi.KVPairs, *consulApi.QueryMeta, error)
+}
+
+func (k *kv) Get(key string, q *consulApi.QueryOptions) (*consulApi.KVPair, *consulApi.QueryMeta, error) {
+	return k.wrapped.Get(key, q)
+}
+
+func (k *kv) Keys(prefix, separator string, q *consulApi.QueryOptions) ([]string, *consulApi.QueryMeta, error) {
+	return k.wrapped.Keys(prefix, separator, q)
+}
+
+func (k *kv) List(prefix string, q *consulApi.QueryOptions) (consulApi.KVPairs, *consulApi.QueryMeta, error) {
+	return k.list(prefix, q)
+}
+
+// Maps converts the KVs output to a Map
 // prefix -> The KV prefix to get the data
 // offset -> Remove the offset from the outgoing map
 // 	         (used to remove initial key from the map like trento/v0/)
-func Maps(k *consulApi.KV, prefix, offset string) (map[string]interface{}, error) {
+func (k *kv) Maps(prefix, offset string) (map[string]interface{}, error) {
 	result := make(map[string]interface{})
 
-	entries, _, err := k.List(prefix, nil)
+	entries, _, err := k.list(prefix, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not query Consul for KV values")
 	}

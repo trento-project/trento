@@ -77,21 +77,30 @@ func setupTest() (*mocks.Client, *mocks.Catalog) {
 		},
 	}
 
-	filters := []string{
-		consul_internal.KvEnvironmentsPath + "/",
-		consul_internal.KvEnvironmentsPath + "/env1/",
-		consul_internal.KvEnvironmentsPath + "/env1/landscapes/",
-		consul_internal.KvEnvironmentsPath + "/env1/landscapes/land1/",
-		consul_internal.KvEnvironmentsPath + "/env1/landscapes/land1/sapsystems/",
-		consul_internal.KvEnvironmentsPath + "/env1/landscapes/land1/sapsystems/sys1/",
-		consul_internal.KvEnvironmentsPath + "/env1/landscapes/land2/",
-		consul_internal.KvEnvironmentsPath + "/env1/landscapes/land2/sapsystems/",
-		consul_internal.KvEnvironmentsPath + "/env1/landscapes/land2/sapsystems/sys2/",
-		consul_internal.KvEnvironmentsPath + "/env2/",
-		consul_internal.KvEnvironmentsPath + "/env2/landscapes/",
-		consul_internal.KvEnvironmentsPath + "/env2/landscapes/land3/",
-		consul_internal.KvEnvironmentsPath + "/env2/landscapes/land3/sapsystems/",
-		consul_internal.KvEnvironmentsPath + "/env2/landscapes/land3/sapsystems/sys3/",
+	filters := map[string]interface{}{
+		"env1": map[string]interface{}{
+			"landscapes": map[string]interface{}{
+				"land1": map[string]interface{}{
+					"sapsystems": map[string]interface{}{
+						"sys1": map[string]interface{}{},
+					},
+				},
+				"land2": map[string]interface{}{
+					"sapsystems": map[string]interface{}{
+						"sys2": map[string]interface{}{},
+					},
+				},
+			},
+		},
+		"env2": map[string]interface{}{
+			"landscapes": map[string]interface{}{
+				"land3": map[string]interface{}{
+					"sapsystems": map[string]interface{}{
+						"sys3": map[string]interface{}{},
+					},
+				},
+			},
+		},
 	}
 
 	consul := new(mocks.Client)
@@ -103,7 +112,7 @@ func setupTest() (*mocks.Client, *mocks.Catalog) {
 	consul.On("Health").Return(health)
 	consul.On("KV").Return(kv)
 
-	kv.On("Keys", consul_internal.KvEnvironmentsPath, "", (*consulApi.QueryOptions)(nil)).Return(filters, nil, nil)
+	kv.On("Maps", consul_internal.KvEnvironmentsPath, consul_internal.KvEnvironmentsPath).Return(filters, nil)
 
 	filterSys1 := &consulApi.QueryOptions{
 		Filter: "(Meta[\"trento-sap-environment\"] == \"env1\") and (Meta[\"trento-sap-landscape\"] == \"land1\") and (Meta[\"trento-sap-system\"] == \"sys1\")"}

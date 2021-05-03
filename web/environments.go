@@ -225,28 +225,10 @@ func NewSAPSystemHostsListHandler(client consul.Client) gin.HandlerFunc {
 	}
 }
 
-/* loadEnvironments needs a fixed kv structure to work. Here an example
-trento/v0/environments/
-trento/v0/environments/env1/
-trento/v0/environments/env1/landscapes/
-trento/v0/environments/env1/landscapes/land1/
-trento/v0/environments/env1/landscapes/land1/sapsystems/
-trento/v0/environments/env1/landscapes/land1/sapsystems/sys1/
-trento/v0/environments/env1/landscapes/land1/sapsystems/sys2/
-trento/v0/environments/env1/landscapes/land2/
-trento/v0/environments/env1/landscapes/land2/sapsystems/
-trento/v0/environments/env1/landscapes/land2/sapsystems/sys3/
-trento/v0/environments/env1/landscapes/land2/sapsystems/sys4/
-trento/v0/environments/env2/
-trento/v0/environments/env2/landscapes/
-trento/v0/environments/env2/landscapes/land3/
-trento/v0/environments/env2/landscapes/land3/sapsystems/
-trento/v0/environments/env2/landscapes/land3/sapsystems/sys5/
-*/
 func loadEnvironments(client consul.Client) (EnvironmentList, error) {
 	var environments = EnvironmentList{}
 
-	envs, err := client.KV().Maps(consul.KvEnvironmentsPath, consul.KvEnvironmentsPath+"/")
+	envs, err := client.KV().Maps(consul.KvEnvironmentsPath, consul.KvEnvironmentsPath)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error getting the environments data")
 	}

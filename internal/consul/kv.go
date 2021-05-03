@@ -1,6 +1,7 @@
 package consul
 
 import (
+	"fmt"
 	"strings"
 
 	consulApi "github.com/hashicorp/consul/api"
@@ -73,6 +74,10 @@ func (k *kv) Maps(prefix, offset string) (map[string]interface{}, error) {
 		return nil, errors.Wrap(err, "could not query Consul for KV values")
 	}
 
+	if !strings.HasSuffix(offset, "/") {
+		offset = fmt.Sprintf("%s/", offset)
+	}
+
 	currentItem := result
 
 	for _, entry := range entries {
@@ -84,7 +89,6 @@ func (k *kv) Maps(prefix, offset string) (map[string]interface{}, error) {
 		currentItem = result
 		keys := strings.Split(modEntry, "/")
 		for i, key := range keys {
-
 			if len(key) == 0 {
 				break
 			} else if i == len(keys)-1 {

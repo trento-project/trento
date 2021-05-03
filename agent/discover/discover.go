@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	consul "github.com/hashicorp/consul/api"
-	consul_internal "github.com/trento-project/trento/internal/consul"
+	consulApi "github.com/hashicorp/consul/api"
+	"github.com/trento-project/trento/internal/consul"
 )
 
 type Discovery func() (Discoverer, error)
@@ -30,9 +30,9 @@ type Discover struct {
 
 // Create or Updating the given Consul Key-Value Path Store with a new value from the Agent
 func (discover Discover) storeDiscovery(cStorePath, cStoreValue string) error {
-	kvPath := fmt.Sprintf("%s/%s/%s", consul_internal.KvHostsPath, discover.host, cStorePath)
+	kvPath := fmt.Sprintf("%s/%s/%s", consul.KvHostsPath, discover.host, cStorePath)
 
-	_, err := discover.client.KV().Put(&consul.KVPair{
+	_, err := discover.client.KV().Put(&consulApi.KVPair{
 		Key:   kvPath,
 		Value: []byte(cStoreValue)}, nil)
 	return err

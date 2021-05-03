@@ -7,9 +7,17 @@ import (
 //go:generate mockery --all
 
 type Client interface {
+	Agent() Agent
 	Catalog() Catalog
 	Health() Health
 	KV() KV
+}
+
+type Agent interface {
+	ServiceRegister(service *consulApi.AgentServiceRegistration) error
+	ServiceDeregister(serviceID string) error
+	UpdateTTL(checkID, note, status string) error
+	Reload() error
 }
 
 type Catalog interface {
@@ -22,6 +30,7 @@ type KV interface {
 	Get(key string, q *consulApi.QueryOptions) (*consulApi.KVPair, *consulApi.QueryMeta, error)
 	List(prefix string, q *consulApi.QueryOptions) (consulApi.KVPairs, *consulApi.QueryMeta, error)
 	Keys(prefix, separator string, q *consulApi.QueryOptions) ([]string, *consulApi.QueryMeta, error)
+	Put(p *consulApi.KVPair, q *consulApi.WriteOptions) (*consulApi.WriteMeta, error)
 }
 
 type Health interface {
@@ -40,6 +49,10 @@ func DefaultClient() (Client, error) {
 
 type client struct {
 	wrapped *consulApi.Client
+}
+
+func (c *client) Agent() Agent {
+	return c.wrapped.Agent()
 }
 
 func (c *client) Catalog() Catalog {

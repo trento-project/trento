@@ -1,7 +1,7 @@
 package discover
 
 import (
-	consul "github.com/hashicorp/consul/api"
+	"github.com/trento-project/trento/internal/consul"
 )
 
 type HanaClusterDiscover struct {

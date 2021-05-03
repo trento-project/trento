@@ -12,6 +12,22 @@ type Client struct {
 	mock.Mock
 }
 
+// Agent provides a mock function with given fields:
+func (_m *Client) Agent() consul.Agent {
+	ret := _m.Called()
+
+	var r0 consul.Agent
+	if rf, ok := ret.Get(0).(func() consul.Agent); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(consul.Agent)
+		}
+	}
+
+	return r0
+}
+
 // Catalog provides a mock function with given fields:
 func (_m *Client) Catalog() consul.Catalog {
 	ret := _m.Called()

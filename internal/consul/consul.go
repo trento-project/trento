@@ -7,9 +7,17 @@ import (
 //go:generate mockery --all
 
 type Client interface {
+	Agent() Agent
 	Catalog() Catalog
 	Health() Health
 	KV() KV
+}
+
+type Agent interface {
+	ServiceRegister(service *consulApi.AgentServiceRegistration) error
+	ServiceDeregister(serviceID string) error
+	UpdateTTL(checkID, note, status string) error
+	Reload() error
 }
 
 type Catalog interface {
@@ -34,6 +42,10 @@ func DefaultClient() (Client, error) {
 
 type client struct {
 	wrapped *consulApi.Client
+}
+
+func (c *client) Agent() Agent {
+	return c.wrapped.Agent()
 }
 
 func (c *client) Catalog() Catalog {

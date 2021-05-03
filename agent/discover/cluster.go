@@ -8,9 +8,9 @@ import (
 	// Reusing the Prometheus Ha Exporter cibadmin xml parser here
 	"github.com/ClusterLabs/ha_cluster_exporter/collector/pacemaker/cib"
 
-	consul "github.com/hashicorp/consul/api"
+	consulApi "github.com/hashicorp/consul/api"
 	"github.com/pkg/errors"
-	consul_internal "github.com/trento-project/trento/internal/consul"
+	"github.com/trento-project/trento/internal/consul"
 )
 
 const crm_monPath string = "/usr/sbin/crm_mon"
@@ -25,7 +25,7 @@ type ClusterDiscover struct {
 	cibConfig      cib.Root
 	clusterName    string
 	stonithEnabled bool
-	stonithType    consul_internal.ClusterStonithType
+	stonithType    consul.ClusterStonithType
 }
 
 // check if the current node this trento agent is running on can be discovered
@@ -37,9 +37,9 @@ func (cluster ClusterDiscover) ShouldDiscover(client consul.Client) bool {
 
 // Create or Updating the given Consul Key-Value Path Store with a new value from the Agent
 func (cluster ClusterDiscover) storeDiscovery(cStorePath, cStoreValue string) error {
-	kvPath := fmt.Sprintf("%s/%s/%s", consul_internal.KvClustersPath, cluster.clusterName, cStorePath)
+	kvPath := fmt.Sprintf("%s/%s/%s", consul.KvClustersPath, cluster.clusterName, cStorePath)
 
-	_, err := cluster.host.client.KV().Put(&consul.KVPair{
+	_, err := cluster.host.client.KV().Put(&consulApi.KVPair{
 		Key:   kvPath,
 		Value: []byte(cStoreValue)}, nil)
 	return err
@@ -51,7 +51,7 @@ func (cluster ClusterDiscover) Discover() error {
 	if err != nil {
 		return err
 	}
-	cluster.stonithType = consul_internal.ClusterStonithUnknown
+	cluster.stonithType = consul.ClusterStonithUnknown
 
 	cibParser := cib.NewCibAdminParser(cib_admPath)
 
@@ -75,7 +75,7 @@ func (cluster ClusterDiscover) Discover() error {
 	for _, primitive := range cluster.cibConfig.Configuration.Resources.Primitives {
 		switch primitive.Type {
 		case "external/sbd":
-			cluster.stonithType = consul_internal.ClusterStonithSBD
+			cluster.stonithType = consul.ClusterStonithSBD
 		case "IPaddr2":
 			if !foundVIP && primitive.Provider == "heartbeat" {
 				for _, attr := range primitive.InstanceAttributes {

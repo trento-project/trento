@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/tdewolff/minify/v2"
 	"github.com/tdewolff/minify/v2/html"
-	consul_internal "github.com/trento-project/trento/internal/consul"
+	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/consul/mocks"
 )
 
@@ -77,33 +77,42 @@ func setupTest() (*mocks.Client, *mocks.Catalog) {
 		},
 	}
 
-	filters := []string{
-		consul_internal.KvEnvironmentsPath + "/",
-		consul_internal.KvEnvironmentsPath + "/env1/",
-		consul_internal.KvEnvironmentsPath + "/env1/landscapes/",
-		consul_internal.KvEnvironmentsPath + "/env1/landscapes/land1/",
-		consul_internal.KvEnvironmentsPath + "/env1/landscapes/land1/sapsystems/",
-		consul_internal.KvEnvironmentsPath + "/env1/landscapes/land1/sapsystems/sys1/",
-		consul_internal.KvEnvironmentsPath + "/env1/landscapes/land2/",
-		consul_internal.KvEnvironmentsPath + "/env1/landscapes/land2/sapsystems/",
-		consul_internal.KvEnvironmentsPath + "/env1/landscapes/land2/sapsystems/sys2/",
-		consul_internal.KvEnvironmentsPath + "/env2/",
-		consul_internal.KvEnvironmentsPath + "/env2/landscapes/",
-		consul_internal.KvEnvironmentsPath + "/env2/landscapes/land3/",
-		consul_internal.KvEnvironmentsPath + "/env2/landscapes/land3/sapsystems/",
-		consul_internal.KvEnvironmentsPath + "/env2/landscapes/land3/sapsystems/sys3/",
+	filters := map[string]interface{}{
+		"env1": map[string]interface{}{
+			"landscapes": map[string]interface{}{
+				"land1": map[string]interface{}{
+					"sapsystems": map[string]interface{}{
+						"sys1": map[string]interface{}{},
+					},
+				},
+				"land2": map[string]interface{}{
+					"sapsystems": map[string]interface{}{
+						"sys2": map[string]interface{}{},
+					},
+				},
+			},
+		},
+		"env2": map[string]interface{}{
+			"landscapes": map[string]interface{}{
+				"land3": map[string]interface{}{
+					"sapsystems": map[string]interface{}{
+						"sys3": map[string]interface{}{},
+					},
+				},
+			},
+		},
 	}
 
-	consul := new(mocks.Client)
+	consulInst := new(mocks.Client)
 	catalog := new(mocks.Catalog)
 	health := new(mocks.Health)
 	kv := new(mocks.KV)
 
-	consul.On("Catalog").Return(catalog)
-	consul.On("Health").Return(health)
-	consul.On("KV").Return(kv)
+	consulInst.On("Catalog").Return(catalog)
+	consulInst.On("Health").Return(health)
+	consulInst.On("KV").Return(kv)
 
-	kv.On("Keys", consul_internal.KvEnvironmentsPath, "", (*consulApi.QueryOptions)(nil)).Return(filters, nil, nil)
+	kv.On("ListMap", consul.KvEnvironmentsPath, consul.KvEnvironmentsPath).Return(filters, nil)
 
 	filterSys1 := &consulApi.QueryOptions{
 		Filter: "(Meta[\"trento-sap-environment\"] == \"env1\") and (Meta[\"trento-sap-landscape\"] == \"land1\") and (Meta[\"trento-sap-system\"] == \"sys1\")"}
@@ -122,14 +131,14 @@ func setupTest() (*mocks.Client, *mocks.Catalog) {
 	health.On("Node", "node3", (*consulApi.QueryOptions)(nil)).Return(node3HealthChecks, nil, nil)
 	health.On("Node", "node4", (*consulApi.QueryOptions)(nil)).Return(node4HealthChecks, nil, nil)
 
-	return consul, catalog
+	return consulInst, catalog
 }
 
 func TestEnvironmentsListHandler(t *testing.T) {
-	consul, catalog := setupTest()
+	consulInst, catalog := setupTest()
 
 	deps := DefaultDependencies()
-	deps.consul = consul
+	deps.consul = consulInst
 
 	var err error
 	app, err := NewAppWithDeps("", 80, deps)
@@ -145,7 +154,7 @@ func TestEnvironmentsListHandler(t *testing.T) {
 
 	app.ServeHTTP(resp, req)
 
-	consul.AssertExpectations(t)
+	consulInst.AssertExpectations(t)
 	catalog.AssertExpectations(t)
 
 	m := minify.New()
@@ -166,10 +175,10 @@ func TestEnvironmentsListHandler(t *testing.T) {
 }
 
 func TestLandscapesListHandler(t *testing.T) {
-	consul, catalog := setupTest()
+	consulInst, catalog := setupTest()
 
 	deps := DefaultDependencies()
-	deps.consul = consul
+	deps.consul = consulInst
 
 	var err error
 	app, err := NewAppWithDeps("", 80, deps)
@@ -185,7 +194,7 @@ func TestLandscapesListHandler(t *testing.T) {
 
 	app.ServeHTTP(resp, req)
 
-	consul.AssertExpectations(t)
+	consulInst.AssertExpectations(t)
 	catalog.AssertExpectations(t)
 
 	m := minify.New()
@@ -206,10 +215,10 @@ func TestLandscapesListHandler(t *testing.T) {
 }
 
 func TestSAPSystemsListHandler(t *testing.T) {
-	consul, catalog := setupTest()
+	consulInst, catalog := setupTest()
 
 	deps := DefaultDependencies()
-	deps.consul = consul
+	deps.consul = consulInst
 
 	var err error
 	app, err := NewAppWithDeps("", 80, deps)
@@ -225,7 +234,7 @@ func TestSAPSystemsListHandler(t *testing.T) {
 
 	app.ServeHTTP(resp, req)
 
-	consul.AssertExpectations(t)
+	consulInst.AssertExpectations(t)
 	catalog.AssertExpectations(t)
 
 	m := minify.New()

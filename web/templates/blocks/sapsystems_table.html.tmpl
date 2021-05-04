@@ -20,7 +20,7 @@
             <tr class='clickable' onclick="window.location='/sapsystems/{{ .Name }}?environment={{ $EnvName }}&landscape={{ $LandName }}'">
                 <td>{{ .Name }}</td>
                 <td><a href="/landscapes?/environment={{ $EnvName }}">{{ $EnvName }}</a></td>
-                <td><a href="/sapsystems?landscape={{ $LandName }}">{{ $EnvName }}</a></td>
+                <td><a href="/sapsystems?landscape={{ $LandName }}">{{ $LandName }}</a></td>
                 <td>{{ len .Hosts }}</td>
                 <td>
                     {{- $Health := .Health }}

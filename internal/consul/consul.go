@@ -26,13 +26,6 @@ type Catalog interface {
 	Nodes(q *consulApi.QueryOptions) ([]*consulApi.Node, *consulApi.QueryMeta, error)
 }
 
-type KV interface {
-	Get(key string, q *consulApi.QueryOptions) (*consulApi.KVPair, *consulApi.QueryMeta, error)
-	List(prefix string, q *consulApi.QueryOptions) (consulApi.KVPairs, *consulApi.QueryMeta, error)
-	Keys(prefix, separator string, q *consulApi.QueryOptions) ([]string, *consulApi.QueryMeta, error)
-	Put(p *consulApi.KVPair, q *consulApi.WriteOptions) (*consulApi.WriteMeta, error)
-}
-
 type Health interface {
 	Node(node string, q *consulApi.QueryOptions) (consulApi.HealthChecks, *consulApi.QueryMeta, error)
 	Service(service, tag string, passingOnly bool, q *consulApi.QueryOptions) ([]*consulApi.ServiceEntry, *consulApi.QueryMeta, error)
@@ -59,10 +52,10 @@ func (c *client) Catalog() Catalog {
 	return c.wrapped.Catalog()
 }
 
-func (c *client) KV() KV {
-	return c.wrapped.KV()
-}
-
 func (c *client) Health() Health {
 	return c.wrapped.Health()
+}
+
+func (c *client) KV() KV {
+	return newKV(c.wrapped.KV())
 }

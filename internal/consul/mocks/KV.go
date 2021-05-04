@@ -109,8 +109,8 @@ func (_m *KV) List(prefix string, q *api.QueryOptions) (api.KVPairs, *api.QueryM
 	return r0, r1, r2
 }
 
-// Maps provides a mock function with given fields: prefix, offset
-func (_m *KV) Maps(prefix string, offset string) (map[string]interface{}, error) {
+// ListMap provides a mock function with given fields: prefix, offset
+func (_m *KV) ListMap(prefix string, offset string) (map[string]interface{}, error) {
 	ret := _m.Called(prefix, offset)
 
 	var r0 map[string]interface{}

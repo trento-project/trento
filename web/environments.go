@@ -228,7 +228,7 @@ func NewSAPSystemHostsListHandler(client consul.Client) gin.HandlerFunc {
 func loadEnvironments(client consul.Client) (EnvironmentList, error) {
 	var environments = EnvironmentList{}
 
-	envs, err := client.KV().Maps(consul.KvEnvironmentsPath, consul.KvEnvironmentsPath)
+	envs, err := client.KV().ListMap(consul.KvEnvironmentsPath, consul.KvEnvironmentsPath)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error getting the environments data")
 	}

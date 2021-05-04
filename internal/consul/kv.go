@@ -35,7 +35,7 @@ type KV interface {
 	List(prefix string, q *consulApi.QueryOptions) (consulApi.KVPairs, *consulApi.QueryMeta, error)
 	Keys(prefix, separator string, q *consulApi.QueryOptions) ([]string, *consulApi.QueryMeta, error)
 	Put(p *consulApi.KVPair, q *consulApi.WriteOptions) (*consulApi.WriteMeta, error)
-	Maps(prefix, offset string) (map[string]interface{}, error)
+	ListMap(prefix, offset string) (map[string]interface{}, error)
 }
 
 func newKV(wrapped *consulApi.KV) KV {
@@ -71,7 +71,7 @@ func (k *kv) List(prefix string, q *consulApi.QueryOptions) (consulApi.KVPairs, 
 // prefix -> The KV prefix to get the data
 // offset -> Remove the offset from the outgoing map
 // 	         (used to remove initial key from the map like trento/v0/)
-func (k *kv) Maps(prefix, offset string) (map[string]interface{}, error) {
+func (k *kv) ListMap(prefix, offset string) (map[string]interface{}, error) {
 	result := make(map[string]interface{})
 
 	entries, _, err := k.list(prefix, nil)

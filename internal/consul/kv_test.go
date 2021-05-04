@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestKVMaps(t *testing.T) {
+func TestKVListMap(t *testing.T) {
 
 	kvPairs := consulApi.KVPairs{
 		&consulApi.KVPair{Key: "/trento/", Value: []byte("")},
@@ -30,7 +30,7 @@ func TestKVMaps(t *testing.T) {
 	kv := &kv{list: func(prefix string, q *consulApi.QueryOptions) (consulApi.KVPairs, *consulApi.QueryMeta, error) {
 		return kvPairs, nil, nil
 	}}
-	result, _ := kv.Maps("/trento", "")
+	result, _ := kv.ListMap("/trento", "")
 
 	expectedMap := map[string]interface{}{
 		"trento": map[string]interface{}{
@@ -88,7 +88,7 @@ func TestKVMapsOffset(t *testing.T) {
 	kv := &kv{list: func(prefix string, q *consulApi.QueryOptions) (consulApi.KVPairs, *consulApi.QueryMeta, error) {
 		return kvPairs, nil, nil
 	}}
-	result, _ := kv.Maps("/trento", "/trento/")
+	result, _ := kv.ListMap("/trento", "/trento/")
 
 	expectedMap := map[string]interface{}{
 		"env1": map[string]interface{}{
@@ -144,7 +144,7 @@ func TestKVMapsOffsetNoBackslash(t *testing.T) {
 	kv := &kv{list: func(prefix string, q *consulApi.QueryOptions) (consulApi.KVPairs, *consulApi.QueryMeta, error) {
 		return kvPairs, nil, nil
 	}}
-	result, _ := kv.Maps("/trento", "/trento")
+	result, _ := kv.ListMap("/trento", "/trento")
 
 	expectedMap := map[string]interface{}{
 		"env1": map[string]interface{}{
@@ -190,7 +190,7 @@ func TestKVMapsSingleEntries(t *testing.T) {
 	kv := &kv{list: func(prefix string, q *consulApi.QueryOptions) (consulApi.KVPairs, *consulApi.QueryMeta, error) {
 		return kvPairs, nil, nil
 	}}
-	result, _ := kv.Maps("/trento", "/trento/")
+	result, _ := kv.ListMap("/trento", "/trento/")
 
 	expectedMap := map[string]interface{}{
 		"env1": map[string]interface{}{

@@ -81,7 +81,7 @@ func TestHostsListHandler(t *testing.T) {
 	consulInst.On("Health").Return(health)
 	consulInst.On("KV").Return(kv)
 
-	kv.On("Maps", consul.KvEnvironmentsPath, consul.KvEnvironmentsPath).Return(filters, nil)
+	kv.On("ListMap", consul.KvEnvironmentsPath, consul.KvEnvironmentsPath).Return(filters, nil)
 
 	query := &consulApi.QueryOptions{Filter: ""}
 	catalog.On("Nodes", (*consulApi.QueryOptions)(query)).Return(nodes, nil, nil)

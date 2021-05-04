@@ -112,7 +112,7 @@ func setupTest() (*mocks.Client, *mocks.Catalog) {
 	consulInst.On("Health").Return(health)
 	consulInst.On("KV").Return(kv)
 
-	kv.On("Maps", consul.KvEnvironmentsPath, consul.KvEnvironmentsPath).Return(filters, nil)
+	kv.On("ListMap", consul.KvEnvironmentsPath, consul.KvEnvironmentsPath).Return(filters, nil)
 
 	filterSys1 := &consulApi.QueryOptions{
 		Filter: "(Meta[\"trento-sap-environment\"] == \"env1\") and (Meta[\"trento-sap-landscape\"] == \"land1\") and (Meta[\"trento-sap-system\"] == \"sys1\")"}

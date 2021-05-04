@@ -13,6 +13,29 @@ type KV struct {
 	mock.Mock
 }
 
+// DeleteTree provides a mock function with given fields: prefix, w
+func (_m *KV) DeleteTree(prefix string, w *api.WriteOptions) (*api.WriteMeta, error) {
+	ret := _m.Called(prefix, w)
+
+	var r0 *api.WriteMeta
+	if rf, ok := ret.Get(0).(func(string, *api.WriteOptions) *api.WriteMeta); ok {
+		r0 = rf(prefix, w)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*api.WriteMeta)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, *api.WriteOptions) error); ok {
+		r1 = rf(prefix, w)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Get provides a mock function with given fields: key, q
 func (_m *KV) Get(key string, q *api.QueryOptions) (*api.KVPair, *api.QueryMeta, error) {
 	ret := _m.Called(key, q)
@@ -153,4 +176,18 @@ func (_m *KV) Put(p *api.KVPair, q *api.WriteOptions) (*api.WriteMeta, error) {
 	}
 
 	return r0, r1
+}
+
+// StoreMap provides a mock function with given fields: prefix, data
+func (_m *KV) StoreMap(prefix string, data map[string]interface{}) error {
+	ret := _m.Called(prefix, data)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, map[string]interface{}) error); ok {
+		r0 = rf(prefix, data)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }

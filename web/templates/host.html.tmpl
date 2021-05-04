@@ -18,6 +18,14 @@
       <dd class="inline"><a href="/clusters/{{ index .Host.TrentoMeta "trento-ha-cluster" }}">{{ index .Host.TrentoMeta "trento-ha-cluster" }}</a></dd>
     </dl>
     <hr/>
+    {{- if ne (len .SAPSystems) 0 }}
+    <p class='clearfix'/>
+    <h2>SAP instances</h2>
+    {{- range $Key, $SAPInstance := .SAPSystems }}
+    {{ template "sap_instance" $SAPInstance}}
+    {{- end }}
+    <hr/>
+    {{- end }}
     <p class='clearfix'/>
     <h2>Checks</h2>
     <div class='table-responsive'>

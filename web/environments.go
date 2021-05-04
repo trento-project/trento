@@ -1,7 +1,6 @@
 package web
 
 import (
-	//"log"
 	"net/http"
 	//"strings"
 
@@ -10,9 +9,6 @@ import (
 
 	"github.com/trento-project/trento/internal/consul"
 )
-
-const envIndex int = 3
-const landIndex int = 5
 
 type EnvironmentHealth struct {
 	Health    string

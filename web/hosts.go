@@ -14,7 +14,9 @@ import (
 	consulApi "github.com/hashicorp/consul/api"
 	"github.com/pkg/errors"
 
+	"github.com/trento-project/trento/internal"
 	"github.com/trento-project/trento/internal/consul"
+	"github.com/trento-project/trento/internal/sapsystem"
 )
 
 const TrentoPrefix string = "trento-"
@@ -144,7 +146,7 @@ func loadHosts(client consul.Client, query_filter string, health_filter []string
 	for _, node := range consul_nodes {
 		populated_host := &Host{*node, client}
 		// This check could be done in the frontend maybe
-		if len(health_filter) == 0 || contains(health_filter, populated_host.Health()) {
+		if len(health_filter) == 0 || internal.Contains(health_filter, populated_host.Health()) {
 			hosts = append(hosts, populated_host)
 		}
 	}
@@ -201,9 +203,17 @@ func NewHostHandler(client consul.Client) gin.HandlerFunc {
 			_ = c.Error(err)
 			return
 		}
+
+		systems, err := sapsystem.Load(client, name)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
 		c.HTML(http.StatusOK, "host.html.tmpl", gin.H{
 			"Host":         &Host{*catalogNode.Node, client},
 			"HealthChecks": checks,
+			"SAPSystems":   systems,
 		})
 	}
 }

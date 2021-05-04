@@ -10,6 +10,10 @@ type HanaClusterDiscover struct {
 	SAPHanaInstanceNumber string
 }
 
+func (hana HanaClusterDiscover) GetId() string {
+	return hana.cluster.Id
+}
+
 // check if the current node this trento agent is running on can be discovered
 // by HanaClusterDiscover, with other words is a SAP Hana Pacemaker cluster
 func (hana HanaClusterDiscover) ShouldDiscover(client consul.Client) bool {

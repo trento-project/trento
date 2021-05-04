@@ -15,17 +15,23 @@ import (
 
 const crm_monPath string = "/usr/sbin/crm_mon"
 const cib_admPath string = "/usr/sbin/cibadmin"
+const ClusterDiscoverId string = "discover_cluster"
 
 //const crm_monPath string = "./test/fake/crm_mon.sh"
 //const cib_admPath string = "./test/fake_cibadmin.sh"
 
 // This Discover handles any Pacemaker Cluster type
 type ClusterDiscover struct {
+	Id             string
 	host           Discover
 	cibConfig      cib.Root
 	clusterName    string
 	stonithEnabled bool
 	stonithType    consul.ClusterStonithType
+}
+
+func (cluster ClusterDiscover) GetId() string {
+	return cluster.Id
 }
 
 // check if the current node this trento agent is running on can be discovered
@@ -98,6 +104,7 @@ func (cluster ClusterDiscover) Discover() error {
 
 func NewClusterDiscover(client consul.Client) ClusterDiscover {
 	r := ClusterDiscover{}
+	r.Id = ClusterDiscoverId
 	r.host = NewDiscover(client)
 	return r
 }

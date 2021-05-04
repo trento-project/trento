@@ -20,12 +20,20 @@ import (
 // that records constants that need to be in sync or have compat behavior between
 // Console and Agent
 
-const KvClustersPath string = "trento/v0/clusters"
-const KvHostsPath string = "trento/v0/hosts"
-const KvHostsMetadataPath string = "trento/v0/hosts/%s/metadata"
-const KvEnvironmentsPath string = "trento/v0/environments"
-const KvSAPSystemPath string = "trento/v0/hosts/%s/sapsystems"
-const KvMetadataSAPSystem string = "sap-system"
+const (
+	KvClustersPath string = "trento/v0/clusters"
+	KvHostsPath string = "trento/v0/hosts"
+	KvHostsMetadataPath string = "trento/v0/hosts/%s/metadata"
+	KvHostsSAPSystemPath string = "trento/v0/hosts/%s/sapsystems"
+	KvEnvironmentsPath string = "trento/v0/environments"
+	KvEnvironmentsSAPSystemPath string = "trento/v0/environments/%s/landscapes/%s/sapsystems/%s/"
+
+	KvMetadataSAPEnvironment string = "sap-environment"
+	KvMetadataSAPLandscape string = "sap-landscape"
+	KvMetadataSAPSystem string = "sap-system"
+
+	KvUngrouped string = "ungrouped"
+)
 
 type ClusterStonithType int
 

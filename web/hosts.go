@@ -41,7 +41,9 @@ func (n *Host) TrentoMeta() map[string]string {
 	filtered_meta := make(map[string]string)
 
 	for key, value := range n.Node.Meta {
-		if strings.HasPrefix(key, TrentoPrefix) {
+		if value == consul.KvUngrouped {
+			continue
+		} else if strings.HasPrefix(key, TrentoPrefix) {
 			filtered_meta[key] = value
 		}
 	}
@@ -163,9 +165,13 @@ func loadFilters(client consul.Client) (map[string][]string, error) {
 	}
 
 	for envKey, envValue := range environments {
-		filter_data["environments"] = append(filter_data["environments"], envKey)
+		if !envValue.Ungrouped() {
+			filter_data["environments"] = append(filter_data["environments"], envKey)
+		}
 		for landKey, landValue := range envValue.Landscapes {
-			filter_data["landscapes"] = append(filter_data["landscapes"], landKey)
+			if !landValue.Ungrouped() {
+				filter_data["landscapes"] = append(filter_data["landscapes"], landKey)
+			}
 			for sysKey, _ := range landValue.SAPSystems {
 				filter_data["sapsystems"] = append(filter_data["sapsystems"], sysKey)
 			}

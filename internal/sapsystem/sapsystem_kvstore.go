@@ -3,6 +3,7 @@ package sapsystem
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/mitchellh/mapstructure" //MIT license, is this a problem?
 	"github.com/pkg/errors"
@@ -12,7 +13,7 @@ import (
 
 func (s *SAPSystem) getKVPath() string {
 	host, _ := os.Hostname()
-	key := fmt.Sprintf(consul.KvSAPSystemPath, host)
+	key := fmt.Sprintf(consul.KvHostsSAPSystemPath, host)
 	name := s.Properties["INSTANCE_NAME"].Value
 	kvPath := fmt.Sprintf("%s/%s", key, name)
 
@@ -43,8 +44,54 @@ func (s *SAPSystem) Store(client consul.Client) error {
 	}
 
 	// Store sap instance name on hosts metadata
+	err = s.storeSAPSystemTag(client)
+	if err != nil {
+		return errors.Wrap(err, "Error storing the SAP system data in the environments tree")
+	}
+
+	return nil
+}
+
+func (s *SAPSystem) storeSAPSystemTag(client consul.Client) error {
+	// This should be done with the unique ID rather than the SID, as this is not unique
+	sid := s.Properties["SAPSYSTEMNAME"].Value
+
 	metadata := fmt.Sprintf("%s/%s", s.getKVMetadataPath(), consul.KvMetadataSAPSystem)
-	client.KV().PutStr(metadata, s.Properties["SAPSYSTEMNAME"].Value)
+	err := client.KV().PutStr(metadata, sid)
+	if err != nil {
+		return err
+	}
+
+	envs, _, err := client.KV().Keys(consul.KvEnvironmentsPath, "", nil)
+	if err != nil {
+		return err
+	}
+
+
+	for _, env := range envs {
+		if strings.HasSuffix(env, fmt.Sprintf("sapsystems/%s/", sid)) {
+			return nil
+		}
+	}
+
+	err = client.KV().PutStr(
+		fmt.Sprintf(consul.KvEnvironmentsSAPSystemPath, consul.KvUngrouped, consul.KvUngrouped, sid), "")
+	if err != nil {
+		return err
+	}
+
+	//This 2 next operations should be done most probably somewhere else
+	envMetadata := fmt.Sprintf("%s/%s", s.getKVMetadataPath(), consul.KvMetadataSAPEnvironment)
+	err = client.KV().PutStr(envMetadata, consul.KvUngrouped)
+	if err != nil {
+		return err
+	}
+
+	landMetadata := fmt.Sprintf("%s/%s", s.getKVMetadataPath(), consul.KvMetadataSAPLandscape)
+	err = client.KV().PutStr(landMetadata, consul.KvUngrouped)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -54,7 +101,7 @@ func (s *SAPSystem) Store(client consul.Client) error {
 func Load(client consul.Client, host string) (map[string]*SAPSystem, error) {
 	var sapSystems = map[string]*SAPSystem{}
 
-	kvPath := fmt.Sprintf(consul.KvSAPSystemPath, host)
+	kvPath := fmt.Sprintf(consul.KvHostsSAPSystemPath, host)
 
 	entries, err := client.KV().Maps(kvPath, kvPath)
 	if err != nil {

@@ -14,6 +14,7 @@
             </thead>
             <tbody>
                 {{- range .Environments }}
+                {{- if not .Ungrouped }}
                 <tr class='clickable' onclick="window.location='/environments/{{ .Name }}'">
                     <td>{{ .Name }}</td>
                     <td>{{ len .Landscapes }}</td>
@@ -33,6 +34,7 @@
                         <span class='badge badge-pill badge-{{ if eq $Health.Health "passing" }}primary{{ else if eq $Health.Health "warning" }}warning{{ else }}danger{{ end }}'>{{ $Health.Health }}</span>
                     </td>
                 </tr>
+                {{- end }}
                 {{- end }}
             </tbody>
         </table>

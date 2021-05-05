@@ -21,16 +21,16 @@ import (
 // Console and Agent
 
 const (
-	KvClustersPath string = "trento/v0/clusters"
-	KvHostsPath string = "trento/v0/hosts"
-	KvHostsMetadataPath string = "trento/v0/hosts/%s/metadata"
-	KvHostsSAPSystemPath string = "trento/v0/hosts/%s/sapsystems"
-	KvEnvironmentsPath string = "trento/v0/environments"
+	KvClustersPath              string = "trento/v0/clusters"
+	KvHostsPath                 string = "trento/v0/hosts"
+	KvHostsMetadataPath         string = "trento/v0/hosts/%s/metadata"
+	KvHostsSAPSystemPath        string = "trento/v0/hosts/%s/sapsystems"
+	KvEnvironmentsPath          string = "trento/v0/environments"
 	KvEnvironmentsSAPSystemPath string = "trento/v0/environments/%s/landscapes/%s/sapsystems/%s/"
 
 	KvMetadataSAPEnvironment string = "sap-environment"
-	KvMetadataSAPLandscape string = "sap-landscape"
-	KvMetadataSAPSystem string = "sap-system"
+	KvMetadataSAPLandscape   string = "sap-landscape"
+	KvMetadataSAPSystem      string = "sap-system"
 
 	KvUngrouped string = "ungrouped"
 )

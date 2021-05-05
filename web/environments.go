@@ -98,7 +98,6 @@ func (e *Environment) Ungrouped() bool {
 	return e.Name == consul.KvUngrouped
 }
 
-
 func NewEnvironmentsListHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		environments, err := loadEnvironments(client)

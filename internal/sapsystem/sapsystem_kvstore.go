@@ -67,7 +67,6 @@ func (s *SAPSystem) storeSAPSystemTag(client consul.Client) error {
 		return err
 	}
 
-
 	for _, env := range envs {
 		if strings.HasSuffix(env, fmt.Sprintf("sapsystems/%s/", sid)) {
 			return nil
@@ -103,7 +102,7 @@ func Load(client consul.Client, host string) (map[string]*SAPSystem, error) {
 
 	kvPath := fmt.Sprintf(consul.KvHostsSAPSystemPath, host)
 
-	entries, err := client.KV().Maps(kvPath, kvPath)
+	entries, err := client.KV().ListMap(kvPath, kvPath)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not query Consul for SAP systems KV values")
 	}

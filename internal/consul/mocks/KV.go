@@ -178,13 +178,27 @@ func (_m *KV) Put(p *api.KVPair, q *api.WriteOptions) (*api.WriteMeta, error) {
 	return r0, r1
 }
 
-// StoreMap provides a mock function with given fields: prefix, data
-func (_m *KV) StoreMap(prefix string, data map[string]interface{}) error {
+// PutMap provides a mock function with given fields: prefix, data
+func (_m *KV) PutMap(prefix string, data map[string]interface{}) error {
 	ret := _m.Called(prefix, data)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, map[string]interface{}) error); ok {
 		r0 = rf(prefix, data)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// PutStr provides a mock function with given fields: prefix, value
+func (_m *KV) PutStr(prefix string, value string) error {
+	ret := _m.Called(prefix, value)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(prefix, value)
 	} else {
 		r0 = ret.Error(0)
 	}

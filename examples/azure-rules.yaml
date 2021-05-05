@@ -290,19 +290,6 @@ groups:
           Check more information at https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#set-up-sbd-device
         scored: false
       - id: 1.3.5
-        description: "SBD service is enabled"
-        audit: "systemctl is-enabled sbd"
-        tests:
-          test_items:
-            - flag: "enabled"
-        remediation: |
-          If not enabled, SBD service will not start automatically after reboots, affecting the correct cluster startup. 
-          
-          To ajust the configuration, run:
-           
-            # systemctl enable sbd
-        scored: true
-      - id: 1.3.6
         description: "SBD Timing parameters configured properly"
         audit: |
           DEF_WDTIMEOUT=60

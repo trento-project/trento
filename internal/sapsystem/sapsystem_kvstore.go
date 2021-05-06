@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"regexp"
 
 	"github.com/mitchellh/mapstructure" //MIT license, is this a problem?
 	"github.com/pkg/errors"
@@ -38,6 +39,7 @@ func (s *SAPSystem) Store(client consul.Client) error {
 
 	systemMap := make(map[string]interface{})
 	mapstructure.Decode(s, &systemMap)
+
 	err = client.KV().PutMap(kvPath, systemMap)
 	if err != nil {
 		return errors.Wrap(err, "Error storing a SAP instance")
@@ -54,7 +56,9 @@ func (s *SAPSystem) Store(client consul.Client) error {
 
 func (s *SAPSystem) storeSAPSystemTag(client consul.Client) error {
 	// This should be done with the unique ID rather than the SID, as this is not unique
-	sid := s.Properties["SAPSYSTEMNAME"].Value
+	var envId string = consul.KvUngrouped
+	var landId string = consul.KvUngrouped
+	var sid string = s.Properties["SAPSYSTEMNAME"].Value
 
 	metadata := fmt.Sprintf("%s/%s", s.getKVMetadataPath(), consul.KvMetadataSAPSystem)
 	err := client.KV().PutStr(metadata, sid)
@@ -69,25 +73,31 @@ func (s *SAPSystem) storeSAPSystemTag(client consul.Client) error {
 
 	for _, env := range envs {
 		if strings.HasSuffix(env, fmt.Sprintf("sapsystems/%s/", sid)) {
-			return nil
+			systemExistPattern := regexp.MustCompile("environments/(.*)/landscapes/(.*)/sapsystems/.*/")
+			groups := systemExistPattern.FindAllStringSubmatch(env, -1)[0]
+			envId = groups[1]
+			landId = groups[2]
+			continue
 		}
 	}
 
-	err = client.KV().PutStr(
-		fmt.Sprintf(consul.KvEnvironmentsSAPSystemPath, consul.KvUngrouped, consul.KvUngrouped, sid), "")
-	if err != nil {
-		return err
+	if envId == consul.KvUngrouped {
+		err = client.KV().PutStr(
+			fmt.Sprintf(consul.KvEnvironmentsSAPSystemPath, consul.KvUngrouped, consul.KvUngrouped, sid), "")
+		if err != nil {
+			return err
+		}
 	}
 
 	//This 2 next operations should be done most probably somewhere else
 	envMetadata := fmt.Sprintf("%s/%s", s.getKVMetadataPath(), consul.KvMetadataSAPEnvironment)
-	err = client.KV().PutStr(envMetadata, consul.KvUngrouped)
+	err = client.KV().PutStr(envMetadata, envId)
 	if err != nil {
 		return err
 	}
 
 	landMetadata := fmt.Sprintf("%s/%s", s.getKVMetadataPath(), consul.KvMetadataSAPLandscape)
-	err = client.KV().PutStr(landMetadata, consul.KvUngrouped)
+	err = client.KV().PutStr(landMetadata, landId)
 	if err != nil {
 		return err
 	}

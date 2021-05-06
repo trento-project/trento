@@ -1,6 +1,6 @@
 default: clean mod-tidy fmt vet-check test build
 
-.PHONY: build clean clean-binary clean-frontend default fmt generate mod-tidy test vet-check web-assets
+.PHONY: build clean clean-binary clean-frontend default fmt fmt-check generate mod-tidy test vet-check web-assets
 
 build: trento
 trento: web-assets
@@ -17,6 +17,10 @@ clean-frontend:
 
 fmt:
 	go fmt ./...
+
+fmt-check:
+	gofmt -l .
+	[ "`gofmt -l .`" = "" ]
 
 generate:
 ifeq (, $(shell command -v mockery 2> /dev/null))

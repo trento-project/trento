@@ -3,6 +3,8 @@ package consul
 import (
 	"fmt"
 	"strings"
+	"strconv"
+	"reflect"
 
 	consulApi "github.com/hashicorp/consul/api"
 	"github.com/pkg/errors"
@@ -21,6 +23,9 @@ import (
 // Console and Agent
 
 const (
+	stringFlag                  uint64 = 0
+	int32Flag                   uint64 = 1
+
 	KvClustersPath              string = "trento/v0/clusters"
 	KvHostsPath                 string = "trento/v0/hosts"
 	KvHostsMetadataPath         string = "trento/v0/hosts/%s/metadata"
@@ -51,7 +56,7 @@ type KV interface {
 	DeleteTree(prefix string, w *consulApi.WriteOptions) (*consulApi.WriteMeta, error)
 	ListMap(prefix, offset string) (map[string]interface{}, error)
 	PutMap(prefix string, data map[string]interface{}) error
-	PutStr(prefix string, value string) error
+	PutTyped(prefix string, value interface{}) error
 }
 
 func newKV(wrapped *consulApi.KV) KV {
@@ -120,7 +125,7 @@ func (k *kv) ListMap(prefix, offset string) (map[string]interface{}, error) {
 			if len(key) == 0 {
 				break
 			} else if i == len(keys)-1 {
-				currentItem[key] = string(entry.Value)
+				currentItem[key] = getTypeByFlag(entry)
 				break
 			}
 
@@ -136,19 +141,36 @@ func (k *kv) ListMap(prefix, offset string) (map[string]interface{}, error) {
 	return result, nil
 }
 
+func getTypeByFlag(entry *consulApi.KVPair) interface{} {
+	var value interface{}
+
+	switch entry.Flags {
+	case stringFlag:
+		value = string(entry.Value)
+	case int32Flag:
+		i, err := strconv.ParseInt(string(entry.Value), 10, 32)
+		if err != nil {
+			return err
+		}
+		value = int32(i)
+	}
+
+	return value
+}
+
 // Store a map[string]interface data in KV storage under the prefix key
 func (k *kv) PutMap(prefix string, data map[string]interface{}) error {
 	for key, value := range data {
-		switch c := value.(type) {
-		case string:
-			err := k.PutStr(fmt.Sprintf("%s/%s", prefix, key), c)
+		switch reflect.ValueOf(value).Kind() {
+		case reflect.Map, reflect.Struct, reflect.Ptr:
+			mapInterface := make(map[string]interface{})
+			mapstructure.Decode(value, &mapInterface)
+			err := k.PutMap(fmt.Sprintf("%s/%s", prefix, key), mapInterface)
 			if err != nil {
 				return err
 			}
 		default:
-			mapInterface := make(map[string]interface{})
-			mapstructure.Decode(value, &mapInterface)
-			err := k.PutMap(fmt.Sprintf("%s/%s", prefix, key), mapInterface)
+			err := k.PutTyped(fmt.Sprintf("%s/%s", prefix, key), value)
 			if err != nil {
 				return err
 			}
@@ -157,10 +179,19 @@ func (k *kv) PutMap(prefix string, data map[string]interface{}) error {
 	return nil
 }
 
-func (k *kv) PutStr(prefix string, value string) error {
+func (k *kv) PutTyped(prefix string, value interface{}) error {
+	var flag uint64 = stringFlag // By default string flag is used
+
+	switch value.(type) {
+	case int32:
+		flag = int32Flag
+	}
+
 	_, err := k.put(&consulApi.KVPair{
 		Key:   prefix,
-		Value: []byte(value)}, nil)
+		Value: []byte(fmt.Sprintf("%v", value)),
+		Flags: flag,
+		}, nil)
 
 	if err != nil {
 		return errors.Wrap(err, "Error storing a new value in the KV storage")

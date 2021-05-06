@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 	"regexp"
+	//"log"
 
 	"github.com/mitchellh/mapstructure" //MIT license, is this a problem?
 	"github.com/pkg/errors"
@@ -61,7 +62,7 @@ func (s *SAPSystem) storeSAPSystemTag(client consul.Client) error {
 	var sid string = s.Properties["SAPSYSTEMNAME"].Value
 
 	metadata := fmt.Sprintf("%s/%s", s.getKVMetadataPath(), consul.KvMetadataSAPSystem)
-	err := client.KV().PutStr(metadata, sid)
+	err := client.KV().PutTyped(metadata, sid)
 	if err != nil {
 		return err
 	}
@@ -82,7 +83,7 @@ func (s *SAPSystem) storeSAPSystemTag(client consul.Client) error {
 	}
 
 	if envId == consul.KvUngrouped {
-		err = client.KV().PutStr(
+		err = client.KV().PutTyped(
 			fmt.Sprintf(consul.KvEnvironmentsSAPSystemPath, consul.KvUngrouped, consul.KvUngrouped, sid), "")
 		if err != nil {
 			return err
@@ -91,13 +92,13 @@ func (s *SAPSystem) storeSAPSystemTag(client consul.Client) error {
 
 	//This 2 next operations should be done most probably somewhere else
 	envMetadata := fmt.Sprintf("%s/%s", s.getKVMetadataPath(), consul.KvMetadataSAPEnvironment)
-	err = client.KV().PutStr(envMetadata, envId)
+	err = client.KV().PutTyped(envMetadata, envId)
 	if err != nil {
 		return err
 	}
 
 	landMetadata := fmt.Sprintf("%s/%s", s.getKVMetadataPath(), consul.KvMetadataSAPLandscape)
-	err = client.KV().PutStr(landMetadata, landId)
+	err = client.KV().PutTyped(landMetadata, landId)
 	if err != nil {
 		return err
 	}

@@ -19,3 +19,7 @@ jobs:
       run: go get github.com/vektra/mockery/v2
     - name: test
       run: make test
+    - name: static analysis
+      run: make vet-check
+    - name: coding styles
+      run: make fmt-check

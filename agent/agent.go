@@ -35,7 +35,7 @@ type Config struct {
 	WebPort             int
 	ServiceName         string
 	InstanceName        string
-	DefinitionsPath     string
+	DefinitionsPaths    []string
 	DiscoverInterval    time.Duration
 	TemplateSource      string
 	TemplateDestination string
@@ -57,7 +57,7 @@ func NewWithConfig(cfg Config) (*Agent, error) {
 		return nil, errors.Wrap(err, "could not create a Consul client")
 	}
 
-	checker, err := NewChecker(cfg.DefinitionsPath)
+	checker, err := NewChecker(cfg.DefinitionsPaths)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create a Checker instance")
 	}

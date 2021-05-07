@@ -60,7 +60,7 @@ func NewAgentCmd() *cobra.Command {
 func runOnce(cmd *cobra.Command, args []string) {
 	var err error
 
-	checker, err := agent.NewChecker(args[0])
+	checker, err := agent.NewChecker(args)
 	if err != nil {
 		log.Fatal("Failed to create a Checker instance: ", err)
 	}
@@ -84,7 +84,7 @@ func start(cmd *cobra.Command, args []string) {
 		log.Fatal("Failed to create the agent configuration: ", err)
 	}
 
-	cfg.DefinitionsPath = args[0]
+	cfg.DefinitionsPaths = args
 	cfg.ServiceName = serviceName
 	cfg.WebPort = port
 	cfg.CheckerTTL = TTL
@@ -112,21 +112,21 @@ func start(cmd *cobra.Command, args []string) {
 }
 
 func startArgsValidator(cmd *cobra.Command, args []string) error {
-	if len(args) != 1 {
-		return fmt.Errorf("accepts exactly 1 argument, received %d", len(args))
+	if len(args) == 0 {
+		return fmt.Errorf("please specify at least one configuration yaml file")
 	}
 
-	definitionsPath := args[0]
-
-	info, err := os.Lstat(definitionsPath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return fmt.Errorf("unable to find file %q", definitionsPath)
+	for _, definitionsPath := range args {
+		info, err := os.Lstat(definitionsPath)
+		if err != nil {
+			if os.IsNotExist(err) {
+				return fmt.Errorf("unable to find file %q", definitionsPath)
+			}
+			return fmt.Errorf("error when running os.Lstat(%q): %s", definitionsPath, err)
 		}
-		return fmt.Errorf("error when running os.Lstat(%q): %s", definitionsPath, err)
-	}
-	if info.IsDir() {
-		return fmt.Errorf("%q is a directory", definitionsPath)
+		if info.IsDir() {
+			return fmt.Errorf("%q is a directory", definitionsPath)
+		}
 	}
 
 	return nil

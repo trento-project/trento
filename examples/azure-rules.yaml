@@ -1,4 +1,4 @@
----
+
 controls:
 version: 1.0.0
 id: 1
@@ -282,10 +282,10 @@ groups:
           test_items:
             - flag: "SBD_COUNT"
               compare:
-                op: gte
-                value: 2
+                op: eq
+                value: 3
         remediation: |
-          It is recommended to configure up to 3 SBD devices for production environments.
+          It is recommended to configure 3 SBD devices for production environments.
           
           Check more information at https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#set-up-sbd-device
         scored: false

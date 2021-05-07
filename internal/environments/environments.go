@@ -17,6 +17,7 @@ type Landscape struct {
 
 type SAPSystem struct {
 	Name  string         `mapstructure:"name,omitempty"`
+  Type  string         `mapstructure:"type,omitempty"`
   Hosts hosts.HostList `mapstructure:"hosts,omitempty"`
 }
 

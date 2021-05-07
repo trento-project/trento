@@ -41,7 +41,10 @@ func (discover SAPSystemsDiscover) Discover() error {
 		}
 
 		// Store sap instance name on hosts metadata
-		err = storeSAPSystemTag(discover.host.client, s.Properties["SAPSYSTEMNAME"].Value)
+		err = storeSAPSystemTag(
+				discover.host.client,
+				s.Properties["SAPSYSTEMNAME"].Value,
+				s.Type)
 		if err != nil {
 			return err
 		}
@@ -82,7 +85,7 @@ func getCurrentEnvironment(client consul.Client, sid string) (string, string, st
 	return env, land, sys, err
 }
 
-func storeSAPSystemTag(client consul.Client, sid string) error {
+func storeSAPSystemTag(client consul.Client, sid, systemType string) error {
 	env, land, sys, err := getCurrentEnvironment(client, sid)
 	if err != nil {
 		return err
@@ -91,6 +94,7 @@ func storeSAPSystemTag(client consul.Client, sid string) error {
 	// Create a new ungrouped entry
 	if env == consul.KvUngrouped {
 		newEnv := environments.NewEnvironment(env, land, sys)
+		newEnv.Landscapes[land].SAPSystems[sys].Type = systemType
 		err := newEnv.Store(client)
 		if err != nil {
 			return err

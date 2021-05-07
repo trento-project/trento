@@ -55,6 +55,11 @@ func (s *SAPSystem) Store(client consul.Client) error {
 	return nil
 }
 
+
+//TODO
+//All of the stores on this method should be done using a struct
+//For that the environments tree and the metadata should be structured in a struct
+//Right now there are some structs about this in `web/environments.go`
 func (s *SAPSystem) storeSAPSystemTag(client consul.Client) error {
 	// This should be done with the unique ID rather than the SID, as this is not unique
 	var envId string = consul.KvUngrouped

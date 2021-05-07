@@ -76,6 +76,14 @@ func (n *Host) Checks() *check.Controls {
 	return checks
 }
 
+func (n *Host) GetSAPSystems() (map[string]*sapsystem.SAPSystem, error) {
+	systems, err := sapsystem.Load(n.client, n.Name())
+	if err != nil {
+		return nil, err
+	}
+	return systems, nil
+}
+
 func sortKeys(m map[string][]string) []string {
 	var keys []string
 	for k := range m {

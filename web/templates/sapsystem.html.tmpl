@@ -13,6 +13,9 @@
       <dd class="inline">{{ .SAPSysName }}</dd>
     </dl>
     <hr/>
+    <h1>Layout</h1>
+    {{ template "sap_system_layout" $SAPSystem }}
+    <hr/>
     <h1>Nodes</h1>
     {{ template "hosts_table" $SAPSystem }}
 {{ end }}

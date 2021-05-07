@@ -1,0 +1,37 @@
+{{ define "sap_system_layout" }}
+<div class='table-responsive'>
+    <table class='table eos-table'>
+        <thead>
+            <tr>
+                <th scope='col'>Hostname</th>
+                <th scope='col'>Instance</th>
+                <th scope='col'>Features</th>
+                <th scope='col'>Http port</th>
+                <th scope='col'>Https port</th>
+                <th scope='col'>Start priority</th>
+                <th scope='col'>Stauts</th>
+            </tr>
+        </thead>
+        <tbody>
+          {{ $SAPSystemName := .Name }}
+          {{- range $Index, $Host := .Hosts }}
+          {{ $SAPSystem := index $Host.GetSAPSystems $SAPSystemName }}
+          {{ $SAPInstance := index $SAPSystem.Instances $Host.Name }}
+          {{- if or (eq $SAPSystem.Type "HANA") (eq $Index 0) }}
+          <tr>
+              <td>{{ $SAPInstance.Hostname }}</td>
+              <td>{{ $SAPInstance.InstanceNr }}</td>
+              <td>{{ $SAPInstance.Features }}</td>
+              <td>{{ $SAPInstance.HttpPort }}</td>
+              <td>{{ $SAPInstance.HttpsPort }}</td>
+              <td>{{ $SAPInstance.StartPriority }}</td>
+              <td>
+                  <span class='badge badge-pill badge-{{ if eq $SAPInstance.Dispstatus "SAPControl-GREEN" }}primary{{ else if eq $SAPInstance.Dispstatus "SAPControl-YELLOW" }}warning{{ else if eq $SAPInstance.Dispstatus "SAPControl-GRAY" }}secondary{{ else }}danger{{ end }}'>{{ $SAPInstance.Dispstatus }}</span>
+              </td>
+          </tr>
+          {{- end }}
+          {{- end }}
+        </tbody>
+    </table>
+</div>
+{{ end }}

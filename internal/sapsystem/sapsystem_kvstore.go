@@ -3,14 +3,12 @@ package sapsystem
 import (
 	"fmt"
 	"os"
-	"strings"
-	"regexp"
-	//"log"
 
 	"github.com/mitchellh/mapstructure" //MIT license, is this a problem?
 	"github.com/pkg/errors"
 
 	"github.com/trento-project/trento/internal/consul"
+	"github.com/trento-project/trento/internal/environments"
 )
 
 func (s *SAPSystem) getKVPath() string {
@@ -56,54 +54,50 @@ func (s *SAPSystem) Store(client consul.Client) error {
 }
 
 
-//TODO
-//All of the stores on this method should be done using a struct
-//For that the environments tree and the metadata should be structured in a struct
-//Right now there are some structs about this in `web/environments.go`
-func (s *SAPSystem) storeSAPSystemTag(client consul.Client) error {
-	// This should be done with the unique ID rather than the SID, as this is not unique
-	var envId string = consul.KvUngrouped
-	var landId string = consul.KvUngrouped
-	var sid string = s.Properties["SAPSYSTEMNAME"].Value
+func (s *SAPSystem) getCurrentEnvironment(client consul.Client) (string, string, string, error) {
+	var env string = consul.KvUngrouped
+	var land string = consul.KvUngrouped
+	var sys string = s.Properties["SAPSYSTEMNAME"].Value
 
-	metadata := fmt.Sprintf("%s/%s", s.getKVMetadataPath(), consul.KvMetadataSAPSystem)
-	err := client.KV().PutTyped(metadata, sid)
+	envs, err := environments.Load(client)
 	if err != nil {
-		return err
+		return env, land, sys, err
 	}
-
-	envs, _, err := client.KV().Keys(consul.KvEnvironmentsPath, "", nil)
-	if err != nil {
-		return err
-	}
-
-	for _, env := range envs {
-		if strings.HasSuffix(env, fmt.Sprintf("sapsystems/%s/", sid)) {
-			systemExistPattern := regexp.MustCompile("environments/(.*)/landscapes/(.*)/sapsystems/.*/")
-			groups := systemExistPattern.FindAllStringSubmatch(env, -1)[0]
-			envId = groups[1]
-			landId = groups[2]
-			continue
+	for envKey, envValue := range envs {
+		for landKey, landValue := range envValue.Landscapes {
+			for sysKey, _ := range landValue.SAPSystems {
+				if sysKey == sys {
+					env = envKey
+					land = landKey
+					break
+				}
+			}
 		}
 	}
+	return env, land, sys, err
+}
 
-	if envId == consul.KvUngrouped {
-		err = client.KV().PutTyped(
-			fmt.Sprintf(consul.KvEnvironmentsSAPSystemPath, consul.KvUngrouped, consul.KvUngrouped, sid), "")
+func (s *SAPSystem) storeSAPSystemTag(client consul.Client) error {
+	env, land, sys, err := s.getCurrentEnvironment(client)
+	if err != nil {
+		return err
+	}
+
+	// Create a new ungrouped entry
+	if env == consul.KvUngrouped {
+		newEnv := environments.NewEnvironment(env, land, sys)
+		err := newEnv.Store(client)
 		if err != nil {
 			return err
 		}
 	}
 
-	//This 2 next operations should be done most probably somewhere else
-	envMetadata := fmt.Sprintf("%s/%s", s.getKVMetadataPath(), consul.KvMetadataSAPEnvironment)
-	err = client.KV().PutTyped(envMetadata, envId)
-	if err != nil {
-		return err
-	}
-
-	landMetadata := fmt.Sprintf("%s/%s", s.getKVMetadataPath(), consul.KvMetadataSAPLandscape)
-	err = client.KV().PutTyped(landMetadata, landId)
+	// Store host metadata
+	metadata := environments.NewMetadata()
+	metadata.Environment = env
+	metadata.Landscape = land
+	metadata.SAPSystem = sys
+	err = metadata.Store(client)
 	if err != nil {
 		return err
 	}

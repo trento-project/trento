@@ -7,6 +7,7 @@ import (
   "github.com/pkg/errors"
 
   "github.com/trento-project/trento/internal/consul"
+	"github.com/trento-project/trento/internal/hosts"
 )
 
 
@@ -37,8 +38,30 @@ func Load(client consul.Client) (map[string]*Environment, error) {
 	for env, envValue := range entries {
 		environment := &Environment{}
 		mapstructure.Decode(envValue, &environment)
+		err := loadHosts(client, environment)
+		if err != nil {
+			return nil, err
+		}
 		envs[env] = environment
 	}
 
 	return envs, nil
+}
+
+func loadHosts(client consul.Client, env *Environment) error {
+	for landKey, landValue := range env.Landscapes {
+		for sysKey, sysValue := range landValue.SAPSystems {
+			query := hosts.CreateFilterMetaQuery(map[string][]string{
+				"trento-sap-environment": []string{env.Name},
+				"trento-sap-landscape":   []string{landKey},
+				"trento-sap-system":      []string{sysKey},
+			})
+			h, err := hosts.Load(client, query, []string{})
+			if err != nil {
+				return err
+			}
+			sysValue.Hosts = h
+		}
+	}
+	return nil
 }

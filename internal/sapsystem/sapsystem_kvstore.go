@@ -8,7 +8,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/trento-project/trento/internal/consul"
-	"github.com/trento-project/trento/internal/environments"
 )
 
 func (s *SAPSystem) getKVPath() string {
@@ -42,64 +41,6 @@ func (s *SAPSystem) Store(client consul.Client) error {
 	err = client.KV().PutMap(kvPath, systemMap)
 	if err != nil {
 		return errors.Wrap(err, "Error storing a SAP instance")
-	}
-
-	// Store sap instance name on hosts metadata
-	err = s.storeSAPSystemTag(client)
-	if err != nil {
-		return errors.Wrap(err, "Error storing the SAP system data in the environments tree")
-	}
-
-	return nil
-}
-
-
-func (s *SAPSystem) getCurrentEnvironment(client consul.Client) (string, string, string, error) {
-	var env string = consul.KvUngrouped
-	var land string = consul.KvUngrouped
-	var sys string = s.Properties["SAPSYSTEMNAME"].Value
-
-	envs, err := environments.Load(client)
-	if err != nil {
-		return env, land, sys, err
-	}
-	for envKey, envValue := range envs {
-		for landKey, landValue := range envValue.Landscapes {
-			for sysKey, _ := range landValue.SAPSystems {
-				if sysKey == sys {
-					env = envKey
-					land = landKey
-					break
-				}
-			}
-		}
-	}
-	return env, land, sys, err
-}
-
-func (s *SAPSystem) storeSAPSystemTag(client consul.Client) error {
-	env, land, sys, err := s.getCurrentEnvironment(client)
-	if err != nil {
-		return err
-	}
-
-	// Create a new ungrouped entry
-	if env == consul.KvUngrouped {
-		newEnv := environments.NewEnvironment(env, land, sys)
-		err := newEnv.Store(client)
-		if err != nil {
-			return err
-		}
-	}
-
-	// Store host metadata
-	metadata := environments.NewMetadata()
-	metadata.Environment = env
-	metadata.Landscape = land
-	metadata.SAPSystem = sys
-	err = metadata.Store(client)
-	if err != nil {
-		return err
 	}
 
 	return nil

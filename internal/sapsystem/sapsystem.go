@@ -2,15 +2,14 @@ package sapsystem
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
-	"os"
 	"path"
 	"regexp"
 
 	"github.com/pkg/errors"
 
 	"github.com/SUSE/sap_host_exporter/lib/sapcontrol"
+	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 
 	"github.com/trento-project/trento/internal"
@@ -31,16 +30,25 @@ type SAPSystem struct {
 	Properties map[string]*sapcontrol.InstanceProperty `mapstructure:"properties,omitempty"`
 }
 
+func newWebService(instNumber string) sapcontrol.WebService {
+	config := viper.New()
+	config.SetDefault("sap-control-uds", path.Join("/tmp", fmt.Sprintf(".sapstream5%s13", instNumber)))
+	client := sapcontrol.NewSoapClient(config)
+	return sapcontrol.NewWebService(client)
+}
+
 func NewSAPSystemsList() (SAPSystemsList, error) {
 	var systems = SAPSystemsList{}
 
-	instances, err := findSystems()
+	appFS := afero.NewOsFs()
+	instances, err := findSystems(appFS)
 	if err != nil {
 		return systems, errors.Wrap(err, "Error walking the path")
 	}
 
 	for _, i := range instances {
-		s, err := NewSAPSystem(i)
+		webService := newWebService(i)
+		s, err := NewSAPSystem(webService)
 		if err != nil {
 			log.Printf("Error discovering a SAP system: %s", err)
 			continue
@@ -51,25 +59,17 @@ func NewSAPSystemsList() (SAPSystemsList, error) {
 	return systems, nil
 }
 
-// The Id is a unique identifier of a SAP installation.
-// It will be used to create totally independent SAP system data
-// TODO: This method to obtain the ID must be changed, as this file is not always static
-func (s *SAPSystem) getSapSystemId() (string, error) {
-	sid := s.Properties["SAPSYSTEMNAME"].Value
-	return internal.Md5sum(fmt.Sprintf("/usr/sap/%s/SYS/global/security/rsecssfs/key/SSFS_%s.KEY", sid, sid))
-}
-
 // Find the installed SAP instances in the /usr/sap folder
-func findSystems() ([]string, error) {
+func findSystems(fs afero.Fs) ([]string, error) {
 	var instances = []string{}
 
-	_, err := os.Stat(sapInstallationPath)
-	if os.IsNotExist(err) {
+	exists, _ := afero.DirExists(fs, sapInstallationPath)
+	if !exists {
 		log.Print("SAP installation not found")
 		return instances, nil
 	}
 
-	files, err := ioutil.ReadDir(sapInstallationPath)
+	files, err := afero.ReadDir(fs, sapInstallationPath)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +79,7 @@ func findSystems() ([]string, error) {
 	for _, f := range files {
 		if reSAPIdentifier.MatchString(f.Name()) {
 			log.Printf("New SAP system installation found: %s", f.Name())
-			i, err := findInstances(path.Join(sapInstallationPath, f.Name()))
+			i, err := findInstances(fs, path.Join(sapInstallationPath, f.Name()))
 			if err != nil {
 				log.Print(err.Error())
 				continue
@@ -92,11 +92,11 @@ func findSystems() ([]string, error) {
 }
 
 // Find the installed SAP instances in the /usr/sap/${SID} folder
-func findInstances(sapPath string) ([]string, error) {
+func findInstances(fs afero.Fs, sapPath string) ([]string, error) {
 	var instances = []string{}
 	reSAPInstancer := regexp.MustCompile(sapInstancePattern)
 
-	files, err := ioutil.ReadDir(sapPath)
+	files, err := afero.ReadDir(fs, sapPath)
 	if err != nil {
 		return nil, err
 	}
@@ -111,18 +111,22 @@ func findInstances(sapPath string) ([]string, error) {
 	return instances, nil
 }
 
-func NewSAPSystem(instNumber string) (SAPSystem, error) {
+// The Id is a unique identifier of a SAP installation.
+// It will be used to create totally independent SAP system data
+// TODO: This method to obtain the ID must be changed, as this file is not always static
+func (s *SAPSystem) getSapSystemId() (string, error) {
+	sid := s.Properties["SAPSYSTEMNAME"].Value
+	return internal.Md5sum(fmt.Sprintf("/usr/sap/%s/SYS/global/security/rsecssfs/key/SSFS_%s.KEY", sid, sid))
+}
+
+func NewSAPSystem(w sapcontrol.WebService) (SAPSystem, error) {
 	var sapSystem = SAPSystem{
+		webService: w,
 		Type:       "",
 		Processes:  make(map[string]*sapcontrol.OSProcess),
 		Instances:  make(map[string]*sapcontrol.SAPInstance),
 		Properties: make(map[string]*sapcontrol.InstanceProperty),
 	}
-
-	config := viper.New()
-	config.SetDefault("sap-control-uds", path.Join("/tmp", fmt.Sprintf(".sapstream5%s13", instNumber)))
-	client := sapcontrol.NewSoapClient(config)
-	sapSystem.webService = sapcontrol.NewWebService(client)
 
 	properties, err := sapSystem.webService.GetInstanceProperties()
 	if err != nil {

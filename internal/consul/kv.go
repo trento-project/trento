@@ -58,13 +58,16 @@ func newKV(wrapped *consulApi.KV) KV {
 	return &kv{
 		wrapped,
 		wrapped.List,
+		wrapped.Put,
 	}
 }
 
 type kv struct {
 	wrapped *consulApi.KV
-	// we need this dedicated function field because the Maps method depends on it and we want to mock it internally
+	// we need this dedicated function fields because the some of the internal KV methods depends on them
+	// and we want to mock it internally
 	list func(prefix string, q *consulApi.QueryOptions) (consulApi.KVPairs, *consulApi.QueryMeta, error)
+	put  func(p *consulApi.KVPair, q *consulApi.WriteOptions) (*consulApi.WriteMeta, error)
 }
 
 func (k *kv) Get(key string, q *consulApi.QueryOptions) (*consulApi.KVPair, *consulApi.QueryMeta, error) {
@@ -76,7 +79,7 @@ func (k *kv) Keys(prefix, separator string, q *consulApi.QueryOptions) ([]string
 }
 
 func (k *kv) Put(p *consulApi.KVPair, q *consulApi.WriteOptions) (*consulApi.WriteMeta, error) {
-	return k.wrapped.Put(p, q)
+	return k.put(p, q)
 }
 
 func (k *kv) DeleteTree(prefix string, w *consulApi.WriteOptions) (*consulApi.WriteMeta, error) {
@@ -155,7 +158,7 @@ func (k *kv) PutMap(prefix string, data map[string]interface{}) error {
 }
 
 func (k *kv) PutStr(prefix string, value string) error {
-	_, err := k.Put(&consulApi.KVPair{
+	_, err := k.put(&consulApi.KVPair{
 		Key:   prefix,
 		Value: []byte(value)}, nil)
 

@@ -14,7 +14,7 @@ import (
 func (s *SAPSystem) getKVPath() string {
 	host, _ := os.Hostname()
 	key := fmt.Sprintf(consul.KvHostsSAPSystemPath, host)
-	name := s.Properties["INSTANCE_NAME"].Value
+	name := s.Properties["SAPSYSTEMNAME"].Value
 	kvPath := fmt.Sprintf("%s/%s", key, name)
 
 	return kvPath

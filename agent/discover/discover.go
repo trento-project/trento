@@ -11,7 +11,7 @@ import (
 type Discovery func() (Discoverer, error)
 
 type Discoverer interface {
-	// Get Consul checkId string. Each discoverer has an unique id for that
+	// Returns an arbitrary unique string identifier of the discovery, so that we can associate it to a Consul check ID
 	GetId() string
 	// this function checks whether this particular implementation of Discover
 	// is relevant for this node. It is used as a gating condition for other

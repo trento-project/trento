@@ -18,7 +18,7 @@ import (
 
 const sapInstallationPath string = "/usr/sap"
 const sapIdentifierPattern string = "^[A-Z][A-Z0-9]{2}$" // PRD, HA1, etc
-const sapInstancePattern string = "^[A-Z]*([0-9]{2})$"   // HDB00, ASCS00, ERS10, etc
+const sapInstancePattern string = "^[A-Z]+([0-9]{2})$"   // HDB00, ASCS00, ERS10, etc
 
 type SAPSystemsList []*SAPSystem
 
@@ -53,6 +53,7 @@ func NewSAPSystemsList() (SAPSystemsList, error) {
 
 // The Id is a unique identifier of a SAP installation.
 // It will be used to create totally independent SAP system data
+// TODO: This method to obtain the ID must be changed, as this file is not always static
 func (s *SAPSystem) getSapSystemId() (string, error) {
 	sid := s.Properties["SAPSYSTEMNAME"].Value
 	return internal.Md5sum(fmt.Sprintf("/usr/sap/%s/SYS/global/security/rsecssfs/key/SSFS_%s.KEY", sid, sid))
@@ -81,6 +82,7 @@ func findSystems() ([]string, error) {
 			i, err := findInstances(path.Join(sapInstallationPath, f.Name()))
 			if err != nil {
 				log.Print(err.Error())
+				continue
 			}
 			instances = append(instances, i[:]...)
 		}

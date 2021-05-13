@@ -163,6 +163,7 @@ func (k *kv) PutStr(prefix string, value string) error {
 		return errors.Wrap(err, "Error storing a new value in the KV storage")
 	}
 
+	// TO-DO make this a debug log statement when we introduce levelled logging
 	//log.Printf("Value %s properly stored at %s", value, prefix)
 	return nil
 }

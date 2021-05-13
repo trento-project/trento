@@ -11,7 +11,7 @@ type HanaClusterDiscover struct {
 }
 
 func (hana HanaClusterDiscover) GetId() string {
-	return hana.cluster.Id
+	return hana.cluster.id
 }
 
 // check if the current node this trento agent is running on can be discovered

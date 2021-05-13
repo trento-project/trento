@@ -8,13 +8,13 @@ import (
 const SAPDiscoverId string = "discover_sap"
 
 type SAPSystemsDiscover struct {
-	Id         string
+	id         string
 	host       Discover
 	SAPSystems sapsystem.SAPSystemsList
 }
 
 func (s SAPSystemsDiscover) GetId() string {
-	return s.Id
+	return s.id
 }
 
 func (s SAPSystemsDiscover) ShouldDiscover(client consul.Client) bool {
@@ -45,7 +45,7 @@ func (discover SAPSystemsDiscover) Discover() error {
 
 func NewSAPSystemsDiscover(client consul.Client) SAPSystemsDiscover {
 	r := SAPSystemsDiscover{}
-	r.Id = SAPDiscoverId
+	r.id = SAPDiscoverId
 	r.host = NewDiscover(client)
 	return r
 }

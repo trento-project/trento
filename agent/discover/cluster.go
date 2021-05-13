@@ -22,7 +22,7 @@ const ClusterDiscoverId string = "discover_cluster"
 
 // This Discover handles any Pacemaker Cluster type
 type ClusterDiscover struct {
-	Id             string
+	id             string
 	host           Discover
 	cibConfig      cib.Root
 	clusterName    string
@@ -31,7 +31,7 @@ type ClusterDiscover struct {
 }
 
 func (cluster ClusterDiscover) GetId() string {
-	return cluster.Id
+	return cluster.id
 }
 
 // check if the current node this trento agent is running on can be discovered
@@ -104,7 +104,7 @@ func (cluster ClusterDiscover) Discover() error {
 
 func NewClusterDiscover(client consul.Client) ClusterDiscover {
 	r := ClusterDiscover{}
-	r.Id = ClusterDiscoverId
+	r.id = ClusterDiscoverId
 	r.host = NewDiscover(client)
 	return r
 }

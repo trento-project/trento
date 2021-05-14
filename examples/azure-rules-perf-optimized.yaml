@@ -20,6 +20,23 @@ groups:
           Install a SUSE supported OS release
         scored: true
       - id: 2.1.2
+        description: "Check os release"
+        audit: 'echo VERSION_ID=$(cat /etc/os-release | grep VERSION_ID= | sed "s/[^0-9]//g")'
+        tests:
+          test_items:
+            - flag: 'VERSION_ID'
+              compare:
+                op: gte
+                value: 151
+        remediation: |
+          ## Abstract
+          You need at least SUSE Linux Enterprise Server for SAP Applications 15 SP1 or newer
+          ## Remediation
+          Please install or upgrade to a supported OS version
+          ## Reference
+          https://documentation.suse.com/en-us/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
+        scored: true
+      - id: 2.1.3
         description: "Check the pacemaker version IS"
         audit: 'rpm -qv pacemaker | sed -e "s/pacemaker-\(.*\)+.*/\1/"'
         tests:
@@ -29,7 +46,7 @@ groups:
         remediation: |
           Update pacemaker packages
         scored: true
-      - id: 2.1.2.exclude
+      - id: 2.1.3.exclude
         description: "Check the pacemaker version IS NOT"
         audit: 'rpm -q --qf "%{VERSION}\n" pacemaker'
         tests:
@@ -43,7 +60,7 @@ groups:
         remediation: |
           Update pacemaker packages
         scored: true
-      - id: 2.1.3
+      - id: 2.1.4
         description: "Check the corosync version IS"
         audit: 'rpm -qv corosync'
         tests:
@@ -53,7 +70,7 @@ groups:
         remediation: |
           Update corosync packages
         scored: true
-      - id: 2.1.4
+      - id: 2.1.5
         description: "Check the sbd version IS"
         audit: 'rpm -qv sbd | sed -e "s/sbd-\(.*\)+.*/\1/"'
         tests:
@@ -63,7 +80,7 @@ groups:
         remediation: |
           Update sbd packages
         scored: true
-      - id: 2.1.4.exclude
+      - id: 2.1.5.exclude
         description: "Check the sbd version IS NOT"
         audit: 'rpm -q --qf "%{VERSION}\n" sbd'
         tests:
@@ -77,7 +94,24 @@ groups:
         remediation: |
           Update sbd packages
         scored: true
-      - id: 2.1.5
+      - id: 2.1.6
+        description: "Check the SAPHana version is at least"
+        audit: 'echo --version=$(rpm -q --qf "%{VERSION}\n" SAPHanaSR | cut -f2 -d.)'
+        tests:
+          test_items:
+            - flag: '--version'
+              compare:
+                op: gte
+                value: 153
+        remediation: |
+          ## Abstract
+          You need at least SAPHanaSR 0.153
+          ## Remediation
+          Install at least SAPHanaSR 0.153
+          ## Reference
+          https://documentation.suse.com/en-us/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
+        scored: true
+      - id: 2.1.7
         description: "Check python version"
         audit: 'python3 --version'
         tests:

@@ -78,7 +78,7 @@ func NewWithConfig(cfg Config) (*Agent, error) {
 		ctxCancel: ctxCancel,
 		consul:    client,
 		discoveries: []discover.Discoverer{
-			discover.NewHanaClusterDiscover(client),
+			discover.NewClusterDiscover(client),
 			discover.NewSAPSystemsDiscover(client),
 		},
 		webService:     newWebService(wsResultChan),

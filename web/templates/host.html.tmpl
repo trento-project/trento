@@ -11,13 +11,21 @@
       <dt class="inline">Environment</dt>
       <dd class="inline"><a href="/environments/{{ $Env }}">{{ $Env }}</a></dd>
       <dt class="inline">Landscape</dt>
-      <dd class="inline"><a href="/landscapes/{{ $Land }}?environment={{ $Env }}">{{ $Land }}</a></dd>
+      <dd class="inline"><a href="/landscapes/{{ $Land }}?environment={{ if $Env }}{{ $Env }}{{ else }}ungrouped{{ end }}">{{ $Land }}</a></dd>
       <dt class="inline">SAP System</dt>
-      <dd class="inline"><a href="/sapsystems/{{ $SAPSys }}?environment={{ $Env }}&landscape={{ $Land }}">{{ $SAPSys }}</a></dd>
+      <dd class="inline"><a href="/sapsystems/{{ $SAPSys }}?environment={{ if $Env }}{{ $Env }}{{ else }}ungrouped{{ end }}&landscape={{ if $Land }}{{ $Land }}{{ else }}ungrouped{{ end }}">{{ $SAPSys }}</a></dd>
       <dt class="inline">Cluster</dt>
       <dd class="inline"><a href="/clusters/{{ index .Host.TrentoMeta "trento-ha-cluster" }}">{{ index .Host.TrentoMeta "trento-ha-cluster" }}</a></dd>
     </dl>
     <hr/>
+    {{- if ne (len .SAPSystems) 0 }}
+    <p class='clearfix'/>
+    <h2>SAP instances</h2>
+    {{- range $Key, $SAPInstance := .SAPSystems }}
+    {{ template "sap_instance" $SAPInstance}}
+    {{- end }}
+    <hr/>
+    {{- end }}
     <p class='clearfix'/>
     <h2>Checks</h2>
     <div class='table-responsive'>

@@ -72,12 +72,15 @@ func NewWithConfig(cfg Config) (*Agent, error) {
 	wsResultChan := make(chan CheckResult, 1)
 
 	agent := &Agent{
-		cfg:            cfg,
-		check:          checker,
-		ctx:            ctx,
-		ctxCancel:      ctxCancel,
-		consul:         client,
-		discoveries:    []discover.Discoverer{discover.NewHanaClusterDiscover(client)},
+		cfg:       cfg,
+		check:     checker,
+		ctx:       ctx,
+		ctxCancel: ctxCancel,
+		consul:    client,
+		discoveries: []discover.Discoverer{
+			discover.NewHanaClusterDiscover(client),
+			discover.NewSAPSystemsDiscover(client),
+		},
 		webService:     newWebService(wsResultChan),
 		wsResultChan:   wsResultChan,
 		templateRunner: templateRunner,
@@ -190,9 +193,16 @@ func (a *Agent) registerConsulService() error {
 				Status:  consulApi.HealthWarning,
 			},
 			&consulApi.AgentServiceCheck{
-				CheckID: "discover_cluster",
+				CheckID: discover.ClusterDiscoverId,
 				Name:    "Node Cluster State Discovery",
 				Notes:   "Collects details about Cluster State",
+				TTL:     "30m",
+				Status:  consulApi.HealthWarning,
+			},
+			&consulApi.AgentServiceCheck{
+				CheckID: discover.SAPDiscoverId,
+				Name:    "Node SAP system Discovery",
+				Notes:   "Collects details about installed SAP systems",
 				TTL:     "30m",
 				Status:  consulApi.HealthWarning,
 			},
@@ -246,8 +256,9 @@ func (a *Agent) startDiscoverTicker() error {
 				if err != nil {
 					log.Println("Error while discovering: ", err)
 				}
+				a.consul.Agent().UpdateTTL(a.discoveries[i].GetId(), "", consulApi.HealthPassing)
 			}
-			a.consul.Agent().UpdateTTL("discover_cluster", "", consulApi.HealthPassing)
+
 		case <-a.ctx.Done():
 			return nil
 		}

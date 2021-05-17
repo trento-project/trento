@@ -11,6 +11,8 @@ import (
 type Discovery func() (Discoverer, error)
 
 type Discoverer interface {
+	// Returns an arbitrary unique string identifier of the discovery, so that we can associate it to a Consul check ID
+	GetId() string
 	// this function checks whether this particular implementation of Discover
 	// is relevant for this node. It is used as a gating condition for other
 	// functionality in this implementation
@@ -24,8 +26,13 @@ type Discoverer interface {
 }
 
 type Discover struct {
+	id     string
 	client consul.Client
 	host   string
+}
+
+func (discover Discover) GetId() string {
+	return discover.id
 }
 
 // Create or Updating the given Consul Key-Value Path Store with a new value from the Agent
@@ -47,6 +54,7 @@ func (discover Discover) Discover() error {
 // Return a Host Discover instance
 func NewDiscover(client consul.Client) Discover {
 	r := Discover{}
+	r.id = ""
 	r.client = client
 	r.host, _ = os.Hostname()
 	return r

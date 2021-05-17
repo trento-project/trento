@@ -6,6 +6,8 @@ import (
 
 	consulApi "github.com/hashicorp/consul/api"
 	"github.com/pkg/errors"
+
+	"github.com/mitchellh/mapstructure" //MIT license, is this a problem?
 )
 
 // The Trento Agent is periodically updating data structures in the Consul Key-Value Store
@@ -18,9 +20,20 @@ import (
 // that records constants that need to be in sync or have compat behavior between
 // Console and Agent
 
-const KvClustersPath string = "trento/v0/clusters"
-const KvHostsPath string = "trento/v0/hosts"
-const KvEnvironmentsPath string = "trento/v0/environments"
+const (
+	KvClustersPath              string = "trento/v0/clusters"
+	KvHostsPath                 string = "trento/v0/hosts"
+	KvHostsMetadataPath         string = "trento/v0/hosts/%s/metadata"
+	KvHostsSAPSystemPath        string = "trento/v0/hosts/%s/sapsystems"
+	KvEnvironmentsPath          string = "trento/v0/environments"
+	KvEnvironmentsSAPSystemPath string = "trento/v0/environments/%s/landscapes/%s/sapsystems/%s/"
+
+	KvMetadataSAPEnvironment string = "sap-environment"
+	KvMetadataSAPLandscape   string = "sap-landscape"
+	KvMetadataSAPSystem      string = "sap-system"
+
+	KvUngrouped string = "ungrouped"
+)
 
 type ClusterStonithType int
 
@@ -35,20 +48,26 @@ type KV interface {
 	List(prefix string, q *consulApi.QueryOptions) (consulApi.KVPairs, *consulApi.QueryMeta, error)
 	Keys(prefix, separator string, q *consulApi.QueryOptions) ([]string, *consulApi.QueryMeta, error)
 	Put(p *consulApi.KVPair, q *consulApi.WriteOptions) (*consulApi.WriteMeta, error)
+	DeleteTree(prefix string, w *consulApi.WriteOptions) (*consulApi.WriteMeta, error)
 	ListMap(prefix, offset string) (map[string]interface{}, error)
+	PutMap(prefix string, data map[string]interface{}) error
+	PutStr(prefix string, value string) error
 }
 
 func newKV(wrapped *consulApi.KV) KV {
 	return &kv{
 		wrapped,
 		wrapped.List,
+		wrapped.Put,
 	}
 }
 
 type kv struct {
 	wrapped *consulApi.KV
-	// we need this dedicated function field because the Maps method depends on it and we want to mock it internally
+	// we need this dedicated function fields because the some of the internal KV methods depends on them
+	// and we want to mock it internally
 	list func(prefix string, q *consulApi.QueryOptions) (consulApi.KVPairs, *consulApi.QueryMeta, error)
+	put  func(p *consulApi.KVPair, q *consulApi.WriteOptions) (*consulApi.WriteMeta, error)
 }
 
 func (k *kv) Get(key string, q *consulApi.QueryOptions) (*consulApi.KVPair, *consulApi.QueryMeta, error) {
@@ -60,7 +79,11 @@ func (k *kv) Keys(prefix, separator string, q *consulApi.QueryOptions) ([]string
 }
 
 func (k *kv) Put(p *consulApi.KVPair, q *consulApi.WriteOptions) (*consulApi.WriteMeta, error) {
-	return k.wrapped.Put(p, q)
+	return k.put(p, q)
+}
+
+func (k *kv) DeleteTree(prefix string, w *consulApi.WriteOptions) (*consulApi.WriteMeta, error) {
+	return k.wrapped.DeleteTree(prefix, w)
 }
 
 func (k *kv) List(prefix string, q *consulApi.QueryOptions) (consulApi.KVPairs, *consulApi.QueryMeta, error) {
@@ -111,4 +134,39 @@ func (k *kv) ListMap(prefix, offset string) (map[string]interface{}, error) {
 	}
 
 	return result, nil
+}
+
+// Store a map[string]interface data in KV storage under the prefix key
+func (k *kv) PutMap(prefix string, data map[string]interface{}) error {
+	for key, value := range data {
+		switch c := value.(type) {
+		case string:
+			err := k.PutStr(fmt.Sprintf("%s/%s", prefix, key), c)
+			if err != nil {
+				return err
+			}
+		default:
+			mapInterface := make(map[string]interface{})
+			mapstructure.Decode(value, &mapInterface)
+			err := k.PutMap(fmt.Sprintf("%s/%s", prefix, key), mapInterface)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (k *kv) PutStr(prefix string, value string) error {
+	_, err := k.put(&consulApi.KVPair{
+		Key:   prefix,
+		Value: []byte(value)}, nil)
+
+	if err != nil {
+		return errors.Wrap(err, "Error storing a new value in the KV storage")
+	}
+
+	// TO-DO make this a debug log statement when we introduce levelled logging
+	//log.Printf("Value %s properly stored at %s", value, prefix)
+	return nil
 }

@@ -1,7 +1,6 @@
 package web
 
 import (
-	//"log"
 	"net/http"
 	//"strings"
 
@@ -10,9 +9,6 @@ import (
 
 	"github.com/trento-project/trento/internal/consul"
 )
-
-const envIndex int = 3
-const landIndex int = 5
 
 type EnvironmentHealth struct {
 	Health    string
@@ -73,6 +69,10 @@ func (l *Landscape) Health() EnvironmentHealth {
 	return health
 }
 
+func (l *Landscape) Ungrouped() bool {
+	return l.Name == consul.KvUngrouped
+}
+
 type Environment struct {
 	Name       string
 	Landscapes LandscapeList
@@ -80,18 +80,22 @@ type Environment struct {
 
 type EnvironmentList map[string]*Environment
 
-func (l *Environment) Health() EnvironmentHealth {
+func (e *Environment) Health() EnvironmentHealth {
 	var health = EnvironmentHealth{
 		Health:    "passing",
 		HealthMap: make(map[string]string),
 	}
 
-	for _, land := range l.Landscapes {
+	for _, land := range e.Landscapes {
 		h := land.Health().Health
 		health = health.updateHealth(land.Name, h)
 	}
 
 	return health
+}
+
+func (e *Environment) Ungrouped() bool {
+	return e.Name == consul.KvUngrouped
 }
 
 func NewEnvironmentsListHandler(client consul.Client) gin.HandlerFunc {

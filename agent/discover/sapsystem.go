@@ -2,8 +2,8 @@ package discover
 
 import (
 	"github.com/trento-project/trento/internal/consul"
-	"github.com/trento-project/trento/internal/sapsystem"
 	"github.com/trento-project/trento/internal/environments"
+	"github.com/trento-project/trento/internal/sapsystem"
 )
 
 const SAPDiscoverId string = "discover_sap"
@@ -42,9 +42,9 @@ func (discover SAPSystemsDiscover) Discover() error {
 
 		// Store sap instance name on hosts metadata
 		err = storeSAPSystemTag(
-				discover.host.client,
-				s.Properties["SAPSYSTEMNAME"].Value,
-				s.Type)
+			discover.host.client,
+			s.Properties["SAPSYSTEMNAME"].Value,
+			s.Type)
 		if err != nil {
 			return err
 		}

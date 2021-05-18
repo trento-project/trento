@@ -9,7 +9,6 @@ import (
 	"github.com/trento-project/trento/internal/environments"
 )
 
-
 func NewEnvironmentsListHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		environments, err := environments.Load(client)

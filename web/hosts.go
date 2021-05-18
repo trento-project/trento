@@ -9,9 +9,9 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/trento-project/trento/internal/consul"
+	"github.com/trento-project/trento/internal/environments"
 	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/internal/sapsystem"
-	"github.com/trento-project/trento/internal/environments"
 )
 
 func NewHostsListHandler(client consul.Client) gin.HandlerFunc {
@@ -39,7 +39,6 @@ func NewHostsListHandler(client consul.Client) gin.HandlerFunc {
 		})
 	}
 }
-
 
 func loadFilters(client consul.Client) (map[string][]string, error) {
 	filter_data := make(map[string][]string)

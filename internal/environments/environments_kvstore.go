@@ -3,13 +3,12 @@ package environments
 import (
 	"fmt"
 
-  "github.com/mitchellh/mapstructure"
-  "github.com/pkg/errors"
+	"github.com/mitchellh/mapstructure"
+	"github.com/pkg/errors"
 
-  "github.com/trento-project/trento/internal/consul"
+	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
 )
-
 
 func (e *Environment) getKVPath() string {
 	return fmt.Sprintf("%s/%s", consul.KvEnvironmentsPath, e.Name)
@@ -24,7 +23,7 @@ func (e *Environment) Store(client consul.Client) error {
 		return errors.Wrap(err, "Error storing a environment data")
 	}
 
-  return nil
+	return nil
 }
 
 func Load(client consul.Client) (map[string]*Environment, error) {

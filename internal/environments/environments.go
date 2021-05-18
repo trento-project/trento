@@ -1,8 +1,8 @@
 package environments
 
 import (
-  "github.com/trento-project/trento/internal/consul"
-  "github.com/trento-project/trento/internal/hosts"
+	"github.com/trento-project/trento/internal/consul"
+	"github.com/trento-project/trento/internal/hosts"
 )
 
 type Environment struct {
@@ -17,25 +17,25 @@ type Landscape struct {
 
 type SAPSystem struct {
 	Name  string         `mapstructure:"name,omitempty"`
-  Type  string         `mapstructure:"type,omitempty"`
-  Hosts hosts.HostList `mapstructure:"hosts,omitempty"`
+	Type  string         `mapstructure:"type,omitempty"`
+	Hosts hosts.HostList `mapstructure:"hosts,omitempty"`
 }
 
 func NewEnvironment(env, land, sys string) Environment {
-  newSys := &SAPSystem{Name: sys}
-  systemsMap := make(map[string]*SAPSystem)
-  systemsMap[sys] = newSys
+	newSys := &SAPSystem{Name: sys}
+	systemsMap := make(map[string]*SAPSystem)
+	systemsMap[sys] = newSys
 
-  newLand := &Landscape{Name: consul.KvUngrouped, SAPSystems: systemsMap}
-  landsMap := make(map[string]*Landscape)
-  landsMap[land] = newLand
+	newLand := &Landscape{Name: land, SAPSystems: systemsMap}
+	landsMap := make(map[string]*Landscape)
+	landsMap[land] = newLand
 
-  newEnv := Environment{Name: env, Landscapes: landsMap}
-  return newEnv
+	newEnv := Environment{Name: env, Landscapes: landsMap}
+	return newEnv
 }
 
 func ungrouped(name string) bool {
-  return name == consul.KvUngrouped
+	return name == consul.KvUngrouped
 }
 
 func (e *Environment) Ungrouped() bool {

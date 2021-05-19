@@ -3,6 +3,7 @@ package discover
 import (
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/environments"
+	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/internal/sapsystem"
 )
 
@@ -102,10 +103,12 @@ func storeSAPSystemTag(client consul.Client, sid, systemType string) error {
 	}
 
 	// Store host metadata
-	metadata := environments.NewMetadata()
-	metadata.Environment = env
-	metadata.Landscape = land
-	metadata.SAPSystem = sys
+	metadata := hosts.Metadata{
+		Environment: env,
+		Landscape:   land,
+		SAPSystem:   sys,
+	}
+
 	err = metadata.Store(client)
 	if err != nil {
 		return err

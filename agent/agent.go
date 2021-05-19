@@ -255,8 +255,10 @@ func (a *Agent) startDiscoverTicker() error {
 				err := a.discoveries[i].Discover()
 				if err != nil {
 					log.Println("Error while discovering: ", err)
+					a.consul.Agent().UpdateTTL(a.discoveries[i].GetId(), "", consulApi.HealthWarning)
+				} else {
+					a.consul.Agent().UpdateTTL(a.discoveries[i].GetId(), "", consulApi.HealthPassing)
 				}
-				a.consul.Agent().UpdateTTL(a.discoveries[i].GetId(), "", consulApi.HealthPassing)
 			}
 
 		case <-a.ctx.Done():

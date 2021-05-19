@@ -15,16 +15,15 @@ type SAPSystemsDiscover struct {
 	SAPSystems sapsystem.SAPSystemsList
 }
 
+func NewSAPSystemsDiscover(client consul.Client) SAPSystemsDiscover {
+	r := SAPSystemsDiscover{}
+	r.id = SAPDiscoverId
+	r.host = NewDiscover(client)
+	return r
+}
+
 func (s SAPSystemsDiscover) GetId() string {
 	return s.id
-}
-
-func (s SAPSystemsDiscover) ShouldDiscover(client consul.Client) bool {
-	return true
-}
-
-func (s SAPSystemsDiscover) storeDiscovery(cStorePath, cStoreValue string) error {
-	return nil
 }
 
 func (discover SAPSystemsDiscover) Discover() error {
@@ -52,13 +51,6 @@ func (discover SAPSystemsDiscover) Discover() error {
 	}
 
 	return nil
-}
-
-func NewSAPSystemsDiscover(client consul.Client) SAPSystemsDiscover {
-	r := SAPSystemsDiscover{}
-	r.id = SAPDiscoverId
-	r.host = NewDiscover(client)
-	return r
 }
 
 // These methods must go here. We cannot put them in the internal/sapsystem.go package

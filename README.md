@@ -41,6 +41,13 @@ of existing clusters, rather than deploying new one.
 T.B.D.
 
 # Requirements
+While the `trento` web service component has been tested so far on openSUSE 15.2
+and SLES 15 SP2 it should be able to run on most modern Linux distributions.
+
+While the agent could also run in openSUSE, it does not make much sense as it
+needs to interact with different components that act as base for SAP applications
+which are required to be run in a 
+[SLES for SAP](https://www.suse.com/products/sles-for-sap/) installation.
 
 ## Build dependencies
 
@@ -125,6 +132,12 @@ Now we can start the agent:
 
 ## Trento agents
 
+The `trento` agents are responsible for discovering HA clusters and reporting their
+status to the `consul` servers. The agents need to run in the same system as the HA
+tools they are managing / monitoring and running them in isolated environments ( e.g. serverless,
+separated containers, ... ) makes little sense as they won't be able as the discovery
+mechanisms will not be able to report any usable information.
+
 To start the trento agent:
 
 ```shell
@@ -161,45 +174,23 @@ Global Flags:
 ```
 
 # Usage
-## Tagging the systems
 
-In order to group and filter the systems a tagging mechanism can be used. This tags are placed as
-meta-data in the agent nodes. Find information about how to set meta-data in the agents at: https://www.consul.io/docs/agent/options#node_meta
+## Grouping and filtering the nodes in the wep app
 
-As an example, check the [meta-data file](./examples/trento-config.json) file. This file must be
-located in the folder set as `-config-dir` during the agent execution.
+The web app provides the option to filter the systems using a set of
+reserved tags. To achieve this, the tags must be stored in the KV storage.
 
-The next items are reserved:
-- `trento-ha-cluster`: Cluster which the system belongs to
-- `trento-sap-environment`: Environment in which the system is running
-- `trento-sap-landscape`: Landscape in which the system is running
-- `trento-sap-environment`: SAP system (composed by database and application) in which the system is running
-
-### Setting the tags from the KV storage
-
-These reserved tags can be automatically set and updated using the [consul-template](https://github.com/hashicorp/consul-template).
-To achieve this, the tags information will come from the KV storage.
-
-Set the metadata in the next paths:
-- `trento/v0/hosts/$nodename/metadata/ha-cluster`
-- `trento/v0/hosts/$nodename/metadata/sap-environment`
-- `trento/v0/hosts/$nodename/metadata/sap-landscape`
-- `trento/v0/hosts/$nodename/metadata/sap-system`
-
-Notice that a new entry must exists for every node.
-
-`consul-template` starts directly with the `trento` agent. It provides some configuration options to synchronize the utility with the consul agent.
-
-- `config-dir`: Consul agent configuration files directory. It must be the same used by the consul agent. The `trento` agent creates a new folder with the node name where the trento meta-data configuration file is stored (e.g. `consul.d/trento-config.json`).
-- `consul-template`: Template used to populate the trento meta-data configuration file (by default [meta-data file][./examples/trento-config.json] is used).
-
-### Grouping and filtering the nodes in the wep app
-
-The app provides the option to see the environment composed by the nodes and filter the systems using the previously commented reserved tags. To achieve this, the tags must be stored in the KV storage.
-Use the next path:
-- `trento/v0/environments/$yourenv/`
-- `trento/v0/environments/$yourenv/landscapes/$yourland/`
-- `trento/v0/environments/$yourenv/landscapes/$yourland/sapsystems/$yoursapsy`
+For the time being, `consul` can be use to populate these tags:
+```shell
+# To group SAP Systems into Landscapes and Environments, you can do the following,
+# from any of the nodes where Trento is running:
+export ENV=an-environment-name
+export LAND=a-landscape-name
+export SID=an-actual-SID
+consul kv put trento/v0/environments/$ENV/name $ENV
+consul kv put trento/v0/environments/$ENV/landscapes/$LAND/name $LAND
+consul kv put trento/v0/environments/$ENV/landscapes/$LAND/sapsystems/$SID/name $SID
+```
 
 Keep in mind that the created environments, landscapes and sap systems are directories themselves, and there can be multiple of them.
 The possibility to have multiple landscapes with the same name in different environments (and the same for SAP systems) is possible.

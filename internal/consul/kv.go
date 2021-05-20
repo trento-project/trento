@@ -29,17 +29,11 @@ const (
 	sliceFlag  uint64 = 3
 	intFlag    uint64 = 4
 
-	KvClustersPath               string = "trento/v0/clusters"
-	KvHostsPath                  string = "trento/v0/hosts"
-	KvHostsMetadataPath          string = "trento/v0/hosts/%s/metadata"
-	KvHostsSAPSystemPath         string = "trento/v0/hosts/%s/sapsystems"
-	KvHostsSAPSystemInstancePath string = "trento/v0/hosts/%s/sapsystems/%s/instances/%s"
-	KvEnvironmentsPath           string = "trento/v0/environments"
-	KvEnvironmentsSAPSystemPath  string = "trento/v0/environments/%s/landscapes/%s/sapsystems/%s/"
-
-	KvMetadataSAPEnvironment string = "sap-environment"
-	KvMetadataSAPLandscape   string = "sap-landscape"
-	KvMetadataSAPSystem      string = "sap-system"
+	KvClustersPath       string = "trento/v0/clusters/"
+	KvHostsPath          string = "trento/v0/hosts/"
+	KvHostsMetadataPath  string = "trento/v0/hosts/%s/metadata/"
+	KvHostsSAPSystemPath string = "trento/v0/hosts/%s/sapsystems/"
+	KvEnvironmentsPath   string = "trento/v0/environments/"
 
 	KvUngrouped string = "ungrouped"
 )

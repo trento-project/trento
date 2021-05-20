@@ -11,7 +11,7 @@ import (
 
 func (c *Cluster) getKVPath() string {
 	name := c.Name()
-	kvPath := fmt.Sprintf("%s/%s", consul.KvClustersPath, name)
+	kvPath := fmt.Sprintf("%s%s", consul.KvClustersPath, name)
 
 	return kvPath
 }
@@ -22,9 +22,15 @@ func (c *Cluster) Store(client consul.Client) error {
 		return nil
 	}
 
+	l, err := client.LockTrento(consul.KvClustersPath)
+	if err != nil {
+		return errors.Wrap(err, "could not lock the kv for clusters")
+	}
+	defer l.Unlock()
+
 	kvPath := c.getKVPath()
 	// Clean the current data before storing the new values
-	_, err := client.KV().DeleteTree(kvPath, nil)
+	_, err = client.KV().DeleteTree(kvPath, nil)
 	if err != nil {
 		return errors.Wrap(err, "Error deleting cluster content")
 	}
@@ -42,6 +48,12 @@ func (c *Cluster) Store(client consul.Client) error {
 
 func Load(client consul.Client) (map[string]*Cluster, error) {
 	var clusters = map[string]*Cluster{}
+
+	l, err := client.LockTrento(consul.KvClustersPath)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not lock the kv for clusters")
+	}
+	defer l.Unlock()
 
 	entries, err := client.KV().ListMap(consul.KvClustersPath, consul.KvClustersPath)
 	if err != nil {

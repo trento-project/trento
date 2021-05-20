@@ -11,6 +11,7 @@ type Client interface {
 	Catalog() Catalog
 	Health() Health
 	KV() KV
+	LockTrento(prefix string) (*consulApi.Lock, error)
 }
 
 type Agent interface {

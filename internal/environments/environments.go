@@ -1,6 +1,7 @@
 package environments
 
 import (
+	consulApi "github.com/hashicorp/consul/api"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
 )
@@ -55,23 +56,27 @@ type EnvironmentHealth struct {
 	HealthMap map[string]string
 }
 
-func (e *EnvironmentHealth) updateHealth(n string, h string) EnvironmentHealth {
-	e.HealthMap[n] = h
+func NewEnvironmentHealth() EnvironmentHealth {
+	return EnvironmentHealth{
+		Health:    consulApi.HealthPassing,
+		HealthMap: make(map[string]string),
+	}
+}
 
-	if h == "critical" {
-		e.Health = h
-	} else if h == "warning" && e.Health != "critical" {
-		e.Health = h
+func (e *EnvironmentHealth) updateHealth(entry string, health string) EnvironmentHealth {
+	e.HealthMap[entry] = health
+
+	if health == consulApi.HealthCritical {
+		e.Health = health
+	} else if health == consulApi.HealthWarning && e.Health != consulApi.HealthCritical {
+		e.Health = health
 	}
 
 	return *e
 }
 
 func (e *Environment) Health() EnvironmentHealth {
-	var health = EnvironmentHealth{
-		Health:    "passing",
-		HealthMap: make(map[string]string),
-	}
+	var health = NewEnvironmentHealth()
 
 	for _, land := range e.Landscapes {
 		h := land.Health().Health
@@ -82,10 +87,7 @@ func (e *Environment) Health() EnvironmentHealth {
 }
 
 func (l *Landscape) Health() EnvironmentHealth {
-	var health = EnvironmentHealth{
-		Health:    "passing",
-		HealthMap: make(map[string]string),
-	}
+	var health = NewEnvironmentHealth()
 
 	for _, system := range l.SAPSystems {
 		h := system.Health().Health
@@ -96,10 +98,7 @@ func (l *Landscape) Health() EnvironmentHealth {
 }
 
 func (s *SAPSystem) Health() EnvironmentHealth {
-	var health = EnvironmentHealth{
-		Health:    "passing",
-		HealthMap: make(map[string]string),
-	}
+	var health = NewEnvironmentHealth()
 
 	for _, host := range s.Hosts {
 		h := host.Health()

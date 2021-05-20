@@ -222,6 +222,39 @@ You can install it with `go install github.com/vektra/mockery/v2@latest`.
 > **Note**  
 > Be sure to add the `mockery` binary to your `$PATH` environment variable so that `make` can find it.
 
+
+## Docker
+
+To assist in testing & developing `trento`, we have added a [Dockerfile](Dockerfile) 
+that will automatically fetch all the required compile-time dependencies to build
+the binary and finally a container image with the fresh binary in it.
+
+We also provide a [docker-compose.yml](docker-compose.yml) file that allows to
+deploy other required services to run alongside `trento` by fetching 
+the images from the [dockerhub](https://hub.docker.com/) registry and running 
+the containers in your `docker` instance.
+
+To only build the docker image:
+```shell
+git clone https://github.com/trento-project/trento.git
+cd trento
+docker build -t trento ./
+```
+
+If you want to build & start `trento` and it's dependencies, you only need `docker-compose`:
+```shell
+docker-compose up
+```
+
+The application should be reachable on the port that is defined in the 
+`docker-compose.yml` file (8080 by default).
+
+> **Note**
+> Take into account that `trento` requires an agent instance that is running on
+> the OS (*not* inside a container) so while it is possible to hack the `docker-compose.yml`
+> file to also run a `trento` agent, it makes little sense as most of the checks
+> require direct access to host files.
+
 # Support
 
 As the project is currently in its early stages, we suggest that any question or

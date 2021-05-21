@@ -8,6 +8,10 @@ import (
 	"path/filepath"
 
 	"github.com/gin-gonic/gin/render"
+
+	"github.com/gomarkdown/markdown"
+	"github.com/gomarkdown/markdown/html"
+	"github.com/gomarkdown/markdown/parser"
 )
 
 // LayoutRender wraps user templates into a root one which has it's own data and a bunch of inner blocks
@@ -92,6 +96,19 @@ func (r *LayoutRender) addFileFromFS(templatesFS fs.FS, file string) {
 		},
 		"sum": func(a int, b int) int {
 			return a + b
+		},
+		"markup": func(md string) template.HTML {
+			extensions := parser.CommonExtensions | parser.AutoHeadingIDs
+			p := parser.NewWithExtensions(extensions)
+
+			htmlFlags := html.CommonFlags | html.HrefTargetBlank
+			opts := html.RendererOptions{Flags: htmlFlags}
+			renderer := html.NewRenderer(opts)
+
+			// html := markdown.ToHTML([]byte(md), nil, nil) // could be as simple as this
+			html := markdown.ToHTML([]byte(md), p, renderer)
+			result := template.HTML(html)
+			return result
 		},
 	})
 	patterns := append([]string{r.root, file}, r.blocks...)

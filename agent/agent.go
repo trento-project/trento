@@ -12,14 +12,14 @@ import (
 	consulApi "github.com/hashicorp/consul/api"
 	"github.com/pkg/errors"
 
-	"github.com/trento-project/trento/agent/discover"
+	"github.com/trento-project/trento/agent/discovery"
 	"github.com/trento-project/trento/internal/consul"
 )
 
 type Agent struct {
 	cfg              Config
 	check            Checker
-	discoveries      []discover.Discoverer
+	discoveries      []discovery.Discovery
 	consulResultChan chan CheckResult
 	wsResultChan     chan CheckResult
 	webService       *webService
@@ -77,9 +77,9 @@ func NewWithConfig(cfg Config) (*Agent, error) {
 		ctx:       ctx,
 		ctxCancel: ctxCancel,
 		consul:    client,
-		discoveries: []discover.Discoverer{
-			discover.NewClusterDiscover(client),
-			discover.NewSAPSystemsDiscover(client),
+		discoveries: []discovery.Discovery{
+			discovery.NewClusterDiscovery(client),
+			discovery.NewSAPSystemsDiscovery(client),
 		},
 		webService:     newWebService(wsResultChan),
 		wsResultChan:   wsResultChan,
@@ -193,14 +193,14 @@ func (a *Agent) registerConsulService() error {
 				Status:  consulApi.HealthWarning,
 			},
 			&consulApi.AgentServiceCheck{
-				CheckID: discover.ClusterDiscoverId,
+				CheckID: discovery.ClusterDiscoveryId,
 				Name:    "Node Cluster State Discovery",
 				Notes:   "Collects details about Cluster State",
 				TTL:     "30m",
 				Status:  consulApi.HealthWarning,
 			},
 			&consulApi.AgentServiceCheck{
-				CheckID: discover.SAPDiscoverId,
+				CheckID: discovery.SAPDiscoveryId,
 				Name:    "Node SAP system Discovery",
 				Notes:   "Collects details about installed SAP systems",
 				TTL:     "30m",

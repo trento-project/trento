@@ -1,4 +1,4 @@
-package discover
+package discovery
 
 import (
 	"github.com/trento-project/trento/internal/cluster"
@@ -6,42 +6,42 @@ import (
 	"github.com/trento-project/trento/internal/hosts"
 )
 
-const ClusterDiscoverId string = "discover_cluster"
+const ClusterDiscoveryId string = "discover_cluster"
 
 // This Discover handles any Pacemaker Cluster type
-type ClusterDiscover struct {
-	id      string
-	host    Discover
-	Cluster cluster.Cluster
+type ClusterDiscovery struct {
+	id        string
+	discovery BaseDiscovery
+	Cluster   cluster.Cluster
 }
 
-func NewClusterDiscover(client consul.Client) ClusterDiscover {
-	r := ClusterDiscover{}
-	r.id = ClusterDiscoverId
-	r.host = NewDiscover(client)
+func NewClusterDiscovery(client consul.Client) ClusterDiscovery {
+	r := ClusterDiscovery{}
+	r.id = ClusterDiscoveryId
+	r.discovery = NewDiscovery(client)
 	return r
 }
 
-func (c ClusterDiscover) GetId() string {
+func (c ClusterDiscovery) GetId() string {
 	return c.id
 }
 
 // Execute one iteration of a discovery and store the result in the Consul KVStore.
-func (discover ClusterDiscover) Discover() error {
+func (d ClusterDiscovery) Discover() error {
 	cluster, err := cluster.NewCluster()
 
 	if err != nil {
 		return err
 	}
 
-	discover.Cluster = cluster
+	d.Cluster = cluster
 
-	err = discover.Cluster.Store(discover.host.client)
+	err = d.Cluster.Store(d.discovery.client)
 	if err != nil {
 		return err
 	}
 
-	err = storeClusterMetadata(discover.host.client, cluster.Name())
+	err = storeClusterMetadata(d.discovery.client, cluster.Name())
 	if err != nil {
 		return err
 	}

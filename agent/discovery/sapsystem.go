@@ -1,4 +1,4 @@
-package discover
+package discovery
 
 import (
 	"github.com/trento-project/trento/internal/consul"
@@ -7,42 +7,42 @@ import (
 	"github.com/trento-project/trento/internal/sapsystem"
 )
 
-const SAPDiscoverId string = "discover_sap"
+const SAPDiscoveryId string = "discover_sap"
 
-type SAPSystemsDiscover struct {
+type SAPSystemsDiscovery struct {
 	id         string
-	host       Discover
+	discovery  BaseDiscovery
 	SAPSystems sapsystem.SAPSystemsList
 }
 
-func NewSAPSystemsDiscover(client consul.Client) SAPSystemsDiscover {
-	r := SAPSystemsDiscover{}
-	r.id = SAPDiscoverId
-	r.host = NewDiscover(client)
+func NewSAPSystemsDiscovery(client consul.Client) SAPSystemsDiscovery {
+	r := SAPSystemsDiscovery{}
+	r.id = SAPDiscoveryId
+	r.discovery = NewDiscovery(client)
 	return r
 }
 
-func (s SAPSystemsDiscover) GetId() string {
+func (s SAPSystemsDiscovery) GetId() string {
 	return s.id
 }
 
-func (discover SAPSystemsDiscover) Discover() error {
+func (d SAPSystemsDiscovery) Discover() error {
 	systems, err := sapsystem.NewSAPSystemsList()
 
 	if err != nil {
 		return err
 	}
 
-	discover.SAPSystems = systems
-	for _, s := range discover.SAPSystems {
-		err := s.Store(discover.host.client)
+	d.SAPSystems = systems
+	for _, s := range d.SAPSystems {
+		err := s.Store(d.discovery.client)
 		if err != nil {
 			return err
 		}
 
 		// Store sap instance name on hosts metadata
 		err = storeSAPSystemTag(
-			discover.host.client,
+			d.discovery.client,
 			s.Properties["SAPSYSTEMNAME"].Value,
 			s.Type)
 		if err != nil {

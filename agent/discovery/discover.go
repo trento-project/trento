@@ -1,4 +1,4 @@
-package discover
+package discovery
 
 import (
 	"os"
@@ -6,34 +6,32 @@ import (
 	"github.com/trento-project/trento/internal/consul"
 )
 
-type Discovery func() (Discoverer, error)
-
-type Discoverer interface {
+type Discovery interface {
 	// Returns an arbitrary unique string identifier of the discovery, so that we can associate it to a Consul check ID
 	GetId() string
 	// Execute the discovery mechanism
 	Discover() error
 }
 
-type Discover struct {
+type BaseDiscovery struct {
 	id     string
 	client consul.Client
 	host   string
 }
 
-func (discover Discover) GetId() string {
-	return discover.id
+func (d BaseDiscovery) GetId() string {
+	return d.id
 }
 
 // Execute one iteration of a discovery and store the result in the Consul KVStore.
-func (discover Discover) Discover() error {
-	discover.host, _ = os.Hostname()
+func (d BaseDiscovery) Discover() error {
+	d.host, _ = os.Hostname()
 	return nil
 }
 
 // Return a Host Discover instance
-func NewDiscover(client consul.Client) Discover {
-	r := Discover{}
+func NewDiscovery(client consul.Client) BaseDiscovery {
+	r := BaseDiscovery{}
 	r.id = ""
 	r.client = client
 	r.host, _ = os.Hostname()

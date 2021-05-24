@@ -21,7 +21,6 @@ func TestStore(t *testing.T) {
 
 	consulInst.On("KV").Return(kv)
 	kvPath := fmt.Sprintf("%s/%s", fmt.Sprintf(consul.KvHostsSAPSystemPath, host), "PRD")
-	kvMetaPath := fmt.Sprintf(consul.KvHostsMetadataPath, host)
 
 	expectedPutMap := map[string]interface{}{
 		"type": "HANA",
@@ -84,18 +83,8 @@ func TestStore(t *testing.T) {
 		},
 	}
 
-	keys := []string{
-		"key1",
-		"key2",
-	}
-
 	kv.On("DeleteTree", kvPath, (*consulApi.WriteOptions)(nil)).Return(nil, nil)
 	kv.On("PutMap", kvPath, expectedPutMap).Return(nil, nil)
-	kv.On("PutStr", fmt.Sprintf("%s/%s", kvMetaPath, consul.KvMetadataSAPSystem), "PRD").Return(nil, nil)
-	kv.On("Keys", consul.KvEnvironmentsPath, "", (*consulApi.QueryOptions)(nil)).Return(keys, nil, nil)
-	kv.On("PutStr", fmt.Sprintf(consul.KvEnvironmentsSAPSystemPath, consul.KvUngrouped, consul.KvUngrouped, "PRD"), "").Return(nil, nil)
-	kv.On("PutStr", fmt.Sprintf("%s/%s", kvMetaPath, consul.KvMetadataSAPEnvironment), consul.KvUngrouped).Return(nil, nil)
-	kv.On("PutStr", fmt.Sprintf("%s/%s", kvMetaPath, consul.KvMetadataSAPLandscape), consul.KvUngrouped).Return(nil, nil)
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

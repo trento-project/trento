@@ -17,6 +17,7 @@ func TestKVListMap(t *testing.T) {
 		&consulApi.KVPair{Key: "/trento/env1/landscapes/land1/sapsystems/", Value: []byte("")},
 		&consulApi.KVPair{Key: "/trento/env1/landscapes/land1/sapsystems/sys1/", Value: []byte("")},
 		&consulApi.KVPair{Key: "/trento/env1/landscapes/land1/sapsystems/sys1/name", Value: []byte("name")},
+		&consulApi.KVPair{Key: "/trento/env1/landscapes/land1/sapsystems/sys1/int32", Value: []byte("1"), Flags: int32Flag},
 		&consulApi.KVPair{Key: "/trento/env1/landscapes/land2/", Value: []byte("")},
 		&consulApi.KVPair{Key: "/trento/env1/landscapes/land2/sapsystems/", Value: []byte("")},
 		&consulApi.KVPair{Key: "/trento/env1/landscapes/land2/sapsystems/sys2/", Value: []byte("")},
@@ -39,7 +40,8 @@ func TestKVListMap(t *testing.T) {
 					"land1": map[string]interface{}{
 						"sapsystems": map[string]interface{}{
 							"sys1": map[string]interface{}{
-								"name": "name",
+								"name":  "name",
+								"int32": int32(1),
 							},
 						},
 					},
@@ -185,6 +187,14 @@ func TestKVListMapSingleEntries(t *testing.T) {
 		&consulApi.KVPair{Key: "/trento/env1/landscapes/land2/description", Value: []byte("land_desc")},
 		&consulApi.KVPair{Key: "/trento/env1/landscapes/land2/sapsystems/sys2/", Value: []byte("")},
 		&consulApi.KVPair{Key: "/trento/env2/landscapes/land3/sapsystems/sys3/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/list/", Value: []byte(""), Flags: sliceFlag},
+		&consulApi.KVPair{Key: "/trento/list/0000/data1", Value: []byte("false"), Flags: boolFlag},
+		&consulApi.KVPair{Key: "/trento/list/0000/data2", Value: []byte("3"), Flags: int32Flag},
+		&consulApi.KVPair{Key: "/trento/list/0001/data3/dataa", Value: []byte("4"), Flags: intFlag},
+		&consulApi.KVPair{Key: "/trento/list/0001/data3/datab", Value: []byte("5"), Flags: intFlag},
+		&consulApi.KVPair{Key: "/trento/list/0002/otherlist/", Value: []byte(""), Flags: sliceFlag},
+		&consulApi.KVPair{Key: "/trento/list/0002/otherlist/0000/datac", Value: []byte("c"), Flags: stringFlag},
+		&consulApi.KVPair{Key: "/trento/list/0002/otherlist/0001/datad", Value: []byte("d"), Flags: stringFlag},
 	}
 
 	kv := &kv{list: func(prefix string, q *consulApi.QueryOptions) (consulApi.KVPairs, *consulApi.QueryMeta, error) {
@@ -220,6 +230,28 @@ func TestKVListMapSingleEntries(t *testing.T) {
 				},
 			},
 		},
+		"list": []interface{}{
+			map[string]interface{}{
+				"data1": false,
+				"data2": int32(3),
+			},
+			map[string]interface{}{
+				"data3": map[string]interface{}{
+					"dataa": 4,
+					"datab": 5,
+				},
+			},
+			map[string]interface{}{
+				"otherlist": []interface{}{
+					map[string]interface{}{
+						"datac": "c",
+					},
+					map[string]interface{}{
+						"datad": "d",
+					},
+				},
+			},
+		},
 	}
 
 	assert.Equal(t, expectedMap, result)
@@ -236,6 +268,7 @@ func TestKVPutMap(t *testing.T) {
 						"sys1": map[string]interface{}{
 							"name":        "name",
 							"description": "desc",
+							"int32":       int32(1),
 						},
 					},
 				},
@@ -256,15 +289,77 @@ func TestKVPutMap(t *testing.T) {
 				},
 			},
 		},
+		"list": []interface{}{
+			map[string]interface{}{
+				"item1": int32(1),
+				"other_list": []interface{}{
+					map[string]interface{}{
+						"itema": "a",
+						"itemb": "b",
+					},
+					map[string]interface{}{
+						"itemc": "c",
+						"itemd": "d",
+					},
+				},
+			},
+			map[string]interface{}{
+				"item2": true,
+			},
+			map[string]interface{}{
+				"item3": 3,
+			},
+			map[string]interface{}{
+				"item4": 4,
+			},
+			map[string]interface{}{
+				"item5": 5,
+			},
+			map[string]interface{}{
+				"item6": 6,
+			},
+			map[string]interface{}{
+				"item7": 7,
+			},
+			map[string]interface{}{
+				"item8": 8,
+			},
+			map[string]interface{}{
+				"item9": 9,
+			},
+			map[string]interface{}{
+				"item10": 10,
+			},
+			map[string]interface{}{
+				"item11": 11,
+			},
+		},
 	}
 
 	expectedPut := []*consulApi.KVPair{
 		&consulApi.KVPair{Key: "/trento/env1/landscapes/land1/sapsystems/sys1/name", Value: []byte("name")},
 		&consulApi.KVPair{Key: "/trento/env1/landscapes/land1/sapsystems/sys1/description", Value: []byte("desc")},
+		&consulApi.KVPair{Key: "/trento/env1/landscapes/land1/sapsystems/sys1/int32", Value: []byte("1"), Flags: int32Flag},
 		&consulApi.KVPair{Key: "/trento/env1/landscapes/land2/description", Value: []byte("land_desc")},
-		//TODO: Fix the code to make these options work
-		//&consulApi.KVPair{Key: "/trento/env1/landscapes/land2/sapsystems/sys2/", Value: []byte("")},
-		//&consulApi.KVPair{Key: "/trento/env2/landscapes/land3/sapsystems/sys3/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/env1/landscapes/land2/sapsystems/sys2/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/env2/landscapes/land3/sapsystems/sys3/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/list/", Value: []byte(""), Flags: sliceFlag},
+		&consulApi.KVPair{Key: "/trento/list/0000/item1", Value: []byte("1"), Flags: int32Flag},
+		&consulApi.KVPair{Key: "/trento/list/0000/other_list/", Value: []byte(""), Flags: sliceFlag},
+		&consulApi.KVPair{Key: "/trento/list/0000/other_list/0000/itema", Value: []byte("a"), Flags: stringFlag},
+		&consulApi.KVPair{Key: "/trento/list/0000/other_list/0000/itemb", Value: []byte("b"), Flags: stringFlag},
+		&consulApi.KVPair{Key: "/trento/list/0000/other_list/0001/itemc", Value: []byte("c"), Flags: stringFlag},
+		&consulApi.KVPair{Key: "/trento/list/0000/other_list/0001/itemd", Value: []byte("d"), Flags: stringFlag},
+		&consulApi.KVPair{Key: "/trento/list/0001/item2", Value: []byte("true"), Flags: boolFlag},
+		&consulApi.KVPair{Key: "/trento/list/0002/item3", Value: []byte("3"), Flags: intFlag},
+		&consulApi.KVPair{Key: "/trento/list/0003/item4", Value: []byte("4"), Flags: intFlag},
+		&consulApi.KVPair{Key: "/trento/list/0004/item5", Value: []byte("5"), Flags: intFlag},
+		&consulApi.KVPair{Key: "/trento/list/0005/item6", Value: []byte("6"), Flags: intFlag},
+		&consulApi.KVPair{Key: "/trento/list/0006/item7", Value: []byte("7"), Flags: intFlag},
+		&consulApi.KVPair{Key: "/trento/list/0007/item8", Value: []byte("8"), Flags: intFlag},
+		&consulApi.KVPair{Key: "/trento/list/0008/item9", Value: []byte("9"), Flags: intFlag},
+		&consulApi.KVPair{Key: "/trento/list/0009/item10", Value: []byte("10"), Flags: intFlag},
+		&consulApi.KVPair{Key: "/trento/list/0010/item11", Value: []byte("11"), Flags: intFlag},
 	}
 
 	resultPut := []*consulApi.KVPair{}

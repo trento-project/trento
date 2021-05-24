@@ -10,8 +10,13 @@
     <h1>SAP System details</h1>
     <dl class="inline">
       <dt class="inline">Name</dt>
-      <dd class="inline">{{ .SAPSysName }}</dd>
+      <dd class="inline">{{ $SAPSystem.Name }}</dd>
+      <dt class="inline">Type</dt>
+      <dd class="inline">{{ $SAPSystem.Type }}</dd>
     </dl>
+    <hr/>
+    <h1>Layout</h1>
+    {{ template "sap_system_layout" $SAPSystem }}
     <hr/>
     <h1>Nodes</h1>
     {{ template "hosts_table" $SAPSystem }}

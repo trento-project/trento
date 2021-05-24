@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/trento-project/trento/internal/consul"
+	"github.com/trento-project/trento/internal/hosts"
 )
 
 type Cluster struct {
@@ -43,7 +44,7 @@ func NewClusterHandler(client consul.Client) gin.HandlerFunc {
 		}
 
 		filter_query := fmt.Sprintf("Meta[\"trento-ha-cluster\"] == \"%s\"", cluster_name)
-		hosts, err := loadHosts(client, filter_query, nil)
+		hosts, err := hosts.Load(client, filter_query, nil)
 		if err != nil {
 			_ = c.Error(err)
 			return

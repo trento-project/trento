@@ -1,123 +1,26 @@
 package web
 
 import (
-	"encoding/json"
-	"fmt"
-	"io"
-	"log"
 	"net/http"
 	"sort"
-	"strings"
 
-	"github.com/aquasecurity/bench-common/check"
 	"github.com/gin-gonic/gin"
 	consulApi "github.com/hashicorp/consul/api"
 	"github.com/pkg/errors"
 
-	"github.com/trento-project/trento/internal"
 	"github.com/trento-project/trento/internal/consul"
+	"github.com/trento-project/trento/internal/environments"
+	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/internal/sapsystem"
 )
-
-const TrentoPrefix string = "trento-"
-
-type HostList []*Host
-
-type Host struct {
-	consulApi.Node
-	client consul.Client
-}
-
-func (n *Host) Health() string {
-	checks, _, _ := n.client.Health().Node(n.Name(), nil)
-	return checks.AggregatedStatus()
-}
-
-func (n *Host) Name() string {
-	return n.Node.Node
-}
-
-func (n *Host) TrentoMeta() map[string]string {
-	filtered_meta := make(map[string]string)
-
-	for key, value := range n.Node.Meta {
-		if value == consul.KvUngrouped {
-			continue
-		} else if strings.HasPrefix(key, TrentoPrefix) {
-			filtered_meta[key] = value
-		}
-	}
-	return filtered_meta
-}
-
-// todo: this method was rushed, needs to be completely rewritten to have the checker webservice decoupled in a dedicated HTTP client
-func (n *Host) Checks() *check.Controls {
-	checks := &check.Controls{}
-
-	var err error
-	resp, err := http.Get(fmt.Sprintf("http://%s:%d", n.Address, 8700)) // todo: use a Consul service instead of directly addressing the node IP and port
-	if err != nil {
-		log.Print(err)
-		return nil
-	}
-
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Print(err)
-		return nil
-	}
-
-	err = json.Unmarshal(body, checks)
-	if err != nil {
-		log.Print(err)
-		return nil
-	}
-	return checks
-}
-
-func sortKeys(m map[string][]string) []string {
-	var keys []string
-	for k := range m {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	return keys
-}
-
-// Use github.com/hashicorp/go-bexpr to create the filter
-// https://github.com/hashicorp/consul/blob/master/agent/consul/catalog_endpoint.go#L298
-func CreateFilterMetaQuery(query map[string][]string) string {
-	var filters []string
-	// Need to sort the keys to have stable output. Mostly for unit testing
-	sortedQuery := sortKeys(query)
-
-	if len(query) != 0 {
-		var filter string
-		for _, key := range sortedQuery {
-			if strings.HasPrefix(key, TrentoPrefix) {
-				filter = ""
-				values := query[key]
-				for _, value := range values {
-					filter = fmt.Sprintf("%sMeta[\"%s\"] == \"%s\"", filter, key, value)
-					if values[len(values)-1] != value {
-						filter = fmt.Sprintf("%s or ", filter)
-					}
-				}
-				filters = append(filters, fmt.Sprintf("(%s)", filter))
-			}
-		}
-	}
-	return strings.Join(filters, " and ")
-}
 
 func NewHostsListHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		query := c.Request.URL.Query()
-		query_filter := CreateFilterMetaQuery(query)
+		query_filter := hosts.CreateFilterMetaQuery(query)
 		health_filter := query["health"]
 
-		hosts, err := loadHosts(client, query_filter, health_filter)
+		hosts, err := hosts.Load(client, query_filter, health_filter)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -137,29 +40,10 @@ func NewHostsListHandler(client consul.Client) gin.HandlerFunc {
 	}
 }
 
-func loadHosts(client consul.Client, query_filter string, health_filter []string) (HostList, error) {
-	var hosts = HostList{}
-
-	query := &consulApi.QueryOptions{Filter: query_filter}
-	consul_nodes, _, err := client.Catalog().Nodes(query)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not query Consul for nodes")
-	}
-	for _, node := range consul_nodes {
-		populated_host := &Host{*node, client}
-		// This check could be done in the frontend maybe
-		if len(health_filter) == 0 || internal.Contains(health_filter, populated_host.Health()) {
-			hosts = append(hosts, populated_host)
-		}
-	}
-
-	return hosts, nil
-}
-
 func loadFilters(client consul.Client) (map[string][]string, error) {
 	filter_data := make(map[string][]string)
 
-	environments, err := loadEnvironments(client)
+	environments, err := environments.Load(client)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get the filters")
 	}
@@ -215,9 +99,9 @@ func NewHostHandler(client consul.Client) gin.HandlerFunc {
 			_ = c.Error(err)
 			return
 		}
-
+		host := hosts.NewHost(*catalogNode.Node, client)
 		c.HTML(http.StatusOK, "host.html.tmpl", gin.H{
-			"Host":         &Host{*catalogNode.Node, client},
+			"Host":         &host,
 			"HealthChecks": checks,
 			"SAPSystems":   systems,
 		})
@@ -234,7 +118,7 @@ func NewCheckHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		host := &Host{*catalogNode.Node, client}
+		host := hosts.NewHost(*catalogNode.Node, client)
 		c.HTML(http.StatusOK, "ha_checks.html.tmpl", gin.H{
 			"HostName":     name,
 			"CheckID":      checkid,

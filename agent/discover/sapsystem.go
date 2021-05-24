@@ -2,6 +2,8 @@ package discover
 
 import (
 	"github.com/trento-project/trento/internal/consul"
+	"github.com/trento-project/trento/internal/environments"
+	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/internal/sapsystem"
 )
 
@@ -38,6 +40,15 @@ func (discover SAPSystemsDiscover) Discover() error {
 		if err != nil {
 			return err
 		}
+
+		// Store sap instance name on hosts metadata
+		err = storeSAPSystemTag(
+			discover.host.client,
+			s.Properties["SAPSYSTEMNAME"].Value,
+			s.Type)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -48,4 +59,60 @@ func NewSAPSystemsDiscover(client consul.Client) SAPSystemsDiscover {
 	r.id = SAPDiscoverId
 	r.host = NewDiscover(client)
 	return r
+}
+
+// These methods must go here. We cannot put them in the internal/sapsystem.go package
+// as this creates potential cyclical imports
+func getCurrentEnvironment(client consul.Client, sid string) (string, string, string, error) {
+	var env string = consul.KvUngrouped
+	var land string = consul.KvUngrouped
+	var sys string = sid
+
+	envs, err := environments.Load(client)
+	if err != nil {
+		return env, land, sys, err
+	}
+	for envKey, envValue := range envs {
+		for landKey, landValue := range envValue.Landscapes {
+			for sysKey, _ := range landValue.SAPSystems {
+				if sysKey == sys {
+					env = envKey
+					land = landKey
+					break
+				}
+			}
+		}
+	}
+	return env, land, sys, err
+}
+
+func storeSAPSystemTag(client consul.Client, sid, systemType string) error {
+	env, land, sys, err := getCurrentEnvironment(client, sid)
+	if err != nil {
+		return err
+	}
+
+	// Create a new ungrouped entry
+	if env == consul.KvUngrouped {
+		newEnv := environments.NewEnvironment(env, land, sys)
+		newEnv.Landscapes[land].SAPSystems[sys].Type = systemType
+		err := newEnv.Store(client)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Store host metadata
+	metadata := hosts.Metadata{
+		Environment: env,
+		Landscape:   land,
+		SAPSystem:   sys,
+	}
+
+	err = metadata.Store(client)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

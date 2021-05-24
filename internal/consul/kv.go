@@ -2,6 +2,8 @@ package consul
 
 import (
 	"fmt"
+	"reflect"
+	"strconv"
 	"strings"
 
 	consulApi "github.com/hashicorp/consul/api"
@@ -21,12 +23,19 @@ import (
 // Console and Agent
 
 const (
-	KvClustersPath              string = "trento/v0/clusters"
-	KvHostsPath                 string = "trento/v0/hosts"
-	KvHostsMetadataPath         string = "trento/v0/hosts/%s/metadata"
-	KvHostsSAPSystemPath        string = "trento/v0/hosts/%s/sapsystems"
-	KvEnvironmentsPath          string = "trento/v0/environments"
-	KvEnvironmentsSAPSystemPath string = "trento/v0/environments/%s/landscapes/%s/sapsystems/%s/"
+	stringFlag uint64 = 0
+	int32Flag  uint64 = 1
+	boolFlag   uint64 = 2
+	sliceFlag  uint64 = 3
+	intFlag    uint64 = 4
+
+	KvClustersPath               string = "trento/v0/clusters"
+	KvHostsPath                  string = "trento/v0/hosts"
+	KvHostsMetadataPath          string = "trento/v0/hosts/%s/metadata"
+	KvHostsSAPSystemPath         string = "trento/v0/hosts/%s/sapsystems"
+	KvHostsSAPSystemInstancePath string = "trento/v0/hosts/%s/sapsystems/%s/instances/%s"
+	KvEnvironmentsPath           string = "trento/v0/environments"
+	KvEnvironmentsSAPSystemPath  string = "trento/v0/environments/%s/landscapes/%s/sapsystems/%s/"
 
 	KvMetadataSAPEnvironment string = "sap-environment"
 	KvMetadataSAPLandscape   string = "sap-landscape"
@@ -51,7 +60,7 @@ type KV interface {
 	DeleteTree(prefix string, w *consulApi.WriteOptions) (*consulApi.WriteMeta, error)
 	ListMap(prefix, offset string) (map[string]interface{}, error)
 	PutMap(prefix string, data map[string]interface{}) error
-	PutStr(prefix string, value string) error
+	PutTyped(prefix string, value interface{}) error
 }
 
 func newKV(wrapped *consulApi.KV) KV {
@@ -114,14 +123,43 @@ func (k *kv) ListMap(prefix, offset string) (map[string]interface{}, error) {
 			continue
 		}
 
+		lastKey := ""
+		sliceFound := false
 		currentItem = result
 		keys := strings.Split(modEntry, "/")
 		for i, key := range keys {
-			if len(key) == 0 {
+			// Handle slice type
+			if sliceFound {
+				keyInt, _ := strconv.Atoi(key)
+				value := reflect.ValueOf(currentItem[lastKey])
+				if value.Len() == keyInt {
+					newSliceItem := make(map[string]interface{})
+					currentItem[lastKey] = append(currentItem[lastKey].([]interface{}), newSliceItem)
+					currentItem = newSliceItem
+				} else {
+					currentItem = value.Index(keyInt).Interface().(map[string]interface{})
+				}
+				sliceFound = false
+				continue
+				// Last element slice
+			} else if entry.Flags == sliceFlag && i == len(keys)-2 {
+				value := getTypeByFlag(entry)
+				currentItem[key] = value
 				break
+				// Other types
 			} else if i == len(keys)-1 {
-				currentItem[key] = string(entry.Value)
+				value := getTypeByFlag(entry)
+				if value != "" {
+					currentItem[key] = value
+				}
 				break
+			}
+
+			value := reflect.ValueOf(currentItem[key])
+			if value.Kind() == reflect.Slice {
+				lastKey = key
+				sliceFound = true
+				continue
 			}
 
 			if _, ok := currentItem[key]; !ok {
@@ -132,23 +170,81 @@ func (k *kv) ListMap(prefix, offset string) (map[string]interface{}, error) {
 			currentItem = item
 		}
 	}
-
 	return result, nil
+}
+
+func getTypeByFlag(entry *consulApi.KVPair) interface{} {
+	var value interface{}
+
+	switch entry.Flags {
+	case stringFlag:
+		value = string(entry.Value)
+	case int32Flag:
+		i, err := strconv.ParseInt(string(entry.Value), 10, 32)
+		if err != nil {
+			return err
+		}
+		value = int32(i)
+	case intFlag:
+		i, err := strconv.Atoi(string(entry.Value))
+		if err != nil {
+			return err
+		}
+		value = i
+	case boolFlag:
+		b, err := strconv.ParseBool(string(entry.Value))
+		if err != nil {
+			return err
+		}
+		value = b
+	case sliceFlag:
+		value = make([]interface{}, 0)
+	}
+
+	return value
 }
 
 // Store a map[string]interface data in KV storage under the prefix key
 func (k *kv) PutMap(prefix string, data map[string]interface{}) error {
+	// Empty KV directories
+	if len(data) == 0 {
+		err := k.PutTyped(fmt.Sprintf("%s/", prefix), "")
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
 	for key, value := range data {
-		switch c := value.(type) {
-		case string:
-			err := k.PutStr(fmt.Sprintf("%s/%s", prefix, key), c)
-			if err != nil {
-				return err
-			}
-		default:
+		switch reflect.ValueOf(value).Kind() {
+		case reflect.Map, reflect.Struct, reflect.Ptr:
 			mapInterface := make(map[string]interface{})
 			mapstructure.Decode(value, &mapInterface)
 			err := k.PutMap(fmt.Sprintf("%s/%s", prefix, key), mapInterface)
+			if err != nil {
+				return err
+			}
+		case reflect.Slice:
+			// Store the slice with slice flag, to be able to reload as list in the ListMap funciton
+			err := k.PutTyped(fmt.Sprintf("%s/%s/", prefix, key), []string{})
+			if err != nil {
+				return err
+			}
+
+			// Store slice elements
+			sliceValue := reflect.ValueOf(value)
+			for i := 0; i < sliceValue.Len(); i++ {
+				mapInterface := make(map[string]interface{})
+				mapstructure.Decode(sliceValue.Index(i).Interface(), &mapInterface)
+				// Index is composed by 4 digits to keep correct numbers order in KV storage
+				index := fmt.Sprintf("%04d", i)
+				err = k.PutMap(fmt.Sprintf("%s/%s/%s", prefix, key, index), mapInterface)
+				if err != nil {
+					return err
+				}
+			}
+		default:
+			err := k.PutTyped(fmt.Sprintf("%s/%s", prefix, key), value)
 			if err != nil {
 				return err
 			}
@@ -157,10 +253,26 @@ func (k *kv) PutMap(prefix string, data map[string]interface{}) error {
 	return nil
 }
 
-func (k *kv) PutStr(prefix string, value string) error {
+func (k *kv) PutTyped(prefix string, value interface{}) error {
+	var flag uint64 = stringFlag // By default string flag is used
+
+	switch reflect.ValueOf(value).Kind() {
+	case reflect.Int32:
+		flag = int32Flag
+	case reflect.Bool:
+		flag = boolFlag
+	case reflect.Slice:
+		flag = sliceFlag
+		value = ""
+	case reflect.Int:
+		flag = intFlag
+	}
+
 	_, err := k.put(&consulApi.KVPair{
 		Key:   prefix,
-		Value: []byte(value)}, nil)
+		Value: []byte(fmt.Sprintf("%v", value)),
+		Flags: flag,
+	}, nil)
 
 	if err != nil {
 		return errors.Wrap(err, "Error storing a new value in the KV storage")

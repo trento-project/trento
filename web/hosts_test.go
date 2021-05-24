@@ -48,24 +48,35 @@ func TestHostsListHandler(t *testing.T) {
 
 	filters := map[string]interface{}{
 		"env1": map[string]interface{}{
+			"name": "env1",
 			"landscapes": map[string]interface{}{
 				"land1": map[string]interface{}{
+					"name": "land1",
 					"sapsystems": map[string]interface{}{
-						"sys1": map[string]interface{}{},
+						"sys1": map[string]interface{}{
+							"name": "sys1",
+						},
 					},
 				},
 				"land2": map[string]interface{}{
+					"name": "land2",
 					"sapsystems": map[string]interface{}{
-						"sys2": map[string]interface{}{},
+						"sys2": map[string]interface{}{
+							"name": "sys2",
+						},
 					},
 				},
 			},
 		},
 		"env2": map[string]interface{}{
+			"name": "env2",
 			"landscapes": map[string]interface{}{
 				"land3": map[string]interface{}{
+					"name": "land3",
 					"sapsystems": map[string]interface{}{
-						"sys3": map[string]interface{}{},
+						"sys3": map[string]interface{}{
+							"name": "sys3",
+						},
 					},
 				},
 			},

@@ -12,11 +12,11 @@
                 </tr>
             </thead>
             <tbody>
-                {{- range .Clusters }}
+                {{- range $Name, $Cluster := .Clusters }}
                 <tr class='clickable' onclick="window.location='/clusters/{{ .Name }}'">
-                    <td>{{ .Name }}</td>
-                    <td>2</td>
-                    <td>4</td>
+                    <td>{{ $Name }}</td>
+                    <td>{{ $Cluster.Crmmon.Summary.Nodes.Number }}</td>
+                    <td>{{ $Cluster.Crmmon.Summary.Resources.Number }}</td>
                     <td>
                         <span class='badge badge-pill badge-primary'>passing</span>
                     </td>

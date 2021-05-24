@@ -1,3 +1,4 @@
-trento
-web/frontend/assets
-web/frontend/node_modules
+/trento
+/build
+/web/frontend/assets
+/web/frontend/node_modules

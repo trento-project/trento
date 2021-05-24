@@ -11,7 +11,7 @@ import (
 
 func (c *Cluster) getKVPath() string {
 	name := c.Name()
-	kvPath := fmt.Sprintf("%s/%s", consul.KvClustersPath, name)
+	kvPath := fmt.Sprintf("%s%s", consul.KvClustersPath, name)
 
 	return kvPath
 }

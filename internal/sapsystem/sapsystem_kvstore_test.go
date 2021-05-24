@@ -20,7 +20,7 @@ func TestStore(t *testing.T) {
 	kv := new(mocks.KV)
 
 	consulInst.On("KV").Return(kv)
-	kvPath := fmt.Sprintf("%s/%s", fmt.Sprintf(consul.KvHostsSAPSystemPath, host), "PRD")
+	kvPath := fmt.Sprintf("%s%s", fmt.Sprintf(consul.KvHostsSAPSystemPath, host), "PRD")
 
 	expectedPutMap := map[string]interface{}{
 		"type": "HANA",

@@ -29,7 +29,7 @@ func TestStore(t *testing.T) {
 
 	consulInst.On("KV").Return(kv)
 
-	kvPath := fmt.Sprintf("%s/%s", consul.KvClustersPath, "cluster_name")
+	kvPath := fmt.Sprintf("%s%s", consul.KvClustersPath, "cluster_name")
 
 	expectedPutMap := map[string]interface{}{
 		"cib": map[string]interface{}{

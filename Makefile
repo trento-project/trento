@@ -1,15 +1,24 @@
+GO_BUILD = CGO_ENABLED=0 go build -trimpath -ldflags "-s -w"
+ARCHS ?= amd64 arm64 ppc64le s390x
+
 default: clean mod-tidy fmt vet-check test build
 
-.PHONY: build clean clean-binary clean-frontend default fmt fmt-check generate mod-tidy test vet-check web-assets
+.PHONY: build clean clean-binary clean-frontend cross-compiled default fmt fmt-check generate mod-tidy test vet-check web-assets
 
 build: trento
 trento: web-assets
-	CGO_ENABLED=0 go build -trimpath -ldflags '-s -w'
+	$(GO_BUILD)
+
+cross-compiled: $(ARCHS)
+$(ARCHS): web-assets
+	@mkdir -p build
+	GOOS=linux GOARCH=$@ $(GO_BUILD) -o build/trento-$@
 
 clean: clean-binary clean-frontend
 
 clean-binary:
 	go clean
+	rm -rf build
 
 clean-frontend:
 	rm -rf web/frontend/assets

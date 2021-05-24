@@ -1,20 +1,34 @@
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  release:
+    types: [ published, created, edited ]
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-20.04
     steps:
+    - uses: actions/checkout@v2
     - uses: actions/setup-go@v2
       with:
         go-version: ^1.16
-      id: go
-    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2
+      with:
+        node-version: '15'
     - uses: actions/cache@v2
+      id: go-cache
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-
+    - uses: actions/cache@v2
+      id: npm-cache
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
     - name: install-mockery
       run: go get github.com/vektra/mockery/v2
     - name: test
@@ -23,3 +37,28 @@ jobs:
       run: make vet-check
     - name: coding styles
       run: make fmt-check
+    - name: build
+      run: make -j4 cross-compiled
+    - name: compress
+      run: |
+        set -x
+        for FILE in build/*; do
+          gzip $FILE
+        done
+    - uses: actions/upload-artifact@v2
+      with:
+        name: trento-binaries
+        path: build
+
+  upload-release-assets:
+    needs: build
+    if: github.event.release
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: trento-binaries
+      - uses: AButler/upload-release-assets@v2.0
+        with:
+          files: 'trento-*'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}

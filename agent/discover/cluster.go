@@ -3,7 +3,7 @@ package discover
 import (
 	"github.com/trento-project/trento/internal/cluster"
 	"github.com/trento-project/trento/internal/consul"
-	"github.com/trento-project/trento/internal/environments"
+	"github.com/trento-project/trento/internal/hosts"
 )
 
 const ClusterDiscoverId string = "discover_cluster"
@@ -50,8 +50,9 @@ func (discover ClusterDiscover) Discover() error {
 }
 
 func storeClusterMetadata(client consul.Client, clusterName string) error {
-	metadata := environments.NewMetadata()
-	metadata.Cluster = clusterName
+	metadata := hosts.Metadata{
+		Cluster: clusterName,
+	}
 	err := metadata.Store(client)
 	if err != nil {
 		return err

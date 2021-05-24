@@ -6,36 +6,74 @@ import (
 	"regexp"
 	"testing"
 
-	consulApi "github.com/hashicorp/consul/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/tdewolff/minify/v2"
 	"github.com/tdewolff/minify/v2/html"
-	consul_internal "github.com/trento-project/trento/internal/consul"
+	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/consul/mocks"
 )
 
 func TestClustersListHandler(t *testing.T) {
-	clusters := consulApi.KVPairs{
-		&consulApi.KVPair{
-			Key: consul_internal.KvClustersPath + "/",
+	listMap := map[string]interface{}{
+		"test_cluster": map[string]interface{}{
+			"cib": map[string]interface{}{
+				"Configuration": map[string]interface{}{
+					"CrmConfig": map[string]interface{}{
+						"ClusterProperties": []interface{}{
+							map[string]interface{}{
+								"Id":    "cib-bootstrap-options-cluster-name",
+								"Value": "test_cluster",
+							},
+						},
+					},
+				},
+			},
+			"crmmon": map[string]interface{}{
+				"Summary": map[string]interface{}{
+					"Nodes": map[string]interface{}{
+						"Number": 3,
+					},
+					"Resources": map[string]interface{}{
+						"Number": 5,
+					},
+				},
+			},
 		},
-		&consulApi.KVPair{
-			Key: consul_internal.KvClustersPath + "/cluster1/",
-		},
-		&consulApi.KVPair{
-			Key: consul_internal.KvClustersPath + "/cluster2/",
+		"2nd_cluster": map[string]interface{}{
+			"cib": map[string]interface{}{
+				"Configuration": map[string]interface{}{
+					"CrmConfig": map[string]interface{}{
+						"ClusterProperties": []interface{}{
+							map[string]interface{}{
+								"Id":    "cib-bootstrap-options-cluster-name",
+								"Value": "2nd_cluster",
+							},
+						},
+					},
+				},
+			},
+			"crmmon": map[string]interface{}{
+				"Summary": map[string]interface{}{
+					"Nodes": map[string]interface{}{
+						"Number": 2,
+					},
+					"Resources": map[string]interface{}{
+						"Number": 10,
+					},
+				},
+			},
 		},
 	}
 
-	consul := new(mocks.Client)
+	consulInst := new(mocks.Client)
 	kv := new(mocks.KV)
 
-	consul.On("KV").Return(kv)
+	consulInst.On("KV").Return(kv)
 
-	kv.On("List", consul_internal.KvClustersPath+"/", (*consulApi.QueryOptions)(nil)).Return(clusters, nil, nil)
+	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(listMap, nil)
 
 	deps := DefaultDependencies()
-	deps.consul = consul
+	deps.consul = consulInst
 
 	var err error
 	app, err := NewAppWithDeps("", 80, deps)
@@ -51,7 +89,7 @@ func TestClustersListHandler(t *testing.T) {
 
 	app.ServeHTTP(resp, req)
 
-	consul.AssertExpectations(t)
+	consulInst.AssertExpectations(t)
 	kv.AssertExpectations(t)
 
 	m := minify.New()
@@ -67,6 +105,6 @@ func TestClustersListHandler(t *testing.T) {
 
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, minified, "Clusters")
-	assert.Regexp(t, regexp.MustCompile("<td>cluster1</td><td>2</td><td>4</td><td>.*passing.*</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td>cluster2</td><td>2</td><td>4</td><td>.*passing.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td>test_cluster</td><td>3</td><td>5</td><td>.*passing.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td>2nd_cluster</td><td>2</td><td>10</td><td>.*passing.*</td>"), minified)
 }

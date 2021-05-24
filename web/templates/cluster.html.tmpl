@@ -4,9 +4,9 @@
     <h1>Cluster details</h1>
     <dl class="inline">
       <dt class="inline">Hosts number</dt>
-      <dd class="inline">{{ .Cluster.Crmmon.Summary.Nodes.Number }}</a></dd>
+      <dd class="inline">{{ .Cluster.Crmmon.Summary.Nodes.Number }}</dd>
       <dt class="inline">Resource number</dt>
-      <dd class="inline">{{ .Cluster.Crmmon.Summary.Resources.Number }}</a></dd>
+      <dd class="inline">{{ .Cluster.Crmmon.Summary.Resources.Number }}</dd>
       {{- range .Cluster.Cib.Configuration.CrmConfig.ClusterProperties }}
       <dt class="inline">{{ .Id }}</dt>
       <dd class="inline">{{ .Value }}</dd>

@@ -97,7 +97,7 @@ func (r *LayoutRender) addFileFromFS(templatesFS fs.FS, file string) {
 		"sum": func(a int, b int) int {
 			return a + b
 		},
-		"markdown": markdownTemplateFunc(),
+		"markdown": markdownTemplateFunc,
 	})
 	patterns := append([]string{r.root, file}, r.blocks...)
 	tmpl = template.Must(tmpl.ParseFS(templatesFS, patterns...))
@@ -105,18 +105,15 @@ func (r *LayoutRender) addFileFromFS(templatesFS fs.FS, file string) {
 	r.addTemplate(name, tmpl)
 }
 
-func markdownTemplateFunc() func(md string) template.HTML {
+func markdownTemplateFunc(md string) template.HTML {
 	extensions := parser.CommonExtensions | parser.AutoHeadingIDs
 	markdownParser := parser.NewWithExtensions(extensions)
 
 	htmlFlags := html.CommonFlags | html.HrefTargetBlank
 	htmlOptions := html.RendererOptions{Flags: htmlFlags}
 	markdownRenderer := html.NewRenderer(htmlOptions)
-
-	return func(md string) template.HTML {
-		h := markdown.ToHTML([]byte(md), markdownParser, markdownRenderer)
-		return template.HTML(h)
-	}
+	h := markdown.ToHTML([]byte(md), markdownParser, markdownRenderer)
+	return template.HTML(h)
 }
 
 // addTemplate adds a new user template to the render

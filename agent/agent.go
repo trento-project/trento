@@ -16,6 +16,8 @@ import (
 	"github.com/trento-project/trento/internal/consul"
 )
 
+const haConfigCheckerId = "ha_config_checker"
+
 type Agent struct {
 	cfg              Config
 	check            Checker
@@ -95,7 +97,7 @@ func DefaultConfig() (Config, error) {
 
 	return Config{
 		InstanceName:     hostname,
-		DiscoverInterval: 15 * time.Second,
+		DiscoverInterval: 2 * time.Minute,
 		CheckerTTL:       10 * time.Second,
 	}, nil
 }
@@ -188,8 +190,8 @@ func (a *Agent) registerConsulService() error {
 		Tags: []string{"trento"},
 		Checks: consulApi.AgentServiceChecks{
 			&consulApi.AgentServiceCheck{
-				CheckID: "ha_config_checks",
-				Name:    "HA config checks",
+				CheckID: haConfigCheckerId,
+				Name:    "HA Config Checker",
 				Notes:   "Checks whether or not the HA configuration is compliant with the provided best practices",
 				TTL:     a.cfg.CheckerTTL.String(),
 				Status:  consulApi.HealthWarning,
@@ -296,7 +298,7 @@ func (a *Agent) updateConsulCheck(result CheckResult) {
 
 	checkOutput := fmt.Sprintf("%s\nFor more detailed info, query this service at port %d.",
 		result.String(), a.cfg.WebPort)
-	err = a.consul.Agent().UpdateTTL("ha_checks", checkOutput, status)
+	err = a.consul.Agent().UpdateTTL(haConfigCheckerId, checkOutput, status)
 	if err != nil {
 		log.Println("An error occurred while trying to update TTL with Consul:", err)
 		return

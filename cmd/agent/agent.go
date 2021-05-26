@@ -46,10 +46,7 @@ func NewAgentCmd() *cobra.Command {
 	startCmd.Flags().StringVarP(&templatePath, "consul-template", "", "examples/trento-config.tpl", "consul-template template to populate the node meta-data")
 	startCmd.Flags().StringVarP(&configDir, "config-dir", "", "consul.d", "Consul configuration directory used to store the trento meta-data file")
 
-	must(startCmd.MarkFlagRequired("service-name"))
-
 	agentCmd.AddCommand(startCmd)
-
 	agentCmd.AddCommand(runOnceCmd)
 
 	return agentCmd

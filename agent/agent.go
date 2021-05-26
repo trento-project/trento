@@ -33,11 +33,11 @@ type Agent struct {
 
 type Config struct {
 	CheckerTTL       time.Duration
+	DiscoveryTTL     time.Duration
 	WebHost          string
 	WebPort          int
 	InstanceName     string
 	DefinitionsPaths []string
-	DiscoverInterval time.Duration
 	ConsulConfigDir  string
 }
 
@@ -95,9 +95,9 @@ func DefaultConfig() (Config, error) {
 	}
 
 	return Config{
-		InstanceName:     hostname,
-		DiscoverInterval: 2 * time.Minute,
-		CheckerTTL:       10 * time.Second,
+		InstanceName: hostname,
+		DiscoveryTTL: 2 * time.Minute,
+		CheckerTTL:   10 * time.Second,
 	}, nil
 }
 
@@ -199,14 +199,14 @@ func (a *Agent) registerConsulService() error {
 				CheckID: discovery.ClusterDiscoveryId,
 				Name:    "HA Cluster Discovery",
 				Notes:   "Collects details about the HA Cluster components running on this node",
-				TTL:     a.cfg.DiscoverInterval.String(),
+				TTL:     a.cfg.DiscoveryTTL.String(),
 				Status:  consulApi.HealthWarning,
 			},
 			&consulApi.AgentServiceCheck{
 				CheckID: discovery.SAPDiscoveryId,
 				Name:    "SAP System Discovery",
 				Notes:   "Collects details about SAP System components running on this node",
-				TTL:     a.cfg.DiscoverInterval.String(),
+				TTL:     a.cfg.DiscoveryTTL.String(),
 				Status:  consulApi.HealthWarning,
 			},
 		},
@@ -262,7 +262,7 @@ func (a *Agent) startDiscoverTicker() {
 		}
 	}
 
-	interval := a.cfg.DiscoverInterval / 2
+	interval := a.cfg.DiscoveryTTL / 2
 
 	repeat(tick, interval, a.ctx)
 }

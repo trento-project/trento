@@ -14,7 +14,7 @@ import (
 	"github.com/trento-project/trento/agent"
 )
 
-const metaDataFile string = "trento-config.json"
+const metaDataFile string = "trento-metadata.json"
 
 var TTL time.Duration
 var serviceName string

@@ -6,7 +6,7 @@ import (
 	"github.com/trento-project/trento/internal/hosts"
 )
 
-const ClusterDiscoveryId string = "discover_cluster"
+const ClusterDiscoveryId string = "ha_cluster_discovery"
 
 // This Discover handles any Pacemaker Cluster type
 type ClusterDiscovery struct {

@@ -121,10 +121,10 @@ func (a *Agent) Start() error {
 	}()
 
 	var wg sync.WaitGroup
-	// This number must match the number threads attached to the WaitGroup object
-	wg.Add(4)
+
 	errs := make(chan error, 4)
 
+	wg.Add(1)
 	// The Checker Loop is handling the compliance-checks being executed regularly
 	// and reporting a Service Status (WARN/FAIL)
 	go func(wg *sync.WaitGroup) {
@@ -134,6 +134,7 @@ func (a *Agent) Start() error {
 		log.Println("Check loop stopped.")
 	}(&wg)
 
+	wg.Add(1)
 	// The Discover Loop is executing at a much slower pace than the Checker Loop
 	// and will keep namespaces in Key-Value Consul store updated with specific facts
 	// discovered on the node
@@ -144,11 +145,13 @@ func (a *Agent) Start() error {
 		log.Println("Discover loop stopped.")
 	}(&wg)
 
+	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
 		errs <- a.webService.Start(a.cfg.WebHost, a.cfg.WebPort, a.ctx)
 	}(&wg)
 
+	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
 		log.Println("Starting consul-template loop...")
 		defer wg.Done()
@@ -182,11 +185,11 @@ func (a *Agent) registerConsulService() error {
 
 	consulService := &consulApi.AgentServiceRegistration{
 		ID:   a.cfg.InstanceName,
-		Name: a.cfg.ServiceName,
-		Tags: []string{"trento-agent"},
+		Name: "trento-agent",
+		Tags: []string{"trento"},
 		Checks: consulApi.AgentServiceChecks{
 			&consulApi.AgentServiceCheck{
-				CheckID: "ha_checks",
+				CheckID: "ha_config_checks",
 				Name:    "HA config checks",
 				Notes:   "Checks whether or not the HA configuration is compliant with the provided best practices",
 				TTL:     a.cfg.CheckerTTL.String(),
@@ -194,16 +197,16 @@ func (a *Agent) registerConsulService() error {
 			},
 			&consulApi.AgentServiceCheck{
 				CheckID: discovery.ClusterDiscoveryId,
-				Name:    "Node Cluster State Discovery",
-				Notes:   "Collects details about Cluster State",
-				TTL:     "30m",
+				Name:    "HA Cluster Discovery",
+				Notes:   "Collects details about the HA Cluster components running on this node",
+				TTL:     a.cfg.DiscoverInterval.String(),
 				Status:  consulApi.HealthWarning,
 			},
 			&consulApi.AgentServiceCheck{
 				CheckID: discovery.SAPDiscoveryId,
-				Name:    "Node SAP system Discovery",
-				Notes:   "Collects details about installed SAP systems",
-				TTL:     "30m",
+				Name:    "SAP System Discovery",
+				Notes:   "Collects details about SAP System components running on this node",
+				TTL:     a.cfg.DiscoverInterval.String(),
 				Status:  consulApi.HealthWarning,
 			},
 		},
@@ -251,13 +254,21 @@ func (a *Agent) startDiscoverTicker() error {
 	for {
 		select {
 		case <-ticker.C:
-			for i := 0; i < len(a.discoveries); i++ {
-				err := a.discoveries[i].Discover()
+			for _, discovery := range a.discoveries {
+				var status string
+				var err error
+
+				err = discovery.Discover()
 				if err != nil {
-					log.Println("Error while discovering: ", err)
-					a.consul.Agent().UpdateTTL(a.discoveries[i].GetId(), "", consulApi.HealthWarning)
+					log.Printf("Error while running discovery '%s': %s", discovery.GetId(), err)
+					status = consulApi.HealthWarning
 				} else {
-					a.consul.Agent().UpdateTTL(a.discoveries[i].GetId(), "", consulApi.HealthPassing)
+					status = consulApi.HealthPassing
+				}
+
+				err = a.consul.Agent().UpdateTTL(discovery.GetId(), "", status)
+				if err != nil {
+					log.Println("An error occurred while trying to update TTL with Consul:", err)
 				}
 			}
 

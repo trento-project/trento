@@ -33,7 +33,6 @@ type Config struct {
 	CheckerTTL          time.Duration
 	WebHost             string
 	WebPort             int
-	ServiceName         string
 	InstanceName        string
 	DefinitionsPaths    []string
 	DiscoverInterval    time.Duration

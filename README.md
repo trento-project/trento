@@ -123,12 +123,14 @@ mkdir consul.d
 
 Now we can start the agent:
 ```shell
-./consul agent -node=test -data-dir=consul-agent-data -bind=127.0.0.2 -client=127.0.0.2 -retry-join=127.0.0.1 -ui -config-dir=./consul.d
+./consul agent -data-dir=consul-agent-data -bind=127.0.0.2 -client=127.0.0.2 -retry-join=127.0.0.1 -config-dir=./consul.d
 ```
 
+#### Notes:
 
-> Production deployments require multiple instances for the consult agents. Be
-> sure to check [consul's deployment guide](https://learn.hashicorp.com/tutorials/consul/deployment-guide#configure-consul-agents)
+1. Production deployments require at least three server instances of the Consul agents to ensure fault-tolerance. Be
+   sure to check [Consul's deployment guide](https://learn.hashicorp.com/tutorials/consul/deployment-guide#configure-consul-agents).
+2. While Consul provides a `-dev` flag to run a standalone, stateless server agent, Trento does not support this mode: it needs a persistent server even during development.
 
 ## Trento agents
 
@@ -141,7 +143,7 @@ mechanisms will not be able to report any usable information.
 To start the trento agent:
 
 ```shell
-./trento agent start -n $name examples/azure-rules.yaml
+./trento agent start examples/azure-rules.yaml
 ```
 
 > Note that we are using `azure-rules.yaml` in this example which collect azure

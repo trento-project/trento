@@ -97,7 +97,7 @@ func (r *LayoutRender) addFileFromFS(templatesFS fs.FS, file string) {
 		"sum": func(a int, b int) int {
 			return a + b
 		},
-		"markdown": markdownTemplateFunc,
+		"markdown": markdownToHTML,
 	})
 	patterns := append([]string{r.root, file}, r.blocks...)
 	tmpl = template.Must(tmpl.ParseFS(templatesFS, patterns...))
@@ -105,7 +105,7 @@ func (r *LayoutRender) addFileFromFS(templatesFS fs.FS, file string) {
 	r.addTemplate(name, tmpl)
 }
 
-func markdownTemplateFunc(md string) template.HTML {
+func markdownToHTML(md string) template.HTML {
 	extensions := parser.CommonExtensions | parser.AutoHeadingIDs
 	markdownParser := parser.NewWithExtensions(extensions)
 

@@ -85,7 +85,7 @@ To build the entire application you will need the following dependencies:
 Additionally, for the development we use:
   - [`Mockery`](https://github.com/vektra/mockery) ^2
 
-> See [Development section](#development) for details on how to install `mockery`.
+> See the [Development](#development) section for details on how to install `mockery`.
 
 # Installation
 
@@ -223,8 +223,7 @@ Feel free to peek at the [Makefile](Makefile) to know more.
 As stated above, we use [`mockery`](https://github.com/vektra/mockery) for the `generate` target, which in turn is required for the `test` target.
 You can install it with `go install github.com/vektra/mockery/v2@latest`.
 
-> **Note**  
-> Be sure to add the `mockery` binary to your `$PATH` environment variable so that `make` can find it.
+> Be sure to add the `mockery` binary to your `$PATH` environment variable so that `make` can find it. That usually comes with configuring `$GOPATH`, `$GOBIN`, and adding the latter to your `$PATH`.
 
 ## Docker
 

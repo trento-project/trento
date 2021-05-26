@@ -7,7 +7,7 @@ import (
 	"github.com/trento-project/trento/internal/sapsystem"
 )
 
-const SAPDiscoveryId string = "discover_sap"
+const SAPDiscoveryId string = "sap_system_discovery"
 
 type SAPSystemsDiscovery struct {
 	id         string

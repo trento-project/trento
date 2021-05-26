@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"path"
 	"syscall"
 	"time"
 
@@ -14,13 +13,9 @@ import (
 	"github.com/trento-project/trento/agent"
 )
 
-const metaDataFile string = "trento-config.json"
-
 var TTL time.Duration
-var serviceName string
 var port int
-var templatePath string
-var configDir string
+var consulConfigDir string
 
 func NewAgentCmd() *cobra.Command {
 
@@ -43,15 +38,10 @@ func NewAgentCmd() *cobra.Command {
 		Args:  startArgsValidator,
 	}
 	startCmd.Flags().DurationVar(&TTL, "ttl", time.Second*10, "Duration of Consul TTL checks")
-	startCmd.Flags().StringVarP(&serviceName, "service-name", "n", "", "The name of the service this agent will monitor")
 	startCmd.Flags().IntVarP(&port, "port", "p", 8700, "The TCP port to use for the web service")
-	startCmd.Flags().StringVarP(&templatePath, "consul-template", "", "examples/trento-config.tpl", "consul-template template to populate the node meta-data")
-	startCmd.Flags().StringVarP(&configDir, "config-dir", "", "consul.d", "Consul configuration directory used to store the trento meta-data file")
-
-	must(startCmd.MarkFlagRequired("service-name"))
+	startCmd.Flags().StringVarP(&consulConfigDir, "consul-config-dir", "", "consul.d", "Consul configuration directory used to store node meta-data")
 
 	agentCmd.AddCommand(startCmd)
-
 	agentCmd.AddCommand(runOnceCmd)
 
 	return agentCmd
@@ -85,11 +75,9 @@ func start(cmd *cobra.Command, args []string) {
 	}
 
 	cfg.DefinitionsPaths = args
-	cfg.ServiceName = serviceName
 	cfg.WebPort = port
 	cfg.CheckerTTL = TTL
-	cfg.TemplateSource = templatePath
-	cfg.TemplateDestination = path.Join(configDir, metaDataFile)
+	cfg.ConsulConfigDir = consulConfigDir
 
 	a, err := agent.NewWithConfig(cfg)
 	if err != nil {

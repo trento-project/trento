@@ -1,31 +1,22 @@
 # Tagging the systems
 
-In order to group and filter the systems a tagging mechanism can be used. This tags are placed as
-meta-data in the agent nodes. Find information about how to set meta-data in the agents at: https://www.consul.io/docs/agent/options#node_meta
+In order to group and filter the various Hosts into a hierarchy of Systems, Landscapes and Environments we leverage the Consul tagging mechanism. These tags are stored as
+node meta-data in a static Consul configuration file ([read more in the Consul docs](https://www.consul.io/docs/agent/options#node_meta)).
 
-As an example, check the [meta-data file](./examples/trento-config.json) file. This file must be
-located in the folder set as `-config-dir` during the agent execution.
+The Trento Agent uses the `--consul-config-dir` flag to set the path where Consul auto-loads configuration files: the node meta-data will be stored there as `trento-metadata.json`.
 
-The next items are reserved:
+The following keys will be used for the node meta-data:
 - `trento-ha-cluster`: Cluster which the system belongs to
 - `trento-sap-environment`: Environment in which the system is running
 - `trento-sap-landscape`: Landscape in which the system is running
 - `trento-sap-environment`: SAP system (composed by database and application) in which the system is running
 
-## Setting the tags from the KV storage
+These tags are automatically set and updated by [consul-template](https://github.com/hashicorp/consul-template), which we run embedded within our Trento Agent.
 
-These reserved tags can be automatically set and updated using the [consul-template](https://github.com/hashicorp/consul-template).
-To achieve this, the tags information will come from the KV storage.
-
-The metadata will be set in the next paths:
+The metadata will be set under the following Consul KV store paths:
 - `trento/v0/hosts/$(hostname)/metadata/ha-cluster`
 - `trento/v0/hosts/$(hostname)/metadata/sap-environment`
 - `trento/v0/hosts/$(hostname)/metadata/sap-landscape`
 - `trento/v0/hosts/$(hostname)/metadata/sap-system`
 
-Notice that a new entry will be created for each node.
-
-`consul-template` starts directly with the `trento` agent. It provides some configuration options to synchronize the utility with the consul agent.
-
-- `config-dir`: Consul agent configuration directory; defaults to `consul.d`. The `consul-template` component running within `trento agent` will create the Trento node meta-data configuration file there. (i.e. `consul.d/trento-config.json`).
-- `consul-template`: Template used to populate the trento meta-data configuration file (by default [meta-data file][./examples/trento-config.json] is used).
+Note that a new entry will be created for each node.

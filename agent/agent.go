@@ -16,6 +16,8 @@ import (
 	"github.com/trento-project/trento/internal/consul"
 )
 
+const haConfigCheckerId = "ha_config_checker"
+
 type Agent struct {
 	cfg              Config
 	check            Checker
@@ -30,15 +32,13 @@ type Agent struct {
 }
 
 type Config struct {
-	CheckerTTL          time.Duration
-	WebHost             string
-	WebPort             int
-	ServiceName         string
-	InstanceName        string
-	DefinitionsPaths    []string
-	DiscoverInterval    time.Duration
-	TemplateSource      string
-	TemplateDestination string
+	CheckerTTL       time.Duration
+	DiscoveryTTL     time.Duration
+	WebHost          string
+	WebPort          int
+	InstanceName     string
+	DefinitionsPaths []string
+	ConsulConfigDir  string
 }
 
 func New() (*Agent, error) {
@@ -62,7 +62,7 @@ func NewWithConfig(cfg Config) (*Agent, error) {
 		return nil, errors.Wrap(err, "could not create a Checker instance")
 	}
 
-	templateRunner, err := NewTemplateRunner(cfg.TemplateSource, cfg.TemplateDestination)
+	templateRunner, err := NewTemplateRunner(cfg.ConsulConfigDir)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create the consul template runner")
 	}
@@ -95,9 +95,9 @@ func DefaultConfig() (Config, error) {
 	}
 
 	return Config{
-		InstanceName:     hostname,
-		DiscoverInterval: 15 * time.Second,
-		CheckerTTL:       10 * time.Second,
+		InstanceName: hostname,
+		DiscoveryTTL: 2 * time.Minute,
+		CheckerTTL:   10 * time.Second,
 	}, nil
 }
 
@@ -121,54 +121,46 @@ func (a *Agent) Start() error {
 	}()
 
 	var wg sync.WaitGroup
-	// This number must match the number threads attached to the WaitGroup object
-	wg.Add(4)
-	errs := make(chan error, 4)
 
+	wg.Add(1)
 	// The Checker Loop is handling the compliance-checks being executed regularly
 	// and reporting a Service Status (WARN/FAIL)
 	go func(wg *sync.WaitGroup) {
 		log.Println("Starting Check loop...")
 		defer wg.Done()
-		errs <- a.startCheckTicker()
+		a.startCheckTicker()
 		log.Println("Check loop stopped.")
 	}(&wg)
 
+	wg.Add(1)
 	// The Discover Loop is executing at a much slower pace than the Checker Loop
 	// and will keep namespaces in Key-Value Consul store updated with specific facts
 	// discovered on the node
 	go func(wg *sync.WaitGroup) {
 		log.Println("Starting Discover loop...")
 		defer wg.Done()
-		errs <- a.startDiscoverTicker()
+		a.startDiscoverTicker()
 		log.Println("Discover loop stopped.")
 	}(&wg)
 
+	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
-		errs <- a.webService.Start(a.cfg.WebHost, a.cfg.WebPort, a.ctx)
+		err := a.webService.Start(a.cfg.WebHost, a.cfg.WebPort, a.ctx)
+		if err != nil {
+			log.Println("Error while starting the Agent web service:", err)
+		}
 	}(&wg)
 
+	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
 		log.Println("Starting consul-template loop...")
 		defer wg.Done()
-		errs <- a.startConsulTemplate()
+		a.startConsulTemplate()
 		log.Println("consul-template loop stopped.")
 	}(&wg)
 
-	// As soon as all the goroutines in the Waitgroup are done, close the channel where the errors are sent
-	go func() {
-		wg.Wait()
-		close(errs)
-	}()
-
-	// Scroll the errors channel and return as soon as one of the goroutines fails.
-	// This will block until the errors channel is closed.
-	for err := range errs {
-		if err != nil {
-			return err
-		}
-	}
+	wg.Wait()
 
 	return nil
 }
@@ -182,28 +174,28 @@ func (a *Agent) registerConsulService() error {
 
 	consulService := &consulApi.AgentServiceRegistration{
 		ID:   a.cfg.InstanceName,
-		Name: a.cfg.ServiceName,
-		Tags: []string{"trento-agent"},
+		Name: "trento-agent",
+		Tags: []string{"trento"},
 		Checks: consulApi.AgentServiceChecks{
 			&consulApi.AgentServiceCheck{
-				CheckID: "ha_checks",
-				Name:    "HA config checks",
+				CheckID: haConfigCheckerId,
+				Name:    "HA Config Checker",
 				Notes:   "Checks whether or not the HA configuration is compliant with the provided best practices",
 				TTL:     a.cfg.CheckerTTL.String(),
 				Status:  consulApi.HealthWarning,
 			},
 			&consulApi.AgentServiceCheck{
 				CheckID: discovery.ClusterDiscoveryId,
-				Name:    "Node Cluster State Discovery",
-				Notes:   "Collects details about Cluster State",
-				TTL:     "30m",
+				Name:    "HA Cluster Discovery",
+				Notes:   "Collects details about the HA Cluster components running on this node",
+				TTL:     a.cfg.DiscoveryTTL.String(),
 				Status:  consulApi.HealthWarning,
 			},
 			&consulApi.AgentServiceCheck{
 				CheckID: discovery.SAPDiscoveryId,
-				Name:    "Node SAP system Discovery",
-				Notes:   "Collects details about installed SAP systems",
-				TTL:     "30m",
+				Name:    "SAP System Discovery",
+				Notes:   "Collects details about SAP System components running on this node",
+				TTL:     a.cfg.DiscoveryTTL.String(),
 				Status:  consulApi.HealthWarning,
 			},
 		},
@@ -217,54 +209,51 @@ func (a *Agent) registerConsulService() error {
 	return nil
 }
 
-func (a *Agent) startCheckTicker() error {
-	ticker := time.NewTicker(a.cfg.CheckerTTL / 2)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ticker.C:
-			result, err := a.check()
-			if err != nil {
-				log.Println("An error occurred while running health checks:", err)
-				continue
-			}
-			a.wsResultChan <- result
-			a.updateConsulCheck(result)
-		case <-a.ctx.Done():
-			close(a.wsResultChan)
-			return nil
+func (a *Agent) startCheckTicker() {
+	tick := func() {
+		result, err := a.check()
+		if err != nil {
+			log.Println("An error occurred while running health checks:", err)
+			return
 		}
+		a.wsResultChan <- result
+		a.updateConsulCheck(result)
 	}
+	defer close(a.wsResultChan)
+
+	interval := a.cfg.CheckerTTL / 2
+
+	repeat(tick, interval, a.ctx)
 }
 
 // Start a Ticker loop that will iterate over the hardcoded list of Discovery backends
 // and execute them. The initial run will happen relatively quickly after Agent launch
 // subsequent runs are done with a 15 minute delay. The effectiveness of the discoveries
 // is reported back in the "discover_cluster" Service in consul under a TTL of 60 minutes
-func (a *Agent) startDiscoverTicker() error {
-	ticker := time.NewTicker(a.cfg.DiscoverInterval / 2)
-	// Repeat after 15 minutes
-	if a.cfg.DiscoverInterval < time.Minute {
-		a.cfg.DiscoverInterval = 15 * time.Minute
-	}
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ticker.C:
-			for i := 0; i < len(a.discoveries); i++ {
-				err := a.discoveries[i].Discover()
-				if err != nil {
-					log.Println("Error while discovering: ", err)
-					a.consul.Agent().UpdateTTL(a.discoveries[i].GetId(), "", consulApi.HealthWarning)
-				} else {
-					a.consul.Agent().UpdateTTL(a.discoveries[i].GetId(), "", consulApi.HealthPassing)
-				}
+func (a *Agent) startDiscoverTicker() {
+	tick := func() {
+		for _, d := range a.discoveries {
+			var status string
+			var err error
+
+			err = d.Discover()
+			if err != nil {
+				log.Printf("Error while running discovery '%s': %s", d.GetId(), err)
+				status = consulApi.HealthWarning
+			} else {
+				status = consulApi.HealthPassing
 			}
 
-		case <-a.ctx.Done():
-			return nil
+			err = a.consul.Agent().UpdateTTL(d.GetId(), "", status)
+			if err != nil {
+				log.Println("An error occurred while trying to update TTL with Consul:", err)
+			}
 		}
 	}
+
+	interval := a.cfg.DiscoveryTTL / 2
+
+	repeat(tick, interval, a.ctx)
 }
 
 func (a *Agent) updateConsulCheck(result CheckResult) {
@@ -286,11 +275,27 @@ func (a *Agent) updateConsulCheck(result CheckResult) {
 
 	checkOutput := fmt.Sprintf("%s\nFor more detailed info, query this service at port %d.",
 		result.String(), a.cfg.WebPort)
-	err = a.consul.Agent().UpdateTTL("ha_checks", checkOutput, status)
+	err = a.consul.Agent().UpdateTTL(haConfigCheckerId, checkOutput, status)
 	if err != nil {
 		log.Println("An error occurred while trying to update TTL with Consul:", err)
 		return
 	}
 
 	log.Printf("Consul check TTL updated. Status: %s.", status)
+}
+
+func repeat(tick func(), interval time.Duration, ctx context.Context) {
+	// run the first tick immediately
+	tick()
+
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			tick()
+		case <-ctx.Done():
+			return
+		}
+	}
 }

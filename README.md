@@ -17,6 +17,7 @@ As opposed to that first iteration, this new one will focus more on operations
 of existing clusters, rather than deploying new one.
 
 # Table of contents
+
 - [Features](#features)
 - [Requirements](#requirements)
   * [Build dependencies](#build-dependencies)
@@ -36,17 +37,23 @@ of existing clusters, rather than deploying new one.
 - [Contributing](#contributing)
 - [License](#license)
 
+
 # Features
 
-T.B.D.
+- Automated discovery of SAP HANA HA clusters;
+- SAP Systems and Instances overview;
+- Grouping by Landscapes and Environments;
+- Configuration validation for Pacemaker, Corosync, SBD, SAPHanaSR and other generic _SUSE Linux Enterprise for SAP Application_ OS settings (a.k.a. the _HA Checks_);
+- Specific configuration audits for SAP HANA Scale-Up Performance-Optimized scenarios deployed on MS Azure cloud.
 
 # Requirements
-While the `trento` web service component has been tested so far on openSUSE 15.2
-and SLES 15 SP2 it should be able to run on most modern Linux distributions.
 
-While the agent could also run in openSUSE, it does not make much sense as it
-needs to interact with different components that act as base for SAP applications
-which are required to be run in a 
+While the `trento web` component has been tested so far on openSUSE 15.2
+and SLES 15 SP2, it should be able to run on most modern Linux distributions.
+
+The agent could in theory also run on openSUSE, but it does not make much sense as it
+needs to interact with different low-level SAP applications components 
+which are expected to be run in a 
 [SLES for SAP](https://www.suse.com/products/sles-for-sap/) installation.
 
 ## Build dependencies
@@ -69,7 +76,14 @@ Additionally, for the development we use:
   - [`Mockery`](https://github.com/vektra/mockery) ^2
 
 > See [Development section](#development) for details on how to configure `mockery`
+
 # Installation
+
+## From binaries
+
+You can grab statically linked binaries from the any of the [GitHub releases](https://github.com/trento-project/trento/releases).
+
+## Manual
 
 This project is in development so, for the time being, you need to clone it and
 build it manually:
@@ -80,65 +94,61 @@ cd trento
 make build
 ```
 
-Pre-built binaries will be available soon.
+Pre-built binaries are made availbe for each release.
 
-# Running trento
+# Running Trento
 
-To run trento in our development environment we need at least:
-  - Consul agent in server mode
-  - Consul agent in client mode
-  - Trento agent
-  - Trento web server
+The entire Trento application is composed of the following parts:
+  - One or more Consul Agents in server mode
+  - The Trento Web UI
+  - A Consul Agent in client mode for each target node
+  - A Trento Agent for each target node
+
+> See the [architecture document](./docs/trento-architecture.md) for additional
+details.
 
 ## Consul
 
-The web application needs one or more agents registered against against
-[Consul](https://consul.io/). A consul server needs to be paired with the
-Trento Web Application.
+The Trento application needs to be paired with a [Consul](https://consul.io/) deployment, which is leveraged for service discovery and persistent data storage. 
 
-Each [Trento agent node](##trento-agents) also needs a consul agent started.
-Follow the [Running An Agent](https://www.consul.io/docs/agent#running-an-agent)
-more detailed steps for starting it prior running the Trento Agent.
+Consul processes are called "agents", and they can run either in server mode or in client mode.
 
-To start the consul agent as server:
+#### Server Consul Agent    
 
-```shell
-./consul agent -server -bootstrap-expect=1 -bind=127.0.0.1 -data-dir=consul-data -ui
-```
+To start a Consul agent in server mode:
 
-This will start consul, binding to `127.0.0.1` and use `consul-data` as
-directory to persist data.
-
-Another agent in client mode is also required. For development purposes, to be
-able to run both on the same host, we need to bind it to a new `lo` address:
-
-```shell
-sudo ip address add 127.0.0.2/32 dev lo
-```
-
-Create the directory for the consul agent client:
 ```shell
 mkdir consul.d
+./consul agent -server -ui -bootstrap-expect=1 -client=0.0.0.0 -data-dir=consul-data -config-dir=consul.d
 ```
 
-Now we can start the agent:
+This will start Consul listening to connections from any IP address on the default network interface, using `consul-data` as directory to persist data, and `consul.d` to autoload configuration files from.
+
+#### Client Consul Agent
+
+Each [Trento Agent](##trento-agents) instance also needs a Consul agent in client mode, on each target node we want to connect Trento to.
+
+You can start Consul in client mode as follows:
 ```shell
-./consul agent -data-dir=consul-agent-data -bind=127.0.0.2 -client=127.0.0.2 -retry-join=127.0.0.1 -config-dir=./consul.d
+export SERVER_IP_ADDRESS=#your Consul server IP address here 
+mkdir consul.d
+./consul agent -retry-join=$SERVER_IP_ADDRESS -bind='{{ GetInterfaceIP "eth0" }}' -data-dir=consul-agent-data -config-dir=consul.d
 ```
+Since the client Consul Agent will most likely run on a machine with multiple IP addresses and/or network interfaces, you will need to specify one with the `-bind` flag.
 
-#### Notes:
-
-1. Production deployments require at least three server instances of the Consul agents to ensure fault-tolerance. Be
+> Production deployments will require at least three instances of the Consul agent in server mode to ensure fault-tolerance. Be
    sure to check [Consul's deployment guide](https://learn.hashicorp.com/tutorials/consul/deployment-guide#configure-consul-agents).
-2. While Consul provides a `-dev` flag to run a standalone, stateless server agent, Trento does not support this mode: it needs a persistent server even during development.
 
-## Trento agents
+> While Consul provides a `-dev` flag to run a standalone, stateless server agent, Trento does not support this mode: it needs a persistent server even during development.
 
-The `trento` agents are responsible for discovering HA clusters and reporting their
-status to the `consul` servers. The agents need to run in the same system as the HA
-tools they are managing / monitoring and running them in isolated environments ( e.g. serverless,
-separated containers, ... ) makes little sense as they won't be able as the discovery
-mechanisms will not be able to report any usable information.
+> For development purposes, when running everything on a single host machine, no Client Consul Agent is required: the Server Agent exposes the same API and can be consumed by both `trento web` and `trento agent`.  
+
+## Trento Agents
+
+Trento Agents are responsible for discovering HA clusters and reporting their
+status to Consul. These Agents need to run in the same systems hosting the HA
+Cluster services, so running them in isolated environments (e.g. serverless,
+containers, etc.) makes little sense, as they won't be able as the discovery mechanisms will not be able to report any host information.
 
 To start the trento agent:
 
@@ -150,30 +160,15 @@ To start the trento agent:
 recommendations on cluster settings and state for many HA components. New rules
 can be created and tuned to adjust to different requirements.
 
-> See the [Deployment Architecture](./docs/trento-architecture.md) for additional
-details.
-
-## Web server
+## Trento Web UI
 
 At this point, we can start the web application as follows:
 
 ```shell
-./trento web serve [flags]
+./trento web serve
 ```
 
-The supported flags are as follows:
-```shell
-  -h, --help          help for serve
-      --host string   The host to bind the HTTP service to (default "0.0.0.0")
-  -p, --port int      The port for the HTTP service to listen at (default 8080)
-```
-
-Additionally, `trento` supports the next Global Flags:
-
-```shell
-Global Flags:
-      --config string   config file (default is $HOME/.trento.yaml)
-```
+Please consult the `help` CLI command for more insights on the various options.
 
 # Usage
 
@@ -224,7 +219,6 @@ You can install it with `go install github.com/vektra/mockery/v2@latest`.
 > **Note**  
 > Be sure to add the `mockery` binary to your `$PATH` environment variable so that `make` can find it.
 
-
 ## Docker
 
 To assist in testing & developing `trento`, we have added a [Dockerfile](Dockerfile) 
@@ -265,7 +259,7 @@ section in GitHub.
 
 # Contributing
 
-T.B.D.
+See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 # License
 

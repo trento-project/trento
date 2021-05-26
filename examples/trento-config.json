@@ -1,8 +1,0 @@
-{
-  "metadata": {
-    "trento-ha-cluster": "cluster1",
-    "trento-sap-environment": "env1",
-    "trento-sap-landscape": "land1",
-    "trento-sap-system": "sys1"
-  }
-}

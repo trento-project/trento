@@ -32,14 +32,13 @@ type Agent struct {
 }
 
 type Config struct {
-	CheckerTTL          time.Duration
-	WebHost             string
-	WebPort             int
-	InstanceName        string
-	DefinitionsPaths    []string
-	DiscoverInterval    time.Duration
-	TemplateSource      string
-	TemplateDestination string
+	CheckerTTL       time.Duration
+	WebHost          string
+	WebPort          int
+	InstanceName     string
+	DefinitionsPaths []string
+	DiscoverInterval time.Duration
+	ConsulConfigDir  string
 }
 
 func New() (*Agent, error) {
@@ -63,7 +62,7 @@ func NewWithConfig(cfg Config) (*Agent, error) {
 		return nil, errors.Wrap(err, "could not create a Checker instance")
 	}
 
-	templateRunner, err := NewTemplateRunner(cfg.TemplateSource, cfg.TemplateDestination)
+	templateRunner, err := NewTemplateRunner(cfg.ConsulConfigDir)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create the consul template runner")
 	}
@@ -221,62 +220,51 @@ func (a *Agent) registerConsulService() error {
 	return nil
 }
 
-func (a *Agent) startCheckTicker() error {
-	ticker := time.NewTicker(a.cfg.CheckerTTL / 2)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ticker.C:
-			result, err := a.check()
-			if err != nil {
-				log.Println("An error occurred while running health checks:", err)
-				continue
-			}
-			a.wsResultChan <- result
-			a.updateConsulCheck(result)
-		case <-a.ctx.Done():
-			close(a.wsResultChan)
-			return nil
+func (a *Agent) startCheckTicker() {
+	tick := func() {
+		result, err := a.check()
+		if err != nil {
+			log.Println("An error occurred while running health checks:", err)
+			return
 		}
+		a.wsResultChan <- result
+		a.updateConsulCheck(result)
 	}
+	defer close(a.wsResultChan)
+
+	interval := a.cfg.CheckerTTL / 2
+
+	repeat(tick, interval, a.ctx)
 }
 
 // Start a Ticker loop that will iterate over the hardcoded list of Discovery backends
 // and execute them. The initial run will happen relatively quickly after Agent launch
 // subsequent runs are done with a 15 minute delay. The effectiveness of the discoveries
 // is reported back in the "discover_cluster" Service in consul under a TTL of 60 minutes
-func (a *Agent) startDiscoverTicker() error {
-	ticker := time.NewTicker(a.cfg.DiscoverInterval / 2)
-	// Repeat after 15 minutes
-	if a.cfg.DiscoverInterval < time.Minute {
-		a.cfg.DiscoverInterval = 15 * time.Minute
-	}
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ticker.C:
-			for _, discovery := range a.discoveries {
-				var status string
-				var err error
+func (a *Agent) startDiscoverTicker() {
+	tick := func() {
+		for _, d := range a.discoveries {
+			var status string
+			var err error
 
-				err = discovery.Discover()
-				if err != nil {
-					log.Printf("Error while running discovery '%s': %s", discovery.GetId(), err)
-					status = consulApi.HealthWarning
-				} else {
-					status = consulApi.HealthPassing
-				}
-
-				err = a.consul.Agent().UpdateTTL(discovery.GetId(), "", status)
-				if err != nil {
-					log.Println("An error occurred while trying to update TTL with Consul:", err)
-				}
+			err = d.Discover()
+			if err != nil {
+				log.Printf("Error while running discovery '%s': %s", d.GetId(), err)
+				status = consulApi.HealthWarning
+			} else {
+				status = consulApi.HealthPassing
 			}
 
-		case <-a.ctx.Done():
-			return nil
+			err = a.consul.Agent().UpdateTTL(d.GetId(), "", status)
+			if err != nil {
+				log.Println("An error occurred while trying to update TTL with Consul:", err)
+			}
 		}
 	}
+
+	interval := a.cfg.DiscoverInterval / 2
+
+	repeat(tick, interval, a.ctx)
 }
 
 func (a *Agent) updateConsulCheck(result CheckResult) {
@@ -305,4 +293,20 @@ func (a *Agent) updateConsulCheck(result CheckResult) {
 	}
 
 	log.Printf("Consul check TTL updated. Status: %s.", status)
+}
+
+func repeat(tick func(), interval time.Duration, ctx context.Context) {
+	// run the first tick immediately
+	tick()
+
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			tick()
+		case <-ctx.Done():
+			return
+		}
+	}
 }

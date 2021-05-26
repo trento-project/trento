@@ -2,6 +2,7 @@ package agent
 
 import (
 	"log"
+	"path"
 
 	"github.com/pkg/errors"
 
@@ -9,12 +10,33 @@ import (
 	"github.com/hashicorp/consul-template/manager"
 )
 
-func NewTemplateRunner(source string, destination string) (*manager.Runner, error) {
+const nodeMetadataTemplate = `{
+  "node_meta": {
+    {{- $first := true }}
+    {{- with node }}
+    {{- $nodename := .Node.Node }}
+    {{- range nodes }}
+    {{- if eq .Node $nodename }}
+    {{- range ls (print "trento/v0/hosts/" $nodename "/metadata") }}
+      {{- if $first }}{{ $first = false }}{{ else }},{{ end }}
+      "trento-{{ .Key }}": "{{ .Value }}"
+    {{- end }}
+    {{- end }}
+    {{- end }}
+    {{- end }}
+  }
+}`
+
+const metaDataFile = "trento-metadata.json"
+
+func NewTemplateRunner(consulConfigDir string) (*manager.Runner, error) {
 	config := consultemplateconfig.DefaultConfig()
+	contents := nodeMetadataTemplate
+	destination := path.Join(consulConfigDir, metaDataFile)
 	*config.Templates = append(
 		*config.Templates,
 		&consultemplateconfig.TemplateConfig{
-			Source:      &source,
+			Contents:    &contents,
 			Destination: &destination,
 		},
 	)

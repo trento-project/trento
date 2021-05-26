@@ -122,15 +122,13 @@ func (a *Agent) Start() error {
 
 	var wg sync.WaitGroup
 
-	errs := make(chan error, 4)
-
 	wg.Add(1)
 	// The Checker Loop is handling the compliance-checks being executed regularly
 	// and reporting a Service Status (WARN/FAIL)
 	go func(wg *sync.WaitGroup) {
 		log.Println("Starting Check loop...")
 		defer wg.Done()
-		errs <- a.startCheckTicker()
+		a.startCheckTicker()
 		log.Println("Check loop stopped.")
 	}(&wg)
 
@@ -141,37 +139,28 @@ func (a *Agent) Start() error {
 	go func(wg *sync.WaitGroup) {
 		log.Println("Starting Discover loop...")
 		defer wg.Done()
-		errs <- a.startDiscoverTicker()
+		a.startDiscoverTicker()
 		log.Println("Discover loop stopped.")
 	}(&wg)
 
 	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
-		errs <- a.webService.Start(a.cfg.WebHost, a.cfg.WebPort, a.ctx)
+		err := a.webService.Start(a.cfg.WebHost, a.cfg.WebPort, a.ctx)
+		if err != nil {
+			log.Println("Error while starting the Agent web service:", err)
+		}
 	}(&wg)
 
 	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
 		log.Println("Starting consul-template loop...")
 		defer wg.Done()
-		errs <- a.startConsulTemplate()
+		a.startConsulTemplate()
 		log.Println("consul-template loop stopped.")
 	}(&wg)
 
-	// As soon as all the goroutines in the Waitgroup are done, close the channel where the errors are sent
-	go func() {
-		wg.Wait()
-		close(errs)
-	}()
-
-	// Scroll the errors channel and return as soon as one of the goroutines fails.
-	// This will block until the errors channel is closed.
-	for err := range errs {
-		if err != nil {
-			return err
-		}
-	}
+	wg.Wait()
 
 	return nil
 }

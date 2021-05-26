@@ -49,7 +49,7 @@ func NewTemplateRunner(consulConfigDir string) (*manager.Runner, error) {
 	return runner, nil
 }
 
-func (a *Agent) startConsulTemplate() error {
+func (a *Agent) startConsulTemplate() {
 	go a.templateRunner.Start()
 	defer a.stopConsulTemplate()
 
@@ -64,7 +64,7 @@ func (a *Agent) startConsulTemplate() error {
 				log.Print("Agent meta-data correctly reloaded")
 			}
 		case <-a.ctx.Done():
-			return nil
+			return
 		}
 	}
 }

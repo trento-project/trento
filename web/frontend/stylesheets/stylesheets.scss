@@ -37,3 +37,28 @@ dl.inline dt{
 dt {
   width: 30%;
 }
+
+.ha-check-remediation {
+  padding-top: 1em;
+  margin-top: 1em;
+  border-top: 1px solid $eos-bc-green-500;
+  h1 {
+    font-size: 1.35em;
+  }
+  h2 {
+    font-size: 1.3em;
+  }
+  h3 {
+    font-size: 1.25em;
+  }
+  h4 {
+    font-size: 1.2em;
+  }
+  h5 {
+    font-size: 1.1em;
+  }
+  code,
+  pre code {
+    color: $eos-bc-red-900;
+  }
+}

@@ -108,21 +108,24 @@ func NewHostHandler(client consul.Client) gin.HandlerFunc {
 	}
 }
 
-func NewCheckHandler(client consul.Client) gin.HandlerFunc {
+func NewHAChecksHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		name := c.Param("name")
-		checkid := c.Param("checkid")
 		catalogNode, _, err := client.Catalog().Node(name, nil)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 
+		if catalogNode == nil {
+			c.AbortWithStatus(404)
+			return
+		}
+
 		host := hosts.NewHost(*catalogNode.Node, client)
 		c.HTML(http.StatusOK, "ha_checks.html.tmpl", gin.H{
-			"HostName":     name,
-			"CheckID":      checkid,
-			"CheckContent": host.Checks(),
+			"Hostname": host.Name(),
+			"HAChecks": host.HAChecks(),
 		})
 	}
 }

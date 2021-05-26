@@ -2,7 +2,7 @@
 controls:
 version: 1.0.0
 id: 2
-description: "HA Checker for SAPHanaSR Scale-up Perf-Optimized"
+description: "HA Configuration checks for SAP on MS Azure (Scale-up Performance-Optimized scenario)"
 type: "master"
 groups:
   - id: 2.1

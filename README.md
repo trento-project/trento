@@ -20,16 +20,16 @@ of existing clusters, rather than deploying new one.
 
 - [Features](#features)
 - [Requirements](#requirements)
-  * [Build dependencies](#build-dependencies)
   * [Runtime dependencies](#runtime-dependencies)
+  * [Build dependencies](#build-dependencies)
   * [Development dependencies](#development-dependencies)
 - [Installation](#installation)
-- [Running `trento`](#running-trento)
+- [Running Trento](#running-trento)
   * [Consul](#consul)
-  * [Trento agents](#trento-agents)
-  * [Web server](#web-server)  
+  * [Trento Agents](#trento-agents)
+  * [Trento Web UI](#trento-web-ui)  
 - [Usage](#usage)
-  * [Tagging the systems](#tagging-the-systems)
+  * [Grouping and filtering in the Web UI](#grouping-and-filtering-in-the-web-ui)
 - [Development](#development)
   * [Build system](#build-system)
   * [Mockery](#mockery)
@@ -71,7 +71,7 @@ which are expected to be run in a
 Running the application will require:
 - A running [Consul](https://www.consul.io/downloads) cluster.
 
->We have only tested version Consul version `1.9.x` and while it *should* work with any version implementing Consul Protocol version 3, we can´t make any guarantee in that regard.
+>We have only tested version Consul version `1.9.x` and, while it *should* work with any version implementing Consul Protocol version 3, we can´t make any guarantee in that regard.
 
 ## Build dependencies
 
@@ -91,7 +91,7 @@ Additionally, for the development we use:
 
 ## From binaries
 
-Pre-built statically linked binaries are made availbe via [GitHub releases](https://github.com/trento-project/trento/releases).
+Pre-built statically linked binaries are made available via [GitHub releases](https://github.com/trento-project/trento/releases).
 
 ## Manual
 
@@ -132,7 +132,7 @@ This will start Consul listening to connections from any IP address on the defau
 
 #### Client Consul Agent
 
-Each [Trento Agent](##trento-agents) instance also needs a Consul agent in client mode, on each target node we want to connect Trento to.
+Each [Trento Agent](#trento-agents) instance also needs a Consul agent in client mode, on each target node we want to connect Trento to.
 
 You can start Consul in client mode as follows:
 ```shell
@@ -178,7 +178,7 @@ Please consult the `help` CLI command for more insights on the various options.
 
 # Usage
 
-## Grouping and filtering the nodes in the wep app
+## Grouping and filtering in the Web UI
 
 The web app provides the option to group and filter target Systems using tags. 
 
@@ -259,9 +259,8 @@ docker build -t trento .
 
 # Support
 
-As the project is currently in its early stages, we suggest that any question or
-issue is directed to our [Issues](https://github.com/trento-project/trento/issues)
-section in GitHub.
+Please only report bugs via [GitHub issues](https://github.com/trento-project/trento/issues);
+for any other inquiry or topic use [GitHub discussion](https://github.com/trento-project/trento/discussions).
 
 # Contributing
 

@@ -54,7 +54,7 @@ ssh "$TARGET_USER@$TARGET_HOST" chmod +x "$CONSUL_PATH/$CONSUL_BIN"
 # Start 'em
 if [ "$ACTION" = "deploy-agent" ] ; then
 	ssh "$TARGET_USER@$TARGET_HOST" -f "nohup $CONSUL_PATH/$CONSUL_BIN agent -bind=$TARGET_HOST -data-dir=$CONSUL_DATA_DIR -config-dir=$CONSUL_PATH/consul.d -retry-join=$CONSUL_HOST -ui > /dev/null 2>&1"
-	ssh "$TARGET_USER@$TARGET_HOST" -f "nohup $TRENTO_PATH/$TRENTO_BIN agent start --config-dir=$CONSUL_PATH/consul.d --consul-template=$EXAMPLES_PATH/trento-config.tpl $EXAMPLES_PATH/azure-rules.yaml > /dev/null 2>&1"
+	ssh "$TARGET_USER@$TARGET_HOST" -f "nohup $TRENTO_PATH/$TRENTO_BIN agent start --consul-config-dir=$CONSUL_PATH/consul.d $EXAMPLES_PATH/azure-rules.yaml > /dev/null 2>&1"
 elif [ "$ACTION" = "deploy-web" ] ; then
 	ssh "$TARGET_USER@$TARGET_HOST" -f "nohup $CONSUL_PATH/$CONSUL_BIN agent -server -bootstrap-expect=1 -bind=$TARGET_HOST -data-dir=$CONSUL_DATA_DIR -ui > /dev/null 2>&1"
 	ssh "$TARGET_USER@$TARGET_HOST" -f "nohup $TRENTO_PATH/$TRENTO_BIN web serve > /dev/null 2>&1"

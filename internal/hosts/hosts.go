@@ -54,7 +54,7 @@ func (n *Host) TrentoMeta() map[string]string {
 }
 
 // todo: this method was rushed, needs to be completely rewritten to have the checker webservice decoupled in a dedicated HTTP client
-func (n *Host) Checks() *check.Controls {
+func (n *Host) HAChecks() *check.Controls {
 	checks := &check.Controls{}
 
 	var err error

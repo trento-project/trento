@@ -42,13 +42,13 @@
             <tbody>
                 {{- $HostName := .Host.Name }}
                 {{- range .HealthChecks }}
-                <tr {{ if eq .CheckID "ha_config_checker" }}class='clickable' onclick="window.location='/hosts/{{ $HostName }}/checks/{{ .CheckID }}'"{{ end }}>
+                <tr {{ if eq .CheckID "ha_config_checker" }}class='clickable' onclick="window.location='/hosts/{{ $HostName }}/ha-checks'"{{ end }}>
                     <td>{{ .Name }}</td>
                     <td>{{ .CheckID }}</td>
                     <td>{{ .Notes }}</td>
                     <td class='show-white-space'>{{ .Output }}</td>
                     <td>
-                        <span class='badge badge-pill badge-{{ if eq .Status "passing" }}primary{{ else }}danger{{ end }}'>{{ .Status }}</span>
+                        <span class='badge badge-pill badge-{{ if eq .Status "passing" }}primary{{ else if eq .Status "warning" }}warning{{ else }}danger{{ end }}'>{{ .Status }}</span>
                     </td>
                 </tr>
                 {{- end }}

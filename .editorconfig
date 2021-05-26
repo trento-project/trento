@@ -1,0 +1,2 @@
+[examples/azure-rules.yaml]
+trim_trailing_whitespace = false

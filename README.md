@@ -46,15 +46,32 @@ of existing clusters, rather than deploying new one.
 - Configuration validation for Pacemaker, Corosync, SBD, SAPHanaSR and other generic _SUSE Linux Enterprise for SAP Application_ OS settings (a.k.a. the _HA Checks_);
 - Specific configuration audits for SAP HANA Scale-Up Performance-Optimized scenarios deployed on MS Azure cloud.
 
+# Base concepts
+
+The entire Trento application is composed of the following parts:
+- One or more Consul Agents in server mode;
+- The Trento Web UI (`trento web`);
+- A Consul Agent in client mode for each target node;
+- A Trento Agent (`trento agent`) for each target node.
+
+> See the [architecture document](./docs/trento-architecture.md) for additional details.
+
 # Requirements
 
-While the `trento web` component has been tested so far on openSUSE 15.2
-and SLES 15 SP2, it should be able to run on most modern Linux distributions.
+While the `trento web` component has only been tested on openSUSE 15.2
+and SLES 15SP2 so far, it should be able to run on most modern Linux distributions.
 
-The agent could in theory also run on openSUSE, but it does not make much sense as it
+The `trento agent` component could in theory also run on openSUSE, but it does not make much sense as it
 needs to interact with different low-level SAP applications components 
 which are expected to be run in a 
 [SLES for SAP](https://www.suse.com/products/sles-for-sap/) installation.
+
+## Runtime dependencies
+
+Running the application will require:
+- A running [Consul](https://www.consul.io/downloads) cluster.
+
+>We have only tested version Consul version `1.9.x` and while it *should* work with any version implementing Consul Protocol version 3, we can´t make any guarantee in that regard.
 
 ## Build dependencies
 
@@ -63,30 +80,22 @@ To build the entire application you will need the following dependencies:
 - [`Go`](https://golang.org/) ^1.16
 - [`Node.js`](https://nodejs.org/es/) ^15.x
 
-## Runtime dependencies
-
-Running the application will require:
-  - A running [`consul`](https://www.consul.io/downloads) cluster.
-
->We have only tested version `1.9.x` and while it *should* work with any consul agents that implement consul protocol version 3, we can´t guarantee it at the moment.
-
 ## Development dependencies
 
 Additionally, for the development we use:
   - [`Mockery`](https://github.com/vektra/mockery) ^2
 
-> See [Development section](#development) for details on how to configure `mockery`
+> See [Development section](#development) for details on how to install `mockery`.
 
 # Installation
 
 ## From binaries
 
-You can grab statically linked binaries from the any of the [GitHub releases](https://github.com/trento-project/trento/releases).
+Pre-built statically linked binaries are made availbe via [GitHub releases](https://github.com/trento-project/trento/releases).
 
 ## Manual
 
-This project is in development so, for the time being, you need to clone it and
-build it manually:
+You clone also clone and build it manually:
 
 ```shell
 git clone https://github.com/trento-project/trento.git
@@ -94,24 +103,21 @@ cd trento
 make build
 ```
 
-Pre-built binaries are made availbe for each release.
+## Docker images
+
+T.B.D.
+
+## RPM Packages
+
+T.B.D.
 
 # Running Trento
-
-The entire Trento application is composed of the following parts:
-  - One or more Consul Agents in server mode
-  - The Trento Web UI
-  - A Consul Agent in client mode for each target node
-  - A Trento Agent for each target node
-
-> See the [architecture document](./docs/trento-architecture.md) for additional
-details.
 
 ## Consul
 
 The Trento application needs to be paired with a [Consul](https://consul.io/) deployment, which is leveraged for service discovery and persistent data storage. 
 
-Consul processes are called "agents", and they can run either in server mode or in client mode.
+Consul processes are all called "agents", and they can run either in server mode or in client mode.
 
 #### Server Consul Agent    
 
@@ -174,10 +180,9 @@ Please consult the `help` CLI command for more insights on the various options.
 
 ## Grouping and filtering the nodes in the wep app
 
-The web app provides the option to filter the systems using a set of
-reserved tags. To achieve this, the tags must be stored in the KV storage.
+The web app provides the option to group and filter target Systems using tags. 
 
-For the time being, `consul` can be use to populate these tags:
+This functionality will be implemented in the Web UI soon but, for the time being, the underlying `consul` KV storage can be used to populate these tags:
 ```shell
 # To group SAP Systems into Landscapes and Environments, you can do the following,
 # from any of the nodes where Trento is running:
@@ -189,9 +194,11 @@ consul kv put trento/v0/environments/$ENV/landscapes/$LAND/name $LAND
 consul kv put trento/v0/environments/$ENV/landscapes/$LAND/sapsystems/$SID/name $SID
 ```
 
-Keep in mind that the created environments, landscapes and sap systems are directories themselves, and there can be multiple of them.
-The possibility to have multiple landscapes with the same name in different environments (and the same for SAP systems) is possible.
-Be aware that the nodes meta-data tags are not strictly linked to these names, they are soft relations (this means that only the string matches, there is no any real relationship between them).
+Keep in mind that the created Environments, Landscapes and SAP Systems are directories themselves, and there can be multiple of them.
+
+It is possible to have multiple Landscapes with the same name in different Environments, and the same goes for SAP Systems.
+
+Be aware that the node meta-data tags are not strictly linked to these names, they are soft relations (this means that only the string matches, there is no any real relationship between them).
 
 # Development
 
@@ -221,35 +228,34 @@ You can install it with `go install github.com/vektra/mockery/v2@latest`.
 
 ## Docker
 
-To assist in testing & developing `trento`, we have added a [Dockerfile](Dockerfile) 
+To assist in testing & developing Trento, we have added a [Dockerfile](Dockerfile) 
 that will automatically fetch all the required compile-time dependencies to build
 the binary and finally a container image with the fresh binary in it.
 
 We also provide a [docker-compose.yml](docker-compose.yml) file that allows to
 deploy other required services to run alongside `trento` by fetching 
 the images from the [dockerhub](https://hub.docker.com/) registry and running 
-the containers in your `docker` instance.
+the containers with your favourite container engine.
 
-To only build the docker image:
+If you want to build & start `trento web` and it's dependencies, you can use `docker-compose`:
 ```shell
 git clone https://github.com/trento-project/trento.git
 cd trento
-docker build -t trento ./
-```
-
-If you want to build & start `trento` and it's dependencies, you only need `docker-compose`:
-```shell
 docker-compose up
 ```
 
-The application should be reachable on the port that is defined in the 
-`docker-compose.yml` file (8080 by default).
+The Web UI should then be reachable as defined in the `docker-compose.yml` file
+(`localhost:8080` by default).
 
-> **Note**
-> Take into account that `trento` requires an agent instance that is running on
-> the OS (*not* inside a container) so while it is possible to hack the `docker-compose.yml`
-> file to also run a `trento` agent, it makes little sense as most of the checks
-> require direct access to host files.
+To only build the docker image, instead:
+```shell
+docker build -t trento .
+```
+
+> Please note that the `trento agent` component requires to be running on
+> the OS (*not* inside a container) so, while it is possible to hack the `docker-compose.yml`
+> file to also run a Trento Agent, it makes little sense because most of its internals
+> require direct access to the host of the HA Cluster components.
 
 # Support
 

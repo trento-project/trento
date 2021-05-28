@@ -6,9 +6,6 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
-	"github.com/trento-project/trento/internal/environments"
-	"github.com/trento-project/trento/internal/hosts"
-
 	"github.com/trento-project/trento/internal/consul"
 )
 
@@ -67,66 +64,4 @@ func Load(client consul.Client, host string) (map[string]*SAPSystem, error) {
 	}
 
 	return sapSystems, nil
-}
-
-func (s *SAPSystem) StoreSAPSystemTags(client consul.Client) error {
-	sid := s.GetSID()
-
-	envName, landName, sysName, err := loadSAPSystemTags(client, sid)
-	if err != nil {
-		return err
-	}
-
-	// If we didn't find any environment, we create a new default one
-	if envName == "" {
-		land := environments.NewDefaultLandscape()
-		land.AddSystem(environments.NewSystem(sysName, s.Type))
-		env := environments.NewDefaultEnvironment()
-		env.AddLandscape(land)
-
-		err := env.Store(client)
-		if err != nil {
-			return err
-		}
-		envName = env.Name
-		landName = land.Name
-	}
-
-	// Store host metadata
-	metadata := hosts.Metadata{
-		Environment: envName,
-		Landscape:   landName,
-		SAPSystem:   sysName,
-	}
-
-	err = metadata.Store(client)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// These methods must go here. We cannot put them in the internal/sapsystem.go package
-// as this creates potential cyclical imports
-func loadSAPSystemTags(client consul.Client, sid string) (string, string, string, error) {
-	var env, land string
-	sys := sid
-
-	envs, err := environments.Load(client)
-	if err != nil {
-		return env, land, sys, err
-	}
-	for envKey, envValue := range envs {
-		for landKey, landValue := range envValue.Landscapes {
-			for sysKey := range landValue.SAPSystems {
-				if sysKey == sys {
-					env = envKey
-					land = landKey
-					break
-				}
-			}
-		}
-	}
-	return env, land, sys, err
 }

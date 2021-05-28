@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/environments"
@@ -23,7 +24,7 @@ func NewEnvironmentsListHandler(client consul.Client) gin.HandlerFunc {
 	}
 }
 
-func NewEnvironmentListHandler(client consul.Client) gin.HandlerFunc {
+func NewEnvironmentHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		environments, err := environments.Load(client)
 		if err != nil {
@@ -40,7 +41,7 @@ func NewEnvironmentListHandler(client consul.Client) gin.HandlerFunc {
 
 func NewLandscapesListHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var env string = ""
+		var env = ""
 
 		query := c.Request.URL.Query()
 		if len(query["environment"]) > 0 {
@@ -60,9 +61,9 @@ func NewLandscapesListHandler(client consul.Client) gin.HandlerFunc {
 	}
 }
 
-func NewLandscapeListHandler(client consul.Client) gin.HandlerFunc {
+func NewLandscapeHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var env string = ""
+		var env = ""
 
 		query := c.Request.URL.Query()
 		if len(query["environment"]) > 0 {
@@ -85,8 +86,8 @@ func NewLandscapeListHandler(client consul.Client) gin.HandlerFunc {
 
 func NewSAPSystemsListHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var env string = ""
-		var land string = ""
+		var env = ""
+		var land = ""
 
 		query := c.Request.URL.Query()
 		if len(query["environment"]) > 0 {
@@ -111,31 +112,47 @@ func NewSAPSystemsListHandler(client consul.Client) gin.HandlerFunc {
 	}
 }
 
-func NewSAPSystemHostsListHandler(client consul.Client) gin.HandlerFunc {
+func NewSAPSystemHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var env string = ""
-		var land string = ""
+		var envName, landName string
 
 		query := c.Request.URL.Query()
 		if len(query["environment"]) > 0 {
-			env = query["environment"][0]
+			envName = query["environment"][0]
 		}
 
 		if len(query["landscape"]) > 0 {
-			land = query["landscape"][0]
+			landName = query["landscape"][0]
 		}
 
-		environments, err := environments.Load(client)
+		envs, err := environments.Load(client)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 
+		environment, ok := envs[envName]
+		if !ok {
+			_ = c.AbortWithError(404, errors.New("could not find environment"))
+			return
+		}
+
+		landscape, ok := environment.Landscapes[landName]
+		if !ok {
+			_ = c.AbortWithError(404, errors.New("could not find landscape"))
+			return
+		}
+
+		system, ok := landscape.SAPSystems[c.Param("sys")]
+		if !ok {
+			_ = c.AbortWithError(404, errors.New("could not find system"))
+			return
+		}
+
 		c.HTML(http.StatusOK, "sapsystem.html.tmpl", gin.H{
-			"Environments": environments,
-			"EnvName":      env,
-			"LandName":     land,
-			"SAPSysName":   c.Param("sys"),
+			"Environment": environment,
+			"Landscape":   landscape,
+			"SAPSystem":   system,
 		})
 	}
 }

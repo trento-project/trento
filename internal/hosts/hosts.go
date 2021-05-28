@@ -14,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/trento-project/trento/internal"
 	"github.com/trento-project/trento/internal/consul"
+	"github.com/trento-project/trento/internal/sapsystem"
 )
 
 const TrentoPrefix string = "trento-"
@@ -75,13 +76,12 @@ func (n *Host) HAChecks() *check.Controls {
 	return checks
 }
 
-func sortKeys(m map[string][]string) []string {
-	var keys []string
-	for k := range m {
-		keys = append(keys, k)
+func (n *Host) GetSAPSystems() (map[string]*sapsystem.SAPSystem, error) {
+	systems, err := sapsystem.Load(n.client, n.Name())
+	if err != nil {
+		return nil, err
 	}
-	sort.Strings(keys)
-	return keys
+	return systems, nil
 }
 
 // Use github.com/hashicorp/go-bexpr to create the filter
@@ -127,4 +127,13 @@ func Load(client consul.Client, query_filter string, health_filter []string) (Ho
 	}
 
 	return hosts, nil
+}
+
+func sortKeys(m map[string][]string) []string {
+	var keys []string
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
 }

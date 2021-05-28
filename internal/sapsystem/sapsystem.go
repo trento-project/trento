@@ -56,7 +56,7 @@ func NewSAPSystemsList() (SAPSystemsList, error) {
 			log.Printf("Error discovering a SAP system: %s", err)
 			continue
 		}
-		systems = append(systems, &s)
+		systems = append(systems, s)
 	}
 
 	return systems, nil
@@ -114,8 +114,8 @@ func findInstances(fs afero.Fs, sapPath string) ([]string, error) {
 	return instances, nil
 }
 
-func NewSAPSystem(w sapcontrol.WebService) (SAPSystem, error) {
-	var sapSystem = SAPSystem{
+func NewSAPSystem(w sapcontrol.WebService) (*SAPSystem, error) {
+	var sapSystem = &SAPSystem{
 		webService: w,
 		Type:       "",
 		Processes:  make(map[string]*sapcontrol.OSProcess),

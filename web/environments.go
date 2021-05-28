@@ -4,8 +4,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
-
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/environments"
 )
@@ -133,19 +131,19 @@ func NewSAPSystemHandler(client consul.Client) gin.HandlerFunc {
 
 		environment, ok := envs[envName]
 		if !ok {
-			_ = c.AbortWithError(404, errors.New("could not find environment"))
+			_ = c.Error(NotFoundError("could not find environment"))
 			return
 		}
 
 		landscape, ok := environment.Landscapes[landName]
 		if !ok {
-			_ = c.AbortWithError(404, errors.New("could not find landscape"))
+			_ = c.Error(NotFoundError("could not find landscape"))
 			return
 		}
 
 		system, ok := landscape.SAPSystems[c.Param("sys")]
 		if !ok {
-			_ = c.AbortWithError(404, errors.New("could not find system"))
+			_ = c.Error(NotFoundError("could not find system"))
 			return
 		}
 

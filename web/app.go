@@ -87,19 +87,3 @@ func (a *App) Start() error {
 func (a *App) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	a.engine.ServeHTTP(w, req)
 }
-
-func ErrorHandler(c *gin.Context) {
-	c.Next()
-
-	if len(c.Errors) == 0 {
-		return
-	}
-
-	c.Negotiate(500, gin.Negotiate{
-		Offered:  []string{gin.MIMEJSON, gin.MIMEHTML, gin.MIMEPlain},
-		HTMLName: "error.html.tmpl",
-		Data:     c.Errors,
-	})
-
-	c.Abort()
-}

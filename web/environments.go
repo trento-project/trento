@@ -39,7 +39,7 @@ func NewEnvironmentHandler(client consul.Client) gin.HandlerFunc {
 	}
 }
 
-func NewLandscapesListHandler(client consul.Client) gin.HandlerFunc {
+func NewLandscapeListHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var env = ""
 

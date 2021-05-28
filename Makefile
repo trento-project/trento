@@ -43,6 +43,11 @@ mod-tidy:
 test: generate web-assets
 	go test -v ./...
 
+test-coverage:
+	@mkdir -p build
+	go test -cover -coverprofile=build/coverage.out ./...
+	go tool cover -html=build/coverage.out
+
 vet-check: generate web-assets
 	go vet ./...
 

@@ -44,16 +44,16 @@ func TestLoad(t *testing.T) {
 	}
 
 	nodes := []*consulApi.Node{
-		&consulApi.Node{
+		{
 			Node: "node1",
 		},
-		&consulApi.Node{
+		{
 			Node: "node2",
 		},
 	}
 
 	consulInst.On("Health").Return(health)
-	catalog.On("Nodes", (*consulApi.QueryOptions)(&consulApi.QueryOptions{Filter: "query"})).Return(nodes, nil, nil)
+	catalog.On("Nodes", &consulApi.QueryOptions{Filter: "query"}).Return(nodes, nil, nil)
 	health.On("Node", "node1", (*consulApi.QueryOptions)(nil)).Return(node1HealthChecks, nil, nil)
 	health.On("Node", "node2", (*consulApi.QueryOptions)(nil)).Return(node2HealthChecks, nil, nil)
 

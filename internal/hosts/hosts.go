@@ -12,10 +12,8 @@ import (
 	"github.com/aquasecurity/bench-common/check"
 	consulApi "github.com/hashicorp/consul/api"
 	"github.com/pkg/errors"
-
 	"github.com/trento-project/trento/internal"
 	"github.com/trento-project/trento/internal/consul"
-	"github.com/trento-project/trento/internal/sapsystem"
 )
 
 const TrentoPrefix string = "trento-"
@@ -44,9 +42,7 @@ func (n *Host) TrentoMeta() map[string]string {
 	filtered_meta := make(map[string]string)
 
 	for key, value := range n.Node.Meta {
-		if value == consul.KvUngrouped {
-			continue
-		} else if strings.HasPrefix(key, TrentoPrefix) {
+		if strings.HasPrefix(key, TrentoPrefix) {
 			filtered_meta[key] = value
 		}
 	}
@@ -77,14 +73,6 @@ func (n *Host) HAChecks() *check.Controls {
 		return nil
 	}
 	return checks
-}
-
-func (n *Host) GetSAPSystems() (map[string]*sapsystem.SAPSystem, error) {
-	systems, err := sapsystem.Load(n.client, n.Name())
-	if err != nil {
-		return nil, err
-	}
-	return systems, nil
 }
 
 func sortKeys(m map[string][]string) []string {

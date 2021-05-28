@@ -41,7 +41,7 @@ const (
 	KvMetadataSAPLandscape   string = "sap-landscape"
 	KvMetadataSAPSystem      string = "sap-system"
 
-	KvUngrouped string = "ungrouped"
+	KvDefaultGroup string = "default"
 )
 
 type ClusterStonithType int

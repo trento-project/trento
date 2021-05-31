@@ -7,17 +7,17 @@ import (
 )
 
 const (
-	SessionName      string = "trento-session"
-	MonitorRetries   int    = 10
-	MonitorRetryTime        = 100 * time.Millisecond
+	sessionName      string = "trento-session"
+	monitorRetries   int    = 10
+	monitorRetryTime        = 100 * time.Millisecond
 )
 
 func (c *client) LockTrento(prefix string) (*consulApi.Lock, error) {
 	opts := &consulApi.LockOptions{
 		Key:              prefix,
-		SessionName:      SessionName,
-		MonitorRetries:   MonitorRetries,
-		MonitorRetryTime: MonitorRetryTime,
+		SessionName:      sessionName,
+		MonitorRetries:   monitorRetries,
+		MonitorRetryTime: monitorRetryTime,
 	}
 
 	l, err := c.wrapped.LockOpts(opts)

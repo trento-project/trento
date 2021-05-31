@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"testing"
 
+	consulApi "github.com/hashicorp/consul/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/tdewolff/minify/v2"
 	"github.com/tdewolff/minify/v2/html"
@@ -71,6 +72,8 @@ func TestClustersListHandler(t *testing.T) {
 	consulInst.On("KV").Return(kv)
 
 	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(listMap, nil)
+	testLock := consulApi.Lock{}
+	consulInst.On("LockTrento", consul.KvClustersPath).Return(&testLock, nil)
 
 	deps := DefaultDependencies()
 	deps.consul = consulInst

@@ -59,8 +59,12 @@ func NewLayoutRender(templatesFS fs.FS, templates ...string) *LayoutRender {
 // Instance returns a render.HTML instance with the associated named Template
 func (r *LayoutRender) Instance(name string, data interface{}) render.Render {
 	r.data.Content = data
+	tmpl, ok := r.templates[name]
+	if !ok {
+		panic("template not found")
+	}
 	return render.HTML{
-		Template: r.templates[name],
+		Template: tmpl,
 		Data:     r.data,
 	}
 }

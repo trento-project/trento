@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/mitchellh/mapstructure" //MIT license, is this a problem?
+	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
-
 	"github.com/trento-project/trento/internal/consul"
 )
 

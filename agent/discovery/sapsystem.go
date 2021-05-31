@@ -22,8 +22,8 @@ func NewSAPSystemsDiscovery(client consul.Client) SAPSystemsDiscovery {
 	return r
 }
 
-func (s SAPSystemsDiscovery) GetId() string {
-	return s.id
+func (d SAPSystemsDiscovery) GetId() string {
+	return d.id
 }
 
 func (d SAPSystemsDiscovery) Discover() error {
@@ -40,11 +40,8 @@ func (d SAPSystemsDiscovery) Discover() error {
 			return err
 		}
 
-		// Store sap instance name on hosts metadata
-		err = storeSAPSystemTag(
-			d.discovery.client,
-			s.Properties["SAPSYSTEMNAME"].Value,
-			s.Type)
+		// Store SAP System, Landscape and Environment names on hosts metadata
+		err = storeSAPSystemTags(d.discovery.client, s)
 		if err != nil {
 			return err
 		}
@@ -53,12 +50,49 @@ func (d SAPSystemsDiscovery) Discover() error {
 	return nil
 }
 
+func storeSAPSystemTags(client consul.Client, system *sapsystem.SAPSystem) error {
+	sid := system.GetSID()
+
+	envName, landName, sysName, err := loadSAPSystemTags(client, sid)
+	if err != nil {
+		return err
+	}
+
+	// If we didn't find any environment, we create a new default one
+	if envName == "" {
+		land := environments.NewDefaultLandscape()
+		land.AddSystem(environments.NewSystem(sysName, system.Type))
+		env := environments.NewDefaultEnvironment()
+		env.AddLandscape(land)
+
+		err := env.Store(client)
+		if err != nil {
+			return err
+		}
+		envName = env.Name
+		landName = land.Name
+	}
+
+	// Store host metadata
+	metadata := hosts.Metadata{
+		Environment: envName,
+		Landscape:   landName,
+		SAPSystem:   sysName,
+	}
+
+	err = metadata.Store(client)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // These methods must go here. We cannot put them in the internal/sapsystem.go package
 // as this creates potential cyclical imports
-func getCurrentEnvironment(client consul.Client, sid string) (string, string, string, error) {
-	var env string = consul.KvUngrouped
-	var land string = consul.KvUngrouped
-	var sys string = sid
+func loadSAPSystemTags(client consul.Client, sid string) (string, string, string, error) {
+	var env, land string
+	sys := sid
 
 	envs, err := environments.Load(client)
 	if err != nil {
@@ -66,7 +100,7 @@ func getCurrentEnvironment(client consul.Client, sid string) (string, string, st
 	}
 	for envKey, envValue := range envs {
 		for landKey, landValue := range envValue.Landscapes {
-			for sysKey, _ := range landValue.SAPSystems {
+			for sysKey := range landValue.SAPSystems {
 				if sysKey == sys {
 					env = envKey
 					land = landKey
@@ -76,35 +110,4 @@ func getCurrentEnvironment(client consul.Client, sid string) (string, string, st
 		}
 	}
 	return env, land, sys, err
-}
-
-func storeSAPSystemTag(client consul.Client, sid, systemType string) error {
-	env, land, sys, err := getCurrentEnvironment(client, sid)
-	if err != nil {
-		return err
-	}
-
-	// Create a new ungrouped entry
-	if env == consul.KvUngrouped {
-		newEnv := environments.NewEnvironment(env, land, sys)
-		newEnv.Landscapes[land].SAPSystems[sys].Type = systemType
-		err := newEnv.Store(client)
-		if err != nil {
-			return err
-		}
-	}
-
-	// Store host metadata
-	metadata := hosts.Metadata{
-		Environment: env,
-		Landscape:   land,
-		SAPSystem:   sys,
-	}
-
-	err = metadata.Store(client)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

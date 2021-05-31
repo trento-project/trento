@@ -2,9 +2,10 @@ package environments
 
 import (
 	consulApi "github.com/hashicorp/consul/api"
-	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
 )
+
+const defaultName = "default"
 
 type Environment struct {
 	Name       string                `mapstructure:"name,omitempty"`
@@ -22,33 +23,34 @@ type SAPSystem struct {
 	Hosts hosts.HostList `mapstructure:"hosts,omitempty"`
 }
 
-func NewEnvironment(env, land, sys string) Environment {
-	newSys := &SAPSystem{Name: sys}
-	systemsMap := make(map[string]*SAPSystem)
-	systemsMap[sys] = newSys
-
-	newLand := &Landscape{Name: land, SAPSystems: systemsMap}
+func NewEnvironment(name string, landscapes ...*Landscape) *Environment {
 	landsMap := make(map[string]*Landscape)
-	landsMap[land] = newLand
+	for _, l := range landscapes {
+		landsMap[l.Name] = l
+	}
 
-	newEnv := Environment{Name: env, Landscapes: landsMap}
-	return newEnv
+	return &Environment{Name: name, Landscapes: landsMap}
 }
 
-func ungrouped(name string) bool {
-	return name == consul.KvUngrouped
+func NewLandscape(name string, systems ...*SAPSystem) *Landscape {
+	systemsMap := make(map[string]*SAPSystem)
+
+	for _, s := range systems {
+		systemsMap[s.Name] = s
+	}
+	return &Landscape{Name: name, SAPSystems: systemsMap}
 }
 
-func (e *Environment) Ungrouped() bool {
-	return ungrouped(e.Name)
+func NewSystem(sysName, sysType string) *SAPSystem {
+	return &SAPSystem{Name: sysName, Type: sysType}
 }
 
-func (l *Landscape) Ungrouped() bool {
-	return ungrouped(l.Name)
+func NewDefaultEnvironment() *Environment {
+	return NewEnvironment(defaultName)
 }
 
-func (s *SAPSystem) Ungrouped() bool {
-	return ungrouped(s.Name)
+func NewDefaultLandscape() *Landscape {
+	return NewLandscape(defaultName)
 }
 
 type EnvironmentHealth struct {
@@ -86,6 +88,10 @@ func (e *Environment) Health() EnvironmentHealth {
 	return health
 }
 
+func (e *Environment) AddLandscape(land *Landscape) {
+	e.Landscapes[land.Name] = land
+}
+
 func (l *Landscape) Health() EnvironmentHealth {
 	var health = NewEnvironmentHealth()
 
@@ -95,6 +101,10 @@ func (l *Landscape) Health() EnvironmentHealth {
 	}
 
 	return health
+}
+
+func (l *Landscape) AddSystem(system *SAPSystem) {
+	l.SAPSystems[system.Name] = system
 }
 
 func (s *SAPSystem) Health() EnvironmentHealth {

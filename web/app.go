@@ -52,17 +52,17 @@ func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
 	engine.Use(ErrorHandler)
 	engine.StaticFS("/static", http.FS(assetsFS))
 	engine.GET("/", HomeHandler)
-	engine.GET("/hosts", NewHostsListHandler(deps.consul))
+	engine.GET("/hosts", NewHostListHandler(deps.consul))
 	engine.GET("/hosts/:name", NewHostHandler(deps.consul))
 	engine.GET("/hosts/:name/ha-checks", NewHAChecksHandler(deps.consul))
-	engine.GET("/clusters", NewClustersListHandler(deps.consul))
+	engine.GET("/clusters", NewClusterListHandler(deps.consul))
 	engine.GET("/clusters/:name", NewClusterHandler(deps.consul))
-	engine.GET("/environments", NewEnvironmentsListHandler(deps.consul))
-	engine.GET("/environments/:env", NewEnvironmentListHandler(deps.consul))
-	engine.GET("/landscapes", NewLandscapesListHandler(deps.consul))
-	engine.GET("/landscapes/:land", NewLandscapeListHandler(deps.consul))
-	engine.GET("/sapsystems", NewSAPSystemsListHandler(deps.consul))
-	engine.GET("/sapsystems/:sys", NewSAPSystemHostsListHandler(deps.consul))
+	engine.GET("/environments", NewEnvironmentListHandler(deps.consul))
+	engine.GET("/environments/:env", NewEnvironmentHandler(deps.consul))
+	engine.GET("/landscapes", NewLandscapeListHandler(deps.consul))
+	engine.GET("/landscapes/:land", NewLandscapeHandler(deps.consul))
+	engine.GET("/sapsystems", NewSAPSystemListHandler(deps.consul))
+	engine.GET("/sapsystems/:sys", NewSAPSystemHandler(deps.consul))
 
 	apiGroup := engine.Group("/api")
 	{
@@ -86,20 +86,4 @@ func (a *App) Start() error {
 
 func (a *App) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	a.engine.ServeHTTP(w, req)
-}
-
-func ErrorHandler(c *gin.Context) {
-	c.Next()
-
-	if len(c.Errors) == 0 {
-		return
-	}
-
-	c.Negotiate(500, gin.Negotiate{
-		Offered:  []string{gin.MIMEJSON, gin.MIMEHTML, gin.MIMEPlain},
-		HTMLName: "error.html.tmpl",
-		Data:     c.Errors,
-	})
-
-	c.Abort()
 }

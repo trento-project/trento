@@ -16,12 +16,11 @@
             {{- $LandName := .LandName }}
             {{- $Env := index .Environments .EnvName }}
             {{- $Land := index $Env.Landscapes .LandName }}
-            {{- $Ungrouped := $Env.Ungrouped }}
             {{- range $Land.SAPSystems }}
             <tr class='clickable' onclick="window.location='/sapsystems/{{ .Name }}?environment={{ $EnvName }}&landscape={{ $LandName }}'">
                 <td>{{ .Name }}</td>
-                <td>{{ if not $Ungrouped }}<a href="/landscapes?environment={{ $EnvName }}">{{ $EnvName }}</a>{{ end }}</td>
-                <td>{{ if not $Ungrouped }}<a href="/sapsystems?landscape={{ $LandName }}">{{ $LandName }}</a>{{ end }}</td>
+                <td><a href="/landscapes?environment={{ $EnvName }}">{{ $EnvName }}</a></td>
+                <td><a href="/sapsystems?landscape={{ $LandName }}">{{ $LandName }}</a></td>
                 <td>{{ len .Hosts }}</td>
                 <td>
                     {{- $Health := .Health }}
@@ -35,12 +34,11 @@
             {{- $EnvName := .Name }}
             {{- range .Landscapes }}
             {{- $LandName := .Name }}
-            {{- $Ungrouped := .Ungrouped }}
             {{- range .SAPSystems }}
             <tr class='clickable' onclick="window.location='/sapsystems/{{ .Name }}?environment={{ $EnvName }}&landscape={{ $LandName }}'">
                 <td>{{ .Name }}</td>
-                <td>{{ if not $Ungrouped }}<a href="/landscapes?environment={{ $EnvName }}">{{ $EnvName }}</a>{{ end }}</td>
-                <td>{{ if not $Ungrouped }}<a href="/sapsystems?landscape={{ $LandName }}">{{ $LandName }}</a>{{ end }}</td>
+                <td><a href="/landscapes?environment={{ $EnvName }}">{{ $EnvName }}</a></td>
+                <td><a href="/sapsystems?landscape={{ $LandName }}">{{ $LandName }}</a></td>
                 <td>{{ len .Hosts }}</td>
                 <td>
                     {{- $Health := .Health }}

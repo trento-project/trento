@@ -5,55 +5,41 @@ import (
 
 	consulApi "github.com/hashicorp/consul/api"
 	"github.com/stretchr/testify/assert"
-	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/consul/mocks"
 	"github.com/trento-project/trento/internal/hosts"
 )
 
 func TestNewEnvironment(t *testing.T) {
-	expectedEnv := Environment{
-		Name: "env1",
-		Landscapes: map[string]*Landscape{
-			"land1": &Landscape{
-				Name: "land1",
-				SAPSystems: map[string]*SAPSystem{
-					"sys1": &SAPSystem{Name: "sys1"},
-				},
-			},
-		},
-	}
-
-	e := NewEnvironment("env1", "land1", "sys1")
-	assert.Equal(t, e, expectedEnv)
+	name := "env1"
+	env := NewEnvironment("env1")
+	assert.Equal(t, env.Name, name)
+	assert.NotNil(t, env.Landscapes)
 }
 
-func TestUngrouped(t *testing.T) {
-	assert.Equal(t, ungrouped("name"), false)
-	assert.Equal(t, ungrouped(consul.KvUngrouped), true)
+func TestNewLandscape(t *testing.T) {
+	name := "land1"
+	land := NewLandscape("land1")
+	assert.Equal(t, land.Name, name)
+	assert.NotNil(t, land.SAPSystems)
 }
 
-func TestEnvironmentUngrouped(t *testing.T) {
-	e := &Environment{Name: "env1"}
-	assert.Equal(t, e.Ungrouped(), false)
+func TestNewSystem(t *testing.T) {
+	name := "sys1"
 
-	e = &Environment{Name: consul.KvUngrouped}
-	assert.Equal(t, e.Ungrouped(), true)
+	sys := NewSystem("sys1", "type1")
+	assert.Equal(t, sys.Name, name)
 }
 
-func TestLandscapeUngrouped(t *testing.T) {
-	l := &Landscape{Name: "land1"}
-	assert.Equal(t, l.Ungrouped(), false)
-
-	l = &Landscape{Name: consul.KvUngrouped}
-	assert.Equal(t, l.Ungrouped(), true)
+func TestNewDefaultEnvironment(t *testing.T) {
+	env := NewDefaultEnvironment()
+	assert.Equal(t, env.Name, defaultName)
+	assert.NotNil(t, env.Landscapes)
 }
 
-func TestSAPSystemUngrouped(t *testing.T) {
-	s := &SAPSystem{Name: "sys1"}
-	assert.Equal(t, s.Ungrouped(), false)
-
-	s = &SAPSystem{Name: consul.KvUngrouped}
-	assert.Equal(t, s.Ungrouped(), true)
+func TestNewDefaultLandscape(t *testing.T) {
+	land := NewDefaultLandscape()
+	assert.Equal(t, land.Name, defaultName)
+	assert.NotNil(t, land.SAPSystems)
 }
 
 func TestEnvironmentHealth(t *testing.T) {
@@ -130,10 +116,10 @@ func TestEnvironmentHealth(t *testing.T) {
 	e := Environment{
 		Name: "env1",
 		Landscapes: map[string]*Landscape{
-			"land1": &Landscape{
+			"land1": {
 				Name: "land1",
 				SAPSystems: map[string]*SAPSystem{
-					"sys1": &SAPSystem{
+					"sys1": {
 						Name: "sys1",
 						Hosts: hosts.HostList{
 							&host1,
@@ -142,10 +128,10 @@ func TestEnvironmentHealth(t *testing.T) {
 					},
 				},
 			},
-			"land2": &Landscape{
+			"land2": {
 				Name: "land2",
 				SAPSystems: map[string]*SAPSystem{
-					"sys2": &SAPSystem{
+					"sys2": {
 						Name: "sys2",
 						Hosts: hosts.HostList{
 							&host3,
@@ -244,14 +230,14 @@ func TestLandscapeHealth(t *testing.T) {
 	l := Landscape{
 		Name: "land1",
 		SAPSystems: map[string]*SAPSystem{
-			"sys1": &SAPSystem{
+			"sys1": {
 				Name: "sys1",
 				Hosts: hosts.HostList{
 					&host1,
 					&host2,
 				},
 			},
-			"sys2": &SAPSystem{
+			"sys2": {
 				Name: "sys2",
 				Hosts: hosts.HostList{
 					&host3,

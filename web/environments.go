@@ -8,7 +8,7 @@ import (
 	"github.com/trento-project/trento/internal/environments"
 )
 
-func NewEnvironmentsListHandler(client consul.Client) gin.HandlerFunc {
+func NewEnvironmentListHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		environments, err := environments.Load(client)
 		if err != nil {
@@ -82,7 +82,7 @@ func NewLandscapeHandler(client consul.Client) gin.HandlerFunc {
 	}
 }
 
-func NewSAPSystemsListHandler(client consul.Client) gin.HandlerFunc {
+func NewSAPSystemListHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var env = ""
 		var land = ""

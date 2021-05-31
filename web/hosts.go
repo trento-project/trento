@@ -14,7 +14,7 @@ import (
 	"github.com/trento-project/trento/internal/sapsystem"
 )
 
-func NewHostsListHandler(client consul.Client) gin.HandlerFunc {
+func NewHostListHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		query := c.Request.URL.Query()
 		query_filter := hosts.CreateFilterMetaQuery(query)

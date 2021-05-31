@@ -25,7 +25,7 @@ func TestStore(t *testing.T) {
 	expectedPutMap := map[string]interface{}{
 		"type": "HANA",
 		"processes": map[string]*sapcontrol.OSProcess{
-			"enserver": &sapcontrol.OSProcess{
+			"enserver": {
 				Name:        "enserver",
 				Description: "foobar",
 				Dispstatus:  sapcontrol.STATECOLOR_GREEN,
@@ -34,7 +34,7 @@ func TestStore(t *testing.T) {
 				Elapsedtime: "2",
 				Pid:         30787,
 			},
-			"msg_server": &sapcontrol.OSProcess{
+			"msg_server": {
 				Name:        "msg_server",
 				Description: "foobar2",
 				Dispstatus:  sapcontrol.STATECOLOR_YELLOW,
@@ -45,24 +45,24 @@ func TestStore(t *testing.T) {
 			},
 		},
 		"properties": map[string]*sapcontrol.InstanceProperty{
-			"INSTANCE_NAME": &sapcontrol.InstanceProperty{
+			"INSTANCE_NAME": {
 				Property:     "INSTANCE_NAME",
 				Propertytype: "string",
 				Value:        "HDB00",
 			},
-			"SAPSYSTEMNAME": &sapcontrol.InstanceProperty{
+			"SAPSYSTEMNAME": {
 				Property:     "SAPSYSTEMNAME",
 				Propertytype: "string",
 				Value:        "PRD",
 			},
-			"HANA Roles": &sapcontrol.InstanceProperty{
+			"HANA Roles": {
 				Property:     "HANA Roles",
 				Propertytype: "type3",
 				Value:        "some hana value",
 			},
 		},
 		"instances": map[string]*sapcontrol.SAPInstance{
-			"host1": &sapcontrol.SAPInstance{
+			"host1": {
 				Hostname:      "host1",
 				InstanceNr:    0,
 				HttpPort:      50013,
@@ -71,7 +71,7 @@ func TestStore(t *testing.T) {
 				Features:      "some features",
 				Dispstatus:    sapcontrol.STATECOLOR_GREEN,
 			},
-			"host2": &sapcontrol.SAPInstance{
+			"host2": {
 				Hostname:      "host2",
 				InstanceNr:    1,
 				HttpPort:      50113,
@@ -97,7 +97,7 @@ func TestStore(t *testing.T) {
 		Id:         "",
 		Type:       "HANA",
 		Processes: map[string]*sapcontrol.OSProcess{
-			"enserver": &sapcontrol.OSProcess{
+			"enserver": {
 				Name:        "enserver",
 				Description: "foobar",
 				Dispstatus:  sapcontrol.STATECOLOR_GREEN,
@@ -106,7 +106,7 @@ func TestStore(t *testing.T) {
 				Elapsedtime: "2",
 				Pid:         30787,
 			},
-			"msg_server": &sapcontrol.OSProcess{
+			"msg_server": {
 				Name:        "msg_server",
 				Description: "foobar2",
 				Dispstatus:  sapcontrol.STATECOLOR_YELLOW,
@@ -117,24 +117,24 @@ func TestStore(t *testing.T) {
 			},
 		},
 		Properties: map[string]*sapcontrol.InstanceProperty{
-			"INSTANCE_NAME": &sapcontrol.InstanceProperty{
+			"INSTANCE_NAME": {
 				Property:     "INSTANCE_NAME",
 				Propertytype: "string",
 				Value:        "HDB00",
 			},
-			"SAPSYSTEMNAME": &sapcontrol.InstanceProperty{
+			"SAPSYSTEMNAME": {
 				Property:     "SAPSYSTEMNAME",
 				Propertytype: "string",
 				Value:        "PRD",
 			},
-			"HANA Roles": &sapcontrol.InstanceProperty{
+			"HANA Roles": {
 				Property:     "HANA Roles",
 				Propertytype: "type3",
 				Value:        "some hana value",
 			},
 		},
 		Instances: map[string]*sapcontrol.SAPInstance{
-			"host1": &sapcontrol.SAPInstance{
+			"host1": {
 				Hostname:      "host1",
 				InstanceNr:    0,
 				HttpPort:      50013,
@@ -143,7 +143,7 @@ func TestStore(t *testing.T) {
 				Features:      "some features",
 				Dispstatus:    sapcontrol.STATECOLOR_GREEN,
 			},
-			"host2": &sapcontrol.SAPInstance{
+			"host2": {
 				Hostname:      "host2",
 				InstanceNr:    1,
 				HttpPort:      50113,
@@ -155,7 +155,9 @@ func TestStore(t *testing.T) {
 		},
 	}
 
-	s.Store(consulInst)
+	err := s.Store(consulInst)
+
+	assert.NoError(t, err)
 
 	kv.AssertExpectations(t)
 }
@@ -242,7 +244,7 @@ func TestLoad(t *testing.T) {
 			Id:   "",
 			Type: "HANA",
 			Processes: map[string]*sapcontrol.OSProcess{
-				"enserver": &sapcontrol.OSProcess{
+				"enserver": {
 					Name:        "enserver",
 					Description: "foobar",
 					Dispstatus:  sapcontrol.STATECOLOR_GREEN,
@@ -251,7 +253,7 @@ func TestLoad(t *testing.T) {
 					Elapsedtime: "2",
 					Pid:         30787,
 				},
-				"msg_server": &sapcontrol.OSProcess{
+				"msg_server": {
 					Name:        "msg_server",
 					Description: "foobar2",
 					Dispstatus:  sapcontrol.STATECOLOR_YELLOW,
@@ -262,24 +264,24 @@ func TestLoad(t *testing.T) {
 				},
 			},
 			Properties: map[string]*sapcontrol.InstanceProperty{
-				"INSTANCE_NAME": &sapcontrol.InstanceProperty{
+				"INSTANCE_NAME": {
 					Property:     "INSTANCE_NAME",
 					Propertytype: "string",
 					Value:        "HDB00",
 				},
-				"SAPSYSTEMNAME": &sapcontrol.InstanceProperty{
+				"SAPSYSTEMNAME": {
 					Property:     "SAPSYSTEMNAME",
 					Propertytype: "string",
 					Value:        "PRD",
 				},
-				"HANA Roles": &sapcontrol.InstanceProperty{
+				"HANA Roles": {
 					Property:     "HANA Roles",
 					Propertytype: "type3",
 					Value:        "some hana value",
 				},
 			},
 			Instances: map[string]*sapcontrol.SAPInstance{
-				"host1": &sapcontrol.SAPInstance{
+				"host1": {
 					Hostname:      "host1",
 					InstanceNr:    0,
 					HttpPort:      50013,
@@ -288,7 +290,7 @@ func TestLoad(t *testing.T) {
 					Features:      "some features",
 					Dispstatus:    sapcontrol.STATECOLOR_GREEN,
 				},
-				"host2": &sapcontrol.SAPInstance{
+				"host2": {
 					Hostname:      "host2",
 					InstanceNr:    1,
 					HttpPort:      50113,

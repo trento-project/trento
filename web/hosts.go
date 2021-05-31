@@ -14,7 +14,7 @@ import (
 	"github.com/trento-project/trento/internal/sapsystem"
 )
 
-func NewHostsListHandler(client consul.Client) gin.HandlerFunc {
+func NewHostListHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		query := c.Request.URL.Query()
 		query_filter := hosts.CreateFilterMetaQuery(query)
@@ -43,19 +43,15 @@ func NewHostsListHandler(client consul.Client) gin.HandlerFunc {
 func loadFilters(client consul.Client) (map[string][]string, error) {
 	filter_data := make(map[string][]string)
 
-	environments, err := environments.Load(client)
+	envs, err := environments.Load(client)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get the filters")
 	}
 
-	for envKey, envValue := range environments {
-		if !envValue.Ungrouped() {
-			filter_data["environments"] = append(filter_data["environments"], envKey)
-		}
+	for envKey, envValue := range envs {
+		filter_data["environments"] = append(filter_data["environments"], envKey)
 		for landKey, landValue := range envValue.Landscapes {
-			if !landValue.Ungrouped() {
-				filter_data["landscapes"] = append(filter_data["landscapes"], landKey)
-			}
+			filter_data["landscapes"] = append(filter_data["landscapes"], landKey)
 			for sysKey, _ := range landValue.SAPSystems {
 				filter_data["sapsystems"] = append(filter_data["sapsystems"], sysKey)
 			}

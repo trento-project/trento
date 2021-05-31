@@ -35,7 +35,7 @@ const (
 	KvHostsSAPSystemPath string = "trento/v0/hosts/%s/sapsystems/"
 	KvEnvironmentsPath   string = "trento/v0/environments/"
 
-	KvUngrouped string = "ungrouped"
+	KvDefaultGroup string = "default"
 )
 
 type ClusterStonithType int

@@ -6,9 +6,8 @@ import (
 	"path"
 	"regexp"
 
-	"github.com/pkg/errors"
-
 	"github.com/SUSE/sap_host_exporter/lib/sapcontrol"
+	"github.com/pkg/errors"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 
@@ -28,6 +27,10 @@ type SAPSystem struct {
 	Processes  map[string]*sapcontrol.OSProcess        `mapstructure:"processes,omitempty"`
 	Instances  map[string]*sapcontrol.SAPInstance      `mapstructure:"instances,omitempty"`
 	Properties map[string]*sapcontrol.InstanceProperty `mapstructure:"properties,omitempty"`
+}
+
+func (s *SAPSystem) GetSID() string {
+	return s.Properties["SAPSYSTEMNAME"].Value
 }
 
 func newWebService(instNumber string) sapcontrol.WebService {
@@ -53,7 +56,7 @@ func NewSAPSystemsList() (SAPSystemsList, error) {
 			log.Printf("Error discovering a SAP system: %s", err)
 			continue
 		}
-		systems = append(systems, &s)
+		systems = append(systems, s)
 	}
 
 	return systems, nil
@@ -111,16 +114,8 @@ func findInstances(fs afero.Fs, sapPath string) ([]string, error) {
 	return instances, nil
 }
 
-// The Id is a unique identifier of a SAP installation.
-// It will be used to create totally independent SAP system data
-// TODO: This method to obtain the ID must be changed, as this file is not always static
-func (s *SAPSystem) getSapSystemId() (string, error) {
-	sid := s.Properties["SAPSYSTEMNAME"].Value
-	return internal.Md5sum(fmt.Sprintf("/usr/sap/%s/SYS/global/security/rsecssfs/key/SSFS_%s.KEY", sid, sid))
-}
-
-func NewSAPSystem(w sapcontrol.WebService) (SAPSystem, error) {
-	var sapSystem = SAPSystem{
+func NewSAPSystem(w sapcontrol.WebService) (*SAPSystem, error) {
+	var sapSystem = &SAPSystem{
 		webService: w,
 		Type:       "",
 		Processes:  make(map[string]*sapcontrol.OSProcess),
@@ -162,10 +157,17 @@ func NewSAPSystem(w sapcontrol.WebService) (SAPSystem, error) {
 		sapSystem.Type = "APP"
 	}
 
-	id, err := sapSystem.getSapSystemId()
+	id, err := getUniqueId(sapSystem.GetSID())
 	if err == nil {
 		sapSystem.Id = id
 	}
 
 	return sapSystem, nil
+}
+
+// This is a unique identifier of a SAP installation.
+// It will be used to create totally independent SAP system data
+// TODO: This method to obtain the ID must be changed, as this file is not always static
+func getUniqueId(sid string) (string, error) {
+	return internal.Md5sum(fmt.Sprintf("/usr/sap/%s/SYS/global/security/rsecssfs/key/SSFS_%s.KEY", sid, sid))
 }

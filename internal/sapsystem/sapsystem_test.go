@@ -85,7 +85,7 @@ func TestNewSAPSystem(t *testing.T) {
 
 	sapSystem, _ := NewSAPSystem(mockWebService)
 
-	expectedSystem := SAPSystem{
+	expectedSystem := &SAPSystem{
 		webService: mockWebService,
 		Id:         "",
 		Type:       "HANA",

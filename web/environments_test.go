@@ -168,21 +168,12 @@ func TestEnvironmentsListHandler(t *testing.T) {
 	consulInst.AssertExpectations(t)
 	catalog.AssertExpectations(t)
 
-	m := minify.New()
-	m.AddFunc("text/html", html.Minify)
-	m.Add("text/html", &html.Minifier{
-		KeepDefaultAttrVals: true,
-		KeepEndTags:         true,
-	})
-	minified, err := m.String("text/html", resp.Body.String())
-	if err != nil {
-		panic(err)
-	}
+	responseBody := minifyHtml(resp.Body.String())
 
 	assert.Equal(t, 200, resp.Code)
-	assert.Contains(t, minified, "Environments")
-	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/environments/env1'\".*<td>env1</td><td>2</td><td>2</td><td>.*passing.*</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/environments/env1'\".*<td>env2</td><td>1</td><td>1</td><td>.*critical.*</td>"), minified)
+	assert.Contains(t, responseBody, "Environments")
+	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/environments/env1'\".*<td>env1</td><td>2</td><td>2</td><td>.*passing.*</td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/environments/env1'\".*<td>env2</td><td>1</td><td>1</td><td>.*critical.*</td>"), responseBody)
 }
 
 func TestLandscapesListHandler(t *testing.T) {
@@ -208,21 +199,12 @@ func TestLandscapesListHandler(t *testing.T) {
 	consulInst.AssertExpectations(t)
 	catalog.AssertExpectations(t)
 
-	m := minify.New()
-	m.AddFunc("text/html", html.Minify)
-	m.Add("text/html", &html.Minifier{
-		KeepDefaultAttrVals: true,
-		KeepEndTags:         true,
-	})
-	minified, err := m.String("text/html", resp.Body.String())
-	if err != nil {
-		panic(err)
-	}
+	responseBody := minifyHtml(resp.Body.String())
 
 	assert.Equal(t, 200, resp.Code)
-	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/landscapes/land1\\?environment=env1'\"><td>land1</td><td>.*env1.*</td><td>1</td><td>2</td><td>.*passing.*</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/landscapes/land2\\?environment=env1'\".*<td>land2</td><td>.*env1.*<td>1</td><td>2</td><td>.*passing.*</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/landscapes/land3\\?environment=env2'\".*<td>land3</td><td>.*env2.*<td>1</td><td>2</td><td>.*critical.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/landscapes/land1\\?environment=env1'\"><td>land1</td><td>.*env1.*</td><td>1</td><td>2</td><td>.*passing.*</td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/landscapes/land2\\?environment=env1'\".*<td>land2</td><td>.*env1.*<td>1</td><td>2</td><td>.*passing.*</td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/landscapes/land3\\?environment=env2'\".*<td>land3</td><td>.*env2.*<td>1</td><td>2</td><td>.*critical.*</td>"), responseBody)
 }
 
 func TestSAPSystemsListHandler(t *testing.T) {
@@ -248,19 +230,49 @@ func TestSAPSystemsListHandler(t *testing.T) {
 	consulInst.AssertExpectations(t)
 	catalog.AssertExpectations(t)
 
+	responseBody := minifyHtml(resp.Body.String())
+
+	assert.Equal(t, 200, resp.Code)
+	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/sapsystems/sys1\\?environment=env1&landscape=land1'\".*<td>sys1</td><td>.*passing.*</td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/sapsystems/sys2\\?environment=env1&landscape=land2'\".*<td>sys2</td><td>.*passing.*</td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/sapsystems/sys3\\?environment=env2&landscape=land3'\".*<td>sys3</td><td>.*critical.*</td>"), responseBody)
+}
+
+func TestSAPSystemHandler404Error(t *testing.T) {
+	consulInst, _ := setupTest()
+
+	deps := DefaultDependencies()
+	deps.consul = consulInst
+
+	var err error
+	app, err := NewAppWithDeps("", 80, deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/sapsystems/foobar", nil)
+	req.Header.Set("Accept", "text/html")
+
+	app.ServeHTTP(resp, req)
+
+	responseBody := minifyHtml(resp.Body.String())
+	assert.NoError(t, err)
+
+	assert.Equal(t, 404, resp.Code)
+	assert.Contains(t, responseBody, "Not Found")
+}
+
+func minifyHtml(input string) string {
 	m := minify.New()
 	m.AddFunc("text/html", html.Minify)
 	m.Add("text/html", &html.Minifier{
 		KeepDefaultAttrVals: true,
 		KeepEndTags:         true,
 	})
-	minified, err := m.String("text/html", resp.Body.String())
+	minified, err := m.String("text/html", input)
 	if err != nil {
 		panic(err)
 	}
-
-	assert.Equal(t, 200, resp.Code)
-	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/sapsystems/sys1\\?environment=env1&landscape=land1'\".*<td>sys1</td><td>.*passing.*</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/sapsystems/sys2\\?environment=env1&landscape=land2'\".*<td>sys2</td><td>.*passing.*</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/sapsystems/sys3\\?environment=env2&landscape=land3'\".*<td>sys3</td><td>.*critical.*</td>"), minified)
+	return minified
 }

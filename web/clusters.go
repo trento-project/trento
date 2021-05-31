@@ -17,7 +17,7 @@ type Cluster struct {
 
 type ClusterList map[string]*Cluster
 
-func NewClustersListHandler(client consul.Client) gin.HandlerFunc {
+func NewClusterListHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		clusters, err := cluster.Load(client)
 		if err != nil {

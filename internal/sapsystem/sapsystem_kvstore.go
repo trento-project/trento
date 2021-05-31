@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/mitchellh/mapstructure" //MIT license, is this a problem?
+	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 
 	consulApi "github.com/hashicorp/consul/api"
@@ -14,8 +14,7 @@ import (
 func (s *SAPSystem) getKVPath() string {
 	host, _ := os.Hostname()
 	key := fmt.Sprintf(consul.KvHostsSAPSystemPath, host)
-	name := s.Properties["SAPSYSTEMNAME"].Value
-	kvPath := fmt.Sprintf("%s%s", key, name)
+	kvPath := fmt.Sprintf("%s%s", key, s.GetSID())
 
 	return kvPath
 }

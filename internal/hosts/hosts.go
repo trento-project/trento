@@ -12,7 +12,6 @@ import (
 	"github.com/aquasecurity/bench-common/check"
 	consulApi "github.com/hashicorp/consul/api"
 	"github.com/pkg/errors"
-
 	"github.com/trento-project/trento/internal"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/sapsystem"
@@ -44,9 +43,7 @@ func (n *Host) TrentoMeta() map[string]string {
 	filtered_meta := make(map[string]string)
 
 	for key, value := range n.Node.Meta {
-		if value == consul.KvUngrouped {
-			continue
-		} else if strings.HasPrefix(key, TrentoPrefix) {
+		if strings.HasPrefix(key, TrentoPrefix) {
 			filtered_meta[key] = value
 		}
 	}
@@ -85,15 +82,6 @@ func (n *Host) GetSAPSystems() (map[string]*sapsystem.SAPSystem, error) {
 		return nil, err
 	}
 	return systems, nil
-}
-
-func sortKeys(m map[string][]string) []string {
-	var keys []string
-	for k := range m {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	return keys
 }
 
 // Use github.com/hashicorp/go-bexpr to create the filter
@@ -139,4 +127,13 @@ func Load(client consul.Client, query_filter string, health_filter []string) (Ho
 	}
 
 	return hosts, nil
+}
+
+func sortKeys(m map[string][]string) []string {
+	var keys []string
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
 }

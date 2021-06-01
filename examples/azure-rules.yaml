@@ -383,13 +383,36 @@ groups:
           -  https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#set-up-sbd-device
         scored: false
       - id: 1.3.5
-        description: "SBD Timing parameters configured properly"
+        description: "Watchdog timeout is 60 sec"
         audit: |
           DEF_WDTIMEOUT=60
-          DEF_MSGWAIT=120
-          result_wdtimeout=${DEF_TIMEOUT}
-          result_msgwait=${DEF_MSGWAIT}
+          result_wdtimeout=${DEF_WDTIMEOUT}
 
+          sbdarray=$(grep -E '^SBD_DEVICE=' /etc/sysconfig/sbd  | grep -oP 'SBD_DEVICE=\K[^.]+' | sed 's/\"//g')
+          IFS=';' sbdarray=( $sbdarray )
+
+          for i in "${sbdarray[@]}"
+          do
+            wdtimeout=$(/usr/sbin/sbd -d ${i} dump | grep -oP 'Timeout \(watchdog\)  *: \K\d+')
+
+            if [[ "${wdtimeout}" -ne "${DEF_WDTIMEOUT}" ]]; then
+              result_wdtimeout="${wdtimeout}"
+            fi
+          done
+          echo "${result_wdtimeout}"
+        tests:
+          test_items:
+            - flag: "60"
+        remediation: |
+          ## Remediation
+          Make sure you configure your SBD Watchdog Timeout to 60s as recommended on the best practices.
+
+          ## References
+          -  https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#set-up-sbd-device
+        scored: true
+      - id: 1.3.6
+        description: "msgwait timeout is 2*(watchdog timeout)"
+        audit: |
           sbdarray=$(grep -E '^SBD_DEVICE=' /etc/sysconfig/sbd  | grep -oP 'SBD_DEVICE=\K[^.]+' | sed 's/\"//g')
           IFS=';' sbdarray=( $sbdarray )
 
@@ -398,23 +421,18 @@ groups:
             msgwait=$(/usr/sbin/sbd -d ${i} dump | grep -oP 'Timeout \(msgwait\)  *: \K\d+')
             wdtimeout=$(/usr/sbin/sbd -d ${i} dump | grep -oP 'Timeout \(watchdog\)  *: \K\d+')
 
-            if [[ "${msgwait}" -ne "${DEF_MSGWAIT}" ]]; then
-              result_msgwait="${msgwait}"
-            fi
-
-            if [[ "${wdtimeout}" -ne "${DEF_WDTIMEOUT}" ]]; then
-              result_wdtimeout="${wdtimeout}"
+            if [[ "${msgwait}" -ne "$(( ${wdtimeout}*2 ))" ]]; then
+              echo false
+              break
             fi
           done
-          echo "${result_wdtimeout}"
-          echo "${result_msgwait}"
+          echo true
         tests:
           test_items:
-            - flag: "60"
-            - flag: "120"
+            - flag: "true"
         remediation: |          
           ## Remediation
-          Make sure you configure your SBD Watchdog Timeout to 60s and the SBD msgwait to 120s as recommended on the best practices.
+          Make sure you configure your the SBD msgwait to 2 * (SBD Watchdog Timeout) as recommended on the best practices.
           
           ## References
           -  https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#set-up-sbd-device

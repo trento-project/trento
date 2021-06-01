@@ -52,10 +52,13 @@ type SBDNode struct {
 	Status string `mapstructure:"status,omitempty"`
 }
 
-func NewSBD(cluster string) (SBD, error) {
+var sbdDumpExecCommand = exec.Command
+var sbdListExecCommand = exec.Command
+
+func NewSBD(cluster, sbdPath, sbdConfigPath string) (SBD, error) {
 	var s = SBD{cluster: cluster}
 
-	c, err := getSBDConfig(SBDConfigPath)
+	c, err := getSBDConfig(sbdConfigPath)
 	if err != nil {
 		return s, err
 	} else if _, ok := c["SBD_DEVICE"]; !ok {
@@ -64,7 +67,7 @@ func NewSBD(cluster string) (SBD, error) {
 	s.Config = c
 
 	for _, device := range strings.Split(c["SBD_DEVICE"], ";") {
-		sbdDevice := NewSBDDevice(SBDPath, device)
+		sbdDevice := NewSBDDevice(sbdPath, device)
 		err := sbdDevice.LoadDeviceData()
 		if err != nil {
 			log.Printf("Error getting sbd information: %s", err)
@@ -156,7 +159,7 @@ func assignPatternResult(text string, pattern string) []string {
 func sbdDump(sbdPath string, device string) (SBDDump, error) {
 	var dump = SBDDump{}
 
-	sbdDump, err := exec.Command(sbdPath, "-d", device, "dump").Output()
+	sbdDump, err := sbdDumpExecCommand(sbdPath, "-d", device, "dump").Output()
 	if err != nil {
 		return dump, errors.Wrap(err, "sbd dump command error")
 	}
@@ -165,7 +168,7 @@ func sbdDump(sbdPath string, device string) (SBDDump, error) {
 	dump.Header = assignPatternResult(sbdDumpStr, `Header version *: (.*)`)[1]
 	dump.Uuid = assignPatternResult(sbdDumpStr, `UUID *: (.*)`)[1]
 	dump.Slots, _ = strconv.Atoi(assignPatternResult(sbdDumpStr, `Number of slots *: (.*)`)[1])
-	dump.SectorSize, _ = strconv.Atoi(assignPatternResult(sbdDumpStr, `Number of slots *: (.*)`)[1])
+	dump.SectorSize, _ = strconv.Atoi(assignPatternResult(sbdDumpStr, `Sector size *: (.*)`)[1])
 	dump.TimeoutWatchdog, _ = strconv.Atoi(assignPatternResult(sbdDumpStr, `Timeout \(watchdog\) *: (.*)`)[1])
 	dump.TimeoutAllocate, _ = strconv.Atoi(assignPatternResult(sbdDumpStr, `Timeout \(allocate\) *: (.*)`)[1])
 	dump.TimeoutLoop, _ = strconv.Atoi(assignPatternResult(sbdDumpStr, `Timeout \(loop\) *: (.*)`)[1])
@@ -180,7 +183,7 @@ func sbdDump(sbdPath string, device string) (SBDDump, error) {
 func sbdList(sbdPath string, device string) ([]*SBDNode, error) {
 	var list = []*SBDNode{}
 
-	output, err := exec.Command(sbdPath, "-d", device, "list").Output()
+	output, err := sbdListExecCommand(sbdPath, "-d", device, "list").Output()
 	if err != nil {
 		return list, errors.Wrap(err, "sbd list command error")
 	}

@@ -48,7 +48,7 @@ func NewCluster() (Cluster, error) {
 	cluster.Crmmon = crmmonConfig
 
 	if cluster.IsFencingSBD() {
-		sbdData, err := NewSBD(cluster.Name())
+		sbdData, err := NewSBD(cluster.Name(), SBDPath, SBDConfigPath)
 		if err != nil {
 			return cluster, err
 		}

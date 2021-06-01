@@ -137,6 +137,35 @@ func TestStore(t *testing.T) {
 			},
 			"Version": "1.2.3",
 		},
+		"sbd": map[string]interface{}{
+			"devices": []*SBDDevice{
+				&SBDDevice{
+					Device: "/dev/vdc",
+					Status: "healthy",
+					Dump: SBDDump{
+						Header:          "header",
+						Uuid:            "uuid",
+						Slots:           1,
+						SectorSize:      2,
+						TimeoutWatchdog: 3,
+						TimeoutAllocate: 4,
+						TimeoutLoop:     5,
+						TimeoutMsgwait:  6,
+					},
+					List: []*SBDNode{
+						&SBDNode{
+							Id:     1234,
+							Name:   "node1",
+							Status: "clean",
+						},
+					},
+				},
+			},
+			"config": map[string]string{
+				"param1": "value1",
+				"param2": "value2",
+			},
+		},
 	}
 
 	kv.On("DeleteTree", kvPath, (*consulApi.WriteOptions)(nil)).Return(nil, nil)
@@ -170,6 +199,35 @@ func TestStore(t *testing.T) {
 					Name: host,
 					DC:   true,
 				},
+			},
+		},
+		SBD: SBD{
+			Devices: []*SBDDevice{
+				&SBDDevice{
+					Device: "/dev/vdc",
+					Status: "healthy",
+					Dump: SBDDump{
+						Header:          "header",
+						Uuid:            "uuid",
+						Slots:           1,
+						SectorSize:      2,
+						TimeoutWatchdog: 3,
+						TimeoutAllocate: 4,
+						TimeoutLoop:     5,
+						TimeoutMsgwait:  6,
+					},
+					List: []*SBDNode{
+						&SBDNode{
+							Id:     1234,
+							Name:   "node1",
+							Status: "clean",
+						},
+					},
+				},
+			},
+			Config: map[string]string{
+				"param1": "value1",
+				"param2": "value2",
 			},
 		},
 	}
@@ -210,6 +268,35 @@ func TestLoad(t *testing.T) {
 					},
 				},
 			},
+			"sbd": map[string]interface{}{
+				"devices": []interface{}{
+					map[string]interface{}{
+						"device": "/dev/vdc",
+						"status": "healthy",
+						"dump": map[string]interface{}{
+							"header":          "header",
+							"uuid":            "uuid",
+							"slots":           1,
+							"sectorsize":      2,
+							"timeoutwatchdog": 3,
+							"timeoutallocate": 4,
+							"timeoutloop":     5,
+							"timeoutmsgwait":  6,
+						},
+						"list": []interface{}{
+							map[string]interface{}{
+								"id":     1234,
+								"name":   "node1",
+								"status": "clean",
+							},
+						},
+					},
+				},
+				"config": map[string]interface{}{
+					"param1": "value1",
+					"param2": "value2",
+				},
+			},
 		},
 	}
 
@@ -248,6 +335,37 @@ func TestLoad(t *testing.T) {
 						Name: host,
 						DC:   true,
 					},
+				},
+			},
+			SBD: SBD{
+				cluster: "",
+				Devices: []*SBDDevice{
+					&SBDDevice{
+						sbdPath: "",
+						Device:  "/dev/vdc",
+						Status:  "healthy",
+						Dump: SBDDump{
+							Header:          "header",
+							Uuid:            "uuid",
+							Slots:           1,
+							SectorSize:      2,
+							TimeoutWatchdog: 3,
+							TimeoutAllocate: 4,
+							TimeoutLoop:     5,
+							TimeoutMsgwait:  6,
+						},
+						List: []*SBDNode{
+							&SBDNode{
+								Id:     1234,
+								Name:   "node1",
+								Status: "clean",
+							},
+						},
+					},
+				},
+				Config: map[string]string{
+					"param1": "value1",
+					"param2": "value2",
 				},
 			},
 		},

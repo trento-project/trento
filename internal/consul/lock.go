@@ -14,6 +14,15 @@ const (
 	waitTime                = 15 * time.Second
 )
 
+// Created to enable unit testing
+var lockGet = func(c *client, prefix string, q *consulApi.QueryOptions) (*consulApi.KVPair, *consulApi.QueryMeta, error) {
+	return c.KV().Get(prefix, q)
+}
+
+var lock = func(l *consulApi.Lock, stopCh <-chan struct{}) (<-chan struct{}, error) {
+	return l.Lock(stopCh)
+}
+
 func (c *client) LockTrento(prefix string) (*consulApi.Lock, error) {
 	opts := &consulApi.LockOptions{
 		Key:              prefix,
@@ -27,7 +36,7 @@ func (c *client) LockTrento(prefix string) (*consulApi.Lock, error) {
 		return nil, err
 	}
 
-	_, err = l.Lock(nil)
+	_, err = lock(l, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +52,7 @@ func (c *client) LockWaitReleasead(prefix string) error {
 WAIT:
 	// Look for an existing lock, blocking until not taken
 	// Based on: https://github.com/hashicorp/consul/blob/master/api/lock.go#L181
-	pair, meta, err := c.KV().Get(prefix, &q)
+	pair, meta, err := lockGet(c, prefix, &q)
 	if err != nil {
 		return fmt.Errorf("failed to read lock: %v", err)
 	}

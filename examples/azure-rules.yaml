@@ -756,63 +756,28 @@ groups:
     description: "Check that <sidadm> sudo user is set up in /etc/sudoers"
     checks:
       - id: 1.6.1
-        description: "Basic sudoers entry to allow <sidadm> to use the srHook."
-        audit: 'cat /etc/sudoers | grep -E ".+ +ALL=\(ALL\) +NOPASSWD: +/usr/sbin/crm_attribute +-n +hana_.+_site_srHook_\*" | sed "s/.*/true/"'
+        description: "Allowing <sidadm> to access the Cluster."
+        audit: |
+          if cat /etc/sudoers | grep -E "[a-z][a-z0-9]{2}adm +ALL=\(ALL\) +NOPASSWD: +/usr/sbin/crm_attribute +-n +hana_[a-z][a-z0-9]{2}_site_srHook_\*"; then
+            echo true1 true2 true3 true4 true5
+            exit 0
+          fi
+          cat /etc/sudoers | grep -E "^Cmnd_Alias +SOK_SITEA += +/usr/sbin/crm_attribute" | grep -E "\-n +hana_[a-z][a-z0-9]{2}_site_srHook_.+" | grep -E "\-v +SOK" | grep -E "\-t +crm_config" | grep -E "\-s +SAPHanaSR" | sed "s/.*/true2/"
+          cat /etc/sudoers | grep -E "^Cmnd_Alias +SFAIL_SITEA += +/usr/sbin/crm_attribute" | grep -E "\-n +hana_[a-z][a-z0-9]{2}_site_srHook_.+" | grep -E "\-v +SFAIL" | grep -E "\-t +crm_config" | grep -E "\-s +SAPHanaSR" | sed "s/.*/true3/"
+          cat /etc/sudoers | grep -E "^Cmnd_Alias +SOK_SITEB += +/usr/sbin/crm_attribute" | grep -E "\-n +hana_[a-z][a-z0-9]{2}_site_srHook_.+" | grep -E "\-v +SOK" | grep -E "\-t +crm_config" | grep -E "\-s +SAPHanaSR" | sed "s/.*/true4/"
+          cat /etc/sudoers | grep -E "^Cmnd_Alias +SFAIL_SITEB += +/usr/sbin/crm_attribute" | grep -E "\-n +hana_[a-z][a-z0-9]{2}_site_srHook_.+" | grep -E "\-v +SFAIL" | grep -E "\-t +crm_config" | grep -E "\-s +SAPHanaSR" | sed "s/.*/true5/"
+          cat /etc/sudoers | grep -E "[a-z][a-z0-9]{2}adm +ALL=\(ALL\) +NOPASSWD:" | sed "s/.*: //" | grep SOK_SITEA | grep SFAIL_SITEA | grep SOK_SITEB | grep SFAIL_SITEB | sed "s/.*/true1/"
         tests:
+          bin_op: and
           test_items:
-          - flag: "true"
+          - flag: "true1"
+          - flag: "true2"
+          - flag: "true3"
+          - flag: "true4"
+          - flag: "true5"
         remediation: |
-          Set up the Basic sudoers entry to allow <sidadm> in /etc/sudoers to use the srHook.
-          Ref: section 8.3 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
+          ## Remediation
+            Set up the sudoers entry to allow <sidadm> in /etc/sudoers to use the srHook.
+          ## References
+            section 8.3 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
         scored: true
-# TO-DO: group all of these in 1.6.1
-#      - id: 1.6.2
-#        description: "Check SOK_SITEA alias"
-#        audit: 'cat /etc/sudoers | grep -E "^Cmnd_Alias +SOK_SITEA += +/usr/sbin/crm_attribute" | grep -E "\-n +hana_.+_site_srHook_.+" | grep -E "\-v +SOK" | grep -E "\-t +crm_config" | grep -E "\-s +SAPHanaSR" | sed "s/.*/true/"'
-#        tests:
-#          test_items:
-#          - flag: "true"
-#        remediation: |
-#          Set up SOK_SITEA in /etc/sudoers.
-#          Ref: section 8.3 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
-#        scored: true
-#      - id: 1.6.3
-#        description: "Check SFAIL_SITEA alias"
-#        audit: 'cat /etc/sudoers | grep -E "^Cmnd_Alias +SFAIL_SITEA += +/usr/sbin/crm_attribute" | grep -E "\-n +hana_.+_site_srHook_.+" | grep -E "\-v +SFAIL" | grep -E "\-t +crm_config" | grep -E "\-s +SAPHanaSR" | sed "s/.*/true/"'
-#        tests:
-#          test_items:
-#          - flag: "true"
-#        remediation: |
-#          Set up SFAIL_SITEA in /etc/sudoers.
-#          Ref: section 8.3 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
-#        scored: true
-#      - id: 1.6.4
-#        description: "Check SOK_SITEB alias"
-#        audit: 'cat /etc/sudoers | grep -E "^Cmnd_Alias +SOK_SITEB += +/usr/sbin/crm_attribute" | grep -E "\-n +hana_.+_site_srHook_.+" | grep -E "\-v +SOK" | grep -E "\-t +crm_config" | grep -E "\-s +SAPHanaSR" | sed "s/.*/true/"'
-#        tests:
-#          test_items:
-#          - flag: "true"
-#        remediation: |
-#          Set up SOK_SITEB in /etc/sudoers.
-#          Ref: section 8.3 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
-#        scored: true
-#      - id: 1.6.5
-#        description: "Check SFAIL_SITEB alias"
-#        audit: 'cat /etc/sudoers | grep -E "^Cmnd_Alias +SFAIL_SITEB += +/usr/sbin/crm_attribute" | grep -E "\-n +hana_.+_site_srHook_.+" | grep -E "\-v +SFAIL" | grep -E "\-t +crm_config" | grep -E "\-s +SAPHanaSR" | sed "s/.*/true/"'
-#        tests:
-#          test_items:
-#          - flag: "true"
-#        remediation: |
-#          Set up SFAIL_SITEB in /etc/sudoers.
-#          Ref: section 8.3 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
-#        scored: true
-#      - id: 1.6.6
-#        description: "Check <sidadm> ALL=(ALL) NOPASSWD"
-#        audit: 'cat /etc/sudoers | grep -E ".+ +ALL=\(ALL\) +NOPASSWD:" | sed "s/.*: //" | grep SOK_SITEA | grep SFAIL_SITEA | grep SOK_SITEB | grep SFAIL_SITEB | sed "s/.*/true/"'
-#        tests:
-#          test_items:
-#          - flag: "true"
-#        remediation: |
-#          Set up the <sidadm> ALL=(ALL) NOPASSWD in /etc/sudoers.
-#          Ref: section 8.3 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
-#        scored: true

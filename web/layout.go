@@ -37,7 +37,7 @@ type SubmenuItem struct {
 }
 
 var defaultLayoutData = LayoutData{
-	Title:     "Trento Console",
+	Title:     "Trento Console for SAP Applications",
 	Copyright: "© 2020-2021 SUSE LLC",
 }
 

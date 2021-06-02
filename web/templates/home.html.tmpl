@@ -4,4 +4,111 @@
     <h1>{{ .Title }}</h1>
     <p>{{ .Paragraph }}</p>
 </div>
+<div class='container'>
+    <div class='card-deck'>
+        <div class='card'>
+            <h5 class='card-header'>Agents</h5>
+            <div class='card-body'>
+                <p class='card-text'>
+                    The agents implement the core functionality of trento. They
+                    are responsible for the discovery of all the clustered components
+                    that are required to run SAP Applications in a highly
+                    available way. These agents implement discovery for:
+                     - Pacemaker
+                     - Corosync
+                     - HANA
+
+                </p>
+                <div class='d-flex justify-content-end'>
+                    <a class='card-link' href='https://github.com/trento-project/trento/blob/main/docs/scope.md#agents'>Learn more</a>
+                </div>
+            </div>
+        </div>
+        <div class='card'>
+            <h5 class='card-header'>Hosts</h5>
+            <div class='card-body'>
+                <p class='card-text'>
+                    In the hosts overview, the user can get a list of all the
+                    hosts that are running the trento agent. For each host it
+                    will be possible to check basic information such as the hostname,
+                    it's IP address, to what cluster it belongs and a list of all
+                    the tags that have been set by the discovery mechanisms to
+                    classify each host accordingly.
+
+                    When accessing the details of each host, it will be possible
+                    to access in-depth information about the role each host has
+                    in the cluster such as the status of the core HDB processes,
+                    SAP System ID (SID), etc.
+
+                    Here, the SAP administrator can get a list of potential problems
+                    and improvements on the configuration of the host that our
+                    discovery mechanisms have found.
+                </p>
+                <div class='d-flex justify-content-end'>
+                    <a class='card-link' href='https://github.com/trento-project/trento/blob/main/docs/scope.md#hosts'>Learn more</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class='card-deck mt-4'>
+        <div class='card'>
+            <h5 class='card-header'>Environments</h5>
+            <div class='card-body'>
+                <p class='card-text'>
+                    The environments view currently only shows a detail of the
+                    landscapes that are part of an environment.
+                </p>
+                <div class='d-flex justify-content-end'>
+                    <a class='card-link' href='https://github.com/trento-project/trento/blob/main/docs/scope.md#environments'>Learn more</a>
+                </div>
+            </div>
+        </div>
+        <div class='card w-25'>
+            <h5 class='card-header'>Landscapes</h5>
+            <div class='card-body'>
+                <p class='card-text'>
+                    This view at the moment shows a list of the discovered 
+                    landscapes, detailing the count of SAP systems inside each
+                    of them as well as the total number of hosts that belong to
+                    these SAP systems.
+                </p>
+                <div class='d-flex justify-content-end'>
+                    <a class='card-link' href='https://github.com/trento-project/trento/blob/main/docs/scope.md#landscapes'>Learn more</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class='card-deck mt-4'>
+        <div class='card w-25'>
+            <h5 class='card-header'>Clusters</h5>
+            <div class='card-body'>
+                <p class='card-text'>
+                    The scope of this view is to check the status of the
+                    all the discovered HANA DB clusters, including the information
+                    of the status of each node and the role associated to each node.
+                    This view also allows to see the resources, their type and
+                    distribution within the cluster nodes.
+                </p>
+                <div class='d-flex justify-content-end'>
+                    <a class='card-link' href='https://github.com/trento-project/trento/blob/main/docs/scope.md#clusters'>Learn more</a>
+                </div>
+            </div>
+        </div>
+        <div class='card w-25'>
+            <h5 class='card-header'>SAP Systems</h5>
+            <div class='card-body'>
+                <p class='card-text'>
+                    In this view are listed the SAP systems, usually identified by a SID or 
+                    `SAP System Idenfication` string such as `PRD`, `DEV`, or `QAS`. These are used
+                    often to identify productive, development and quality assurance systems.
+                    In this view we get an overview of the distribution of each SID, the number of
+                    hosts disvered of each of them and additional details.
+                </p>
+                <div class='d-flex justify-content-end'>
+                    <a class='card-link' href='https://github.com/trento-project/trento/blob/main/docs/scope.md#sap-systems'>Learn more</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {{ end }}

@@ -13,8 +13,9 @@ type HomeData struct {
 
 func HomeHandler(c *gin.Context) {
 	data := HomeData{
-		Title:     defaultLayoutData.Title,
-		Paragraph: "This is the home page",
+		Title: defaultLayoutData.Title,
+		Paragraph: `An open cloud-native web console improving on the
+				life of SAP Applications administrators`,
 	}
 	c.HTML(http.StatusOK, "home.html.tmpl", data)
 }

@@ -12,6 +12,7 @@ type Client interface {
 	Health() Health
 	KV() KV
 	LockTrento(prefix string) (*consulApi.Lock, error)
+	LockWaitReleasead(prefix string) error
 }
 
 type Agent interface {

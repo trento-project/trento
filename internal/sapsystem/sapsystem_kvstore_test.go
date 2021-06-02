@@ -232,8 +232,7 @@ func TestLoad(t *testing.T) {
 	}
 
 	kv.On("ListMap", kvPath, kvPath).Return(listMap, nil)
-	testLock := consulApi.Lock{}
-	consulInst.On("LockTrento", fmt.Sprintf(consul.KvHostsSAPSystemPath, host)).Return(&testLock, nil)
+	consulInst.On("LockWaitReleasead", fmt.Sprintf(consul.KvHostsSAPSystemPath, host)).Return(nil)
 
 	consulInst.On("KV").Return(kv)
 

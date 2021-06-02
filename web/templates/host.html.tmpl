@@ -21,8 +21,10 @@
     {{- if ne (len .SAPSystems) 0 }}
     <p class='clearfix'/>
     <h2>SAP instances</h2>
-    {{- range $Key, $SAPInstance := .SAPSystems }}
-    {{ template "sap_instance" $SAPInstance}}
+    {{- range $Key, $SAPSystem := .SAPSystems }}
+    {{- range $Key, $SAPInstance := $SAPSystem.Instances }}
+    {{ template "sap_instance" $SAPInstance.SAPControl }}
+    {{- end }}
     {{- end }}
     <hr/>
     {{- end }}

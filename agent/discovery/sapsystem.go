@@ -51,9 +51,7 @@ func (d SAPSystemsDiscovery) Discover() error {
 }
 
 func storeSAPSystemTags(client consul.Client, system *sapsystem.SAPSystem) error {
-	sid := system.GetSID()
-
-	envName, landName, sysName, err := loadSAPSystemTags(client, sid)
+	envName, landName, sysName, err := loadSAPSystemTags(client, system.SID)
 	if err != nil {
 		return err
 	}

@@ -1,10 +1,12 @@
 package sapsystem
 
 import (
+	"os"
 	"fmt"
 	"log"
 	"path"
 	"regexp"
+	"strings"
 
 	"github.com/SUSE/sap_host_exporter/lib/sapcontrol"
 	"github.com/pkg/errors"
@@ -14,24 +16,42 @@ import (
 	"github.com/trento-project/trento/internal"
 )
 
-const sapInstallationPath string = "/usr/sap"
-const sapIdentifierPattern string = "^[A-Z][A-Z0-9]{2}$" // PRD, HA1, etc
-const sapInstancePattern string = "^[A-Z]+([0-9]{2})$"   // HDB00, ASCS00, ERS10, etc
+const (
+	sapInstallationPath string = "/usr/sap"
+  sapIdentifierPattern string = "^[A-Z][A-Z0-9]{2}$" // PRD, HA1, etc
+  sapInstancePattern string = "^[A-Z]+([0-9]{2})$"   // HDB00, ASCS00, ERS10, etc
+)
+
+const (
+	Database = iota + 1
+	Application
+)
 
 type SAPSystemsList []*SAPSystem
 
+// A SAPSystem in this context is a SAP insllation under one SID.
+// It will bi an application or a database type, mutually exclusive
 type SAPSystem struct {
+	//Id         string         `mapstructure:"id,omitempty"`
+	SID        string                  `mapstructure:"sid,omitempty"`
+	Type       int                     `mapstructure:"type,omitempty"`
+	Instances  map[string]*SAPInstance `mapstructure:"instances,omitempty"`
+}
+
+type SAPInstance struct {
+	Name       string      `mapstructure:"name,omitempty"`
+	Type       int         `mapstructure:"type,omitempty"`
+	Host       string      `mapstructure:"host,omitempty"`
+	SAPControl *SAPControl `mapstructure:"sapcontrol,omitempty"`
+}
+
+type SAPControl struct {
 	webService sapcontrol.WebService
-	Id         string                                  `mapstructure:"id,omitempty"`
-	Type       string                                  `mapstructure:"type,omitempty"`
 	Processes  map[string]*sapcontrol.OSProcess        `mapstructure:"processes,omitempty"`
 	Instances  map[string]*sapcontrol.SAPInstance      `mapstructure:"instances,omitempty"`
 	Properties map[string]*sapcontrol.InstanceProperty `mapstructure:"properties,omitempty"`
 }
 
-func (s *SAPSystem) GetSID() string {
-	return s.Properties["SAPSYSTEMNAME"].Value
-}
 
 func newWebService(instNumber string) sapcontrol.WebService {
 	config := viper.New()
@@ -44,32 +64,52 @@ func NewSAPSystemsList() (SAPSystemsList, error) {
 	var systems = SAPSystemsList{}
 
 	appFS := afero.NewOsFs()
-	instances, err := findSystems(appFS)
+	systemPaths, err := findSystems(appFS)
 	if err != nil {
 		return systems, errors.Wrap(err, "Error walking the path")
 	}
 
-	for _, i := range instances {
-		webService := newWebService(i)
-		s, err := NewSAPSystem(webService)
+	// Find systems
+	for _, sysPath := range systemPaths {
+		system := &SAPSystem{
+			SID: sysPath[strings.LastIndex(sysPath, "/")+1:],
+			Instances: make(map[string]*SAPInstance),
+		}
+
+		instPaths, err := findInstances(appFS, sysPath)
 		if err != nil {
-			log.Printf("Error discovering a SAP system: %s", err)
+			log.Print(err.Error())
 			continue
 		}
-		systems = append(systems, s)
+
+		// Find instances
+		for _, instPath := range instPaths {
+			webService := newWebService(instPath[1])
+			instance, err := NewSAPInstance(webService)
+			if err != nil {
+				log.Printf("Error discovering a SAP system: %s", err)
+				continue
+			}
+
+			system.Type = instance.Type
+			system.Instances[instance.Name] = instance
+		}
+
+		systems = append(systems, system)
 	}
 
 	return systems, nil
 }
 
 // Find the installed SAP instances in the /usr/sap folder
+// It returns a list of paths where SAP system is found
 func findSystems(fs afero.Fs) ([]string, error) {
-	var instances = []string{}
+	var systems = []string{}
 
 	exists, _ := afero.DirExists(fs, sapInstallationPath)
 	if !exists {
 		log.Print("SAP installation not found")
-		return instances, nil
+		return systems, nil
 	}
 
 	files, err := afero.ReadDir(fs, sapInstallationPath)
@@ -82,21 +122,16 @@ func findSystems(fs afero.Fs) ([]string, error) {
 	for _, f := range files {
 		if reSAPIdentifier.MatchString(f.Name()) {
 			log.Printf("New SAP system installation found: %s", f.Name())
-			i, err := findInstances(fs, path.Join(sapInstallationPath, f.Name()))
-			if err != nil {
-				log.Print(err.Error())
-				continue
-			}
-			instances = append(instances, i[:]...)
+			systems = append(systems, path.Join(sapInstallationPath, f.Name()))
 		}
 	}
 
-	return instances, nil
+	return systems, nil
 }
 
 // Find the installed SAP instances in the /usr/sap/${SID} folder
-func findInstances(fs afero.Fs, sapPath string) ([]string, error) {
-	var instances = []string{}
+func findInstances(fs afero.Fs, sapPath string) ([][]string, error) {
+	var instances = [][]string{}
 	reSAPInstancer := regexp.MustCompile(sapInstancePattern)
 
 	files, err := afero.ReadDir(fs, sapPath)
@@ -106,64 +141,76 @@ func findInstances(fs afero.Fs, sapPath string) ([]string, error) {
 
 	for _, f := range files {
 		for _, matches := range reSAPInstancer.FindAllStringSubmatch(f.Name(), -1) {
-			log.Printf("New SAP instance installation found: %s", matches[len(matches)-1])
-			instances = append(instances, matches[len(matches)-1])
+			log.Printf("New SAP instance installation found: %s", matches[0])
+			instances = append(instances, matches)
 		}
 	}
 
 	return instances, nil
 }
 
-func NewSAPSystem(w sapcontrol.WebService) (*SAPSystem, error) {
-	var sapSystem = &SAPSystem{
+func NewSAPControl(w sapcontrol.WebService) (*SAPControl, error) {
+	var scontrol = &SAPControl{
 		webService: w,
-		Type:       "",
 		Processes:  make(map[string]*sapcontrol.OSProcess),
 		Instances:  make(map[string]*sapcontrol.SAPInstance),
 		Properties: make(map[string]*sapcontrol.InstanceProperty),
 	}
 
-	properties, err := sapSystem.webService.GetInstanceProperties()
+	properties, err := scontrol.webService.GetInstanceProperties()
 	if err != nil {
-		return sapSystem, errors.Wrap(err, "SAPControl web service error")
+		return scontrol, errors.Wrap(err, "SAPControl web service error")
 	}
 
 	for _, prop := range properties.Properties {
-		sapSystem.Properties[prop.Property] = prop
+		scontrol.Properties[prop.Property] = prop
 	}
 
-	processes, err := sapSystem.webService.GetProcessList()
+	processes, err := scontrol.webService.GetProcessList()
 	if err != nil {
-		return sapSystem, errors.Wrap(err, "SAPControl web service error")
+		return scontrol, errors.Wrap(err, "SAPControl web service error")
 	}
 
 	for _, proc := range processes.Processes {
-		sapSystem.Processes[proc.Name] = proc
+		scontrol.Processes[proc.Name] = proc
 	}
 
-	instances, err := sapSystem.webService.GetSystemInstanceList()
+	instances, err := scontrol.webService.GetSystemInstanceList()
 	if err != nil {
-		return sapSystem, errors.Wrap(err, "SAPControl web service error")
+		return scontrol, errors.Wrap(err, "SAPControl web service error")
 	}
 
 	for _, inst := range instances.Instances {
-		sapSystem.Instances[inst.Hostname] = inst
+		scontrol.Instances[inst.Hostname] = inst
 	}
 
-	_, ok := sapSystem.Properties["HANA Roles"]
-	if ok {
-		sapSystem.Type = "HANA"
-	} else {
-		sapSystem.Type = "APP"
-	}
-
-	id, err := getUniqueId(sapSystem.GetSID())
-	if err == nil {
-		sapSystem.Id = id
-	}
-
-	return sapSystem, nil
+	return scontrol, nil
 }
+
+func NewSAPInstance(w sapcontrol.WebService) (*SAPInstance, error) {
+	host, _ := os.Hostname()
+	var sapInstance = &SAPInstance{
+		Host: host,
+	}
+
+	scontrol, err := NewSAPControl(w)
+	if err != nil {
+		return sapInstance, err
+	}
+
+	sapInstance.SAPControl = scontrol
+	sapInstance.Name = sapInstance.SAPControl.Properties["INSTANCE_NAME"].Value
+
+	_, ok := sapInstance.SAPControl.Properties["HANA Roles"]
+	if ok {
+		sapInstance.Type = Database
+	} else {
+		sapInstance.Type = Application
+	}
+
+	return sapInstance, nil
+}
+
 
 // This is a unique identifier of a SAP installation.
 // It will be used to create totally independent SAP system data

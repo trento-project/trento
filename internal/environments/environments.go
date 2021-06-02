@@ -19,7 +19,7 @@ type Landscape struct {
 
 type SAPSystem struct {
 	Name  string         `mapstructure:"name,omitempty"`
-	Type  string         `mapstructure:"type,omitempty"`
+	Type  int            `mapstructure:"type,omitempty"`
 	Hosts hosts.HostList `mapstructure:"hosts,omitempty"`
 }
 
@@ -41,7 +41,7 @@ func NewLandscape(name string, systems ...*SAPSystem) *Landscape {
 	return &Landscape{Name: name, SAPSystems: systemsMap}
 }
 
-func NewSystem(sysName, sysType string) *SAPSystem {
+func NewSystem(sysName string, sysType int) *SAPSystem {
 	return &SAPSystem{Name: sysName, Type: sysType}
 }
 

@@ -1,9 +1,9 @@
 package sapsystem
 
 import (
-	"os"
 	"fmt"
 	"log"
+	"os"
 	"path"
 	"regexp"
 	"strings"
@@ -17,9 +17,9 @@ import (
 )
 
 const (
-	sapInstallationPath string = "/usr/sap"
-  sapIdentifierPattern string = "^[A-Z][A-Z0-9]{2}$" // PRD, HA1, etc
-  sapInstancePattern string = "^[A-Z]+([0-9]{2})$"   // HDB00, ASCS00, ERS10, etc
+	sapInstallationPath  string = "/usr/sap"
+	sapIdentifierPattern string = "^[A-Z][A-Z0-9]{2}$" // PRD, HA1, etc
+	sapInstancePattern   string = "^[A-Z]+([0-9]{2})$" // HDB00, ASCS00, ERS10, etc
 )
 
 const (
@@ -29,13 +29,14 @@ const (
 
 type SAPSystemsList []*SAPSystem
 
-// A SAPSystem in this context is a SAP insllation under one SID.
-// It will bi an application or a database type, mutually exclusive
+// A SAPSystem in this context is a SAP installation under one SID.
+// It will have application or database type, mutually exclusive
+// The Id parameter is not yet implemented
 type SAPSystem struct {
-	//Id         string         `mapstructure:"id,omitempty"`
-	SID        string                  `mapstructure:"sid,omitempty"`
-	Type       int                     `mapstructure:"type,omitempty"`
-	Instances  map[string]*SAPInstance `mapstructure:"instances,omitempty"`
+	//Id         string                `mapstructure:"id,omitempty"`
+	SID       string                  `mapstructure:"sid,omitempty"`
+	Type      int                     `mapstructure:"type,omitempty"`
+	Instances map[string]*SAPInstance `mapstructure:"instances,omitempty"`
 }
 
 type SAPInstance struct {
@@ -52,8 +53,7 @@ type SAPControl struct {
 	Properties map[string]*sapcontrol.InstanceProperty `mapstructure:"properties,omitempty"`
 }
 
-
-func newWebService(instNumber string) sapcontrol.WebService {
+var newWebService = func(instNumber string) sapcontrol.WebService {
 	config := viper.New()
 	config.SetDefault("sap-control-uds", path.Join("/tmp", fmt.Sprintf(".sapstream5%s13", instNumber)))
 	client := sapcontrol.NewSoapClient(config)
@@ -71,34 +71,43 @@ func NewSAPSystemsList() (SAPSystemsList, error) {
 
 	// Find systems
 	for _, sysPath := range systemPaths {
-		system := &SAPSystem{
-			SID: sysPath[strings.LastIndex(sysPath, "/")+1:],
-			Instances: make(map[string]*SAPInstance),
-		}
-
-		instPaths, err := findInstances(appFS, sysPath)
+		system, err := NewSAPSystem(appFS, sysPath)
 		if err != nil {
-			log.Print(err.Error())
+			log.Printf("Error discovering a SAP system: %s", err)
 			continue
 		}
-
-		// Find instances
-		for _, instPath := range instPaths {
-			webService := newWebService(instPath[1])
-			instance, err := NewSAPInstance(webService)
-			if err != nil {
-				log.Printf("Error discovering a SAP system: %s", err)
-				continue
-			}
-
-			system.Type = instance.Type
-			system.Instances[instance.Name] = instance
-		}
-
 		systems = append(systems, system)
 	}
 
 	return systems, nil
+}
+
+func NewSAPSystem(fs afero.Fs, sysPath string) (*SAPSystem, error) {
+	system := &SAPSystem{
+		SID:       sysPath[strings.LastIndex(sysPath, "/")+1:],
+		Instances: make(map[string]*SAPInstance),
+	}
+
+	instPaths, err := findInstances(fs, sysPath)
+	if err != nil {
+		log.Print(err.Error())
+		return system, err
+	}
+
+	// Find instances
+	for _, instPath := range instPaths {
+		webService := newWebService(instPath[1])
+		instance, err := NewSAPInstance(webService)
+		if err != nil {
+			log.Printf("Error discovering a SAP instance: %s", err)
+			continue
+		}
+
+		system.Type = instance.Type
+		system.Instances[instance.Name] = instance
+	}
+
+	return system, nil
 }
 
 // Find the installed SAP instances in the /usr/sap folder
@@ -149,6 +158,30 @@ func findInstances(fs afero.Fs, sapPath string) ([][]string, error) {
 	return instances, nil
 }
 
+func NewSAPInstance(w sapcontrol.WebService) (*SAPInstance, error) {
+	host, _ := os.Hostname()
+	var sapInstance = &SAPInstance{
+		Host: host,
+	}
+
+	scontrol, err := NewSAPControl(w)
+	if err != nil {
+		return sapInstance, err
+	}
+
+	sapInstance.SAPControl = scontrol
+	sapInstance.Name = sapInstance.SAPControl.Properties["INSTANCE_NAME"].Value
+
+	_, ok := sapInstance.SAPControl.Properties["HANA Roles"]
+	if ok {
+		sapInstance.Type = Database
+	} else {
+		sapInstance.Type = Application
+	}
+
+	return sapInstance, nil
+}
+
 func NewSAPControl(w sapcontrol.WebService) (*SAPControl, error) {
 	var scontrol = &SAPControl{
 		webService: w,
@@ -186,31 +219,6 @@ func NewSAPControl(w sapcontrol.WebService) (*SAPControl, error) {
 
 	return scontrol, nil
 }
-
-func NewSAPInstance(w sapcontrol.WebService) (*SAPInstance, error) {
-	host, _ := os.Hostname()
-	var sapInstance = &SAPInstance{
-		Host: host,
-	}
-
-	scontrol, err := NewSAPControl(w)
-	if err != nil {
-		return sapInstance, err
-	}
-
-	sapInstance.SAPControl = scontrol
-	sapInstance.Name = sapInstance.SAPControl.Properties["INSTANCE_NAME"].Value
-
-	_, ok := sapInstance.SAPControl.Properties["HANA Roles"]
-	if ok {
-		sapInstance.Type = Database
-	} else {
-		sapInstance.Type = Application
-	}
-
-	return sapInstance, nil
-}
-
 
 // This is a unique identifier of a SAP installation.
 // It will be used to create totally independent SAP system data

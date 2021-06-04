@@ -1,15 +1,12 @@
 package cluster
 
 import (
+	"fmt"
 	"os/exec"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
-
-func mockCmdError(command string, args ...string) *exec.Cmd {
-	return exec.Command(command, "error")
-}
 
 func mockSbdDump(command string, args ...string) *exec.Cmd {
 	cmd := `==Dumping header on disk /dev/vdc
@@ -25,10 +22,31 @@ Timeout (msgwait)  : 10
 	return exec.Command("echo", cmd)
 }
 
+func mockSbdDumpErr(command string, args ...string) *exec.Cmd {
+	cmd := `==Dumping header on disk /dev/vdc
+Header version     : 2.1
+UUID               : 541bdcea-16af-44a4-8ab9-6a98602e65ca
+==Number of slots on disk /dev/vdb NOT dumped
+sbd failed; please check the logs.`
+
+	script := fmt.Sprintf("echo \"%s\" && exit 1", cmd)
+
+	return exec.Command("bash", "-c", script)
+}
+
 func mockSbdList(command string, args ...string) *exec.Cmd {
 	cmd := `0	hana01	clear
 1	hana02	clear`
 	return exec.Command("echo", cmd)
+}
+
+func mockSbdListErr(command string, args ...string) *exec.Cmd {
+	cmd := `== disk /dev/vdxx unreadable!
+sbd failed; please check the logs.`
+
+	script := fmt.Sprintf("echo \"%s\" && exit 1", cmd)
+
+	return exec.Command("bash", "-c", script)
 }
 
 func TestSbdDump(t *testing.T) {
@@ -52,14 +70,23 @@ func TestSbdDump(t *testing.T) {
 }
 
 func TestSbdDumpError(t *testing.T) {
-	sbdDumpExecCommand = mockCmdError
+	sbdDumpExecCommand = mockSbdDumpErr
 
-	dump, err := sbdDump("/bin/sbdErr", "/dev/vdc")
+	dump, err := sbdDump("/bin/sbd", "/dev/vdc")
 
-	expectedDump := SBDDump{}
+	expectedDump := SBDDump{
+		Header:          "2.1",
+		Uuid:            "541bdcea-16af-44a4-8ab9-6a98602e65ca",
+		Slots:           0,
+		SectorSize:      0,
+		TimeoutWatchdog: 0,
+		TimeoutAllocate: 0,
+		TimeoutLoop:     0,
+		TimeoutMsgwait:  0,
+	}
 
 	assert.Equal(t, expectedDump, dump)
-	assert.EqualError(t, err, "sbd dump command error: fork/exec /bin/sbdErr: no such file or directory")
+	assert.EqualError(t, err, "sbd dump command error: exit status 1")
 }
 
 func TestSbdList(t *testing.T) {
@@ -85,14 +112,14 @@ func TestSbdList(t *testing.T) {
 }
 
 func TestSbdListError(t *testing.T) {
-	sbdListExecCommand = mockCmdError
+	sbdListExecCommand = mockSbdListErr
 
-	list, err := sbdList("/bin/sbdErr", "/dev/vdc")
+	list, err := sbdList("/bin/sbd", "/dev/vdc")
 
 	expectedList := []*SBDNode{}
 
 	assert.Equal(t, expectedList, list)
-	assert.EqualError(t, err, "sbd list command error: fork/exec /bin/sbdErr: no such file or directory")
+	assert.EqualError(t, err, "sbd list command error: exit status 1")
 }
 
 func TestLoadDeviceData(t *testing.T) {
@@ -135,22 +162,46 @@ func TestLoadDeviceData(t *testing.T) {
 func TestLoadDeviceDataDumpError(t *testing.T) {
 	s := NewSBDDevice("/bin/sbdErr", "/dev/vdc")
 
-	sbdDumpExecCommand = mockCmdError
+	sbdDumpExecCommand = mockSbdDumpErr
 
 	err := s.LoadDeviceData()
 
 	expectedDevice := NewSBDDevice("/bin/sbdErr", "/dev/vdc")
 	expectedDevice.Status = "unhealthy"
 
+	expectedDevice.Dump = SBDDump{
+		Header:          "2.1",
+		Uuid:            "541bdcea-16af-44a4-8ab9-6a98602e65ca",
+		Slots:           0,
+		SectorSize:      0,
+		TimeoutWatchdog: 0,
+		TimeoutAllocate: 0,
+		TimeoutLoop:     0,
+		TimeoutMsgwait:  0,
+	}
+
+	expectedDevice.List = []*SBDNode{
+		&SBDNode{
+			Id:     0,
+			Name:   "hana01",
+			Status: "clear",
+		},
+		&SBDNode{
+			Id:     1,
+			Name:   "hana02",
+			Status: "clear",
+		},
+	}
+
 	assert.Equal(t, expectedDevice, s)
-	assert.EqualError(t, err, "sbd dump command error: fork/exec /bin/sbdErr: no such file or directory")
+	assert.EqualError(t, err, "sbd dump command error: exit status 1")
 }
 
 func TestLoadDeviceDataListError(t *testing.T) {
 	s := NewSBDDevice("/bin/sbdErr", "/dev/vdc")
 
 	sbdDumpExecCommand = mockSbdDump
-	sbdListExecCommand = mockCmdError
+	sbdListExecCommand = mockSbdListErr
 
 	err := s.LoadDeviceData()
 
@@ -167,8 +218,38 @@ func TestLoadDeviceDataListError(t *testing.T) {
 		TimeoutMsgwait:  10,
 	}
 
+	expectedDevice.List = []*SBDNode{}
+
 	assert.Equal(t, expectedDevice, s)
-	assert.EqualError(t, err, "sbd list command error: fork/exec /bin/sbdErr: no such file or directory")
+	assert.EqualError(t, err, "sbd list command error: exit status 1")
+}
+
+func TestLoadDeviceDataError(t *testing.T) {
+	s := NewSBDDevice("/bin/sbdErr", "/dev/vdc")
+
+	sbdDumpExecCommand = mockSbdDumpErr
+	sbdListExecCommand = mockSbdListErr
+
+	err := s.LoadDeviceData()
+
+	expectedDevice := NewSBDDevice("/bin/sbdErr", "/dev/vdc")
+	expectedDevice.Status = "unhealthy"
+
+	expectedDevice.Dump = SBDDump{
+		Header:          "2.1",
+		Uuid:            "541bdcea-16af-44a4-8ab9-6a98602e65ca",
+		Slots:           0,
+		SectorSize:      0,
+		TimeoutWatchdog: 0,
+		TimeoutAllocate: 0,
+		TimeoutLoop:     0,
+		TimeoutMsgwait:  0,
+	}
+
+	expectedDevice.List = []*SBDNode{}
+
+	assert.Equal(t, expectedDevice, s)
+	assert.EqualError(t, err, "sbd dump command error: exit status 1;sbd list command error: exit status 1")
 }
 
 func TestGetSBDConfig(t *testing.T) {
@@ -285,6 +366,19 @@ func TestNewSBD(t *testing.T) {
 func TestNewSBDError(t *testing.T) {
 	s, err := NewSBD("mycluster", "/bin/sbd", "../../test/sbd_config_no_device")
 
-	assert.Equal(t, SBD{cluster: "mycluster"}, s)
+	expectedSbd := SBD{
+		cluster: "mycluster",
+		Config: map[string]string{
+			"SBD_PACEMAKER":           "yes",
+			"SBD_STARTMODE":           "always",
+			"SBD_DELAY_START":         "no",
+			"SBD_WATCHDOG_DEV":        "/dev/watchdog",
+			"SBD_WATCHDOG_TIMEOUT":    "5",
+			"SBD_TIMEOUT_ACTION":      "flush,reboot",
+			"SBD_MOVE_TO_ROOT_CGROUP": "auto",
+		},
+	}
+
+	assert.Equal(t, expectedSbd, s)
 	assert.EqualError(t, err, "could not find SBD_DEVICE entry in sbd config file")
 }

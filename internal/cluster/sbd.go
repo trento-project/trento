@@ -59,12 +59,13 @@ func NewSBD(cluster, sbdPath, sbdConfigPath string) (SBD, error) {
 	var s = SBD{cluster: cluster}
 
 	c, err := getSBDConfig(sbdConfigPath)
+	s.Config = c
+
 	if err != nil {
 		return s, err
 	} else if _, ok := c["SBD_DEVICE"]; !ok {
 		return s, fmt.Errorf("could not find SBD_DEVICE entry in sbd config file")
 	}
-	s.Config = c
 
 	for _, device := range strings.Split(c["SBD_DEVICE"], ";") {
 		sbdDevice := NewSBDDevice(sbdPath, device)
@@ -113,19 +114,28 @@ func NewSBDDevice(sbdPath string, device string) SBDDevice {
 }
 
 func (s *SBDDevice) LoadDeviceData() error {
+	var sbdErrors []string
+
 	dump, err := sbdDump(s.sbdPath, s.Device)
+	s.Dump = dump
+
 	if err != nil {
 		s.Status = SBDStatusUnhealthy
-		return err
+		sbdErrors = append(sbdErrors, err.Error())
+	} else {
+		s.Status = SBDStatusHealthy
 	}
-	s.Dump = dump
-	s.Status = SBDStatusHealthy
 
 	list, err := sbdList(s.sbdPath, s.Device)
-	if err != nil {
-		return err
-	}
 	s.List = list
+
+	if err != nil {
+		sbdErrors = append(sbdErrors, err.Error())
+	}
+
+	if len(sbdErrors) > 0 {
+		return fmt.Errorf(strings.Join(sbdErrors, ";"))
+	}
 
 	return nil
 }
@@ -156,9 +166,6 @@ func sbdDump(sbdPath string, device string) (SBDDump, error) {
 	var dump = SBDDump{}
 
 	sbdDump, err := sbdDumpExecCommand(sbdPath, "-d", device, "dump").Output()
-	if err != nil {
-		return dump, errors.Wrap(err, "sbd dump command error")
-	}
 	sbdDumpStr := string(sbdDump)
 
 	dump.Header = assignPatternResult(sbdDumpStr, `Header version *: (.*)`)[1]
@@ -170,6 +177,11 @@ func sbdDump(sbdPath string, device string) (SBDDump, error) {
 	dump.TimeoutLoop, _ = strconv.Atoi(assignPatternResult(sbdDumpStr, `Timeout \(loop\) *: (.*)`)[1])
 	dump.TimeoutMsgwait, _ = strconv.Atoi(assignPatternResult(sbdDumpStr, `Timeout \(msgwait\) *: (.*)`)[1])
 
+	// Sanity check at the end, even in error case the sbd command can output some information
+	if err != nil {
+		return dump, errors.Wrap(err, "sbd dump command error")
+	}
+
 	return dump, nil
 }
 
@@ -180,9 +192,6 @@ func sbdList(sbdPath string, device string) ([]*SBDNode, error) {
 	var list = []*SBDNode{}
 
 	output, err := sbdListExecCommand(sbdPath, "-d", device, "list").Output()
-	if err != nil {
-		return list, errors.Wrap(err, "sbd list command error")
-	}
 
 	// Loop through sbd list output and find for matches
 	r := regexp.MustCompile(`(\d+)\s+(\S+)\s+(\S+)`)
@@ -200,6 +209,11 @@ func sbdList(sbdPath string, device string) ([]*SBDNode, error) {
 			Status: match[3],
 		}
 		list = append(list, node)
+	}
+
+	// Sanity check at the end, even in error case the sbd command can output some information
+	if err != nil {
+		return list, errors.Wrap(err, "sbd list command error")
 	}
 
 	return list, nil

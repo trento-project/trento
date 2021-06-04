@@ -58,9 +58,9 @@ func Load(client consul.Client, host string) (map[string]*SAPSystem, error) {
 
 	kvPath := fmt.Sprintf(consul.KvHostsSAPSystemPath, host)
 
-	err := client.LockWaitReleasead(kvPath)
+	err := client.WaitLock(kvPath)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not lock the kv for sapsystems")
+		return nil, errors.Wrap(err, "error waiting for the lock for sapsystems")
 	}
 
 	entries, err := client.KV().ListMap(kvPath, kvPath)

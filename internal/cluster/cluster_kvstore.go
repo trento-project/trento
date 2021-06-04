@@ -49,9 +49,9 @@ func (c *Cluster) Store(client consul.Client) error {
 func Load(client consul.Client) (map[string]*Cluster, error) {
 	var clusters = map[string]*Cluster{}
 
-	err := client.LockWaitReleasead(consul.KvClustersPath)
+	err := client.WaitLock(consul.KvClustersPath)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not lock the kv for clusters")
+		return nil, errors.Wrap(err, "error waiting for the lock for clusters")
 	}
 
 	entries, err := client.KV().ListMap(consul.KvClustersPath, consul.KvClustersPath)

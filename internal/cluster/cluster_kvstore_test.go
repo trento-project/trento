@@ -216,7 +216,7 @@ func TestLoad(t *testing.T) {
 	}
 
 	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(listMap, nil)
-	consulInst.On("LockWaitReleasead", consul.KvClustersPath).Return(nil)
+	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil)
 
 	consulInst.On("KV").Return(kv)
 

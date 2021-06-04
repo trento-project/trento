@@ -15,7 +15,10 @@ const (
 )
 
 // Created to enable unit testing
-var lockGet = func(c *client, prefix string, q *consulApi.QueryOptions) (*consulApi.KVPair, *consulApi.QueryMeta, error) {
+// Disable the next line to create/update the MockGetLock struct
+//type GetLock func(c *client, prefix string, q *consulApi.QueryOptions) (*consulApi.KVPair, *consulApi.QueryMeta, error)
+
+var getLock = func(c *client, prefix string, q *consulApi.QueryOptions) (*consulApi.KVPair, *consulApi.QueryMeta, error) {
 	return c.KV().Get(prefix, q)
 }
 
@@ -44,26 +47,30 @@ func (c *client) LockTrento(prefix string) (*consulApi.Lock, error) {
 	return l, err
 }
 
-func (c *client) LockWaitReleasead(prefix string) error {
+func (c *client) WaitLock(prefix string) error {
 	q := consulApi.QueryOptions{
 		WaitTime: waitTime,
 	}
 
-WAIT:
-	// Look for an existing lock, blocking until not taken
-	// Based on: https://github.com/hashicorp/consul/blob/master/api/lock.go#L181
-	pair, meta, err := lockGet(c, prefix, &q)
-	if err != nil {
-		return fmt.Errorf("failed to read lock: %v", err)
-	}
+	for true {
+		// Look for an existing lock, blocking until not taken
+		// Based on: https://github.com/hashicorp/consul/blob/master/api/lock.go#L181
+		pair, meta, err := getLock(c, prefix, &q)
+		if err != nil {
+			return fmt.Errorf("failed to read lock: %v", err)
+		}
 
-	if pair != nil && pair.Flags != consulApi.LockFlagValue {
-		return consulApi.ErrLockConflict
-	}
+		if pair != nil && pair.Flags != consulApi.LockFlagValue {
+			return consulApi.ErrLockConflict
+		}
 
-	if pair != nil && pair.Session != "" {
-		q.WaitIndex = meta.LastIndex
-		goto WAIT
+		if pair != nil && pair.Session != "" {
+			q.WaitIndex = meta.LastIndex
+			continue
+		}
+
+		// Exist from the loop as the lock is free
+		break
 	}
 
 	return nil

@@ -232,7 +232,7 @@ func TestLoad(t *testing.T) {
 	}
 
 	kv.On("ListMap", kvPath, kvPath).Return(listMap, nil)
-	consulInst.On("LockWaitReleasead", fmt.Sprintf(consul.KvHostsSAPSystemPath, host)).Return(nil)
+	consulInst.On("WaitLock", fmt.Sprintf(consul.KvHostsSAPSystemPath, host)).Return(nil)
 
 	consulInst.On("KV").Return(kv)
 

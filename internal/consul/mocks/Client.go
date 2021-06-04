@@ -100,8 +100,8 @@ func (_m *Client) LockTrento(prefix string) (*api.Lock, error) {
 	return r0, r1
 }
 
-// LockWaitReleasead provides a mock function with given fields: prefix
-func (_m *Client) LockWaitReleasead(prefix string) error {
+// WaitLock provides a mock function with given fields: prefix
+func (_m *Client) WaitLock(prefix string) error {
 	ret := _m.Called(prefix)
 
 	var r0 error

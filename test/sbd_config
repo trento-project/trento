@@ -113,3 +113,6 @@ SBD_MOVE_TO_ROOT_CGROUP=auto
 #
 SBD_OPTS=
 SBD_DEVICE=/dev/vdc;/dev/vdb
+#SBD_DEVICE=/dev/vdc;/dev/vdb
+TEST=Value# Some comment
+TEST2=Value2 # Some comment

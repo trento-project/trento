@@ -183,6 +183,8 @@ func TestGetSBDConfig(t *testing.T) {
 		"SBD_TIMEOUT_ACTION":      "flush,reboot",
 		"SBD_MOVE_TO_ROOT_CGROUP": "auto",
 		"SBD_DEVICE":              "/dev/vdc;/dev/vdb",
+		"TEST":                    "Value",
+		"TEST2":                   "Value2",
 	}
 
 	assert.Equal(t, expectedConfig, sbdConfig)
@@ -215,6 +217,8 @@ func TestNewSBD(t *testing.T) {
 			"SBD_TIMEOUT_ACTION":      "flush,reboot",
 			"SBD_MOVE_TO_ROOT_CGROUP": "auto",
 			"SBD_DEVICE":              "/dev/vdc;/dev/vdb",
+			"TEST":                    "Value",
+			"TEST2":                   "Value2",
 		},
 		Devices: []*SBDDevice{
 			&SBDDevice{

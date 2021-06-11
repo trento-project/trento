@@ -20,23 +20,22 @@ of existing clusters, rather than deploying new one.
 
 - [Features](#features)
 - [Requirements](#requirements)
-  * [Runtime dependencies](#runtime-dependencies)
-  * [Build dependencies](#build-dependencies)
-  * [Development dependencies](#development-dependencies)
+  - [Runtime dependencies](#runtime-dependencies)
+  - [Build dependencies](#build-dependencies)
+  - [Development dependencies](#development-dependencies)
 - [Installation](#installation)
 - [Running Trento](#running-trento)
-  * [Consul](#consul)
-  * [Trento Agents](#trento-agents)
-  * [Trento Web UI](#trento-web-ui)  
+  - [Consul](#consul)
+  - [Trento Agents](#trento-agents)
+  - [Trento Web UI](#trento-web-ui)
 - [Usage](#usage)
-  * [Grouping and filtering in the Web UI](#grouping-and-filtering-in-the-web-ui)
+  - [Grouping and filtering in the Web UI](#grouping-and-filtering-in-the-web-ui)
 - [Development](#development)
-  * [Build system](#build-system)
-  * [Mockery](#mockery)
+  - [Build system](#build-system)
+  - [Mockery](#mockery)
 - [Support](#support)
 - [Contributing](#contributing)
 - [License](#license)
-
 
 # Features
 
@@ -49,6 +48,7 @@ of existing clusters, rather than deploying new one.
 # Base concepts
 
 The entire Trento application is composed of the following parts:
+
 - One or more Consul Agents in server mode;
 - The Trento Web UI (`trento web`);
 - A Consul Agent in client mode for each target node;
@@ -62,16 +62,17 @@ While the `trento web` component has only been tested on openSUSE 15.2
 and SLES 15SP2 so far, it should be able to run on most modern Linux distributions.
 
 The `trento agent` component could in theory also run on openSUSE, but it does not make much sense as it
-needs to interact with different low-level SAP applications components 
-which are expected to be run in a 
+needs to interact with different low-level SAP applications components
+which are expected to be run in a
 [SLES for SAP](https://www.suse.com/products/sles-for-sap/) installation.
 
 ## Runtime dependencies
 
 Running the application will require:
+
 - A running [Consul](https://www.consul.io/downloads) cluster.
 
->We have only tested version Consul version `1.9.x` and, while it *should* work with any version implementing Consul Protocol version 3, we can´t make any guarantee in that regard.
+> We have only tested version Consul version `1.9.x` and, while it _should_ work with any version implementing Consul Protocol version 3, we can´t make any guarantee in that regard.
 
 ## Build dependencies
 
@@ -83,7 +84,8 @@ To build the entire application you will need the following dependencies:
 ## Development dependencies
 
 Additionally, for the development we use:
-  - [`Mockery`](https://github.com/vektra/mockery) ^2
+
+- [`Mockery`](https://github.com/vektra/mockery) ^2
 
 > See the [Development](#development) section for details on how to install `mockery`.
 
@@ -115,11 +117,11 @@ T.B.D.
 
 ## Consul
 
-The Trento application needs to be paired with a [Consul](https://consul.io/) deployment, which is leveraged for service discovery and persistent data storage. 
+The Trento application needs to be paired with a [Consul](https://consul.io/) deployment, which is leveraged for service discovery and persistent data storage.
 
 Consul processes are all called "agents", and they can run either in server mode or in client mode.
 
-#### Server Consul Agent    
+#### Server Consul Agent
 
 To start a Consul agent in server mode:
 
@@ -135,19 +137,21 @@ This will start Consul listening to connections from any IP address on the defau
 Each [Trento Agent](#trento-agents) instance also needs a Consul agent in client mode, on each target node we want to connect Trento to.
 
 You can start Consul in client mode as follows:
+
 ```shell
-export SERVER_IP_ADDRESS=#your Consul server IP address here 
+export SERVER_IP_ADDRESS=#your Consul server IP address here
 mkdir consul.d
 ./consul agent -retry-join=$SERVER_IP_ADDRESS -bind='{{ GetInterfaceIP "eth0" }}' -data-dir=consul-agent-data -config-dir=consul.d
 ```
+
 Since the client Consul Agent will most likely run on a machine with multiple IP addresses and/or network interfaces, you will need to specify one with the `-bind` flag.
 
 > Production deployments will require at least three instances of the Consul agent in server mode to ensure fault-tolerance. Be
-   sure to check [Consul's deployment guide](https://learn.hashicorp.com/tutorials/consul/deployment-guide#configure-consul-agents).
+> sure to check [Consul's deployment guide](https://learn.hashicorp.com/tutorials/consul/deployment-guide#configure-consul-agents).
 
 > While Consul provides a `-dev` flag to run a standalone, stateless server agent, Trento does not support this mode: it needs a persistent server even during development.
 
-> For development purposes, when running everything on a single host machine, no Client Consul Agent is required: the Server Agent exposes the same API and can be consumed by both `trento web` and `trento agent`.  
+> For development purposes, when running everything on a single host machine, no Client Consul Agent is required: the Server Agent exposes the same API and can be consumed by both `trento web` and `trento agent`.
 
 ## Trento Agents
 
@@ -163,8 +167,8 @@ To start the trento agent:
 ```
 
 > Note that we are using `azure-rules.yaml` in this example which collect azure
-recommendations on cluster settings and state for many HA components. New rules
-can be created and tuned to adjust to different requirements.
+> recommendations on cluster settings and state for many HA components. New rules
+> can be created and tuned to adjust to different requirements.
 
 ## Trento Web UI
 
@@ -180,9 +184,10 @@ Please consult the `help` CLI command for more insights on the various options.
 
 ## Grouping and filtering in the Web UI
 
-The web app provides the option to group and filter target Systems using tags. 
+The web app provides the option to group and filter target Systems using tags.
 
 This functionality will be implemented in the Web UI soon but, for the time being, the underlying `consul` KV storage can be used to populate these tags:
+
 ```shell
 # To group SAP Systems into Landscapes and Environments, you can do the following,
 # from any of the nodes where Trento is running:
@@ -227,16 +232,17 @@ You can install it with `go install github.com/vektra/mockery/v2@latest`.
 
 ## Docker
 
-To assist in testing & developing Trento, we have added a [Dockerfile](Dockerfile) 
+To assist in testing & developing Trento, we have added a [Dockerfile](Dockerfile)
 that will automatically fetch all the required compile-time dependencies to build
 the binary and finally a container image with the fresh binary in it.
 
 We also provide a [docker-compose.yml](docker-compose.yml) file that allows to
-deploy other required services to run alongside `trento` by fetching 
-the images from the [dockerhub](https://hub.docker.com/) registry and running 
+deploy other required services to run alongside `trento` by fetching
+the images from the [dockerhub](https://hub.docker.com/) registry and running
 the containers with your favourite container engine.
 
 If you want to build & start `trento web` and it's dependencies, you can use `docker-compose`:
+
 ```shell
 git clone https://github.com/trento-project/trento.git
 cd trento
@@ -247,14 +253,21 @@ The Web UI should then be reachable as defined in the `docker-compose.yml` file
 (`localhost:8080` by default).
 
 To only build the docker image, instead:
+
 ```shell
 docker build -t trento .
 ```
 
 > Please note that the `trento agent` component requires to be running on
-> the OS (*not* inside a container) so, while it is possible to hack the `docker-compose.yml`
+> the OS (_not_ inside a container) so, while it is possible to hack the `docker-compose.yml`
 > file to also run a Trento Agent, it makes little sense because most of its internals
 > require direct access to the host of the HA Cluster components.
+
+## SAPControl web service
+
+The SAPControl web service soap client was generated by [hooklift/gowsdl](https://github.com/hooklift/gowsdl),
+then the methods and structs needed were cherry-picked and adapted.
+For reference, you can find the full, generated, web service code [here](docs/_generated_soap_wsdl.go).
 
 # Support
 

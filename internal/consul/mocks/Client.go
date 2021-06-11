@@ -13,6 +13,29 @@ type Client struct {
 	mock.Mock
 }
 
+// AcquireLockKey provides a mock function with given fields: prefix
+func (_m *Client) AcquireLockKey(prefix string) (*api.Lock, error) {
+	ret := _m.Called(prefix)
+
+	var r0 *api.Lock
+	if rf, ok := ret.Get(0).(func(string) *api.Lock); ok {
+		r0 = rf(prefix)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*api.Lock)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(prefix)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Agent provides a mock function with given fields:
 func (_m *Client) Agent() consul.Agent {
 	ret := _m.Called()
@@ -75,29 +98,6 @@ func (_m *Client) KV() consul.KV {
 	}
 
 	return r0
-}
-
-// LockTrento provides a mock function with given fields: prefix
-func (_m *Client) LockTrento(prefix string) (*api.Lock, error) {
-	ret := _m.Called(prefix)
-
-	var r0 *api.Lock
-	if rf, ok := ret.Get(0).(func(string) *api.Lock); ok {
-		r0 = rf(prefix)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*api.Lock)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(prefix)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
 }
 
 // WaitLock provides a mock function with given fields: prefix

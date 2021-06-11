@@ -158,31 +158,31 @@ func fakeLockErr(l *consulApi.Lock, stopCh <-chan struct{}) (<-chan struct{}, er
 	return nil, errors.New("error")
 }
 
-func TestLockTrento(t *testing.T) {
+func TestAcquireLockKey(t *testing.T) {
 	c, _ := DefaultClient()
 	lock = fakeLock
 
-	l, err := c.LockTrento("test")
+	l, err := c.AcquireLockKey("test")
 
 	assert.IsType(t, &consulApi.Lock{}, l)
 	assert.NoError(t, err)
 }
 
-func TestLockTrentoNoKey(t *testing.T) {
+func TestAcquireLockKeyNoKey(t *testing.T) {
 	c, _ := DefaultClient()
 	lock = fakeLock
 
-	l, err := c.LockTrento("")
+	l, err := c.AcquireLockKey("")
 
 	assert.Equal(t, (*consulApi.Lock)(nil), l)
 	assert.EqualError(t, err, "missing key")
 }
 
-func TestLockTrentoErr(t *testing.T) {
+func TestAcquireLockKeyErr(t *testing.T) {
 	c, _ := DefaultClient()
 	lock = fakeLockErr
 
-	l, err := c.LockTrento("test")
+	l, err := c.AcquireLockKey("test")
 
 	assert.Equal(t, (*consulApi.Lock)(nil), l)
 	assert.EqualError(t, err, "error")

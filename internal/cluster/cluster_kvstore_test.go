@@ -142,7 +142,7 @@ func TestStore(t *testing.T) {
 	kv.On("DeleteTree", kvPath, (*consulApi.WriteOptions)(nil)).Return(nil, nil)
 	kv.On("PutMap", kvPath, expectedPutMap).Return(nil, nil)
 	testLock := consulApi.Lock{}
-	consulInst.On("LockTrento", consul.KvClustersPath).Return(&testLock, nil)
+	consulInst.On("AcquireLockKey", consul.KvClustersPath).Return(&testLock, nil)
 
 	root := new(cib.Root)
 

@@ -26,7 +26,7 @@ var lock = func(l *consulApi.Lock, stopCh <-chan struct{}) (<-chan struct{}, err
 	return l.Lock(stopCh)
 }
 
-func (c *client) LockTrento(prefix string) (*consulApi.Lock, error) {
+func (c *client) AcquireLockKey(prefix string) (*consulApi.Lock, error) {
 	opts := &consulApi.LockOptions{
 		Key:              prefix,
 		SessionName:      sessionName,

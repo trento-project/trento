@@ -27,7 +27,7 @@ func (s *SAPSystem) getKVMetadataPath() string {
 
 func (s *SAPSystem) Store(client consul.Client) error {
 	host, _ := os.Hostname()
-	l, err := client.LockTrento(fmt.Sprintf(consul.KvHostsSAPSystemPath, host))
+	l, err := client.AcquireLockKey(fmt.Sprintf(consul.KvHostsSAPSystemPath, host))
 	if err != nil {
 		return errors.Wrap(err, "could not lock the kv for sapsystem")
 	}

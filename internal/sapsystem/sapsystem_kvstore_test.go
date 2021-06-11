@@ -86,7 +86,7 @@ func TestStore(t *testing.T) {
 	kv.On("DeleteTree", kvPath, (*consulApi.WriteOptions)(nil)).Return(nil, nil)
 	kv.On("PutMap", kvPath, expectedPutMap).Return(nil, nil)
 	testLock := consulApi.Lock{}
-	consulInst.On("LockTrento", fmt.Sprintf(consul.KvHostsSAPSystemPath, host)).Return(&testLock, nil)
+	consulInst.On("AcquireLockKey", fmt.Sprintf(consul.KvHostsSAPSystemPath, host)).Return(&testLock, nil)
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

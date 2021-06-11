@@ -22,7 +22,7 @@ func (c *Cluster) Store(client consul.Client) error {
 		return nil
 	}
 
-	l, err := client.LockTrento(consul.KvClustersPath)
+	l, err := client.AcquireLockKey(consul.KvClustersPath)
 	if err != nil {
 		return errors.Wrap(err, "could not lock the kv for clusters")
 	}

@@ -437,6 +437,40 @@ groups:
           ## References
           -  https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#set-up-sbd-device
         scored: true
+      - id: 1.3.7
+        description: "2-nodes cluster must either have disk-based sbd or qdevice"
+        audit: |
+          if [[ $(crm_node -l | wc -l) != "2" ]]; then
+            echo passed
+            exit 0
+          fi
+
+          sbdarray=$(grep -E '^SBD_DEVICE=' /etc/sysconfig/sbd  | grep -oP 'SBD_DEVICE=\K[^.]+' | sed 's/\"//g')
+          IFS=';' sbdarray=( $sbdarray )
+          device_count=${#sbdarray[@]}
+
+          # If there is at least 1 device and there is an sbd device used by pacemaker
+          if [[ $device_count != "0" ]] && crm conf show | grep "stonith:external/sbd"; then
+            echo passed
+            exit 0
+          fi
+
+          # If the qdevice is configured it's also good
+          if corosync-quorumtool | tail -n1 | grep -i qdevice; then
+            echo passed
+            exit 0
+          fi
+          echo failed
+        tests:
+          test_items:
+            - flag: passed
+        remediation: |
+          ## Remediation
+          HA cluster with 2 nodes must either have a disk-based SBD or a Qdevice.
+
+          ## References
+          - section 2 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
+        scored: true
   - id: 1.4
     description: "Azure Fence Agent Checks"
     checks:

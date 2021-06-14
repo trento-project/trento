@@ -152,3 +152,30 @@ func TestHostsListHandler(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("<td>foo</td><td>192.168.1.1</td><td>.*land1.*</td><td>.*passing.*</td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td>bar</td><td>192.168.1.2</td><td>.*land2.*</td><td>.*critical.*</td>"), minified)
 }
+
+func TestHostHandler404Error(t *testing.T) {
+	var err error
+
+	consulInst := new(mocks.Client)
+	catalog := new(mocks.Catalog)
+	catalog.On("Node", "foobar", (*consulApi.QueryOptions)(nil)).Return((*consulApi.CatalogNode)(nil), nil, nil)
+	consulInst.On("Catalog").Return(catalog)
+
+	deps := DefaultDependencies()
+	deps.consul = consulInst
+
+	app, err := NewAppWithDeps("", 80, deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	w := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/hosts/foobar", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	app.ServeHTTP(w, req)
+
+	assert.Equal(t, 404, w.Code)
+}

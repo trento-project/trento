@@ -753,7 +753,7 @@ groups:
           More information at https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability#create-sap-hana-cluster-resources
         scored: true
       - id: 1.5.7
-        description: "Check /hana/share/myHooks/global.ini"
+        description: "Check SAPHanaSR configuration"
         audit: |
          sid=$(crm configure show | grep -m1 SID= | sed -e "s/.*SID=\(...\).*/\1/")
          cat /hana/shared/$sid/global/hdb/custom/config/global.ini

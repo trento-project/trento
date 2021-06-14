@@ -256,9 +256,9 @@ groups:
         description: "SAPHanaSR global.ini configuration"
         audit: |
           sid=$(crm configure show | grep -m1 SID= | sed -e "s/.*SID=\(...\).*/\1/")
-          cat /hana/shared/$sid/global/hdb/custom/config/global.ini
-          sed -n -e '/ha_dr_provider_SAPHanaSR\]/,/\[/ p; /trace\]/,/\[/ p' /hana/shared/$sid/global/hdb/custom/config/global.ini
-          path=$(cat /hana/shared/$sid/global/hdb/custom/config/global.ini | grep "path =" | sed "s/.*= //")
+          cat /usr/sap/${sid}/SYS/global/hdb/custom/config/global.ini
+          sed -n -e '/ha_dr_provider_SAPHanaSR\]/,/\[/ p; /trace\]/,/\[/ p' /usr/sap/${sid}/SYS/global/hdb/custom/config/global.ini
+          path=$(cat /usr/sap/${sid}/SYS/global/hdb/custom/config/global.ini | grep "path =" | sed "s/.*= //")
           if [ -s "$path/SAPHanaSR.py" ]; then echo "HookFound"; else echo "HookNotFound"; fi
         tests:
           test_items:

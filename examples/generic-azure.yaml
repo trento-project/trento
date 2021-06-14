@@ -164,7 +164,30 @@ groups:
             - flag: "udpu"
         remediation: |
           ## Remediation
-          Adjust the corosync transport parameter as recommended on the Azure best practices.
+          It will be difficult to change the corosync MCAST transport to UCAST
+          on an existing cluster. Besides adding the 'transport: udpu' parameter one
+          would have to configure each node separatelly. The easiest way to
+          make the cluster UCAST it to bootstrap it. When creatin the cluster
+          you would have to add the key -u, for example
+          $ crm cluster init -u ...
+
+          ## References
+          - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker
+        scored: true
+      - id: 1.1.6.runtime
+        description: "Corosync transport parameter is set to udpu (runtime)"
+        audit: 'corosync-cmapctl | grep "totem.transport (str) = " | sed "s/.*= //"'
+        tests:
+          test_items:
+            - flag: "udpu"
+        remediation: |
+          ## Remediation
+          It will be difficult to change the corosync MCAST transport to UCAST
+          on an existing cluster. Besides adding the 'transport: udpu' parameter one
+          would have to configure each node separatelly. The easiest way to
+          make the cluster UCAST it to bootstrap it. When creatin the cluster
+          you would have to add the key -u, for example
+          $ crm cluster init -u ...
 
           ## References
           - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker
@@ -215,35 +238,6 @@ groups:
           - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker
         scored: true
       - id: 1.1.9
-        description: "Check the UCAST is used"
-        audit: 'cat /etc/corosync/corosync.conf'
-        tests:
-          test_items:
-            - flag: "transport"
-              compare:
-                op: eq
-                value: "udpu"
-        remediation: |
-          ## Abstract
-          It is strongly recommended to use UCAST for the corosync communication.
-
-          ## References
-          - section 9.1 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
-        scored: true
-      - id: 1.1.9.runtime
-        description: "Check the UCAST is used (runtime)"
-        audit: 'corosync-cmapctl | grep "totem.transport (str) = " | sed "s/^.*= //"'
-        tests:
-          test_items:
-            - flag: "udpu"
-        remediation: |
-          ## Abstract
-          It is strongly recommended to use UCAST for the corosync communication.
-
-          ## References
-          - section 9.1 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
-        scored: true
-      - id: 1.1.10
         description: "Check there are at least 2 corosync communication rings"
         audit: 'echo rings=$(cat /etc/corosync/corosync.conf | grep interface | wc -l)'
         tests:
@@ -259,7 +253,7 @@ groups:
           ## References
           - section 9.1 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
         scored: false
-      - id: 1.1.10.runtime
+      - id: 1.1.9.runtime
         description: "Check there are at least 2 corosync communication rings (runtime)"
         audit: |
           corosync-cmapctl | grep totem.interface.0 | sed "s/^.*/true0/"

@@ -84,6 +84,11 @@ func NewHostHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
+		if catalogNode == nil {
+			c.AbortWithStatus(404)
+			return
+		}
+
 		checks, err := loadHealthChecks(client, name)
 		if err != nil {
 			_ = c.Error(err)

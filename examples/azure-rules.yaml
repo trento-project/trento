@@ -214,6 +214,68 @@ groups:
           ## References
           - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker
         scored: true
+      - id: 1.1.9
+        description: "Check the UCAST is used"
+        audit: 'cat /etc/corosync/corosync.conf'
+        tests:
+          test_items:
+            - flag: "transport"
+              compare:
+                op: eq
+                value: "udpu"
+        remediation: |
+          ## Abstract
+          It is strongly recommended to use UCAST for the corosync communication.
+
+          ## References
+          - section 9.1 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
+        scored: true
+      - id: 1.1.9.runtime
+        description: "Check the UCAST is used (runtime)"
+        audit: 'corosync-cmapctl | grep "totem.transport (str) = " | sed "s/^.*= //"'
+        tests:
+          test_items:
+            - flag: "udpu"
+        remediation: |
+          ## Abstract
+          It is strongly recommended to use UCAST for the corosync communication.
+
+          ## References
+          - section 9.1 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
+        scored: true
+      - id: 1.1.10
+        description: "Check there are at least 2 corosync communication rings"
+        audit: 'echo rings=$(cat /etc/corosync/corosync.conf | grep interface | wc -l)'
+        tests:
+          test_items:
+            - flag: "rings"
+              compare:
+                op: gt
+                value: 1
+        remediation: |
+          ## Abstract
+          It is strongly recommended to add a second ring to the corosync communication.
+
+          ## References
+          - section 9.1 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
+        scored: false
+      - id: 1.1.10.runtime
+        description: "Check there are at least 2 corosync communication rings (runtime)"
+        audit: |
+          corosync-cmapctl | grep totem.interface.0 | sed "s/^.*/true0/"
+          corosync-cmapctl | grep totem.interface.1 | sed "s/^.*/true1/"
+        tests:
+          bin_op: and
+          test_items:
+            - flag: true0
+            - flag: true1
+        remediation: |
+          ## Abstract
+          It is strongly recommended to add a second ring to the corosync communication.
+
+          ## References
+          - section 9.1 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
+        scored: false
   - id: 1.2
     description: "Pacemaker"
     checks:

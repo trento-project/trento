@@ -6,31 +6,28 @@ import (
 	"path"
 	"testing"
 
-	"github.com/SUSE/sap_host_exporter/lib/sapcontrol"
-	"github.com/SUSE/sap_host_exporter/test/mock_sapcontrol"
-	"github.com/golang/mock/gomock"
 	consulApi "github.com/hashicorp/consul/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/trento-project/trento/internal/consul"
-	"github.com/trento-project/trento/internal/consul/mocks"
+	consulMocks "github.com/trento-project/trento/internal/consul/mocks"
 	"github.com/trento-project/trento/internal/environments"
 	"github.com/trento-project/trento/internal/sapsystem"
+	"github.com/trento-project/trento/internal/sapsystem/sapcontrol"
+	sapcontrolMocks "github.com/trento-project/trento/internal/sapsystem/sapcontrol/mocks"
 )
 
 func TestStoreSAPSystemTags(t *testing.T) {
-	kv := new(mocks.KV)
-	catalog := new(mocks.Catalog)
-	client := new(mocks.Client)
+	kv := new(consulMocks.KV)
+	catalog := new(consulMocks.Catalog)
+	client := new(consulMocks.Client)
 	client.On("Catalog").Return(catalog)
 	client.On("KV").Return(kv)
 	host, _ := os.Hostname()
 
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	mockWebService := mock_sapcontrol.NewMockWebService(ctrl)
+	mockWebService := new(sapcontrolMocks.WebService)
 
-	mockWebService.EXPECT().GetInstanceProperties().Return(&sapcontrol.GetInstancePropertiesResponse{
+	mockWebService.On("GetInstanceProperties").Return(&sapcontrol.GetInstancePropertiesResponse{
 		Properties: []*sapcontrol.InstanceProperty{
 			{
 				Property:     "SAPSYSTEMNAME",
@@ -40,8 +37,8 @@ func TestStoreSAPSystemTags(t *testing.T) {
 		},
 	}, nil)
 
-	mockWebService.EXPECT().GetProcessList().Return(&sapcontrol.GetProcessListResponse{}, nil)
-	mockWebService.EXPECT().GetSystemInstanceList().Return(&sapcontrol.GetSystemInstanceListResponse{}, nil)
+	mockWebService.On("GetProcessList").Return(&sapcontrol.GetProcessListResponse{}, nil)
+	mockWebService.On("GetSystemInstanceList").Return(&sapcontrol.GetSystemInstanceListResponse{}, nil)
 
 	environment := map[string]interface{}{
 		"env1": map[string]interface{}{
@@ -81,18 +78,16 @@ func TestStoreSAPSystemTags(t *testing.T) {
 }
 
 func TestStoreSAPSystemTagsWithNoEnvs(t *testing.T) {
-	kv := new(mocks.KV)
-	catalog := new(mocks.Catalog)
-	client := new(mocks.Client)
+	kv := new(consulMocks.KV)
+	catalog := new(consulMocks.Catalog)
+	client := new(consulMocks.Client)
 	client.On("Catalog").Return(catalog)
 	client.On("KV").Return(kv)
 	host, _ := os.Hostname()
 
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	mockWebService := mock_sapcontrol.NewMockWebService(ctrl)
+	mockWebService := new(sapcontrolMocks.WebService)
 
-	mockWebService.EXPECT().GetInstanceProperties().Return(&sapcontrol.GetInstancePropertiesResponse{
+	mockWebService.On("GetInstanceProperties").Return(&sapcontrol.GetInstancePropertiesResponse{
 		Properties: []*sapcontrol.InstanceProperty{
 			{
 				Property:     "SAPSYSTEMNAME",
@@ -102,8 +97,8 @@ func TestStoreSAPSystemTagsWithNoEnvs(t *testing.T) {
 		},
 	}, nil)
 
-	mockWebService.EXPECT().GetProcessList().Return(&sapcontrol.GetProcessListResponse{}, nil)
-	mockWebService.EXPECT().GetSystemInstanceList().Return(&sapcontrol.GetSystemInstanceListResponse{}, nil)
+	mockWebService.On("GetProcessList").Return(&sapcontrol.GetProcessListResponse{}, nil)
+	mockWebService.On("GetSystemInstanceList").Return(&sapcontrol.GetSystemInstanceListResponse{}, nil)
 
 	kv.On("ListMap", consul.KvEnvironmentsPath, consul.KvEnvironmentsPath).Return(nil, nil)
 	catalog.On("Nodes", mock.Anything).Return([]*consulApi.Node{}, nil, nil)

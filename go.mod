@@ -4,13 +4,12 @@ go 1.16
 
 require (
 	github.com/ClusterLabs/ha_cluster_exporter v0.0.0-20210420075709-eb4566acab09
-	github.com/SUSE/sap_host_exporter v0.0.0-20210426144122-68bbf2f1b490
 	github.com/aquasecurity/bench-common v0.4.4
 	github.com/gin-gonic/gin v1.6.3
-	github.com/golang/mock v1.4.3
 	github.com/gomarkdown/markdown v0.0.0-20210514010506-3b9f47219fe7
 	github.com/hashicorp/consul-template v0.25.2
 	github.com/hashicorp/consul/api v1.4.0
+	github.com/hooklift/gowsdl v0.5.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/pkg/errors v0.9.1

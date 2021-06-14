@@ -6,12 +6,11 @@ import (
 	"path"
 	"regexp"
 
-	"github.com/SUSE/sap_host_exporter/lib/sapcontrol"
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
-	"github.com/spf13/viper"
 
 	"github.com/trento-project/trento/internal"
+	"github.com/trento-project/trento/internal/sapsystem/sapcontrol"
 )
 
 const sapInstallationPath string = "/usr/sap"
@@ -33,13 +32,6 @@ func (s *SAPSystem) GetSID() string {
 	return s.Properties["SAPSYSTEMNAME"].Value
 }
 
-func newWebService(instNumber string) sapcontrol.WebService {
-	config := viper.New()
-	config.SetDefault("sap-control-uds", path.Join("/tmp", fmt.Sprintf(".sapstream5%s13", instNumber)))
-	client := sapcontrol.NewSoapClient(config)
-	return sapcontrol.NewWebService(client)
-}
-
 func NewSAPSystemsList() (SAPSystemsList, error) {
 	var systems = SAPSystemsList{}
 
@@ -50,7 +42,7 @@ func NewSAPSystemsList() (SAPSystemsList, error) {
 	}
 
 	for _, i := range instances {
-		webService := newWebService(i)
+		webService := sapcontrol.NewWebService(i)
 		s, err := NewSAPSystem(webService)
 		if err != nil {
 			log.Printf("Error discovering a SAP system: %s", err)

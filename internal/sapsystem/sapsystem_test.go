@@ -4,20 +4,16 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/SUSE/sap_host_exporter/lib/sapcontrol"
-	"github.com/SUSE/sap_host_exporter/test/mock_sapcontrol"
-	"github.com/golang/mock/gomock"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
+	"github.com/trento-project/trento/internal/sapsystem/sapcontrol"
+	"github.com/trento-project/trento/internal/sapsystem/sapcontrol/mocks"
 )
 
 func TestNewSAPSystem(t *testing.T) {
+	mockWebService := new(mocks.WebService)
 
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	mockWebService := mock_sapcontrol.NewMockWebService(ctrl)
-
-	mockWebService.EXPECT().GetInstanceProperties().Return(&sapcontrol.GetInstancePropertiesResponse{
+	mockWebService.On("GetInstanceProperties").Return(&sapcontrol.GetInstancePropertiesResponse{
 		Properties: []*sapcontrol.InstanceProperty{
 			{
 				Property:     "prop1",
@@ -37,7 +33,7 @@ func TestNewSAPSystem(t *testing.T) {
 		},
 	}, nil)
 
-	mockWebService.EXPECT().GetProcessList().Return(&sapcontrol.GetProcessListResponse{
+	mockWebService.On("GetProcessList").Return(&sapcontrol.GetProcessListResponse{
 		Processes: []*sapcontrol.OSProcess{
 			{
 				Name:        "enserver",
@@ -60,7 +56,7 @@ func TestNewSAPSystem(t *testing.T) {
 		},
 	}, nil)
 
-	mockWebService.EXPECT().GetSystemInstanceList().Return(&sapcontrol.GetSystemInstanceListResponse{
+	mockWebService.On("GetSystemInstanceList").Return(&sapcontrol.GetSystemInstanceListResponse{
 		Instances: []*sapcontrol.SAPInstance{
 			{
 				Hostname:      "host1",

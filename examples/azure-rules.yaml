@@ -804,6 +804,28 @@ groups:
 
           More information at https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability#create-sap-hana-cluster-resources
         scored: true
+      - id: 1.5.7
+        description: "Check SAPHanaSR configuration"
+        audit: |
+         sid=$(crm configure show | grep -m1 SID= | sed -e "s/.*SID=\(...\).*/\1/")
+         cat /hana/shared/$sid/global/hdb/custom/config/global.ini
+         sed -n -e '/ha_dr_provider_SAPHanaSR\]/,/\[/ p; /trace\]/,/\[/ p' /hana/shared/$sid/global/hdb/custom/config/global.ini
+         path=$(cat /hana/shared/$sid/global/hdb/custom/config/global.ini | grep "path =" | sed "s/.*= //")
+         if [ -s "$path/SAPHanaSR.py" ]; then echo "HookFound"; else echo "HookNotFound"; fi
+        tests:
+          test_items:
+          - flag: "provider = SAPHanaSR"
+          - flag: "path = /usr/share/SAPHanaSR"
+          - flag: "execution_order = 1"
+          - flag: "ha_dr_saphanasr = info"
+          - flag: "HookFound"
+        remediation: |
+          ## Remediation
+          Set the recommended values in global.ini.
+
+          ## References
+          - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability#implement-the-python-system-replication-hook-saphanasr
+        scored: true
   - id: 1.6
     description: "Check that <sidadm> sudo user is set up in /etc/sudoers"
     checks:

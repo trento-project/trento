@@ -3,10 +3,7 @@ package agent
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
-	"log"
 	"strconv"
-	"strings"
 
 	"github.com/aquasecurity/bench-common/check"
 	"github.com/pkg/errors"
@@ -14,46 +11,11 @@ import (
 
 type Checker func() (CheckResult, error)
 
-/* Remove
-  '---
-   controls:
-	version: ...
-	id: ...
-	description: ...
-	type: ...
-	groups:
-'
-that comes before '    - id:...'
-You need to do it to append the yaml to another yaml file
-*/
-func trim_yaml_header(yaml_text string) string {
-	pattern := "\ngroups:"
-	index := strings.Index(yaml_text, pattern)
-	if index == -1 {
-		log.Fatal("the yaml file doesn't contain the 'id:' field and is possibly broken")
-	}
-	index += len(pattern)
-	return yaml_text[index:]
-}
-
-func NewChecker(definitionsPaths []string) (Checker, error) {
-	var data [][]byte
-	for _, path := range definitionsPaths {
-		datum, err := ioutil.ReadFile(path)
-		if err != nil {
-			return nil, errors.Wrap(err, "could not read definitions file")
-		}
-		data = append(data, datum)
-	}
+func NewChecker(rulesetsData []byte) (Checker, error) {
 	return func() (CheckResult, error) {
 		var result CheckResult
-		first_yaml_file := string(data[0])
-		// Appent all next files to the first
-		for _, datum := range data[1:] {
-			first_yaml_file += trim_yaml_header(string(datum))
-		}
 
-		controls, err := check.NewControls([]byte(first_yaml_file), nil)
+		controls, err := check.NewControls(rulesetsData, nil)
 		if err != nil {
 			return result, errors.Wrap(err, "could not parse definitions file")
 		}

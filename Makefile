@@ -3,7 +3,7 @@ ARCHS ?= amd64 arm64 ppc64le s390x
 
 default: clean mod-tidy fmt vet-check test build
 
-.PHONY: build clean clean-binary clean-frontend cross-compiled default fmt fmt-check generate mod-tidy test vet-check web-assets
+.PHONY: build clean clean-binary clean-frontend cross-compiled default fmt fmt-check rulesets generate mod-tidy test vet-check web-assets
 
 build: trento
 trento: web-assets
@@ -31,6 +31,10 @@ fmt-check:
 	gofmt -l .
 	[ "`gofmt -l .`" = "" ]
 
+rulesets:
+	rm -rf internal/ruleset/rulesets/*
+	cp -R rulesets internal/ruleset/
+
 generate:
 ifeq (, $(shell command -v mockery 2> /dev/null))
 	$(error "'mockery' command not found. You can install it locally with 'go install github.com/vektra/mockery/v2@latest'.")
@@ -40,7 +44,7 @@ endif
 mod-tidy:
 	go mod tidy
 
-test: generate web-assets
+test: rulesets generate web-assets
 	go test -v ./...
 
 test-coverage:
@@ -48,7 +52,7 @@ test-coverage:
 	go test -cover -coverprofile=build/coverage.out ./...
 	go tool cover -html=build/coverage.out
 
-vet-check: generate web-assets
+vet-check: rulesets generate web-assets
 	go vet ./...
 
 web-deps: web/frontend/node_modules

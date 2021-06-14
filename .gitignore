@@ -2,3 +2,4 @@
 /build
 /web/frontend/assets
 /web/frontend/node_modules
+/internal/ruleset/rulesets

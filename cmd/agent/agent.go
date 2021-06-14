@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/trento-project/trento/agent"
+	"github.com/trento-project/trento/internal/ruleset"
 )
 
 var TTL time.Duration
@@ -50,7 +51,17 @@ func NewAgentCmd() *cobra.Command {
 func runOnce(cmd *cobra.Command, args []string) {
 	var err error
 
-	checker, err := agent.NewChecker(args)
+	ruleSet, err := ruleset.NewRuleSet(args)
+	if err != nil {
+		log.Fatal("could not load embedded rulesets", err)
+	}
+
+	ruleSetsData, err := ruleSet.GetRulesets()
+	if err != nil {
+		log.Fatal("could not get rulesets data", err)
+	}
+
+	checker, err := agent.NewChecker(ruleSetsData)
 	if err != nil {
 		log.Fatal("Failed to create a Checker instance: ", err)
 	}
@@ -100,10 +111,6 @@ func start(cmd *cobra.Command, args []string) {
 }
 
 func startArgsValidator(cmd *cobra.Command, args []string) error {
-	if len(args) == 0 {
-		return fmt.Errorf("please specify at least one configuration yaml file")
-	}
-
 	for _, definitionsPath := range args {
 		info, err := os.Lstat(definitionsPath)
 		if err != nil {

@@ -14,6 +14,7 @@ import (
 
 	"github.com/trento-project/trento/agent/discovery"
 	"github.com/trento-project/trento/internal/consul"
+	"github.com/trento-project/trento/internal/ruleset"
 )
 
 const haConfigCheckerId = "ha_config_checker"
@@ -57,7 +58,17 @@ func NewWithConfig(cfg Config) (*Agent, error) {
 		return nil, errors.Wrap(err, "could not create a Consul client")
 	}
 
-	checker, err := NewChecker(cfg.DefinitionsPaths)
+	ruleSet, err := ruleset.NewRuleSet(cfg.DefinitionsPaths)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not load embedded rulesets")
+	}
+
+	ruleSetsData, err := ruleSet.GetRulesets()
+	if err != nil {
+		return nil, errors.Wrap(err, "could not get rulesets data")
+	}
+
+	checker, err := NewChecker(ruleSetsData)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create a Checker instance")
 	}

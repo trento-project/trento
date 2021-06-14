@@ -1,12 +1,11 @@
 #!/bin/bash
 TARGET_HOST=$1
 CONSUL_HOST=$2
-ACTION={$3:-"deploy-agent"}
+ACTION=${3:-"deploy-agent"}
 TRENTO_BIN=${TRENTO_BIN:-"trento"}
 CONSUL_BIN=${CONSUL_BIN:-"consul"}
 TRENTO_PATH=${TRENTO_PATH:-"/srv/trento/"}
 CONSUL_PATH=${CONSUL_PATH:-"/srv/consul/"}
-EXAMPLES_PATH=${EXAMPLES_PATH:-"$TRENTO_PATH/examples"}
 CONSUL_DATA_DIR=${CONSUL_DATA_DIR:-"consul-agent-data"}
 TARGET_USER=${TARGET_USER:-"root"}
 
@@ -40,7 +39,6 @@ ssh "$TARGET_USER@$TARGET_HOST" mkdir -p "$CONSUL_PATH/consul.d" || true
 # Upload new binaries & examples
 rsync -av ./$TRENTO_BIN "$TARGET_USER@$TARGET_HOST:/$TRENTO_PATH"
 rsync -av ./$CONSUL_BIN "$TARGET_USER@$TARGET_HOST:/$CONSUL_PATH"
-rsync -av ./examples "$TARGET_USER@$TARGET_HOST:/$EXAMPLES_PATH"
 
 # Give them execution permission
 ssh "$TARGET_USER@$TARGET_HOST" chmod +x "$TRENTO_PATH/$TRENTO_BIN"
@@ -53,7 +51,7 @@ fi
 # Start 'em
 if [ "$ACTION" = "deploy-agent" ] ; then
 	ssh -t "$TARGET_USER@$TARGET_HOST" -f "nohup $CONSUL_PATH/$CONSUL_BIN agent -bind=$TARGET_HOST -data-dir=$CONSUL_DATA_DIR -config-dir=$CONSUL_PATH/consul.d -retry-join=$CONSUL_HOST -ui > /dev/null 2>&1"
-    ssh -t "$TARGET_USER@$TARGET_HOST" -f "nohup $ADD_PARAMS $TRENTO_PATH/$TRENTO_BIN agent start --consul-config-dir=$CONSUL_PATH/consul.d $EXAMPLES_PATH/azure-rules.yaml > /dev/null 2>&1"
+  ssh -t "$TARGET_USER@$TARGET_HOST" -f "nohup $ADD_PARAMS $TRENTO_PATH/$TRENTO_BIN agent start --consul-config-dir=$CONSUL_PATH/consul.d > /dev/null 2>&1"
 elif [ "$ACTION" = "deploy-web" ] ; then
 	ssh -t "$TARGET_USER@$TARGET_HOST" -f "nohup $CONSUL_PATH/$CONSUL_BIN agent -server -bootstrap-expect=1 -bind=$TARGET_HOST -data-dir=$CONSUL_DATA_DIR -ui > /dev/null 2>&1"
 	ssh -t "$TARGET_USER@$TARGET_HOST" -f "nohup $TRENTO_PATH/$TRENTO_BIN web serve > /dev/null 2>&1"

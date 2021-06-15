@@ -85,7 +85,7 @@ func NewHostHandler(client consul.Client) gin.HandlerFunc {
 		}
 
 		if catalogNode == nil {
-			c.AbortWithStatus(404)
+			_ = c.Error(NotFoundError("could not find host"))
 			return
 		}
 
@@ -119,7 +119,7 @@ func NewHAChecksHandler(client consul.Client) gin.HandlerFunc {
 		}
 
 		if catalogNode == nil {
-			c.AbortWithStatus(404)
+			_ = c.Error(NotFoundError("could not find host"))
 			return
 		}
 

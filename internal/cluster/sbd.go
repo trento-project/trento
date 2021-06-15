@@ -140,14 +140,14 @@ func (s *SBDDevice) LoadDeviceData() error {
 	return nil
 }
 
-func assignPatternResult(text string, pattern string) []string {
+func assignPatternResult(text string, pattern string) string {
 	r := regexp.MustCompile(pattern)
 	match := r.FindAllStringSubmatch(text, -1)
 	if len(match) > 0 {
-		return match[0]
+		return match[0][1]
 	} else {
 		// Retrun empty information if pattern is not found
-		return []string{"", ""}
+		return ""
 	}
 }
 
@@ -168,14 +168,14 @@ func sbdDump(sbdPath string, device string) (SBDDump, error) {
 	sbdDump, err := sbdDumpExecCommand(sbdPath, "-d", device, "dump").Output()
 	sbdDumpStr := string(sbdDump)
 
-	dump.Header = assignPatternResult(sbdDumpStr, `Header version *: (.*)`)[1]
-	dump.Uuid = assignPatternResult(sbdDumpStr, `UUID *: (.*)`)[1]
-	dump.Slots, _ = strconv.Atoi(assignPatternResult(sbdDumpStr, `Number of slots *: (.*)`)[1])
-	dump.SectorSize, _ = strconv.Atoi(assignPatternResult(sbdDumpStr, `Sector size *: (.*)`)[1])
-	dump.TimeoutWatchdog, _ = strconv.Atoi(assignPatternResult(sbdDumpStr, `Timeout \(watchdog\) *: (.*)`)[1])
-	dump.TimeoutAllocate, _ = strconv.Atoi(assignPatternResult(sbdDumpStr, `Timeout \(allocate\) *: (.*)`)[1])
-	dump.TimeoutLoop, _ = strconv.Atoi(assignPatternResult(sbdDumpStr, `Timeout \(loop\) *: (.*)`)[1])
-	dump.TimeoutMsgwait, _ = strconv.Atoi(assignPatternResult(sbdDumpStr, `Timeout \(msgwait\) *: (.*)`)[1])
+	dump.Header = assignPatternResult(sbdDumpStr, `Header version *: (.*)`)
+	dump.Uuid = assignPatternResult(sbdDumpStr, `UUID *: (.*)`)
+	dump.Slots, _ = strconv.Atoi(assignPatternResult(sbdDumpStr, `Number of slots *: (.*)`))
+	dump.SectorSize, _ = strconv.Atoi(assignPatternResult(sbdDumpStr, `Sector size *: (.*)`))
+	dump.TimeoutWatchdog, _ = strconv.Atoi(assignPatternResult(sbdDumpStr, `Timeout \(watchdog\) *: (.*)`))
+	dump.TimeoutAllocate, _ = strconv.Atoi(assignPatternResult(sbdDumpStr, `Timeout \(allocate\) *: (.*)`))
+	dump.TimeoutLoop, _ = strconv.Atoi(assignPatternResult(sbdDumpStr, `Timeout \(loop\) *: (.*)`))
+	dump.TimeoutMsgwait, _ = strconv.Atoi(assignPatternResult(sbdDumpStr, `Timeout \(msgwait\) *: (.*)`))
 
 	// Sanity check at the end, even in error case the sbd command can output some information
 	if err != nil {

@@ -46,11 +46,11 @@ func NewEnvironmentHandler(client consul.Client) gin.HandlerFunc {
 
 func NewLandscapeListHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var env = ""
+		var envName string
 
 		query := c.Request.URL.Query()
 		if len(query["environment"]) > 0 {
-			env = query["environment"][0]
+			envName = query["environment"][0]
 		}
 
 		environments, err := environments.Load(client)
@@ -61,7 +61,7 @@ func NewLandscapeListHandler(client consul.Client) gin.HandlerFunc {
 
 		c.HTML(http.StatusOK, "landscapes.html.tmpl", gin.H{
 			"Environments": environments,
-			"EnvName":      env,
+			"EnvName":      envName,
 		})
 	}
 }
@@ -104,16 +104,15 @@ func NewLandscapeHandler(client consul.Client) gin.HandlerFunc {
 
 func NewSAPSystemListHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var env = ""
-		var land = ""
+		var envName, landName string
 
 		query := c.Request.URL.Query()
 		if len(query["environment"]) > 0 {
-			env = query["environment"][0]
+			envName = query["environment"][0]
 		}
 
 		if len(query["landscape"]) > 0 {
-			land = query["landscape"][0]
+			landName = query["landscape"][0]
 		}
 
 		environments, err := environments.Load(client)
@@ -124,8 +123,8 @@ func NewSAPSystemListHandler(client consul.Client) gin.HandlerFunc {
 
 		c.HTML(http.StatusOK, "sapsystems.html.tmpl", gin.H{
 			"Environments": environments,
-			"EnvName":      env,
-			"LandName":     land,
+			"EnvName":      envName,
+			"LandName":     landName,
 		})
 	}
 }

@@ -30,9 +30,16 @@ func NewEnvironmentHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
+		envName := c.Param("env")
+		_, ok := environments[envName]
+		if !ok {
+			_ = c.Error(NotFoundError("could not find environment"))
+			return
+		}
+
 		c.HTML(http.StatusOK, "environment.html.tmpl", gin.H{
 			"Environments": environments,
-			"EnvName":      c.Param("env"),
+			"EnvName":      envName,
 		})
 	}
 }

@@ -32,15 +32,17 @@
       </div>
     </div>
     {{- end }}
+    <hr/>
+    <p class='clearfix'/>
+    <h2>Hosts</h2>
+    {{ template "hosts_table" . }}
+    <hr/>
+    <p class='clearfix'/>
     {{- if .Cluster.IsFencingSBD }}
     {{ template "sbd" .Cluster.SBD }}
     <hr/>
     <p class='clearfix'/>
     {{- end }}
-    <h2>Hosts</h2>
-    {{ template "hosts_table" . }}
-    <hr/>
-    <p class='clearfix'/>
     <h2>Node attributes</h2>
     {{- range .Cluster.Crmmon.NodeAttributes.Nodes }}
     <h2>{{ .Name }}</h2>

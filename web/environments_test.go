@@ -238,6 +238,29 @@ func TestSAPSystemsListHandler(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/sapsystems/sys3\\?environment=env2&landscape=land3'\".*<td>sys3</td><td>.*critical.*</td>"), responseBody)
 }
 
+func TestLandscapeHandler404Error(t *testing.T) {
+	consulInst, _ := setupTest()
+
+	deps := DefaultDependencies()
+	deps.consul = consulInst
+
+	var err error
+	app, err := NewAppWithDeps("", 80, deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/landscapes/foobar", nil)
+	req.Header.Set("Accept", "text/html")
+
+	app.ServeHTTP(resp, req)
+
+	assert.NoError(t, err)
+	assert.Equal(t, 404, resp.Code)
+	assert.Contains(t, resp.Body.String(), "Not Found")
+}
+
 func TestEnvironmentHandler404Error(t *testing.T) {
 	consulInst, _ := setupTest()
 

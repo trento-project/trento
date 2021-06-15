@@ -68,11 +68,12 @@ func NewLandscapeListHandler(client consul.Client) gin.HandlerFunc {
 
 func NewLandscapeHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var env = ""
+		var envName string
+		landName := c.Param("land")
 
 		query := c.Request.URL.Query()
 		if len(query["environment"]) > 0 {
-			env = query["environment"][0]
+			envName = query["environment"][0]
 		}
 
 		environments, err := environments.Load(client)
@@ -81,10 +82,22 @@ func NewLandscapeHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
+		environment, ok := environments[envName]
+		if !ok {
+			_ = c.Error(NotFoundError("could not find environment"))
+			return
+		}
+
+		_, ok = environment.Landscapes[landName]
+		if !ok {
+			_ = c.Error(NotFoundError("could not find landscape"))
+			return
+		}
+
 		c.HTML(http.StatusOK, "landscape.html.tmpl", gin.H{
 			"Environments": environments,
-			"EnvName":      env,
-			"LandName":     c.Param("land"),
+			"EnvName":      envName,
+			"LandName":     landName,
 		})
 	}
 }

@@ -14,6 +14,33 @@
     </dl>
     <hr/>
     <p class='clearfix'/>
+    <h2>Rulesets</h2>
+    <div class="rulesets">
+      <script>
+        $(document).ready(function(){
+          $('.selectpicker').selectpicker("val", {{ .Rulesets.GetEnabled }});
+          $('#clean').click(function(){
+            $('.selectpicker').selectpicker("deselectAll")
+          });
+        });
+      </script>
+      <form method="POST" action="/clusters/{{ .Cluster.Name }}">
+        <select name="rulesets[]" id="rulesets" class="selectpicker" multiple data-selected-text-format="count > 3" data-actions-box="true" title="Checks">
+          {{- range .Rulesets }}
+          <option value="{{ .Path }}">{{ .Path }}</option>
+          {{- end }}
+        </select>
+
+        <button type='submit' class='btn btn-icon btn-secondary' data-toggle='tooltip' title='Apply checks'>
+            <i class='eos-icons eos-18'>autorenew</i>
+        </button>
+        <button id="clean" class='btn btn-icon btn-secondary' data-toggle='tooltip' title='Reset checks'>
+            <i class='eos-icons eos-18'>cleanup</i>
+        </button>
+      </form>
+    </div>
+    <hr/>
+    <p class='clearfix'/>
     <h2>Hosts</h2>
     {{ template "hosts_table" . }}
     <hr/>

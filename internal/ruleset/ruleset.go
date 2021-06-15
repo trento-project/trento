@@ -2,6 +2,7 @@ package ruleset
 
 import (
 	"embed"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"path"
@@ -15,38 +16,111 @@ var ruleSetsFS embed.FS
 
 const rulesetsFolder = "rulesets"
 
+const (
+	Embedded = iota
+	User
+)
+
+const defaultRuleset = `
+controls:
+version: 0.0.0
+id: 0
+description: "Default ruleset. Only used if other rulesets are not selected"
+type: "master"
+groups:
+  - id: 0.1
+    description: "Default"
+    checks:
+      - id: 0.1.1
+        description: "Default"
+        audit: 'ps -ef | grep trento'
+        tests:
+          test_items:
+            - flag: trento
+        remediation: |
+          ## Remediation
+          Nothing to be fixed. Select other rulesets for advanced checking
+        scored: true`
+
+type RuleSets []*RuleSet
+
 type RuleSet struct {
-	EmbeddedFiles []string
-	UserFiles     []string
+	Path    string `mapstructure:"path,omitempty"`
+	Enabled bool   `mapstructure:"enabled"`
+	Type    int    `mapstructure:"type"`
 }
 
-func NewRuleSet(userFiles []string) (*RuleSet, error) {
-	var r = &RuleSet{}
+func NewRuleSets(userFiles []string) (RuleSets, error) {
+	var rsets = RuleSets{}
 
-	embeddedFiles, err := loadEmbeddedFiles()
+	embeddedRulesets, err := loadEmbeddedFiles()
 	if err != nil {
-		return r, err
+		return rsets, err
 	}
 
-	r.EmbeddedFiles = embeddedFiles
-	r.UserFiles = userFiles
+	rsets = append(rsets, embeddedRulesets...)
 
-	return r, nil
+	for _, d := range userFiles {
+		userRuleset := &RuleSet{
+			Path:    path.Join(d),
+			Enabled: false,
+			Type:    User,
+		}
+		rsets = append(rsets, userRuleset)
+	}
+
+	return rsets, nil
 }
 
-func loadEmbeddedFiles() ([]string, error) {
-	var embeddedFiles []string
+func loadEmbeddedFiles() (RuleSets, error) {
+	var embeddedRulesets = RuleSets{}
 
 	dirEntries, err := ruleSetsFS.ReadDir(rulesetsFolder)
 	if err != nil {
-		return embeddedFiles, err
+		return embeddedRulesets, err
 	}
 
 	for _, d := range dirEntries {
-		embeddedFiles = append(embeddedFiles, path.Join(rulesetsFolder, d.Name()))
+		r := &RuleSet{
+			Path:    path.Join(rulesetsFolder, d.Name()),
+			Enabled: false,
+			Type:    Embedded,
+		}
+		embeddedRulesets = append(embeddedRulesets, r)
 	}
 
-	return embeddedFiles, nil
+	return embeddedRulesets, nil
+}
+
+func (r RuleSets) GetEnabled() []string {
+	var files []string
+
+	for _, ruleSet := range r {
+		if ruleSet.Enabled {
+			files = append(files, ruleSet.Path)
+		}
+	}
+
+	return files
+}
+
+func (r RuleSets) Enable(paths []string) error {
+	var found bool = false
+
+	for _, path := range paths {
+		for _, ruleSet := range r {
+			if ruleSet.Path == path {
+				ruleSet.Enabled = true
+				found = true
+				break
+			}
+		}
+		if !found {
+			return fmt.Errorf("no ruleset found with the given path: %s", path)
+		}
+	}
+
+	return nil
 }
 
 /* Remove
@@ -71,27 +145,30 @@ func trim_yaml_header(yaml_text string) string {
 	return yaml_text[index:]
 }
 
-func (r *RuleSet) GetRulesetFiles() []string {
-	return append(r.EmbeddedFiles, r.UserFiles...)
-}
-
-func (r *RuleSet) GetRulesets() ([]byte, error) {
+func (r RuleSets) GetRulesetsYaml(onlyEnabled bool) ([]byte, error) {
 	var data [][]byte
 
-	for _, path := range r.EmbeddedFiles {
-		datum, err := ruleSetsFS.ReadFile(path)
-		if err != nil {
-			return nil, errors.Wrap(err, "could not read embedded rulesets file")
+	for _, rset := range r {
+		if onlyEnabled && !rset.Enabled {
+			continue
 		}
-		data = append(data, datum)
+		if rset.Type == Embedded {
+			datum, err := ruleSetsFS.ReadFile(rset.Path)
+			if err != nil {
+				return nil, errors.Wrap(err, "could not read embedded rulesets file")
+			}
+			data = append(data, datum)
+		} else if rset.Type == User {
+			datum, err := ioutil.ReadFile(rset.Path)
+			if err != nil {
+				return nil, errors.Wrap(err, "could not read user rulesets file")
+			}
+			data = append(data, datum)
+		}
 	}
 
-	for _, path := range r.UserFiles {
-		datum, err := ioutil.ReadFile(path)
-		if err != nil {
-			return nil, errors.Wrap(err, "could not read user rulesets file")
-		}
-		data = append(data, datum)
+	if len(data) == 0 {
+		return []byte(""), nil
 	}
 
 	first_yaml_file := string(data[0])
@@ -101,4 +178,8 @@ func (r *RuleSet) GetRulesets() ([]byte, error) {
 	}
 
 	return []byte(first_yaml_file), nil
+}
+
+func GetDefaultYaml() []byte {
+	return []byte(defaultRuleset)
 }

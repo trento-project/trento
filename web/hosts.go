@@ -12,6 +12,7 @@ import (
 	"github.com/trento-project/trento/internal/environments"
 	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/internal/sapsystem"
+	"github.com/trento-project/trento/internal/ruleset"
 )
 
 func NewHostListHandler(client consul.Client) gin.HandlerFunc {
@@ -84,6 +85,12 @@ func NewHostHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
+		rules, err := ruleset.Load(client, name)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
 		checks, err := loadHealthChecks(client, name)
 		if err != nil {
 			_ = c.Error(err)
@@ -100,6 +107,7 @@ func NewHostHandler(client consul.Client) gin.HandlerFunc {
 			"Host":         &host,
 			"HealthChecks": checks,
 			"SAPSystems":   systems,
+			"Rulesets":     rules,
 		})
 	}
 }

@@ -9,27 +9,23 @@ import (
 	"github.com/pkg/errors"
 )
 
-type Checker func() (CheckResult, error)
-
-func NewChecker(rulesetsData []byte) (Checker, error) {
-	return func() (CheckResult, error) {
-		var result CheckResult
-
-		controls, err := check.NewControls(rulesetsData, nil)
-		if err != nil {
-			return result, errors.Wrap(err, "could not parse definitions file")
-		}
-
-		controls.RunGroup()
-
-		result.controls = controls
-
-		return result, nil
-	}, nil
-}
-
 type CheckResult struct {
 	controls *check.Controls
+}
+
+func NewCheckResult(rulesetsData []byte) (CheckResult, error) {
+	var result CheckResult
+
+	controls, err := check.NewControls(rulesetsData, nil)
+	if err != nil {
+		return result, errors.Wrap(err, "could not parse definitions file")
+	}
+
+	controls.RunGroup()
+
+	result.controls = controls
+
+	return result, nil
 }
 
 func (cr *CheckResult) CheckPrettyPrint(sw io.StringWriter) {

@@ -51,22 +51,22 @@ func NewAgentCmd() *cobra.Command {
 func runOnce(cmd *cobra.Command, args []string) {
 	var err error
 
-	ruleSet, err := ruleset.NewRuleSet(args)
+	ruleSet, err := ruleset.NewRuleSets(args)
 	if err != nil {
 		log.Fatal("could not load embedded rulesets", err)
 	}
 
-	ruleSetsData, err := ruleSet.GetRulesets()
+	rulesetsYaml, err := ruleSet.GetRulesetsYaml(false)
 	if err != nil {
-		log.Fatal("could not get rulesets data", err)
+		log.Println("An error occurred while generating the rulesets:", err)
+		return
 	}
 
-	checker, err := agent.NewChecker(ruleSetsData)
+	res, err := agent.NewCheckResult(rulesetsYaml)
 	if err != nil {
-		log.Fatal("Failed to create a Checker instance: ", err)
+		log.Println("An error occurred while running health checks:", err)
+		return
 	}
-
-	res, err := checker()
 	if err != nil {
 		log.Fatal("Failed to do checks: ", err)
 	}

@@ -192,6 +192,20 @@ func (_m *KV) PutMap(prefix string, data map[string]interface{}) error {
 	return r0
 }
 
+// PutSlice provides a mock function with given fields: prefix, data
+func (_m *KV) PutSlice(prefix string, data interface{}) error {
+	ret := _m.Called(prefix, data)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, interface{}) error); ok {
+		r0 = rf(prefix, data)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // PutTyped provides a mock function with given fields: prefix, value
 func (_m *KV) PutTyped(prefix string, value interface{}) error {
 	ret := _m.Called(prefix, value)

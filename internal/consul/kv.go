@@ -2,6 +2,7 @@ package consul
 
 import (
 	"fmt"
+	"path"
 	"reflect"
 	"strconv"
 	"strings"
@@ -32,6 +33,7 @@ const (
 	KvClustersPath               string = "trento/v0/clusters"
 	KvHostsPath                  string = "trento/v0/hosts"
 	KvHostsMetadataPath          string = "trento/v0/hosts/%s/metadata"
+	KvHostsRuleSetsPath          string = "trento/v0/hosts/%s/rulesets"
 	KvHostsSAPSystemPath         string = "trento/v0/hosts/%s/sapsystems"
 	KvHostsSAPSystemInstancePath string = "trento/v0/hosts/%s/sapsystems/%s/instances/%s"
 	KvEnvironmentsPath           string = "trento/v0/environments"
@@ -60,6 +62,7 @@ type KV interface {
 	DeleteTree(prefix string, w *consulApi.WriteOptions) (*consulApi.WriteMeta, error)
 	ListMap(prefix, offset string) (map[string]interface{}, error)
 	PutMap(prefix string, data map[string]interface{}) error
+	PutSlice(prefix string, data interface{}) error
 	PutTyped(prefix string, value interface{}) error
 }
 
@@ -204,6 +207,29 @@ func getTypeByFlag(entry *consulApi.KVPair) interface{} {
 	return value
 }
 
+func (k *kv) PutSlice(prefix string, data interface{}) error {
+	// Store the slice with slice flag, to be able to reload as list in the ListMap funciton
+	err := k.PutTyped(fmt.Sprintf("%s/", prefix), []string{})
+	if err != nil {
+		return err
+	}
+
+	// Store slice elements
+	sliceValue := reflect.ValueOf(data)
+	for i := 0; i < sliceValue.Len(); i++ {
+		mapInterface := make(map[string]interface{})
+		mapstructure.Decode(sliceValue.Index(i).Interface(), &mapInterface)
+		// Index is composed by 4 digits to keep correct numbers order in KV storage
+		index := fmt.Sprintf("%04d", i)
+		err = k.PutMap(path.Join(prefix, index), mapInterface)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // Store a map[string]interface data in KV storage under the prefix key
 func (k *kv) PutMap(prefix string, data map[string]interface{}) error {
 	// Empty KV directories
@@ -220,31 +246,18 @@ func (k *kv) PutMap(prefix string, data map[string]interface{}) error {
 		case reflect.Map, reflect.Struct, reflect.Ptr:
 			mapInterface := make(map[string]interface{})
 			mapstructure.Decode(value, &mapInterface)
-			err := k.PutMap(fmt.Sprintf("%s/%s", prefix, key), mapInterface)
+			err := k.PutMap(path.Join(prefix, key), mapInterface)
 			if err != nil {
 				return err
 			}
 		case reflect.Slice:
 			// Store the slice with slice flag, to be able to reload as list in the ListMap funciton
-			err := k.PutTyped(fmt.Sprintf("%s/%s/", prefix, key), []string{})
+			err := k.PutSlice(path.Join(prefix, key), value)
 			if err != nil {
 				return err
 			}
-
-			// Store slice elements
-			sliceValue := reflect.ValueOf(value)
-			for i := 0; i < sliceValue.Len(); i++ {
-				mapInterface := make(map[string]interface{})
-				mapstructure.Decode(sliceValue.Index(i).Interface(), &mapInterface)
-				// Index is composed by 4 digits to keep correct numbers order in KV storage
-				index := fmt.Sprintf("%04d", i)
-				err = k.PutMap(fmt.Sprintf("%s/%s/%s", prefix, key, index), mapInterface)
-				if err != nil {
-					return err
-				}
-			}
 		default:
-			err := k.PutTyped(fmt.Sprintf("%s/%s", prefix, key), value)
+			err := k.PutTyped(path.Join(prefix, key), value)
 			if err != nil {
 				return err
 			}

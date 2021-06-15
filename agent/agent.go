@@ -21,7 +21,6 @@ const haConfigCheckerId = "ha_config_checker"
 
 type Agent struct {
 	cfg              Config
-	check            Checker
 	discoveries      []discovery.Discovery
 	consulResultChan chan CheckResult
 	wsResultChan     chan CheckResult
@@ -58,21 +57,6 @@ func NewWithConfig(cfg Config) (*Agent, error) {
 		return nil, errors.Wrap(err, "could not create a Consul client")
 	}
 
-	ruleSet, err := ruleset.NewRuleSet(cfg.DefinitionsPaths)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not load embedded rulesets")
-	}
-
-	ruleSetsData, err := ruleSet.GetRulesets()
-	if err != nil {
-		return nil, errors.Wrap(err, "could not get rulesets data")
-	}
-
-	checker, err := NewChecker(ruleSetsData)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not create a Checker instance")
-	}
-
 	templateRunner, err := NewTemplateRunner(cfg.ConsulConfigDir)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create the consul template runner")
@@ -84,7 +68,6 @@ func NewWithConfig(cfg Config) (*Agent, error) {
 
 	agent := &Agent{
 		cfg:       cfg,
-		check:     checker,
 		ctx:       ctx,
 		ctxCancel: ctxCancel,
 		consul:    client,
@@ -222,13 +205,31 @@ func (a *Agent) registerConsulService() error {
 
 func (a *Agent) startCheckTicker() {
 	tick := func() {
-		result, err := a.check()
+		r, err := ruleset.Load(a.consul, a.cfg.InstanceName)
+		if err != nil {
+			log.Println("An error occurred while loading the rulesets:", err)
+			return
+		}
+
+		rulesetsYaml, err := r.GetRulesetsYaml(true)
+		if err != nil {
+			log.Println("An error occurred while generating the rulesets:", err)
+			return
+		}
+
+		// Fallback to default ruleset
+		if len(rulesetsYaml) == 0 {
+			rulesetsYaml = ruleset.GetDefaultYaml()
+		}
+
+		result, err := NewCheckResult(rulesetsYaml)
 		if err != nil {
 			log.Println("An error occurred while running health checks:", err)
 			return
 		}
 		a.wsResultChan <- result
 		a.updateConsulCheck(result)
+
 	}
 	defer close(a.wsResultChan)
 

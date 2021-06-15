@@ -108,3 +108,33 @@ func TestClustersListHandler(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("<td>test_cluster</td><td>3</td><td>5</td><td>.*passing.*</td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td>2nd_cluster</td><td>2</td><td>10</td><td>.*passing.*</td>"), minified)
 }
+
+func TestClusterHandler404Error(t *testing.T) {
+	var err error
+
+	kv := new(mocks.KV)
+	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(nil, nil)
+	consulInst := new(mocks.Client)
+	consulInst.On("KV").Return(kv)
+
+	deps := DefaultDependencies()
+	deps.consul = consulInst
+
+	app, err := NewAppWithDeps("", 80, deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/clusters/foobar", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Accept", "text/html")
+
+	app.ServeHTTP(resp, req)
+
+	assert.NoError(t, err)
+	assert.Equal(t, 404, resp.Code)
+	assert.Contains(t, resp.Body.String(), "Not Found")
+}

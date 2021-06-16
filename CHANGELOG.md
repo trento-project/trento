@@ -5,10 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.0](https://github.com/trento-project/trento/releases/tag/0.1.0) 2021-05-26
+## [0.2.0](https://github.com/trento-project/trento/releases/tag/0.2.0) 2021-05-26
 
 ### Added
-  - Add SAP Systems to default environment and landscape in absence of one ()
+  - Add SAP Systems to default environment and landscape in absence of one (#70)
   - Check that /etc/hosts contains all cluster nodes (#98)
   - Check the UCAST is used by corosync with at least 2 com-n rings (#91, #96)
   - Add project logo to the header (#90)

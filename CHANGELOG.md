@@ -5,7 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.0](https://github.com/trento-project/trento/releases/tag/0.2.0) 2021-05-26
+## (Unreleased) [0.3.0](https://github.com/trento-project/trento/releases/tag/0.3.0) 2021-07-14
+
+T.B.D.
+
+## [0.2.0](https://github.com/trento-project/trento/releases/tag/0.2.0) 2021-06-16
 
 ### Added
   - Add SAP Systems to default environment and landscape in absence of one (#70)
@@ -27,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
   - Fix SAP system layout rendering
   - Don't let the app crash on 404s (#97)
-  - use the correct path for the global.ini config file of the SAPHanaSR check (#95)
+  - Use the correct path for the global.ini config file of the SAPHanaSR check (#95)
 
 ## [0.1.0](https://github.com/trento-project/trento/releases/tag/0.1.0) 2021-05-26
 

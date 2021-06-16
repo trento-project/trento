@@ -104,7 +104,7 @@ groups:
         remediation: |
           ## Abstract
           The `max_messages` Corosync configuration parameter is not set as recommended.
-          
+
           ## Remediation
           Adjust the Corosync `join` parameter as recommended on the Azure best practices.
 
@@ -164,7 +164,30 @@ groups:
             - flag: "udpu"
         remediation: |
           ## Remediation
-          Adjust the corosync transport parameter as recommended on the Azure best practices.
+          It will be difficult to change the corosync MCAST transport to UCAST
+          on an existing cluster. Besides adding the 'transport: udpu' parameter one
+          would have to configure each node separatelly. The easiest way to
+          make the cluster UCAST it to bootstrap it. When creating the cluster
+          you would have to add the key -u, for example
+          $ crm cluster init -u ...
+
+          ## References
+          - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker
+        scored: true
+      - id: 1.1.6.runtime
+        description: "Corosync transport parameter is set to udpu (runtime)"
+        audit: 'corosync-cmapctl | grep "totem.transport (str) = " | sed "s/.*= //"'
+        tests:
+          test_items:
+            - flag: "udpu"
+        remediation: |
+          ## Remediation
+          It will be difficult to change the corosync MCAST transport to UCAST
+          on an existing cluster. Besides adding the 'transport: udpu' parameter one
+          would have to configure each node separatelly. The easiest way to
+          make the cluster UCAST it to bootstrap it. When creating the cluster
+          you would have to add the key -u, for example
+          $ crm cluster init -u ...
 
           ## References
           - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker
@@ -214,6 +237,39 @@ groups:
           ## References
           - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker
         scored: true
+      - id: 1.1.9
+        description: "Check there are at least 2 corosync communication rings"
+        audit: 'echo rings=$(cat /etc/corosync/corosync.conf | grep interface | wc -l)'
+        tests:
+          test_items:
+            - flag: "rings"
+              compare:
+                op: gt
+                value: 1
+        remediation: |
+          ## Abstract
+          It is strongly recommended to add a second ring to the corosync communication.
+
+          ## References
+          - section 9.1 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
+        scored: false
+      - id: 1.1.9.runtime
+        description: "Check there are at least 2 corosync communication rings (runtime)"
+        audit: |
+          corosync-cmapctl | grep totem.interface.0 | sed "s/^.*/true0/"
+          corosync-cmapctl | grep totem.interface.1 | sed "s/^.*/true1/"
+        tests:
+          bin_op: and
+          test_items:
+            - flag: true0
+            - flag: true1
+        remediation: |
+          ## Abstract
+          It is strongly recommended to add a second ring to the corosync communication.
+
+          ## References
+          - section 9.1 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
+        scored: false
   - id: 1.2
     description: "Pacemaker"
     checks:
@@ -261,9 +317,9 @@ groups:
           The recommended values on Azure are `144` seconds for SBD only or `900` seconds when using SBD combined with the Azure Fence agent.
 
           ## Remediation
-          Execute the following command to adjust the timeout for your usecase:  
-          ```crm configure property stonith-timeout=144```  
-          or  
+          Execute the following command to adjust the timeout for your usecase:
+          ```crm configure property stonith-timeout=144```
+          or
           ```crm configure property stonith-timeout=900```
 
           ## References
@@ -290,19 +346,19 @@ groups:
           ## Remediation
           Run the following commands in order:
 
-          1. Put cluster into maintenance mode:  
+          1. Put cluster into maintenance mode:
              ```crm configure property maintenance-mode=true```
-          2. Stop the cluster:  
+          2. Stop the cluster:
              ```crm cluster stop```
-          3. Set the SBD_STARTMODE parameter to `yes` on `/etc/sysconfig/sbd`:  
+          3. Set the SBD_STARTMODE parameter to `yes` on `/etc/sysconfig/sbd`:
              ```
              [...]
              SBD_PACEMAKER="yes"
              [...]
              ```
-          4. Restart the cluster:  
+          4. Restart the cluster:
              ```crm cluster start```
-          5. Put cluster out of maintenance mode  
+          5. Put cluster out of maintenance mode
              ```crm configure property maintenance-mode=false```
 
           ## References
@@ -326,19 +382,19 @@ groups:
           ## Remediation
           Run the following commands in order:
 
-          1. Put cluster into maintenance mode:  
+          1. Put cluster into maintenance mode:
              ```crm configure property maintenance-mode=true```
-          2. Stop the cluster:  
+          2. Stop the cluster:
              ```crm cluster stop```
-          2. Set the SBD_STARTMODE parameter to `always` on `/etc/sysconfig/sbd`:  
+          2. Set the SBD_STARTMODE parameter to `always` on `/etc/sysconfig/sbd`:
              ```
              [...]
              SBD_STARTMODE="always"
-             [...]  
+             [...]
              ```
-          3. Restart the cluster:  
+          3. Restart the cluster:
              ```crm cluster start```
-          4. Put cluster out of maintenance mode:    
+          4. Put cluster out of maintenance mode:
              ```crm configure property maintenance-mode=false```
 
           ## References
@@ -383,13 +439,36 @@ groups:
           -  https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#set-up-sbd-device
         scored: false
       - id: 1.3.5
-        description: "SBD Timing parameters configured properly"
+        description: "Watchdog timeout is 60 sec"
         audit: |
           DEF_WDTIMEOUT=60
-          DEF_MSGWAIT=120
-          result_wdtimeout=${DEF_TIMEOUT}
-          result_msgwait=${DEF_MSGWAIT}
+          result_wdtimeout=${DEF_WDTIMEOUT}
 
+          sbdarray=$(grep -E '^SBD_DEVICE=' /etc/sysconfig/sbd  | grep -oP 'SBD_DEVICE=\K[^.]+' | sed 's/\"//g')
+          IFS=';' sbdarray=( $sbdarray )
+
+          for i in "${sbdarray[@]}"
+          do
+            wdtimeout=$(/usr/sbin/sbd -d ${i} dump | grep -oP 'Timeout \(watchdog\)  *: \K\d+')
+
+            if [[ "${wdtimeout}" -ne "${DEF_WDTIMEOUT}" ]]; then
+              result_wdtimeout="${wdtimeout}"
+            fi
+          done
+          echo "${result_wdtimeout}"
+        tests:
+          test_items:
+            - flag: "60"
+        remediation: |
+          ## Remediation
+          Make sure you configure your SBD Watchdog Timeout to 60s as recommended on the best practices.
+
+          ## References
+          -  https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#set-up-sbd-device
+        scored: true
+      - id: 1.3.6
+        description: "msgwait timeout is 2*(watchdog timeout)"
+        audit: |
           sbdarray=$(grep -E '^SBD_DEVICE=' /etc/sysconfig/sbd  | grep -oP 'SBD_DEVICE=\K[^.]+' | sed 's/\"//g')
           IFS=';' sbdarray=( $sbdarray )
 
@@ -398,26 +477,55 @@ groups:
             msgwait=$(/usr/sbin/sbd -d ${i} dump | grep -oP 'Timeout \(msgwait\)  *: \K\d+')
             wdtimeout=$(/usr/sbin/sbd -d ${i} dump | grep -oP 'Timeout \(watchdog\)  *: \K\d+')
 
-            if [[ "${msgwait}" -ne "${DEF_MSGWAIT}" ]]; then
-              result_msgwait="${msgwait}"
-            fi
-
-            if [[ "${wdtimeout}" -ne "${DEF_WDTIMEOUT}" ]]; then
-              result_wdtimeout="${wdtimeout}"
+            if [[ "${msgwait}" -ne "$(( ${wdtimeout}*2 ))" ]]; then
+              echo false
+              break
             fi
           done
-          echo "${result_wdtimeout}"
-          echo "${result_msgwait}"
+          echo true
         tests:
           test_items:
-            - flag: "60"
-            - flag: "120"
-        remediation: |          
+            - flag: "true"
+        remediation: |
           ## Remediation
-          Make sure you configure your SBD Watchdog Timeout to 60s and the SBD msgwait to 120s as recommended on the best practices.
-          
+          Make sure you configure your the SBD msgwait to 2 * (SBD Watchdog Timeout) as recommended on the best practices.
+
           ## References
           -  https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#set-up-sbd-device
+        scored: true
+      - id: 1.3.7
+        description: "2-nodes cluster must either have disk-based sbd or qdevice"
+        audit: |
+          if [[ $(crm_node -l | wc -l) != "2" ]]; then
+            echo passed
+            exit 0
+          fi
+
+          sbdarray=$(grep -E '^SBD_DEVICE=' /etc/sysconfig/sbd  | grep -oP 'SBD_DEVICE=\K[^.]+' | sed 's/\"//g')
+          IFS=';' sbdarray=( $sbdarray )
+          device_count=${#sbdarray[@]}
+
+          # If there is at least 1 device and there is an sbd device used by pacemaker
+          if [[ $device_count != "0" ]] && crm conf show | grep "stonith:external/sbd"; then
+            echo passed
+            exit 0
+          fi
+
+          # If the qdevice is configured it's also good
+          if corosync-quorumtool | tail -n1 | grep -i qdevice; then
+            echo passed
+            exit 0
+          fi
+          echo failed
+        tests:
+          test_items:
+            - flag: passed
+        remediation: |
+          ## Remediation
+          HA cluster with 2 nodes must either have a disk-based SBD or a Qdevice.
+
+          ## References
+          - section 2 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
         scored: true
   - id: 1.4
     description: "Azure Fence Agent Checks"
@@ -454,7 +562,7 @@ groups:
         remediation: |
           ## Abstract
           The Azure SAP Clustering best practices determines specific timing and retries parameter values for proper functioning of the Azure Fence agent.
-          
+
           ## Remediation
           Please, make sure to set the following values for the fence-agent parameter:
           ```
@@ -463,13 +571,13 @@ groups:
           power_timeout=240
           pcmk_reboot_timeout=900
           ```
-          
+
           and the following monitor operation configuration:
           ```
           interval=3600
           timeout=120
           ```
-          
+
           ## References
           -  https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#1-create-the-stonith-devices
         scored: false
@@ -501,318 +609,32 @@ groups:
           ```
           crm configure property concurrent-fencing=true
           ```
-          
+
           ## References
           - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#1-create-the-stonith-devices
         scored: true
   - id: 1.5
-    description: "SAP HANA System Replication Resource Agent Checks - Performance Optimized"
+    description: "Miscellaneous checks"
     checks:
       - id: 1.5.1
-        description: "Cluster default resource-stickiness and migration-threshold properly configured"
+        description: "/etc/hosts contains all cluster nodes"
         audit: |
-          crm_attribute -t rsc_defaults -G -n resource-stickiness --quiet
-          crm_attribute -t rsc_defaults -G -n migration-threshold --quiet
+          for i in $(crm_node -l | cut -d' ' -f2); do
+            if ! cat /etc/hosts |grep $i; then echo found=false; fi
+          done
         tests:
-          bin_op: and
           test_items:
-            - flag: 1000
-            - flag: 5000
+            - flag: "found"
+              compare:
+                op: noteq
+                value: false
         remediation: |
           ## Abstract
-          For proper SAP HANA cluster actions calculations, it is needed to set resource-stickiness=1000 and migration-threshold=5000.
+          If using host names in the cluster configuration, it is vital to have reliable host name resolution. The cluster communication will fail, if the names are not available and that can lead to cluster failover delays. The benefit of using /etc/hosts is that your cluster becomes independent of DNS, which could be a single point of failures too.Name resolution of cluster nodes and virtual IPs is recommended to be local.
 
-          ## Remediation
-          Execute the following command to enable it:
-          ```
-          crm configure rsc_defaults resource-stickiness=1000
-          crm configure rsc_defaults migration-threshold=5000
-          ```
-          
+          ## Remedation
+          Specify IP addresses of all cluster nodes in the /etc/hosts.
+
           ## References
-          - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability
-        scored: true
-      - id: 1.5.2
-        description: "SAP HANA Topology Resource Agent properly configured"
-        audit: |
-          if cibadmin -Q --xpath "//primitive[@type='SAPHanaTopology']/@type" > /dev/null 2>&1; then
-
-            is_clone=$(cibadmin -Q --xpath "//clone/primitive[@type='SAPHanaTopology']/@type" > /dev/null 2>&1; echo $?)
-
-            if [[ "${is_clone}" = "0" ]]; then
-              echo "is_clone"
-            else
-              echo "not_clone"
-            fi
-
-            cibadmin -Q --xpath "//primitive[@type='SAPHanaTopology']/operations/op [@name='monitor']" | grep -oP 'interval="\K[^"]+'
-            cibadmin -Q --xpath "//primitive[@type='SAPHanaTopology']/operations/op [@name='monitor']" | grep -oP 'timeout="\K[^"]+'
-            cibadmin -Q --xpath "//primitive[@type='SAPHanaTopology']/operations/op [@name='start']" | grep -oP 'interval="\K[^"]+'
-            cibadmin -Q --xpath "//primitive[@type='SAPHanaTopology']/operations/op [@name='start']" | grep -oP 'timeout="\K[^"]+'
-            cibadmin -Q --xpath "//primitive[@type='SAPHanaTopology']/operations/op [@name='stop']" | grep -oP 'interval="\K[^"]+'
-            cibadmin -Q --xpath "//primitive[@type='SAPHanaTopology']/operations/op [@name='stop']" | grep -oP 'timeout="\K[^"]+'
-          else
-            # SAPHanaTopology is not configured
-            echo "SAPHanaTopology is not configured"
-          fi
-        tests:
-          bin_op: and
-          test_items:
-            - flag: "is_clone"
-            - flag: 10
-            - flag: 600
-            - flag: 0
-            - flag: 600
-            - flag: 0
-            - flag: 300
-        remediation: |
-          The SAPHanaTopology resource-agent is responsible to monitor the status of the SAP HANA System Replication and provide this information for actions calculations by Pacemaker and the SAPHanaSR resource-agent
-
-          Make sure that it is configured as a clone resource, so it runs on all nodes of the cluster and that the following timings are set for the operations:
-
-            monitor: interval="10" timeout="600"
-            start:  interval="0" timeout="600"
-            stop: interval="0" timeout="300"
-
-          More information at https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability#create-sap-hana-cluster-resources
-        scored: true
-      - id: 1.5.3
-        description: "SAP HANA Resource Agent properly configured"
-        audit: |
-          if cibadmin -Q --xpath "//primitive[@type='SAPHana']/@type" > /dev/null 2>&1; then
-
-            is_msl=$(cibadmin -Q --xpath "//master/primitive[@type='SAPHana']/@type" > /dev/null 2>&1; echo $?)
-
-            if [[ "${is_msl}" = "0" ]]; then
-              echo "is_msl"
-            else
-              echo "not_msl"
-            fi
-
-            cibadmin -Q --xpath "//primitive[@type='SAPHana']/operations/op [@name='monitor'] [@role='Master']" | grep -oP 'interval="\K[^"]+'
-            cibadmin -Q --xpath "//primitive[@type='SAPHana']/operations/op [@name='monitor'] [@role='Master']" | grep -oP 'timeout="\K[^"]+'
-            cibadmin -Q --xpath "//primitive[@type='SAPHana']/operations/op [@name='monitor'] [@role='Slave']" | grep -oP 'interval="\K[^"]+'
-            cibadmin -Q --xpath "//primitive[@type='SAPHana']/operations/op [@name='monitor'] [@role='Slave']" | grep -oP 'timeout="\K[^"]+'
-            cibadmin -Q --xpath "//primitive[@type='SAPHana']/operations/op [@name='start']" | grep -oP 'interval="\K[^"]+'
-            cibadmin -Q --xpath "//primitive[@type='SAPHana']/operations/op [@name='start']" | grep -oP 'timeout="\K[^"]+'
-            cibadmin -Q --xpath "//primitive[@type='SAPHana']/operations/op [@name='stop']" | grep -oP 'interval="\K[^"]+'
-            cibadmin -Q --xpath "//primitive[@type='SAPHana']/operations/op [@name='stop']" | grep -oP 'timeout="\K[^"]+'
-            cibadmin -Q --xpath "//primitive[@type='SAPHana']/operations/op [@name='promote']" | grep -oP 'interval="\K[^"]+'
-            cibadmin -Q --xpath "//primitive[@type='SAPHana']/operations/op [@name='promote']" | grep -oP 'timeout="\K[^"]+'
-
-            cibadmin -Q --xpath "//primitive[@type='SAPHana']/instance_attributes/nvpair [@name='PREFER_SITE_TAKEOVER']" | grep -oP 'value="\K[^"]+' | tr '[:upper:]' '[:lower:]'
-            cibadmin -Q --xpath "//primitive[@type='SAPHana']/instance_attributes/nvpair [@name='AUTOMATED_REGISTER']" | grep -oP 'value="\K[^"]+' | tr '[:upper:]' '[:lower:]'
-            cibadmin -Q --xpath "//primitive[@type='SAPHana']/instance_attributes/nvpair [@name='DUPLICATE_PRIMARY_TIMEOUT']" | grep -oP 'value="\K[^"]+'
-          else
-            # SAPHana is not configured
-            echo "SAPHana RA is not configured"
-          fi
-        tests:
-          bin_op: and
-          test_items:
-            - flag: "is_msl"
-            - flag: 60
-            - flag: 700
-            - flag: 61
-            - flag: 700
-            - flag: 0
-            - flag: 3600
-            - flag: 0
-            - flag: 3600
-            - flag: 0
-            - flag: 3600
-            - flag: "true"
-            - flag: "false"
-            - flag: 7200
-        remediation: |
-          The SAPHana resource-agent is responsible to perform SAP HANA actions like start, stop and take-over based on the Pacemaker calculated transitions.
-
-          Make sure that it is configured as a Promoted/Demoted (Master/Slave) resource, and that the following timings are set for the operations:
-
-            monitor (master role): interval="60" timeout="700"
-            monitor (slave role): interval="61" timeout="700"
-            start:  interval="0" timeout="3600"
-            stop: interval="0" timeout="3600"
-            promote: interval="0" timeout="3600"
-
-          And that the following input parameters are properly set:
-
-            PREFER_SITE_TAKEOVER="true"
-            DUPLICATE_PRIMARY_TIMEOUT="7200"
-            AUTOMATED_REGISTER="false"
-
-          More information at https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability#create-sap-hana-cluster-resources
-        scored: true
-      - id: 1.5.4
-        description: "Virtual IP Resource Agent properly configured"
-        audit: |
-          if cibadmin -Q --xpath "//primitive[@type='IPaddr2']/@type" > /dev/null 2>&1; then
-
-            is_grouped=$(cibadmin -Q --xpath "//group/primitive[@type='IPaddr2']/@type" > /dev/null 2>&1; echo $?)
-
-            if [[ "${is_grouped}" = "0" ]]; then
-              echo "is_grouped"
-            else
-              echo "not_grouped"
-            fi
-
-            cibadmin -Q --xpath "//primitive[@type='IPaddr2']/operations/op [@name='monitor']" | grep -oP 'interval="\K[^"]+'
-            cibadmin -Q --xpath "//primitive[@type='IPaddr2']/operations/op [@name='monitor']" | grep -oP 'timeout="\K[^"]+'
-          else
-            # Virtual IP is not configured
-            echo "vIP RA is not configured"
-          fi
-        tests:
-          bin_op: and
-          test_items:
-            - flag: "is_grouped"
-            - flag: 10
-            - flag: 20
-        remediation: |
-          The IPaddr2 resource-agent is responsible to manage the floating virtual IP used to acccess the SAP HANA and to reconfigure it in case of take-overs.
-
-          Make sure that it is configured and grouped together with the azure-lb resource agent, and that the following timings are set for the operations:
-
-            monitor: interval="10" timeout="20"
-
-          More information at https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability#create-sap-hana-cluster-resources
-        scored: true
-      - id: 1.5.5
-        description: "Azure Load Balancer Resource Agent properly configured"
-        audit: |
-          if cibadmin -Q --xpath "//primitive[@type='azure-lb']/@type" > /dev/null 2>&1; then
-
-            is_grouped=$(cibadmin -Q --xpath "//group/primitive[@type='azure-lb']/@type" > /dev/null 2>&1; echo $?)
-
-            if [[ "${is_grouped}" = "0" ]]; then
-              echo "is_grouped"
-            else
-              echo "not_grouped"
-            fi
-
-            cibadmin -Q --xpath "//primitive[@type='azure-lb']/meta_attributes/nvpair [@name='resource-stickiness']" | grep -oP 'value="\K[^"]+'
-
-          else
-            # azure-lb RA is not configured
-            echo "azure-lb RA is not configured"
-          fi
-        tests:
-          bin_op: and
-          test_items:
-            - flag: "is_grouped"
-            - flag: 0
-        remediation: |
-          The azure-lb resource-agent is responsible to provide health probes to inform the Azure Load Balancer if a switch to secorary node is needed.
-
-          Make sure that it is configured and grouped together with the IPaddr2 resource and that the resource-stickiness is set to 0.
-          This configuration guarantees that the cluster migrate the azure-lb together with the SAP HANA primaru resource in case of a failover.
-
-          More information at https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability#create-sap-hana-cluster-resources
-        scored: true
-      - id: 1.5.6
-        description: "Colocation and Order Constraints properly configured"
-        audit: |
-          if cibadmin -Q --xpath "//constraints/rsc_colocation" > /dev/null 2>&1; then
-            cibadmin -Q --xpath "//constraints/rsc_colocation" | grep -oP 'score="\K[^"]+'
-            cibadmin -Q --xpath "//constraints/rsc_colocation" | grep -oP 'rsc="\K[^"]+' | grep -o g_ip
-            cibadmin -Q --xpath "//constraints/rsc_colocation" | grep -oP 'rsc-role="\K[^"]+'
-            cibadmin -Q --xpath "//constraints/rsc_colocation" | grep -oP 'with-rsc="\K[^"]+' | grep -o msl_SAPHana
-            cibadmin -Q --xpath "//constraints/rsc_colocation" | grep -oP 'with-rsc-role="\K[^"]+'
-          else
-            # Colocation constraint is not configured
-            echo "colocation constraint is not configured"
-          fi
-          if cibadmin -Q --xpath "//constraints/rsc_order" > /dev/null 2>&1; then
-            cibadmin -Q --xpath "//constraints/rsc_order" | grep -oP 'kind="\K[^"]+'
-            cibadmin -Q --xpath "//constraints/rsc_order" | grep -oP 'first="\K[^"]+' | grep -o cln_SAPHanaTopology
-            cibadmin -Q --xpath "//constraints/rsc_order" | grep -oP 'then="\K[^"]+' | grep -o msl_SAPHana
-          else
-            # Colocation constraint is not configured
-            echo "order constraint is not configured"
-          fi
-        tests:
-          bin_op: and
-          test_items:
-            - flag: 4000
-            - flag: "g_ip"
-            - flag: "Started"
-            - flag: "msl_SAPHana"
-            - flag: "Master"
-            - flag: "Optional"
-            - flag: "cln_SAPHanaTopology"
-            - flag: "msl_SAPHana"
-        remediation: |
-          An constraint enforcing the group of resources containing the vIP and azurel-lb resources to stay always together with the SAP HANA resource is needed to guarantee that the SAP HANA database will still be accessible in case of failover.
-          Also, make sure that the constraing score is set to 4000 to guarantee proper actions calculations related with the defaults set for resource-stickiness=1000.
-
-          An order constraint is also needed to guarantee that SAPHanaTopology resource starts before the SAPHana resource, avoiding miscalculations regarding the cluster status.
-
-          IMPORTANT: This check is based on the resource prefix names recommended on the documentation (e.g. "g_ip_*", "msl_SAPHana_*", "cln_SAPHanaTopology_*").
-          Please, check the naming convention in case the resource configuration is done correctly.
-
-          More information at https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability#create-sap-hana-cluster-resources
-        scored: true
-  - id: 1.6
-    description: "Check that <sidadm> sudo user is set up in /etc/sudoers"
-    checks:
-      - id: 1.6.1
-        description: "Basic sudoers entry to allow <sidadm> to use the srHook."
-        audit: 'cat /etc/sudoers | grep -E ".+ +ALL=\(ALL\) +NOPASSWD: +/usr/sbin/crm_attribute +-n +hana_.+_site_srHook_\*" | sed "s/.*/true/"'
-        tests:
-          test_items:
-          - flag: "true"
-        remediation: |
-          Set up the Basic sudoers entry to allow <sidadm> in /etc/sudoers to use the srHook.
-          Ref: section 8.3 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
-        scored: true
-# TO-DO: group all of these in 1.6.1
-#      - id: 1.6.2
-#        description: "Check SOK_SITEA alias"
-#        audit: 'cat /etc/sudoers | grep -E "^Cmnd_Alias +SOK_SITEA += +/usr/sbin/crm_attribute" | grep -E "\-n +hana_.+_site_srHook_.+" | grep -E "\-v +SOK" | grep -E "\-t +crm_config" | grep -E "\-s +SAPHanaSR" | sed "s/.*/true/"'
-#        tests:
-#          test_items:
-#          - flag: "true"
-#        remediation: |
-#          Set up SOK_SITEA in /etc/sudoers.
-#          Ref: section 8.3 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
-#        scored: true
-#      - id: 1.6.3
-#        description: "Check SFAIL_SITEA alias"
-#        audit: 'cat /etc/sudoers | grep -E "^Cmnd_Alias +SFAIL_SITEA += +/usr/sbin/crm_attribute" | grep -E "\-n +hana_.+_site_srHook_.+" | grep -E "\-v +SFAIL" | grep -E "\-t +crm_config" | grep -E "\-s +SAPHanaSR" | sed "s/.*/true/"'
-#        tests:
-#          test_items:
-#          - flag: "true"
-#        remediation: |
-#          Set up SFAIL_SITEA in /etc/sudoers.
-#          Ref: section 8.3 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
-#        scored: true
-#      - id: 1.6.4
-#        description: "Check SOK_SITEB alias"
-#        audit: 'cat /etc/sudoers | grep -E "^Cmnd_Alias +SOK_SITEB += +/usr/sbin/crm_attribute" | grep -E "\-n +hana_.+_site_srHook_.+" | grep -E "\-v +SOK" | grep -E "\-t +crm_config" | grep -E "\-s +SAPHanaSR" | sed "s/.*/true/"'
-#        tests:
-#          test_items:
-#          - flag: "true"
-#        remediation: |
-#          Set up SOK_SITEB in /etc/sudoers.
-#          Ref: section 8.3 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
-#        scored: true
-#      - id: 1.6.5
-#        description: "Check SFAIL_SITEB alias"
-#        audit: 'cat /etc/sudoers | grep -E "^Cmnd_Alias +SFAIL_SITEB += +/usr/sbin/crm_attribute" | grep -E "\-n +hana_.+_site_srHook_.+" | grep -E "\-v +SFAIL" | grep -E "\-t +crm_config" | grep -E "\-s +SAPHanaSR" | sed "s/.*/true/"'
-#        tests:
-#          test_items:
-#          - flag: "true"
-#        remediation: |
-#          Set up SFAIL_SITEB in /etc/sudoers.
-#          Ref: section 8.3 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
-#        scored: true
-#      - id: 1.6.6
-#        description: "Check <sidadm> ALL=(ALL) NOPASSWD"
-#        audit: 'cat /etc/sudoers | grep -E ".+ +ALL=\(ALL\) +NOPASSWD:" | sed "s/.*: //" | grep SOK_SITEA | grep SFAIL_SITEA | grep SOK_SITEB | grep SFAIL_SITEB | sed "s/.*/true/"'
-#        tests:
-#          test_items:
-#          - flag: "true"
-#        remediation: |
-#          Set up the <sidadm> ALL=(ALL) NOPASSWD in /etc/sudoers.
-#          Ref: section 8.3 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
-#        scored: true
+          - Cluster installation in https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker
+        scored: false

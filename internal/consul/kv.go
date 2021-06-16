@@ -2,6 +2,7 @@ package consul
 
 import (
 	"fmt"
+	"path"
 	"reflect"
 	"strconv"
 	"strings"
@@ -34,6 +35,8 @@ const (
 	KvHostsMetadataPath  string = "trento/v0/hosts/%s/metadata/"
 	KvHostsSAPSystemPath string = "trento/v0/hosts/%s/sapsystems/"
 	KvEnvironmentsPath   string = "trento/v0/environments/"
+
+	KvDefaultGroup string = "default"
 )
 
 type ClusterStonithType int
@@ -104,7 +107,7 @@ func (k *kv) ListMap(prefix, offset string) (map[string]interface{}, error) {
 	}
 
 	if !strings.HasSuffix(offset, "/") {
-		offset = fmt.Sprintf("%s/", offset)
+		offset = offset + "/"
 	}
 
 	currentItem := result
@@ -204,7 +207,7 @@ func (k *kv) PutMap(prefix string, data map[string]interface{}) error {
 
 	// Empty KV directories
 	if len(data) == 0 {
-		err := k.PutTyped(fmt.Sprintf("%s", prefix), "")
+		err := k.PutTyped(prefix, "")
 		if err != nil {
 			return err
 		}
@@ -216,13 +219,13 @@ func (k *kv) PutMap(prefix string, data map[string]interface{}) error {
 		case reflect.Map, reflect.Struct, reflect.Ptr:
 			mapInterface := make(map[string]interface{})
 			mapstructure.Decode(value, &mapInterface)
-			err := k.PutMap(fmt.Sprintf("%s%s", prefix, key), mapInterface)
+			err := k.PutMap(path.Join(prefix, key), mapInterface)
 			if err != nil {
 				return err
 			}
 		case reflect.Slice:
 			// Store the slice with slice flag, to be able to reload as list in the ListMap funciton
-			err := k.PutTyped(fmt.Sprintf("%s%s/", prefix, key), []string{})
+			err := k.PutTyped(fmt.Sprintf("%s/", path.Join(prefix, key)), []string{})
 			if err != nil {
 				return err
 			}
@@ -234,13 +237,13 @@ func (k *kv) PutMap(prefix string, data map[string]interface{}) error {
 				mapstructure.Decode(sliceValue.Index(i).Interface(), &mapInterface)
 				// Index is composed by 4 digits to keep correct numbers order in KV storage
 				index := fmt.Sprintf("%04d", i)
-				err = k.PutMap(fmt.Sprintf("%s%s/%s", prefix, key, index), mapInterface)
+				err = k.PutMap(path.Join(prefix, key, index), mapInterface)
 				if err != nil {
 					return err
 				}
 			}
 		default:
-			err := k.PutTyped(fmt.Sprintf("%s%s", prefix, key), value)
+			err := k.PutTyped(path.Join(prefix, key), value)
 			if err != nil {
 				return err
 			}

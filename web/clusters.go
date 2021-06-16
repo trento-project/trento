@@ -42,6 +42,12 @@ func NewClusterHandler(client consul.Client) gin.HandlerFunc {
 		}
 		cluster := clusters[clusterName]
 
+		cluster, ok := clusters[clusterName]
+		if !ok {
+			_ = c.Error(NotFoundError("could not find cluster"))
+			return
+		}
+
 		filter_query := fmt.Sprintf("Meta[\"trento-ha-cluster\"] == \"%s\"", clusterName)
 		hosts, err := hosts.Load(client, filter_query, nil)
 		if err != nil {

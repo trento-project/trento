@@ -1,7 +1,7 @@
 package environments
 
 import (
-	"fmt"
+	"path"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
@@ -11,7 +11,7 @@ import (
 )
 
 func (e *Environment) getKVPath() string {
-	return fmt.Sprintf("%s%s", consul.KvEnvironmentsPath, e.Name)
+	return path.Join(consul.KvEnvironmentsPath, e.Name)
 }
 
 func (e *Environment) Store(client consul.Client) error {

@@ -613,3 +613,28 @@ groups:
           ## References
           - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#1-create-the-stonith-devices
         scored: true
+  - id: 1.5
+    description: "Miscellaneous checks"
+    checks:
+      - id: 1.5.1
+        description: "/etc/hosts contains all cluster nodes"
+        audit: |
+          for i in $(crm_node -l | cut -d' ' -f2); do
+            if ! cat /etc/hosts |grep $i; then echo found=false; fi
+          done
+        tests:
+          test_items:
+            - flag: "found"
+              compare:
+                op: noteq
+                value: false
+        remediation: |
+          ## Abstract
+          If using host names in the cluster configuration, it is vital to have reliable host name resolution. The cluster communication will fail, if the names are not available and that can lead to cluster failover delays. The benefit of using /etc/hosts is that your cluster becomes independent of DNS, which could be a single point of failures too.Name resolution of cluster nodes and virtual IPs is recommended to be local.
+
+          ## Remedation
+          Specify IP addresses of all cluster nodes in the /etc/hosts.
+
+          ## References
+          - Cluster installation in https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker
+        scored: false

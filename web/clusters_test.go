@@ -71,6 +71,7 @@ func TestClustersListHandler(t *testing.T) {
 	consulInst.On("KV").Return(kv)
 
 	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(listMap, nil)
+	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil)
 
 	deps := DefaultDependencies()
 	deps.consul = consulInst

@@ -29,7 +29,7 @@ func TestStore(t *testing.T) {
 
 	consulInst.On("KV").Return(kv)
 
-	kvPath := fmt.Sprintf("%s/%s", consul.KvClustersPath, "cluster_name")
+	kvPath := fmt.Sprintf("%s%s", consul.KvClustersPath, "cluster_name")
 
 	expectedPutMap := map[string]interface{}{
 		"cib": map[string]interface{}{
@@ -141,6 +141,8 @@ func TestStore(t *testing.T) {
 
 	kv.On("DeleteTree", kvPath, (*consulApi.WriteOptions)(nil)).Return(nil, nil)
 	kv.On("PutMap", kvPath, expectedPutMap).Return(nil, nil)
+	testLock := consulApi.Lock{}
+	consulInst.On("AcquireLockKey", consul.KvClustersPath).Return(&testLock, nil)
 
 	root := new(cib.Root)
 
@@ -214,6 +216,7 @@ func TestLoad(t *testing.T) {
 	}
 
 	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(listMap, nil)
+	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil)
 
 	consulInst.On("KV").Return(kv)
 

@@ -19,7 +19,7 @@ func TestStore(t *testing.T) {
 	kv := new(consulMocks.KV)
 
 	consulInst.On("KV").Return(kv)
-	kvPath := fmt.Sprintf("%s/%s", fmt.Sprintf(consul.KvHostsSAPSystemPath, host), "PRD")
+	kvPath := fmt.Sprintf("%s%s", fmt.Sprintf(consul.KvHostsSAPSystemPath, host), "PRD")
 
 	expectedPutMap := map[string]interface{}{
 		"type": "HANA",
@@ -84,6 +84,8 @@ func TestStore(t *testing.T) {
 
 	kv.On("DeleteTree", kvPath, (*consulApi.WriteOptions)(nil)).Return(nil, nil)
 	kv.On("PutMap", kvPath, expectedPutMap).Return(nil, nil)
+	testLock := consulApi.Lock{}
+	consulInst.On("AcquireLockKey", fmt.Sprintf(consul.KvHostsSAPSystemPath, host)).Return(&testLock, nil)
 
 	mockWebService := new(sapcontrolMocks.WebService)
 
@@ -227,6 +229,7 @@ func TestLoad(t *testing.T) {
 	}
 
 	kv.On("ListMap", kvPath, kvPath).Return(listMap, nil)
+	consulInst.On("WaitLock", fmt.Sprintf(consul.KvHostsSAPSystemPath, host)).Return(nil)
 
 	consulInst.On("KV").Return(kv)
 

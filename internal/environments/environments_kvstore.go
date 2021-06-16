@@ -11,7 +11,7 @@ import (
 )
 
 func (e *Environment) getKVPath() string {
-	return fmt.Sprintf("%s/%s", consul.KvEnvironmentsPath, e.Name)
+	return fmt.Sprintf("%s%s", consul.KvEnvironmentsPath, e.Name)
 }
 
 func (e *Environment) Store(client consul.Client) error {

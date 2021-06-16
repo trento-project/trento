@@ -185,7 +185,7 @@ groups:
           It will be difficult to change the corosync MCAST transport to UCAST
           on an existing cluster. Besides adding the 'transport: udpu' parameter one
           would have to configure each node separatelly. The easiest way to
-          make the cluster UCAST it to bootstrap it. When creatin the cluster
+          make the cluster UCAST it to bootstrap it. When creating the cluster
           you would have to add the key -u, for example
           $ crm cluster init -u ...
 

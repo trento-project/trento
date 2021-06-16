@@ -3,12 +3,15 @@ package ruleset
 import (
 	"embed"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"path"
 	"strings"
 
 	"github.com/pkg/errors"
+
+	"github.com/trento-project/trento/internal"
 )
 
 //go:embed rulesets
@@ -16,23 +19,23 @@ var ruleSetsFS embed.FS
 
 const rulesetsFolder = "rulesets"
 
-const (
-   Embedded = iota
-   User
-)
+type rulesetType string
 
+const (
+   Embedded rulesetType = "Embedded"
+   User                 = "User"
+)
 
 type RuleSets []*RuleSet
 
 type readFile func(filename string) ([]byte, error)
 
 type RuleSet struct {
-	Path     string `mapstructure:"path,omitempty"`
-	Enabled  bool   `mapstructure:"enabled"`
-	Type     int    `mapstructure:"type"`
+	Path     string      `mapstructure:"path,omitempty"`
+	Enabled  bool        `mapstructure:"enabled"`
+	Type     rulesetType `mapstructure:"type"`
 	readFile readFile
 }
-
 
 
 func NewRuleSets(userRuleSetFiles []string) (RuleSets, error) {
@@ -47,22 +50,6 @@ func NewRuleSets(userRuleSetFiles []string) (RuleSets, error) {
 	rsets = append(rsets, loadUserFiles(userRuleSetFiles)...)
 
 	return rsets, nil
-}
-
-func loadUserFiles(userRuleSetFiles []string) RuleSets {
-	var userRulesets = RuleSets{}
-
-	for _, d := range userRuleSetFiles {
-		userRuleset := &RuleSet{
-			Path:     path.Join(d),
-			Enabled:  false,
-			Type:     User,
-			readFile: ioutil.ReadFile,
-		}
-		userRulesets = append(userRulesets, userRuleset)
-	}
-
-	return userRulesets
 }
 
 func loadEmbeddedFiles() (RuleSets, error) {
@@ -86,6 +73,38 @@ func loadEmbeddedFiles() (RuleSets, error) {
 	return embeddedRulesets, nil
 }
 
+func loadUserFiles(userRuleSetFiles []string) RuleSets {
+	var userRulesets = RuleSets{}
+
+	for _, d := range userRuleSetFiles {
+		userRuleset := &RuleSet{
+			Path:     path.Join(d),
+			Enabled:  false,
+			Type:     User,
+			readFile: ioutil.ReadFile,
+		}
+		userRulesets = append(userRulesets, userRuleset)
+	}
+
+	return userRulesets
+}
+
+func (r RuleSets) GetPaths() []string {
+	var rPaths []string
+
+	for _, ruleSet := range r {
+		rPaths = append(rPaths, ruleSet.Path)
+	}
+
+	return rPaths
+}
+
+func (r RuleSets) PrintPaths(sw io.StringWriter) {
+	for _, rSet := range r {
+		sw.WriteString(fmt.Sprintf("%s: %s\n", rSet.Type, rSet.Path))
+	}
+}
+
 func (r RuleSets) GetEnabled() RuleSets {
 	var enabledRuleSets = RuleSets{}
 
@@ -98,14 +117,16 @@ func (r RuleSets) GetEnabled() RuleSets {
 	return enabledRuleSets
 }
 
-func (r RuleSets) GetPaths() []string {
-	var rPaths []string
+func (r RuleSets) FilterByPath(rPaths []string) RuleSets {
+	var filteredRuleSets = RuleSets{}
 
 	for _, ruleSet := range r {
-		rPaths = append(rPaths, ruleSet.Path)
+		if internal.Contains(rPaths, ruleSet.Path) {
+			filteredRuleSets = append(filteredRuleSets, ruleSet)
+		}
 	}
 
-	return rPaths
+	return filteredRuleSets
 }
 
 func (r RuleSets) Enable(rPaths []string) error {

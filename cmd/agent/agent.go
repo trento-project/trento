@@ -18,6 +18,7 @@ var TTL time.Duration
 var port int
 var consulConfigDir string
 var rules []string
+var listRules bool
 
 func NewAgentCmd() *cobra.Command {
 
@@ -30,7 +31,6 @@ func NewAgentCmd() *cobra.Command {
 		Use:   "run-once",
 		Short: "run-once",
 		Run:   runOnce,
-		Args:  startArgsValidator,
 	}
 
 	startCmd := &cobra.Command{
@@ -43,6 +43,7 @@ func NewAgentCmd() *cobra.Command {
 	startCmd.Flags().StringVarP(&consulConfigDir, "consul-config-dir", "", "consul.d", "Consul configuration directory used to store node meta-data")
 
 	runOnceCmd.Flags().StringSliceVar(&rules, "rulesets", []string{}, "User defined rulesets. This flag can be used multiple times")
+	runOnceCmd.Flags().BoolVarP(&listRules, "list", "l", false, "Show rulesets")
 
 	agentCmd.AddCommand(startCmd)
 	agentCmd.AddCommand(runOnceCmd)
@@ -57,6 +58,14 @@ func runOnce(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatal("could not load embedded rulesets", err)
 	}
+
+	if listRules {
+		ruleSet.PrintPaths(os.Stdout)
+		return
+	}
+
+	ruleSet.Enable(rules)
+	ruleSet = ruleSet.GetEnabled()
 
 	rulesetsYaml, err := ruleSet.GetRulesetsYaml()
 	if err != nil {
@@ -110,21 +119,4 @@ func start(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatal("Failed to start the agent: ", err)
 	}
-}
-
-func startArgsValidator(cmd *cobra.Command, args []string) error {
-	for _, definitionsPath := range rules {
-		info, err := os.Lstat(definitionsPath)
-		if err != nil {
-			if os.IsNotExist(err) {
-				return fmt.Errorf("unable to find file %q", definitionsPath)
-			}
-			return fmt.Errorf("error when running os.Lstat(%q): %s", definitionsPath, err)
-		}
-		if info.IsDir() {
-			return fmt.Errorf("%q is a directory", definitionsPath)
-		}
-	}
-
-	return nil
 }

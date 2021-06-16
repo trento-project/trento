@@ -40,6 +40,7 @@ type rulesetsForm struct {
 func getRulesets(c *gin.Context, client consul.Client, h hosts.HostList) (ruleset.RuleSets, error) {
 	var cForm rulesetsForm
 
+	// Load embedded rulesets
 	r, err := ruleset.NewRuleSets([]string{})
 	if err != nil {
 		return nil, errors.Wrap(err, "could not load embedded rulesets")
@@ -88,12 +89,12 @@ func NewClusterHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		rules, _ := getRulesets(c, client, loadedHosts)
+		ruleSets, _ := getRulesets(c, client, loadedHosts)
 
 		c.HTML(http.StatusOK, "cluster.html.tmpl", gin.H{
 			"Cluster":  cluster[clusterName],
 			"Hosts":    loadedHosts,
-			"Rulesets": rules,
+			"Rulesets": ruleSets,
 		})
 	}
 }

@@ -2,6 +2,7 @@ package ruleset
 
 import (
 	"fmt"
+	"io/ioutil"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
@@ -43,6 +44,7 @@ func (r RuleSets) Store(client consul.Client, host string) error {
 
 func Load(client consul.Client, host string) (RuleSets, error) {
 	var ruleSets = RuleSets{}
+
 	kvPath := ruleSets.getKVPath(host)
 
 	entries, err := client.KV().ListMap(kvPath, kvPath)
@@ -53,6 +55,14 @@ func Load(client consul.Client, host string) (RuleSets, error) {
 	for _, ruleSet := range entries {
 		r := &RuleSet{}
 		mapstructure.Decode(ruleSet, &r)
+
+		// Load the readFile type
+		if r.Type == Embedded {
+			r.readFile = ruleSetsFS.ReadFile
+		} else {
+			r.readFile = ioutil.ReadFile
+		}
+
 		ruleSets = append(ruleSets, r)
 	}
 

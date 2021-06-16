@@ -17,40 +17,25 @@ var ruleSetsFS embed.FS
 const rulesetsFolder = "rulesets"
 
 const (
-	Embedded = iota
-	User
+   Embedded = iota
+   User
 )
 
-const defaultRuleset = `
-controls:
-version: 0.0.0
-id: 0
-description: "Default ruleset. Only used if other rulesets are not selected"
-type: "master"
-groups:
-  - id: 0.1
-    description: "Default"
-    checks:
-      - id: 0.1.1
-        description: "Default"
-        audit: 'ps -ef | grep trento'
-        tests:
-          test_items:
-            - flag: trento
-        remediation: |
-          ## Remediation
-          Nothing to be fixed. Select other rulesets for advanced checking
-        scored: true`
 
 type RuleSets []*RuleSet
 
+type readFile func(filename string) ([]byte, error)
+
 type RuleSet struct {
-	Path    string `mapstructure:"path,omitempty"`
-	Enabled bool   `mapstructure:"enabled"`
-	Type    int    `mapstructure:"type"`
+	Path     string `mapstructure:"path,omitempty"`
+	Enabled  bool   `mapstructure:"enabled"`
+	Type     int    `mapstructure:"type"`
+	readFile readFile
 }
 
-func NewRuleSets(userFiles []string) (RuleSets, error) {
+
+
+func NewRuleSets(userRuleSetFiles []string) (RuleSets, error) {
 	var rsets = RuleSets{}
 
 	embeddedRulesets, err := loadEmbeddedFiles()
@@ -59,17 +44,25 @@ func NewRuleSets(userFiles []string) (RuleSets, error) {
 	}
 
 	rsets = append(rsets, embeddedRulesets...)
-
-	for _, d := range userFiles {
-		userRuleset := &RuleSet{
-			Path:    path.Join(d),
-			Enabled: false,
-			Type:    User,
-		}
-		rsets = append(rsets, userRuleset)
-	}
+	rsets = append(rsets, loadUserFiles(userRuleSetFiles)...)
 
 	return rsets, nil
+}
+
+func loadUserFiles(userRuleSetFiles []string) RuleSets {
+	var userRulesets = RuleSets{}
+
+	for _, d := range userRuleSetFiles {
+		userRuleset := &RuleSet{
+			Path:     path.Join(d),
+			Enabled:  false,
+			Type:     User,
+			readFile: ioutil.ReadFile,
+		}
+		userRulesets = append(userRulesets, userRuleset)
+	}
+
+	return userRulesets
 }
 
 func loadEmbeddedFiles() (RuleSets, error) {
@@ -82,9 +75,10 @@ func loadEmbeddedFiles() (RuleSets, error) {
 
 	for _, d := range dirEntries {
 		r := &RuleSet{
-			Path:    path.Join(rulesetsFolder, d.Name()),
-			Enabled: false,
-			Type:    Embedded,
+			Path:     path.Join(rulesetsFolder, d.Name()),
+			Enabled:  false,
+			Type:     Embedded,
+			readFile: ruleSetsFS.ReadFile,
 		}
 		embeddedRulesets = append(embeddedRulesets, r)
 	}
@@ -92,31 +86,41 @@ func loadEmbeddedFiles() (RuleSets, error) {
 	return embeddedRulesets, nil
 }
 
-func (r RuleSets) GetEnabled() []string {
-	var files []string
+func (r RuleSets) GetEnabled() RuleSets {
+	var enabledRuleSets = RuleSets{}
 
 	for _, ruleSet := range r {
 		if ruleSet.Enabled {
-			files = append(files, ruleSet.Path)
+			enabledRuleSets = append(enabledRuleSets, ruleSet)
 		}
 	}
 
-	return files
+	return enabledRuleSets
 }
 
-func (r RuleSets) Enable(paths []string) error {
+func (r RuleSets) GetPaths() []string {
+	var rPaths []string
+
+	for _, ruleSet := range r {
+		rPaths = append(rPaths, ruleSet.Path)
+	}
+
+	return rPaths
+}
+
+func (r RuleSets) Enable(rPaths []string) error {
 	var found bool = false
 
-	for _, path := range paths {
+	for _, rPath := range rPaths {
 		for _, ruleSet := range r {
-			if ruleSet.Path == path {
+			if ruleSet.Path == rPath {
 				ruleSet.Enabled = true
 				found = true
 				break
 			}
 		}
 		if !found {
-			return fmt.Errorf("no ruleset found with the given path: %s", path)
+			return fmt.Errorf("no ruleset found with the given path: %s", rPath)
 		}
 	}
 
@@ -145,26 +149,15 @@ func trim_yaml_header(yaml_text string) string {
 	return yaml_text[index:]
 }
 
-func (r RuleSets) GetRulesetsYaml(onlyEnabled bool) ([]byte, error) {
+func (r RuleSets) GetRulesetsYaml() ([]byte, error) {
 	var data [][]byte
 
 	for _, rset := range r {
-		if onlyEnabled && !rset.Enabled {
-			continue
+		datum, err := rset.readFile(rset.Path)
+		if err != nil {
+			return nil, errors.Wrap(err, "could not read rulesets file")
 		}
-		if rset.Type == Embedded {
-			datum, err := ruleSetsFS.ReadFile(rset.Path)
-			if err != nil {
-				return nil, errors.Wrap(err, "could not read embedded rulesets file")
-			}
-			data = append(data, datum)
-		} else if rset.Type == User {
-			datum, err := ioutil.ReadFile(rset.Path)
-			if err != nil {
-				return nil, errors.Wrap(err, "could not read user rulesets file")
-			}
-			data = append(data, datum)
-		}
+		data = append(data, datum)
 	}
 
 	if len(data) == 0 {
@@ -172,14 +165,10 @@ func (r RuleSets) GetRulesetsYaml(onlyEnabled bool) ([]byte, error) {
 	}
 
 	first_yaml_file := string(data[0])
-	// Appent all next files to the first
+	// Append all next files to the first
 	for _, datum := range data[1:] {
 		first_yaml_file += trim_yaml_header(string(datum))
 	}
 
 	return []byte(first_yaml_file), nil
-}
-
-func GetDefaultYaml() []byte {
-	return []byte(defaultRuleset)
 }

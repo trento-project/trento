@@ -43,11 +43,15 @@
                 {{- $HostName := .Host.Name }}
                 {{- $Rulesets := .Rulesets }}
                 {{- range .HealthChecks }}
-                <tr {{ if eq .CheckID "ha_config_checker" }}class='clickable' onclick="window.location='/hosts/{{ $HostName }}/ha-checks'"{{ end }}>
+                <tr {{ if and (eq .CheckID "ha_config_checker") (gt (len $Rulesets.GetEnabled) 0) }}class='clickable' onclick="window.location='/hosts/{{ $HostName }}/ha-checks'"{{ end }}>
                     <td>{{ .Name }}</td>
                     <td>{{ .CheckID }}</td>
                     <td>{{ .Notes }}{{ if eq .CheckID "ha_config_checker" }}{{ range $Rulesets }}{{ if .Enabled }}</br><span class='badge badge-pill badge-info'>{{ .Path }}</span>{{ end }}{{ end }}{{ end }}</td>
+                    {{- if and (eq .CheckID "ha_config_checker") (eq (len $Rulesets.GetEnabled) 0) }}
+                    <td class='show-white-space'>HA checks not enabled. Select the rulesets to be executed in the cluster view</td>
+                    {{- else }}
                     <td class='show-white-space'>{{ .Output }}</td>
+                    {{- end }}
                     <td>
                         <span class='badge badge-pill badge-{{ if eq .Status "passing" }}primary{{ else if eq .Status "warning" }}warning{{ else }}danger{{ end }}'>{{ .Status }}</span>
                     </td>

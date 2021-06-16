@@ -18,7 +18,7 @@
     <div class="rulesets">
       <script>
         $(document).ready(function(){
-          $('.selectpicker').selectpicker("val", {{ .Rulesets.GetEnabled }});
+          $('.selectpicker').selectpicker("val", {{ .Rulesets.GetEnabled.GetPaths }});
           $('#clean').click(function(){
             $('.selectpicker').selectpicker("deselectAll")
           });

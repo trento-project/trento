@@ -17,6 +17,7 @@ import (
 var TTL time.Duration
 var port int
 var consulConfigDir string
+var rules []string
 
 func NewAgentCmd() *cobra.Command {
 
@@ -33,14 +34,15 @@ func NewAgentCmd() *cobra.Command {
 	}
 
 	startCmd := &cobra.Command{
-		Use:   "start path/to/definitions.yaml",
+		Use:   "start",
 		Short: "Start the agent",
 		Run:   start,
-		Args:  startArgsValidator,
 	}
 	startCmd.Flags().DurationVar(&TTL, "ttl", time.Second*10, "Duration of Consul TTL checks")
 	startCmd.Flags().IntVarP(&port, "port", "p", 8700, "The TCP port to use for the web service")
 	startCmd.Flags().StringVarP(&consulConfigDir, "consul-config-dir", "", "consul.d", "Consul configuration directory used to store node meta-data")
+
+	runOnceCmd.Flags().StringSliceVar(&rules, "rulesets", []string{}, "User defined rulesets. This flag can be used multiple times")
 
 	agentCmd.AddCommand(startCmd)
 	agentCmd.AddCommand(runOnceCmd)
@@ -51,12 +53,12 @@ func NewAgentCmd() *cobra.Command {
 func runOnce(cmd *cobra.Command, args []string) {
 	var err error
 
-	ruleSet, err := ruleset.NewRuleSets(args)
+	ruleSet, err := ruleset.NewRuleSets(rules)
 	if err != nil {
 		log.Fatal("could not load embedded rulesets", err)
 	}
 
-	rulesetsYaml, err := ruleSet.GetRulesetsYaml(false)
+	rulesetsYaml, err := ruleSet.GetRulesetsYaml()
 	if err != nil {
 		log.Println("An error occurred while generating the rulesets:", err)
 		return
@@ -111,7 +113,7 @@ func start(cmd *cobra.Command, args []string) {
 }
 
 func startArgsValidator(cmd *cobra.Command, args []string) error {
-	for _, definitionsPath := range args {
+	for _, definitionsPath := range rules {
 		info, err := os.Lstat(definitionsPath)
 		if err != nil {
 			if os.IsNotExist(err) {
@@ -125,10 +127,4 @@ func startArgsValidator(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
-}
-
-func must(err error) {
-	if err != nil {
-		panic(err)
-	}
 }

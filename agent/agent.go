@@ -211,15 +211,10 @@ func (a *Agent) startCheckTicker() {
 			return
 		}
 
-		rulesetsYaml, err := r.GetRulesetsYaml(true)
+		rulesetsYaml, err := r.GetEnabled().GetRulesetsYaml()
 		if err != nil {
 			log.Println("An error occurred while generating the rulesets:", err)
 			return
-		}
-
-		// Fallback to default ruleset
-		if len(rulesetsYaml) == 0 {
-			rulesetsYaml = ruleset.GetDefaultYaml()
 		}
 
 		result, err := NewCheckResult(rulesetsYaml)

@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Improve sidebar template (#84)
   - Copy sapcontrol webservices from the exporter library instead of importing them (#81)
   - Change how some checks are grouped together (#73, #74, #94)
+  - Reorganize the SAP System domain model structures (#75)
 ### Fixed
   - Fix SAP system layout rendering
   - Don't let the app crash on 404s (#97)

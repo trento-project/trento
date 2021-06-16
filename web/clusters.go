@@ -35,9 +35,16 @@ func NewClusterHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		clusterName := c.Param("name")
 
-		cluster, err := cluster.Load(client)
+		clusters, err := cluster.Load(client)
 		if err != nil {
 			_ = c.Error(err)
+			return
+		}
+		cluster := clusters[clusterName]
+
+		cluster, ok := clusters[clusterName]
+		if !ok {
+			_ = c.Error(NotFoundError("could not find cluster"))
 			return
 		}
 
@@ -49,7 +56,7 @@ func NewClusterHandler(client consul.Client) gin.HandlerFunc {
 		}
 
 		c.HTML(http.StatusOK, "cluster.html.tmpl", gin.H{
-			"Cluster": cluster[clusterName],
+			"Cluster": cluster,
 			"Hosts":   hosts,
 		})
 	}

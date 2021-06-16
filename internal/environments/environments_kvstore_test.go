@@ -44,7 +44,7 @@ func TestEnvironmentStore(t *testing.T) {
 		},
 	}
 
-	kvPath := fmt.Sprintf("%s/%s", consul.KvEnvironmentsPath, "env1")
+	kvPath := fmt.Sprintf("%s%s", consul.KvEnvironmentsPath, "env1")
 	kv.On("PutMap", kvPath, expectedPutMap).Return(nil)
 
 	result := e.Store(consulInst)

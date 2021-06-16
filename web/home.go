@@ -7,14 +7,12 @@ import (
 )
 
 type HomeData struct {
-	Title     string
-	Paragraph string
+	Title string
 }
 
 func HomeHandler(c *gin.Context) {
 	data := HomeData{
-		Title:     defaultLayoutData.Title,
-		Paragraph: "This is the home page",
+		Title: defaultLayoutData.Title,
 	}
 	c.HTML(http.StatusOK, "home.html.tmpl", data)
 }

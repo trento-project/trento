@@ -8,12 +8,11 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/SUSE/sap_host_exporter/lib/sapcontrol"
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
-	"github.com/spf13/viper"
 
 	"github.com/trento-project/trento/internal"
+	"github.com/trento-project/trento/internal/sapsystem/sapcontrol"
 )
 
 const (
@@ -54,10 +53,7 @@ type SAPControl struct {
 }
 
 var newWebService = func(instNumber string) sapcontrol.WebService {
-	config := viper.New()
-	config.SetDefault("sap-control-uds", path.Join("/tmp", fmt.Sprintf(".sapstream5%s13", instNumber)))
-	client := sapcontrol.NewSoapClient(config)
-	return sapcontrol.NewWebService(client)
+	return sapcontrol.NewWebService(instNumber)
 }
 
 func NewSAPSystemsList() (SAPSystemsList, error) {

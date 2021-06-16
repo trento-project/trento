@@ -4,22 +4,23 @@ import (
 	"os"
 	"testing"
 
-	"github.com/SUSE/sap_host_exporter/lib/sapcontrol"
-	"github.com/SUSE/sap_host_exporter/test/mock_sapcontrol"
-	"github.com/golang/mock/gomock"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
+	"github.com/trento-project/trento/internal/sapsystem/sapcontrol"
+	"github.com/trento-project/trento/internal/sapsystem/sapcontrol/mocks"
 )
 
-var globalT *testing.T
 var attemps int
 
 func increaseAttemps() {
 	attemps++
 }
 
-func fakeNewWebService(_ string) sapcontrol.WebService {
+func fakeNewWebService(instNumber string) sapcontrol.WebService {
 	var instance string
+
+	mockWebService := new(mocks.WebService)
+
 	defer increaseAttemps()
 
 	if attemps == 0 {
@@ -28,11 +29,7 @@ func fakeNewWebService(_ string) sapcontrol.WebService {
 		instance = "ERS02"
 	}
 
-	ctrl := gomock.NewController(globalT)
-	//defer ctrl.Finish()
-	mockWebService := mock_sapcontrol.NewMockWebService(ctrl)
-
-	mockWebService.EXPECT().GetInstanceProperties().Return(&sapcontrol.GetInstancePropertiesResponse{
+	mockWebService.On("GetInstanceProperties").Return(&sapcontrol.GetInstancePropertiesResponse{
 		Properties: []*sapcontrol.InstanceProperty{
 			{
 				Property:     "SAPSYSTEMNAME",
@@ -44,19 +41,14 @@ func fakeNewWebService(_ string) sapcontrol.WebService {
 				Propertytype: "string",
 				Value:        instance,
 			},
-			{
-				Property:     "HANA Roles",
-				Propertytype: "type3",
-				Value:        "some hana value",
-			},
 		},
 	}, nil)
 
-	mockWebService.EXPECT().GetProcessList().Return(&sapcontrol.GetProcessListResponse{
+	mockWebService.On("GetProcessList").Return(&sapcontrol.GetProcessListResponse{
 		Processes: []*sapcontrol.OSProcess{},
 	}, nil)
 
-	mockWebService.EXPECT().GetSystemInstanceList().Return(&sapcontrol.GetSystemInstanceListResponse{
+	mockWebService.On("GetSystemInstanceList").Return(&sapcontrol.GetSystemInstanceListResponse{
 		Instances: []*sapcontrol.SAPInstance{},
 	}, nil)
 
@@ -64,28 +56,25 @@ func fakeNewWebService(_ string) sapcontrol.WebService {
 }
 
 func TestNewSAPSystem(t *testing.T) {
-	globalT = t
+
 	newWebService = fakeNewWebService
+
 	appFS := afero.NewMemMapFs()
 	appFS.MkdirAll("/usr/sap/DEV/ASCS01", 0755)
 	appFS.MkdirAll("/usr/sap/DEV/ERS02", 0755)
-	attemps = 0
 
 	system, err := NewSAPSystem(appFS, "/usr/sap/DEV")
 
-	assert.Equal(t, Database, system.Type)
+	assert.Equal(t, Application, system.Type)
 	assert.Contains(t, system.Instances, "ASCS01")
 	assert.Contains(t, system.Instances, "ERS02")
 	assert.NoError(t, err)
 }
 
 func TestNewSAPInstance(t *testing.T) {
+	mockWebService := new(mocks.WebService)
 
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	mockWebService := mock_sapcontrol.NewMockWebService(ctrl)
-
-	mockWebService.EXPECT().GetInstanceProperties().Return(&sapcontrol.GetInstancePropertiesResponse{
+	mockWebService.On("GetInstanceProperties").Return(&sapcontrol.GetInstancePropertiesResponse{
 		Properties: []*sapcontrol.InstanceProperty{
 			{
 				Property:     "prop1",
@@ -110,7 +99,7 @@ func TestNewSAPInstance(t *testing.T) {
 		},
 	}, nil)
 
-	mockWebService.EXPECT().GetProcessList().Return(&sapcontrol.GetProcessListResponse{
+	mockWebService.On("GetProcessList").Return(&sapcontrol.GetProcessListResponse{
 		Processes: []*sapcontrol.OSProcess{
 			{
 				Name:        "enserver",
@@ -133,7 +122,7 @@ func TestNewSAPInstance(t *testing.T) {
 		},
 	}, nil)
 
-	mockWebService.EXPECT().GetSystemInstanceList().Return(&sapcontrol.GetSystemInstanceListResponse{
+	mockWebService.On("GetSystemInstanceList").Return(&sapcontrol.GetSystemInstanceListResponse{
 		Instances: []*sapcontrol.SAPInstance{
 			{
 				Hostname:      "host1",

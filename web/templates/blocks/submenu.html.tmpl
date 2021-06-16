@@ -1,4 +1,5 @@
 {{ define "submenu" }}
+{{ if gt (len .) 0 }}
 <div class="submenu js-submenu-section">
   <nav class="main-submenu js-submenu-make-visible" data-parent-menu="">
       {{ range . }}
@@ -6,4 +7,5 @@
       {{ end }}
   </nav>
 </div>
+{{ end }}
 {{ end }}

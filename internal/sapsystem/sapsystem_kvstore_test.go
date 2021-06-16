@@ -3,22 +3,26 @@ package sapsystem
 import (
 	"fmt"
 	"os"
+	"path"
 	"testing"
 
-	"github.com/SUSE/sap_host_exporter/lib/sapcontrol"
 	consulApi "github.com/hashicorp/consul/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/trento-project/trento/internal/consul"
-	"github.com/trento-project/trento/internal/consul/mocks"
+	consulMocks "github.com/trento-project/trento/internal/consul/mocks"
+	"github.com/trento-project/trento/internal/sapsystem/sapcontrol"
+	sapcontrolMocks "github.com/trento-project/trento/internal/sapsystem/sapcontrol/mocks"
 )
 
 func TestStore(t *testing.T) {
 	host, _ := os.Hostname()
-	consulInst := new(mocks.Client)
-	kv := new(mocks.KV)
+	consulInst := new(consulMocks.Client)
+	kv := new(consulMocks.KV)
 
 	consulInst.On("KV").Return(kv)
-	kvPath := fmt.Sprintf("%s/%s", fmt.Sprintf(consul.KvHostsSAPSystemPath, host), "PRD")
+	kvPath := path.Join(fmt.Sprintf(consul.KvHostsSAPSystemPath, host), "PRD")
+
+	mockWebService := new(sapcontrolMocks.WebService)
 
 	expectedPutMap := map[string]interface{}{
 		"sid":  "PRD",
@@ -29,6 +33,7 @@ func TestStore(t *testing.T) {
 				Type: Database,
 				Host: "host1",
 				SAPControl: &SAPControl{
+					webService: mockWebService,
 					Processes: map[string]*sapcontrol.OSProcess{
 						"enserver": {
 							Name:        "enserver",
@@ -93,10 +98,8 @@ func TestStore(t *testing.T) {
 
 	kv.On("DeleteTree", kvPath, (*consulApi.WriteOptions)(nil)).Return(nil, nil)
 	kv.On("PutMap", kvPath, expectedPutMap).Return(nil, nil)
-
-	//ctrl := gomock.NewController(t)
-	//defer ctrl.Finish()
-	//mockWebService := mock_sapcontrol.NewMockWebService(ctrl)
+	testLock := consulApi.Lock{}
+	consulInst.On("AcquireLockKey", fmt.Sprintf(consul.KvHostsSAPSystemPath, host)).Return(&testLock, nil)
 
 	s := SAPSystem{
 		SID:  "PRD",
@@ -107,7 +110,7 @@ func TestStore(t *testing.T) {
 				Type: Database,
 				Host: "host1",
 				SAPControl: &SAPControl{
-					//webService: mockWebService,
+					webService: mockWebService,
 					Processes: map[string]*sapcontrol.OSProcess{
 						"enserver": {
 							Name:        "enserver",
@@ -180,8 +183,8 @@ func TestStore(t *testing.T) {
 func TestLoad(t *testing.T) {
 	host, _ := os.Hostname()
 	kvPath := fmt.Sprintf(consul.KvHostsSAPSystemPath, host)
-	consulInst := new(mocks.Client)
-	kv := new(mocks.KV)
+	consulInst := new(consulMocks.Client)
+	kv := new(consulMocks.KV)
 
 	listMap := map[string]interface{}{
 		"PRD": map[string]interface{}{
@@ -257,6 +260,7 @@ func TestLoad(t *testing.T) {
 	}
 
 	kv.On("ListMap", kvPath, kvPath).Return(listMap, nil)
+	consulInst.On("WaitLock", fmt.Sprintf(consul.KvHostsSAPSystemPath, host)).Return(nil)
 
 	consulInst.On("KV").Return(kv)
 

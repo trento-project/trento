@@ -11,6 +11,8 @@ type Client interface {
 	Catalog() Catalog
 	Health() Health
 	KV() KV
+	AcquireLockKey(prefix string) (*consulApi.Lock, error)
+	WaitLock(prefix string) error
 }
 
 type Agent interface {

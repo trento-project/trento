@@ -10,18 +10,35 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/trento-project/trento/internal/consul"
-	"github.com/trento-project/trento/internal/consul/mocks"
+	consulMocks "github.com/trento-project/trento/internal/consul/mocks"
 	"github.com/trento-project/trento/internal/environments"
 	"github.com/trento-project/trento/internal/sapsystem"
+	"github.com/trento-project/trento/internal/sapsystem/sapcontrol"
+	sapcontrolMocks "github.com/trento-project/trento/internal/sapsystem/sapcontrol/mocks"
 )
 
 func TestStoreSAPSystemTags(t *testing.T) {
-	kv := new(mocks.KV)
-	catalog := new(mocks.Catalog)
-	client := new(mocks.Client)
+	kv := new(consulMocks.KV)
+	catalog := new(consulMocks.Catalog)
+	client := new(consulMocks.Client)
 	client.On("Catalog").Return(catalog)
 	client.On("KV").Return(kv)
 	host, _ := os.Hostname()
+
+	mockWebService := new(sapcontrolMocks.WebService)
+
+	mockWebService.On("GetInstanceProperties").Return(&sapcontrol.GetInstancePropertiesResponse{
+		Properties: []*sapcontrol.InstanceProperty{
+			{
+				Property:     "SAPSYSTEMNAME",
+				Propertytype: "string",
+				Value:        "sys1",
+			},
+		},
+	}, nil)
+
+	mockWebService.On("GetProcessList").Return(&sapcontrol.GetProcessListResponse{}, nil)
+	mockWebService.On("GetSystemInstanceList").Return(&sapcontrol.GetSystemInstanceListResponse{}, nil)
 
 	env := map[string]interface{}{
 		"env1": map[string]interface{}{
@@ -59,12 +76,27 @@ func TestStoreSAPSystemTags(t *testing.T) {
 }
 
 func TestStoreSAPSystemTagsWithNoEnvs(t *testing.T) {
-	kv := new(mocks.KV)
-	catalog := new(mocks.Catalog)
-	client := new(mocks.Client)
+	kv := new(consulMocks.KV)
+	catalog := new(consulMocks.Catalog)
+	client := new(consulMocks.Client)
 	client.On("Catalog").Return(catalog)
 	client.On("KV").Return(kv)
 	host, _ := os.Hostname()
+
+	mockWebService := new(sapcontrolMocks.WebService)
+
+	mockWebService.On("GetInstanceProperties").Return(&sapcontrol.GetInstancePropertiesResponse{
+		Properties: []*sapcontrol.InstanceProperty{
+			{
+				Property:     "SAPSYSTEMNAME",
+				Propertytype: "string",
+				Value:        "sys1",
+			},
+		},
+	}, nil)
+
+	mockWebService.On("GetProcessList").Return(&sapcontrol.GetProcessListResponse{}, nil)
+	mockWebService.On("GetSystemInstanceList").Return(&sapcontrol.GetSystemInstanceListResponse{}, nil)
 
 	kv.On("ListMap", consul.KvEnvironmentsPath, consul.KvEnvironmentsPath).Return(nil, nil)
 	catalog.On("Nodes", mock.Anything).Return([]*consulApi.Node{}, nil, nil)

@@ -201,9 +201,13 @@ func getTypeByFlag(entry *consulApi.KVPair) interface{} {
 
 // Store a map[string]interface data in KV storage under the prefix key
 func (k *kv) PutMap(prefix string, data map[string]interface{}) error {
+	if !strings.HasSuffix(prefix, "/") {
+		prefix = fmt.Sprintf("%s/", prefix)
+	}
+
 	// Empty KV directories
 	if len(data) == 0 {
-		err := k.PutTyped(prefix+"/", "")
+		err := k.PutTyped(prefix, "")
 		if err != nil {
 			return err
 		}
@@ -221,7 +225,7 @@ func (k *kv) PutMap(prefix string, data map[string]interface{}) error {
 			}
 		case reflect.Slice:
 			// Store the slice with slice flag, to be able to reload as list in the ListMap funciton
-			err := k.PutTyped(path.Join(prefix, key)+"/", []string{})
+			err := k.PutTyped(fmt.Sprintf("%s/", path.Join(prefix, key)), []string{})
 			if err != nil {
 				return err
 			}

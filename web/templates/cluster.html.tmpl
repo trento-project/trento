@@ -7,17 +7,42 @@
       <dd class="inline">{{ .Cluster.Crmmon.Summary.Nodes.Number }}</dd>
       <dt class="inline">Resource number</dt>
       <dd class="inline">{{ .Cluster.Crmmon.Summary.Resources.Number }}</dd>
+      <dt class="inline">Fencing type</dt>
+      <dd class="inline">{{ .Cluster.FencingType }}</a></dd>
       {{- range .Cluster.Cib.Configuration.CrmConfig.ClusterProperties }}
       <dt class="inline">{{ .Id }}</dt>
       <dd class="inline">{{ .Value }}</dd>
       {{- end }}
     </dl>
+    {{- if not .Cluster.IsFencingEnabled }}
+    <div class="alert alert-section alert-danger">
+      <i class="eos-icons eos-18 alert-icon">danger</i>
+      <div class="alert-body">
+        <div class="alert-title">Fencing disabled</div>
+        Fencing is not enabled in the cluster. Fencing is mandatory for a correct functioning of the cluster.</br>Find more information <a href="https://documentation.suse.com/sle-ha/15-SP1/single-html/SLE-HA-guide/#sec-ha-requirements-hw" target="_blank">here</a>.
+      </div>
+    </div>
+    {{- end }}
+    {{- if not .Cluster.FencingResourceExists }}
+    <div class="alert alert-section alert-danger">
+      <i class="eos-icons eos-18 alert-icon">danger</i>
+      <div class="alert-body">
+        <div class="alert-title">Fencing resource not found</div>
+        There is not any fencing resource configured. A fencing resource is mandatory for a correct functioning of the cluster.</br>Find more information <a href="https://documentation.suse.com/sle-ha/15-SP1/single-html/SLE-HA-guide/#sec-ha-requirements-hw" target="_blank">here</a>.
+      </div>
+    </div>
+    {{- end }}
     <hr/>
     <p class='clearfix'/>
     <h2>Hosts</h2>
     {{ template "hosts_table" . }}
     <hr/>
     <p class='clearfix'/>
+    {{- if .Cluster.IsFencingSBD }}
+    {{ template "sbd" .Cluster.SBD }}
+    <hr/>
+    <p class='clearfix'/>
+    {{- end }}
     <h2>Node attributes</h2>
     {{- range .Cluster.Crmmon.NodeAttributes.Nodes }}
     <h2>{{ .Name }}</h2>

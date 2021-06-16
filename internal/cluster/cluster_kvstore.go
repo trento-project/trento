@@ -1,7 +1,7 @@
 package cluster
 
 import (
-	"fmt"
+	"path"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
@@ -11,7 +11,7 @@ import (
 
 func (c *Cluster) getKVPath() string {
 	name := c.Name()
-	kvPath := fmt.Sprintf("%s%s", consul.KvClustersPath, name)
+	kvPath := path.Join(consul.KvClustersPath, name)
 
 	return kvPath
 }

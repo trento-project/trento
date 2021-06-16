@@ -101,3 +101,129 @@ func TestIsDC(t *testing.T) {
 
 	assert.Equal(t, false, c.IsDc())
 }
+
+func TestIsFencingEnabled(t *testing.T) {
+	root := new(cib.Root)
+
+	crmConfig := struct {
+		ClusterProperties []cib.Attribute `xml:"cluster_property_set>nvpair"`
+	}{
+		ClusterProperties: []cib.Attribute{
+			cib.Attribute{
+				Id:    "cib-bootstrap-options-stonith-enabled",
+				Value: "true",
+			},
+		},
+	}
+
+	root.Configuration.CrmConfig = crmConfig
+
+	c := Cluster{
+		Cib: *root,
+	}
+
+	assert.Equal(t, true, c.IsFencingEnabled())
+
+	crmConfig = struct {
+		ClusterProperties []cib.Attribute `xml:"cluster_property_set>nvpair"`
+	}{
+		ClusterProperties: []cib.Attribute{
+			cib.Attribute{
+				Id:    "cib-bootstrap-options-stonith-enabled",
+				Value: "false",
+			},
+		},
+	}
+
+	root.Configuration.CrmConfig = crmConfig
+
+	c = Cluster{
+		Cib: *root,
+	}
+
+	assert.Equal(t, false, c.IsFencingEnabled())
+}
+
+func TestFencingType(t *testing.T) {
+	c := Cluster{
+		Crmmon: crmmon.Root{
+			Version: "1.2.3",
+			Resources: []crmmon.Resource{
+				crmmon.Resource{
+					Agent: "stonith:myfencing",
+				},
+			},
+		},
+	}
+
+	assert.Equal(t, "myfencing", c.FencingType())
+
+	c = Cluster{
+		Crmmon: crmmon.Root{
+			Version: "1.2.3",
+			Resources: []crmmon.Resource{
+				crmmon.Resource{
+					Agent: "notstonith:myfencing",
+				},
+			},
+		},
+	}
+
+	assert.Equal(t, "notconfigured", c.FencingType())
+}
+
+func TestFencingResourceExists(t *testing.T) {
+	c := Cluster{
+		Crmmon: crmmon.Root{
+			Version: "1.2.3",
+			Resources: []crmmon.Resource{
+				crmmon.Resource{
+					Agent: "stonith:myfencing",
+				},
+			},
+		},
+	}
+
+	assert.Equal(t, true, c.FencingResourceExists())
+
+	c = Cluster{
+		Crmmon: crmmon.Root{
+			Version: "1.2.3",
+			Resources: []crmmon.Resource{
+				crmmon.Resource{
+					Agent: "notstonith:myfencing",
+				},
+			},
+		},
+	}
+
+	assert.Equal(t, false, c.FencingResourceExists())
+}
+
+func TestIsFencingSBD(t *testing.T) {
+	c := Cluster{
+		Crmmon: crmmon.Root{
+			Version: "1.2.3",
+			Resources: []crmmon.Resource{
+				crmmon.Resource{
+					Agent: "stonith:external/sbd",
+				},
+			},
+		},
+	}
+
+	assert.Equal(t, true, c.IsFencingSBD())
+
+	c = Cluster{
+		Crmmon: crmmon.Root{
+			Version: "1.2.3",
+			Resources: []crmmon.Resource{
+				crmmon.Resource{
+					Agent: "stonith:other",
+				},
+			},
+		},
+	}
+
+	assert.Equal(t, false, c.IsFencingSBD())
+}

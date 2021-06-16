@@ -115,8 +115,10 @@ func TestClusterHandler404Error(t *testing.T) {
 
 	kv := new(mocks.KV)
 	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(nil, nil)
+
 	consulInst := new(mocks.Client)
 	consulInst.On("KV").Return(kv)
+	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil)
 
 	deps := DefaultDependencies()
 	deps.consul = consulInst

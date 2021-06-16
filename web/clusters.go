@@ -40,6 +40,7 @@ func NewClusterHandler(client consul.Client) gin.HandlerFunc {
 			_ = c.Error(err)
 			return
 		}
+		cluster := clusters[clusterName]
 
 		cluster, ok := clusters[clusterName]
 		if !ok {

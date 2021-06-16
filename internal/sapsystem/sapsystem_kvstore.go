@@ -3,6 +3,7 @@ package sapsystem
 import (
 	"fmt"
 	"os"
+	"path"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
@@ -13,7 +14,7 @@ import (
 func (s *SAPSystem) getKVPath() string {
 	host, _ := os.Hostname()
 	key := fmt.Sprintf(consul.KvHostsSAPSystemPath, host)
-	kvPath := fmt.Sprintf("%s%s", key, s.GetSID())
+	kvPath := path.Join(key, s.GetSID())
 
 	return kvPath
 }

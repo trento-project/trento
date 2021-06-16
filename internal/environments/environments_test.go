@@ -26,7 +26,7 @@ func TestNewLandscape(t *testing.T) {
 func TestNewSystem(t *testing.T) {
 	name := "sys1"
 
-	sys := NewSystem("sys1", "type1")
+	sys := NewSystem("sys1", 0)
 	assert.Equal(t, sys.Name, name)
 }
 

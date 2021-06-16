@@ -16,19 +16,21 @@
           {{ $SAPSystemName := .Name }}
           {{- range $Index, $Host := .Hosts }}
           {{ $SAPSystem := index $Host.GetSAPSystems $SAPSystemName }}
-          {{ $SAPInstance := index $SAPSystem.Instances $Host.Name }}
-          {{- if or (eq $SAPSystem.Type "HANA") (eq $Index 0) }}
+          {{- range $Index, $SAPInstance := $SAPSystem.Instances }}
+          {{- $SAPControlInstances := $SAPInstance.SAPControl.Instances }}
+          {{- range $Index, $Instance := $SAPControlInstances }}
           <tr>
-              <td>{{ $SAPInstance.Hostname }}</td>
-              <td>{{ $SAPInstance.InstanceNr }}</td>
-              <td>{{ $SAPInstance.Features }}</td>
-              <td>{{ $SAPInstance.HttpPort }}</td>
-              <td>{{ $SAPInstance.HttpsPort }}</td>
-              <td>{{ $SAPInstance.StartPriority }}</td>
+              <td>{{ $Instance.Hostname }}</td>
+              <td>{{ $Instance.InstanceNr }}</td>
+              <td>{{ $Instance.Features }}</td>
+              <td>{{ $Instance.HttpPort }}</td>
+              <td>{{ $Instance.HttpsPort }}</td>
+              <td>{{ $Instance.StartPriority }}</td>
               <td>
-                  <span class='badge badge-pill badge-{{ if eq $SAPInstance.Dispstatus "SAPControl-GREEN" }}primary{{ else if eq $SAPInstance.Dispstatus "SAPControl-YELLOW" }}warning{{ else if eq $SAPInstance.Dispstatus "SAPControl-GRAY" }}secondary{{ else }}danger{{ end }}'>{{ $SAPInstance.Dispstatus }}</span>
+                  <span class='badge badge-pill badge-{{ if eq $Instance.Dispstatus "SAPControl-GREEN" }}primary{{ else if eq $Instance.Dispstatus "SAPControl-YELLOW" }}warning{{ else if eq $Instance.Dispstatus "SAPControl-GRAY" }}secondary{{ else }}danger{{ end }}'>{{ $Instance.Dispstatus }}</span>
               </td>
           </tr>
+          {{- end }}
           {{- end }}
           {{- end }}
         </tbody>

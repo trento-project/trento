@@ -23,7 +23,7 @@ func TestEnvironmentStore(t *testing.T) {
 			"land1": &Landscape{
 				Name: "land1",
 				SAPSystems: map[string]*SAPSystem{
-					"sys1": &SAPSystem{Name: "sys1", Type: "type1"},
+					"sys1": &SAPSystem{Name: "sys1", Type: 1},
 				},
 			},
 		},
@@ -37,7 +37,7 @@ func TestEnvironmentStore(t *testing.T) {
 				SAPSystems: map[string]*SAPSystem{
 					"sys1": &SAPSystem{
 						Name: "sys1",
-						Type: "type1",
+						Type: 1,
 					},
 				},
 			},
@@ -92,7 +92,7 @@ func TestEnvironmentLoad(t *testing.T) {
 					"sapsystems": map[string]interface{}{
 						"sys1": map[string]interface{}{
 							"name": "sys1",
-							"type": "type1",
+							"type": 1,
 						},
 					},
 				},
@@ -114,7 +114,7 @@ func TestEnvironmentLoad(t *testing.T) {
 					SAPSystems: map[string]*SAPSystem{
 						"sys1": &SAPSystem{
 							Name: "sys1",
-							Type: "type1",
+							Type: 1,
 							Hosts: hosts.HostList{
 								&host1,
 								&host2,

@@ -40,38 +40,36 @@ func TestStoreSAPSystemTags(t *testing.T) {
 	mockWebService.On("GetProcessList").Return(&sapcontrol.GetProcessListResponse{}, nil)
 	mockWebService.On("GetSystemInstanceList").Return(&sapcontrol.GetSystemInstanceListResponse{}, nil)
 
-	environment := map[string]interface{}{
+	env := map[string]interface{}{
 		"env1": map[string]interface{}{
 			"name": "env1",
 			"landscapes": map[string]interface{}{
 				"land1": map[string]interface{}{
 					"name": "land1",
 					"sapsystems": map[string]interface{}{
-						"sys1": map[string]interface{}{
-							"name": "sys1",
-							"type": "type1",
+						"DEV": map[string]interface{}{
+							"name": "DEV",
+							"type": sapsystem.Database,
 						},
 					},
 				},
 			},
 		},
 	}
+
 	expectedHostMetadata := map[string]interface{}{
 		"sap-environment": "env1",
 		"sap-landscape":   "land1",
-		"sap-system":      "sys1",
+		"sap-system":      "DEV",
 	}
 
-	kv.On("ListMap", consul.KvEnvironmentsPath, consul.KvEnvironmentsPath).Return(environment, nil)
+	kv.On("ListMap", consul.KvEnvironmentsPath, consul.KvEnvironmentsPath).Return(env, nil)
 	catalog.On("Nodes", mock.Anything).Return([]*consulApi.Node{}, nil, nil)
 	kv.On("PutMap", fmt.Sprintf(consul.KvHostsMetadataPath, host), expectedHostMetadata).Return(nil, nil)
 
-	var err error
+	sapSystem := &sapsystem.SAPSystem{SID: "DEV", Type: sapsystem.Database}
 
-	sapSystem, err := sapsystem.NewSAPSystem(mockWebService)
-	assert.NoError(t, err)
-
-	err = storeSAPSystemTags(client, sapSystem)
+	err := storeSAPSystemTags(client, sapSystem)
 	assert.NoError(t, err)
 
 	kv.AssertExpectations(t)
@@ -109,9 +107,9 @@ func TestStoreSAPSystemTagsWithNoEnvs(t *testing.T) {
 			"default": {
 				Name: "default",
 				SAPSystems: map[string]*environments.SAPSystem{
-					"sys1": {
-						Name: "sys1",
-						Type: "APP",
+					"DEV": {
+						Name: "DEV",
+						Type: sapsystem.Database,
 					},
 				},
 			},
@@ -122,16 +120,13 @@ func TestStoreSAPSystemTagsWithNoEnvs(t *testing.T) {
 	expectedHostMetadata := map[string]interface{}{
 		"sap-environment": "default",
 		"sap-landscape":   "default",
-		"sap-system":      "sys1",
+		"sap-system":      "DEV",
 	}
 	kv.On("PutMap", fmt.Sprintf(consul.KvHostsMetadataPath, host), expectedHostMetadata).Return(nil, nil)
 
-	var err error
+	sapSystem := &sapsystem.SAPSystem{SID: "DEV", Type: sapsystem.Database}
 
-	sapSystem, err := sapsystem.NewSAPSystem(mockWebService)
-	assert.NoError(t, err)
-
-	err = storeSAPSystemTags(client, sapSystem)
+	err := storeSAPSystemTags(client, sapSystem)
 	assert.NoError(t, err)
 
 	kv.AssertExpectations(t)

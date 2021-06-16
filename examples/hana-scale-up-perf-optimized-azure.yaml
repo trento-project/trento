@@ -390,7 +390,7 @@ groups:
           Update sbd packages
         scored: true
       - id: 2.2.6
-        description: "Check the SAPHana version is at least"
+        description: "Check the SAPHanaSR version is at least"
         audit: 'echo --version=$(rpm -q --qf "%{VERSION}\n" SAPHanaSR | cut -f2 -d.)'
         tests:
           test_items:
@@ -418,4 +418,33 @@ groups:
             - flag: 'Python 3.6.8'
         remediation: |
           Update python packages
+        scored: true
+      - id: 2.2.7
+        description: "HANA and SPS versions are compatible"
+        audit: |
+          sid=$(sudo crm configure show | grep -m1 SID= | sed -e "s/.*SID=\(...\).*/\1/" | tr '[:upper:]' '[:lower:]')
+          full_version=$(sudo -i -u ${sid}adm HDB version | grep "version:" | sed -e "s/^.*:[\ ]*//")
+          hana_version=$(echo $full_version | cut -d. -f1)
+          sps_version=$(echo $full_version | cut -d. -f3)
+          sps_revision=$(echo $full_version | cut -d. -f4)
+          # SAP HANA 2.0 is supported with all known SPS versions.
+          if [[ "$hana_version" = "2" ]]; then echo passed; fi
+          # For SAP HANA 1.0 you need version SPS10 rev3, SPS11 or newer.
+          if [[ "$hana_version" = "1" ]]; then
+            if [[ "$sps_version" -ge "110" ]]; then echo passed; fi
+            if [[ "$sps_version" = "100" && "$sps_revision" = "03" ]]; then echo passed; fi
+          fi
+        tests:
+          test_items:
+            - flag: "passed"
+        remediation: |
+          ## Abstract
+          For SAP HANA 1.0 you need version SPS10 rev3, SPS11 or newer.
+          SAP HANA 2.0 is supported with all known SPS versions.
+
+          ## Remediation
+          T.B.A. (IMHO the user would really hate to read a great advice like "Install compatible HANA and SPS")
+
+          ## References
+          - section 2 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
         scored: true

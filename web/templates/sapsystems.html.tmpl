@@ -1,9 +1,10 @@
 {{ define "content" }}
-<div class="col">
-    {{- if .EnvName }}
-    <h6><a href="/environments">Environments</a> > <a href="/landscapes?environment={{ .EnvName }}">{{ .EnvName }}</a> > {{ .LandName }} </h6>
-    {{- end }}
-    <h1>SAP Systems</h1>
-    {{ template "sapsystems_table" . }}
-</div>
+    <div class="col">
+        {{- if .EnvName }}
+            <h6><a href="/environments">Environments</a> > <a
+                        href="/landscapes?environment={{ .EnvName }}">{{ .EnvName }}</a> > {{ .LandName }} </h6>
+        {{- end }}
+        <h1>SAP Systems</h1>
+        {{ template "sapsystems_table" . }}
+    </div>
 {{ end }}

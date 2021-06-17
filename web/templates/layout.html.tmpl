@@ -1,16 +1,16 @@
 {{- /*gotype: github.com/trento-project/trento/web.LayoutData*/ -}}
 <!doctype html>
-<html>
-  {{ template "header" . }}
-  <body>
-    {{ block "errors" . }}{{ end}}
-    {{ template "sidebar" . }}
-    <section class="content">
-      {{ template "submenu" .Submenu }}
-      <div class="container">
+<html lang="en">
+{{ template "header" . }}
+<body>
+{{ block "errors" . }}{{ end}}
+{{ template "sidebar" . }}
+<section class="content">
+    {{ template "submenu" .Submenu }}
+    <div class="container">
         {{ template "content" .Content }}
-      </div>
-    </section>
-    {{ template "footer" . }}
-  </body>
+    </div>
+</section>
+{{ template "footer" . }}
+</body>
 </html>

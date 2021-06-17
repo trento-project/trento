@@ -1,100 +1,104 @@
 {{- /*gotype: github.com/trento-project/trento/web.HomeData*/ -}}
 {{ define "content" }}
-<div class="col">
-    <h1 class='display-4 lead'>{{ .Title }}</h1>
-    <p class='subheadline'>An open cloud-native web console improving the
-				life of SAP Applications administrators</p>
-</div>
-<hr/>
-<section>
-    <div class='mb-5'>
-        This project is a reboot of the "SUSE Console for SAP Applications", also known 
-        as the <a target='blank' href='https://github.com/SUSE/blue-horizon-for-sap'>Blue Horizon for SAP</a>
-        prototype, which is focused on automated infrastructure deployment and provisioning for SAP Applications
+    <div class="col">
+        <h1 class='display-4 lead'>{{ .Title }}</h1>
+        <p class='subheadline'>An open cloud-native web console improving the
+            life of SAP Applications administrators</p>
     </div>
-    <div class='card-deck'>
-        <div class='card'>
-            <h5 class='card-header'>Hosts</h5>
-            <div class='card-body'>
-                <p class='card-text'>
-                    In the hosts overview, the user can get a list of all the hosts that are running
-                    the trento agent. For each host it will be possible to check basic information
-                    such as the hostname, its IP address, to what cluster it belongs and a list of
-                    all the tags that have been set by the discovery mechanisms to classify each
-                    host accordingly. 
-                </p>
-                <div class='d-flex justify-content-end'>
-                    <a class='card-link' href='/hosts'>Go to view</a>
+    <hr/>
+    <section>
+        <div class='mb-5'>
+            This project is a reboot of the "SUSE Console for SAP Applications", also known
+            as the <a target='blank' href='https://github.com/SUSE/blue-horizon-for-sap'>Blue Horizon for SAP</a>
+            prototype, which is focused on automated infrastructure deployment and provisioning for SAP Applications
+        </div>
+        <div class='card-deck'>
+            <div class='card'>
+                <h5 class='card-header'>Hosts</h5>
+                <div class='card-body'>
+                    <p class='card-text'>
+                        In the hosts overview, the user can get a list of all the hosts that are running
+                        the trento agent. For each host it will be possible to check basic information
+                        such as the hostname, its IP address, to what cluster it belongs and a list of
+                        all the tags that have been set by the discovery mechanisms to classify each
+                        host accordingly.
+                    </p>
+                    <div class='d-flex justify-content-end'>
+                        <a class='card-link' href='/hosts'>Go to view</a>
+                    </div>
+                </div>
+            </div>
+            <div class='card'>
+                <h5 class='card-header'>Clusters</h5>
+                <div class='card-body'>
+                    <p class='card-text'>
+                        This view currently allows to check the status of the all the discovered clusters,
+                        including the information of the status of each node and the role associated to
+                        each node. This view also allows to see the node's attributes which reflect details
+                        found from their configuration as well as resources, their type and distribution
+                        within the cluster nodes.
+                    </p>
+                    <div class='d-flex justify-content-end'>
+                        <a class='card-link' href='/clusters'>Go to view</a>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class='card'>
-            <h5 class='card-header'>Clusters</h5>
-            <div class='card-body'>
-                <p class='card-text'>
-                    This view currently allows to check the status of the all the discovered clusters,
-                    including the information of the status of each node and the role associated to
-                    each node. This view also allows to see the node's attributes which reflect details
-                    found from their configuration as well as resources, their type and distribution
-                    within the cluster nodes.
-                </p>
-                <div class='d-flex justify-content-end'>
-                    <a class='card-link' href='/clusters'>Go to view</a>
+        <div class='card-deck mt-4'>
+            <div class='card'>
+                <h5 class='card-header'>Environments</h5>
+                <div class='card-body'>
+                    <p class='card-text'>
+                        The environments view currently shows a detail of the environments that have
+                        been found and the landscapes that each one of these environments has as well
+                        as the number of systems, hosts and the global status.
+                    </p>
+                    <div class='d-flex justify-content-end'>
+                        <a class='card-link' href='/environments'>Go to view</a>
+                    </div>
                 </div>
             </div>
-        </div>        
-    </div>
-    <div class='card-deck mt-4'>
-        <div class='card'>
-            <h5 class='card-header'>Environments</h5>
-            <div class='card-body'>
-                <p class='card-text'>
-                    The environments view currently shows a detail of the environments that have
-                    been found and the landscapes that each one of these environments has as well
-                    as the number of systems, hosts and the global status.
-                </p>
-                <div class='d-flex justify-content-end'>
-                    <a class='card-link' href='/environments'>Go to view</a>
-                </div>
-            </div>
-        </div>
-        <div class='card'>
-            <h5 class='card-header'>Landscapes</h5>
-            <div class='card-body'>
-                <p class='card-text'>
-                    The landscapes view shows a list of the discovered landscapes, detailing the
-                    count of systems inside each of them as well as the total number of hosts
-                    that belong to these systems.
-                </p>
-                <div class='d-flex justify-content-end'>
-                    <a class='card-link' href='/landscapes'>Go to view</a>
+            <div class='card'>
+                <h5 class='card-header'>Landscapes</h5>
+                <div class='card-body'>
+                    <p class='card-text'>
+                        The landscapes view shows a list of the discovered landscapes, detailing the
+                        count of systems inside each of them as well as the total number of hosts
+                        that belong to these systems.
+                    </p>
+                    <div class='d-flex justify-content-end'>
+                        <a class='card-link' href='/landscapes'>Go to view</a>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    <div class='card-deck mt-4'>
-        <div class='card'>
-            <h5 class='card-header'>Systems</h5>
-            <div class='card-body'>
-                <p class='card-text'>
-                    In this view are listed the systems, usually identified by a SID or 
-                    `SAP System Idenfication` string such as `PRD`, `DEV`, or `QAS`. These are used
-                    often to identify productive, development and quality assurance systems.
-                    In this view we get an overview of the distribution of each SID, the number of
-                    hosts disvered of each of them and additional details.
-                </p>
-                <div class='d-flex justify-content-end'>
-                    <a class='card-link' href='/sapsystems'>Go to view</a>
+        <div class='card-deck mt-4'>
+            <div class='card'>
+                <h5 class='card-header'>Systems</h5>
+                <div class='card-body'>
+                    <p class='card-text'>
+                        In this view are listed the systems, usually identified by a SID or
+                        `SAP System Idenfication` string such as `PRD`, `DEV`, or `QAS`. These are used
+                        often to identify productive, development and quality assurance systems.
+                        In this view we get an overview of the distribution of each SID, the number of
+                        hosts disvered of each of them and additional details.
+                    </p>
+                    <div class='d-flex justify-content-end'>
+                        <a class='card-link' href='/sapsystems'>Go to view</a>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    <div class='mt-4'>
-        For more information and getting started, plese refer to the 
-        <a target='blank' href='https://github.com/trento-project/trento/blob/518135b7152a384b59714f59d3ae72722a03b458/docs/scope.md'>scope, </a>
-        <a target='blank' href='https://github.com/trento-project/trento/blob/518135b7152a384b59714f59d3ae72722a03b458/README.md'>readme</a> or
-        <a target='blank' href='https://github.com/trento-project/trento/blob/518135b7152a384b59714f59d3ae72722a03b458/docs/trento-architecture.md'>architecture</a>
-        documents.
-    </div>
-</section>    
+        <div class='mt-4'>
+            For more information and getting started, plese refer to the
+            <a target='blank'
+               href='https://github.com/trento-project/trento/blob/518135b7152a384b59714f59d3ae72722a03b458/docs/scope.md'>scope, </a>
+            <a target='blank'
+               href='https://github.com/trento-project/trento/blob/518135b7152a384b59714f59d3ae72722a03b458/README.md'>readme</a>
+            or
+            <a target='blank'
+               href='https://github.com/trento-project/trento/blob/518135b7152a384b59714f59d3ae72722a03b458/docs/trento-architecture.md'>architecture</a>
+            documents.
+        </div>
+    </section>
 {{ end }}

@@ -1,58 +1,61 @@
 {{ define "sidebar" }}
-<aside class="main-menu js-main-menu">
-  <div class="mm-navigation-container">
-    <header>
-      <div class="hide-collapsed">
-        <img src="/static/frontend/assets/images/trento-icon.png" alt="logo" width="32" />
-        <span class="nav-title">trento</span>
-      </div>
-      <div class="mm-navitation-close js-sidebar-toggle">
-        <i class="eos-icons js-sidebar-tooltip js-tooltip" data-placement="bottom" data-original-title="Collapse menu">menu</i>
-      </div>
-    </header>
-    <div class="nav-wrap">
-      <ul class="menu-togglable no-list-style">
-        <li class="menu-item">
-          <div class="menu-element" style="bottom: auto; top: 0px; left: 0px;">
-            <span class="main-collapsed-title">Home</span>
-          </div>
-          <a class="menu-title js-select-current-parent js-feature-flag" href="/">
-            <i class="eos-icons">home</i>
-            <span class="menu-title-content">Home</span>
-          </a>
-          <a class="menu-title js-select-current-parent js-feature-flag" href="/hosts">
-            <i class='eos-icons'>desktop_windows</i>
-            <span class="menu-title-content">Hosts</span>
-          </a>
-          <a class="menu-title js-select-current-parent js-feature-flag" href="/clusters">
-            <i class='eos-icons'>collocation</i>
-            <span class="menu-title-content">Clusters</span>
-          </a>
-          <a class="menu-title js-select-current-parent js-feature-flag" href="/sapsystems">
-            <i class='eos-icons'>system_group</i>
-            <span class="menu-title-content">Systems</span>
-          </a>
-          <a class="menu-title js-select-current-parent js-feature-flag" href="/landscapes">
-            <i class='eos-icons'>landscape</i>
-            <span class="menu-title-content">Landscapes</span>
-          </a>
-          <a class="menu-title js-select-current-parent js-feature-flag" href="/environments">
-            <i class='eos-icons'>lock</i>
-            <span class="menu-title-content">Environments</span>
-          </a>
-        </li>
-      </ul>
-    </div>
-  </div>
-  <footer class="footer-side-menu">
-    <ul class="footer-list">
-      <li class="footer-list-item">
-        <i class="eos-icons" title="" data-html="true" data-toggle="tooltip" data-title="{{ escapedTemplate "license" . }}" data-trigger="hover click">find_in_page</i>
-      </li>
-      <li class="footer-list-item">
-        <i class="eos-icons" title="" data-html="true" data-toggle="tooltip" data-title="{{ .Copyright }}" data-trigger="hover click">info</i>
-      </li>
-    </ul>
-  </footer>
-</aside>
+    <aside class="main-menu js-main-menu">
+        <div class="mm-navigation-container">
+            <header>
+                <div class="hide-collapsed">
+                    <img src="/static/frontend/assets/images/trento-icon.png" alt="logo" width="32"/>
+                    <span class="nav-title">trento</span>
+                </div>
+                <div class="mm-navitation-close js-sidebar-toggle">
+                    <i class="eos-icons js-sidebar-tooltip js-tooltip" data-placement="bottom"
+                       data-original-title="Collapse menu">menu</i>
+                </div>
+            </header>
+            <div class="nav-wrap">
+                <ul class="menu-togglable no-list-style">
+                    <li class="menu-item">
+                        <div class="menu-element" style="bottom: auto; top: 0; left: 0;">
+                            <span class="main-collapsed-title">Home</span>
+                        </div>
+                        <a class="menu-title js-select-current-parent js-feature-flag" href="/">
+                            <i class="eos-icons">home</i>
+                            <span class="menu-title-content">Home</span>
+                        </a>
+                        <a class="menu-title js-select-current-parent js-feature-flag" href="/hosts">
+                            <i class='eos-icons'>desktop_windows</i>
+                            <span class="menu-title-content">Hosts</span>
+                        </a>
+                        <a class="menu-title js-select-current-parent js-feature-flag" href="/clusters">
+                            <i class='eos-icons'>collocation</i>
+                            <span class="menu-title-content">Clusters</span>
+                        </a>
+                        <a class="menu-title js-select-current-parent js-feature-flag" href="/sapsystems">
+                            <i class='eos-icons'>system_group</i>
+                            <span class="menu-title-content">Systems</span>
+                        </a>
+                        <a class="menu-title js-select-current-parent js-feature-flag" href="/landscapes">
+                            <i class='eos-icons'>landscape</i>
+                            <span class="menu-title-content">Landscapes</span>
+                        </a>
+                        <a class="menu-title js-select-current-parent js-feature-flag" href="/environments">
+                            <i class='eos-icons'>lock</i>
+                            <span class="menu-title-content">Environments</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <footer class="footer-side-menu">
+            <ul class="footer-list">
+                <li class="footer-list-item">
+                    <i class="eos-icons" title="" data-html="true" data-toggle="tooltip"
+                       data-title="{{ escapedTemplate "license" . }}" data-trigger="hover click">find_in_page</i>
+                </li>
+                <li class="footer-list-item">
+                    <i class="eos-icons" title="" data-html="true" data-toggle="tooltip" data-title="{{ .Copyright }}"
+                       data-trigger="hover click">info</i>
+                </li>
+            </ul>
+        </footer>
+    </aside>
 {{ end }}

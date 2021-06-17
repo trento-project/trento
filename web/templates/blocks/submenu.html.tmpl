@@ -1,11 +1,11 @@
 {{ define "submenu" }}
-{{ if gt (len .) 0 }}
-<div class="submenu js-submenu-section">
-  <nav class="main-submenu js-submenu-make-visible" data-parent-menu="">
-      {{ range . }}
-        <a class="submenu-item js-select-current" href="{{ .URL }}">{{ .Label }}</a>
-      {{ end }}
-  </nav>
-</div>
-{{ end }}
+    {{ if gt (len .) 0 }}
+        <div class="submenu js-submenu-section">
+            <nav class="main-submenu js-submenu-make-visible" data-parent-menu="">
+                {{ range . }}
+                    <a class="submenu-item js-select-current" href="{{ .URL }}">{{ .Label }}</a>
+                {{ end }}
+            </nav>
+        </div>
+    {{ end }}
 {{ end }}

@@ -3,12 +3,12 @@ package agent
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 )
 
 type webService struct {

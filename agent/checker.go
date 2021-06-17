@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"strconv"
 	"strings"
 
 	"github.com/aquasecurity/bench-common/check"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 type Checker func() (CheckResult, error)

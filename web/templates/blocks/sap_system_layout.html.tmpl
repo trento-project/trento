@@ -33,9 +33,7 @@
                     {{- end }}
                 {{- end }}
             {{- else }}
-                <tr>
-                    <td colspan="7">There are currently no records to be shown</td>
-                </tr>
+                {{ template "empty_table_body" 7}}
             {{- end }}
             </tbody>
         </table>

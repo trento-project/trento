@@ -30,9 +30,7 @@
                         </td>
                     </tr>
                 {{- else }}
-                    <tr>
-                        <td colspan="5">There are currently no records to be shown</td>
-                    </tr>
+                    {{ template "empty_table_body" 5}}
                 {{- end }}
             {{- else }}
                 {{- range .Environments }}
@@ -55,9 +53,7 @@
                         {{- end }}
                     {{- end }}
                 {{- else }}
-                    <tr>
-                        <td colspan="5">There are currently no records to be shown</td>
-                    </tr>
+                    {{ template "empty_table_body" 5}}
                 {{- end }}
             {{- end }}
             </tbody>

@@ -1,47 +1,50 @@
 {{ define "content" }}
-<div class="col">
-    <h6><a href="/hosts">Hosts</a> > <a href="/hosts/{{ .Hostname }}">{{ .Hostname }}</a> > HA Configuration Checker</h6>
-    <h1>{{ .HAChecks.Description  }}</h1>
-    {{ range $i, $g := .HAChecks.Groups }}
-    <h4>{{ .ID }} - {{ .Description }}</h4>
-    <div class="table-responsive">
-        <table class="table eos-table">
-            <thead>
-                <tr>
-                    <th scope="col" style="width: 15%">Test ID</th>
-                    <th scope="col" style="width: 74%">Description</th>
-                    <th scope="col" style="width: 5%" class="text-center">Status</th>
-                    <th scope="col"></th>
-                </tr>
-            </thead>
-            <tbody>
-                {{- range $y, $c := .Checks }}
-                <tr>
-                    <td class="align-top">{{ .ID }}</td>
-                    <td class="align-top">
-                        {{ .Description }}
-                        <div class="ha-check-remediation collapse" id="info-{{ $i }}-{{ $y }}">
-                            {{ markdown ( index .TestInfo 0 ) }}
-                        </div>
-                    </td>
-                    <td class="align-top text-center">
-                        <span class="badge badge-pill badge-{{ if eq .State "PASS" }}primary{{ else if eq .State "WARN" }}warning{{ else }}danger{{ end }} m-0">{{ .State }}</span>
-                    </td>
-                    <td class="align-top text-center">
-                        <a class="link-dark" type="button"
-                                data-toggle="collapse"
-                                href="#info-{{ $i }}-{{ $y }}"
-                                aria-expanded="false"
-                                aria-controls="info-{{ $i }}-{{ $y }}"
-                                title="Details">
-                            <i class='eos-icons eos-18'>info</i>
-                        </a>
-                    </td>
-                </tr>
-                {{- end }}
-            </tbody>
-        </table>
+    <div class="col">
+        <h6><a href="/hosts">Hosts</a> > <a href="/hosts/{{ .Hostname }}">{{ .Hostname }}</a> > HA Configuration Checker
+        </h6>
+        <h1>{{ .HAChecks.Description  }}</h1>
+        {{ range $i, $g := .HAChecks.Groups }}
+            <h4>{{ .ID }} - {{ .Description }}</h4>
+            <div class="table-responsive">
+                <table class="table eos-table">
+                    <thead>
+                    <tr>
+                        <th scope="col" style="width: 15%">Test ID</th>
+                        <th scope="col" style="width: 74%">Description</th>
+                        <th scope="col" style="width: 5%" class="text-center">Status</th>
+                        <th scope="col"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{- range $y, $c := .Checks }}
+                        <tr>
+                            <td class="align-top">{{ .ID }}</td>
+                            <td class="align-top">
+                                {{ .Description }}
+                                <div class="ha-check-remediation collapse" id="info-{{ $i }}-{{ $y }}">
+                                    {{ markdown ( index .TestInfo 0 ) }}
+                                </div>
+                            </td>
+                            <td class="align-top text-center">
+                                <span class="badge badge-pill badge-{{ if eq .State "PASS" }}primary{{ else if eq .State "WARN" }}warning{{ else }}danger{{ end }} m-0">{{ .State }}</span>
+                            </td>
+                            <td class="align-top text-center">
+                                <a class="link-dark" type="button"
+                                   data-toggle="collapse"
+                                   href="#info-{{ $i }}-{{ $y }}"
+                                   aria-expanded="false"
+                                   aria-controls="info-{{ $i }}-{{ $y }}"
+                                   title="Details">
+                                    <i class='eos-icons eos-18'>info</i>
+                                </a>
+                            </td>
+                        </tr>
+                    {{- else }}
+                        {{ template "empty_table_body" 4}}
+                    {{- end }}
+                    </tbody>
+                </table>
+            </div>
+        {{- end }}
     </div>
-    {{- end }}
-</div>
 {{ end }}

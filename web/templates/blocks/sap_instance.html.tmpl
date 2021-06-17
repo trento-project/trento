@@ -1,15 +1,15 @@
 {{ define "sap_instance" }}
-<dl class="inline">
-  <dt class="inline">Name</dt>
-  <dd class="inline">{{ (index .Properties "INSTANCE_NAME").Value }}</dd>
-  <dt class="inline">SID</dt>
-  <dd class="inline">{{ (index .Properties "SAPSYSTEMNAME").Value }}</dd>
-  <dt class="inline">Instance number</dt>
-  <dd class="inline">{{ (index .Properties "SAPSYSTEM").Value }}</a></dd>
-</dl>
-<div class='table-responsive'>
-    <table class='table eos-table'>
-        <thead>
+    <dl class="inline">
+        <dt class="inline">Name</dt>
+        <dd class="inline">{{ (index .Properties "INSTANCE_NAME").Value }}</dd>
+        <dt class="inline">SID</dt>
+        <dd class="inline">{{ (index .Properties "SAPSYSTEMNAME").Value }}</dd>
+        <dt class="inline">Instance number</dt>
+        <dd class="inline">{{ (index .Properties "SAPSYSTEM").Value }}</dd>
+    </dl>
+    <div class='table-responsive'>
+        <table class='table eos-table'>
+            <thead>
             <tr>
                 <th scope='col'>Process name</th>
                 <th scope='col'>Description</th>
@@ -18,22 +18,24 @@
                 <th scope='col'>Pid</th>
                 <th scope='col'>Status</th>
             </tr>
-        </thead>
-        <tbody>
+            </thead>
+            <tbody>
             {{- range .Processes }}
-            <tr>
-                <td>{{ .Name }}</td>
-                <td>{{ .Description }}</td>
-                <td>{{ .Starttime }}</td>
-                <td>{{ .Elapsedtime }}</td>
-                <td>{{ .Pid }}</td>
-                <td>
-                    {{- $Textstatus := .Textstatus }}
-                    <span class='badge badge-pill badge-{{ if eq $Textstatus "Running" }}primary{{ else }}danger{{ end }}'>{{ $Textstatus }}</span>
-                </td>
-            </tr>
+                <tr>
+                    <td>{{ .Name }}</td>
+                    <td>{{ .Description }}</td>
+                    <td>{{ .Starttime }}</td>
+                    <td>{{ .Elapsedtime }}</td>
+                    <td>{{ .Pid }}</td>
+                    <td>
+                        {{- $Textstatus := .Textstatus }}
+                        <span class='badge badge-pill badge-{{ if eq $Textstatus "Running" }}primary{{ else }}danger{{ end }}'>{{ $Textstatus }}</span>
+                    </td>
+                </tr>
+            {{- else }}
+                {{ template "empty_table_body" 6}}
             {{- end }}
-        </tbody>
-    </table>
-</div>
+            </tbody>
+        </table>
+    </div>
 {{ end }}

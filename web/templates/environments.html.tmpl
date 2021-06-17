@@ -1,9 +1,9 @@
 {{ define "content" }}
-<div class="col">
-    <h1>Environments</h1>
-    <div class='table-responsive'>
-        <table class='table eos-table'>
-            <thead>
+    <div class="col">
+        <h1>Environments</h1>
+        <div class='table-responsive'>
+            <table class='table eos-table'>
+                <thead>
                 <tr>
                     <th scope='col'>Environment</th>
                     <th scope='col'>Landscapes number</th>
@@ -11,31 +11,33 @@
                     <th scope='col'>Hosts number</th>
                     <th scope='col'>Status</th>
                 </tr>
-            </thead>
-            <tbody>
+                </thead>
+                <tbody>
                 {{- range .Environments }}
-                <tr class='clickable' onclick="window.location='/environments/{{ .Name }}'">
-                    <td>{{ .Name }}</td>
-                    <td>{{ len .Landscapes }}</td>
-                    {{- $SAPSystemNumber := 0 }}
-                    {{- $HostsNumber := 0 }}
-                    {{- range .Landscapes }}
-                    {{- $SAPSystemNumber = sum $SAPSystemNumber (len .SAPSystems) }}
-                    {{- range .SAPSystems }}
-                    {{- $HostsNumber = sum $HostsNumber (len .Hosts) }}
-                    {{- end }}
-                    {{- end }}
-                    <td>{{ $SAPSystemNumber }}</td>
-                    <td>{{ $HostsNumber }}</td>
-                    <td>
-                        {{- $Health := .Health }}
-                        {{- /* I`t would be nice to show the summary of the the health as tooltip. How many passing, critical and warning in a nice an visual way */ -}}
-                        <span class='badge badge-pill badge-{{ if eq $Health.Health "passing" }}primary{{ else if eq $Health.Health "warning" }}warning{{ else }}danger{{ end }}'>{{ $Health.Health }}</span>
-                    </td>
-                </tr>
+                    <tr class='clickable' onclick="window.location='/environments/{{ .Name }}'">
+                        <td>{{ .Name }}</td>
+                        <td>{{ len .Landscapes }}</td>
+                        {{- $SAPSystemNumber := 0 }}
+                        {{- $HostsNumber := 0 }}
+                        {{- range .Landscapes }}
+                            {{- $SAPSystemNumber = sum $SAPSystemNumber (len .SAPSystems) }}
+                            {{- range .SAPSystems }}
+                                {{- $HostsNumber = sum $HostsNumber (len .Hosts) }}
+                            {{- end }}
+                        {{- end }}
+                        <td>{{ $SAPSystemNumber }}</td>
+                        <td>{{ $HostsNumber }}</td>
+                        <td>
+                            {{- $Health := .Health }}
+                            {{- /* I`t would be nice to show the summary of the the health as tooltip. How many passing, critical and warning in a nice an visual way */ -}}
+                            <span class='badge badge-pill badge-{{ if eq $Health.Health "passing" }}primary{{ else if eq $Health.Health "warning" }}warning{{ else }}danger{{ end }}'>{{ $Health.Health }}</span>
+                        </td>
+                    </tr>
+                {{- else }}
+                    {{ template "empty_table_body" 5}}
                 {{- end }}
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     </div>
-</div>
 {{ end }}

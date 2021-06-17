@@ -1,22 +1,22 @@
 {{ define "landscapes_row" }}
-{{- $EnvName := .Name }}
-{{- range .Landscapes }}
-<tr class='clickable' onclick="window.location='/landscapes/{{ .Name }}?environment={{ $EnvName }}'">
-    <td>{{ .Name }}</td>
-    <td><a href="/environments/{{ $EnvName }}">{{ $EnvName }}</a></td>
-    {{- $SAPSystemNumber := 0 }}
-    {{- $HostsNumber := 0 }}
-    {{- $SAPSystemNumber = sum $SAPSystemNumber (len .SAPSystems) }}
-    {{- range .SAPSystems }}
-    {{- $HostsNumber = sum $HostsNumber (len .Hosts) }}
+    {{- $EnvName := .Name }}
+    {{- range .Landscapes }}
+        <tr class='clickable' onclick="window.location='/landscapes/{{ .Name }}?environment={{ $EnvName }}'">
+            <td>{{ .Name }}</td>
+            <td><a href="/environments/{{ $EnvName }}">{{ $EnvName }}</a></td>
+            {{- $SAPSystemNumber := 0 }}
+            {{- $HostsNumber := 0 }}
+            {{- $SAPSystemNumber = sum $SAPSystemNumber (len .SAPSystems) }}
+            {{- range .SAPSystems }}
+                {{- $HostsNumber = sum $HostsNumber (len .Hosts) }}
+            {{- end }}
+            <td>{{ $SAPSystemNumber }}</td>
+            <td>{{ $HostsNumber }}</td>
+            <td>
+                {{- $Health := .Health }}
+                {{- /* It would be nice to show the summary of the the health as tooltip. How many passing, critical and warning in a nice an visual way */ -}}
+                <span class='badge badge-pill badge-{{ if eq $Health.Health "passing" }}primary{{ else if eq $Health.Health "warning" }}warning{{ else }}danger{{ end }}'>{{ $Health.Health }}</span>
+            </td>
+        </tr>
     {{- end }}
-    <td>{{ $SAPSystemNumber }}</td>
-    <td>{{ $HostsNumber }}</td>
-    <td>
-        {{- $Health := .Health }}
-        {{- /* It would be nice to show the summary of the the health as tooltip. How many passing, critical and warning in a nice an visual way */ -}}
-        <span class='badge badge-pill badge-{{ if eq $Health.Health "passing" }}primary{{ else if eq $Health.Health "warning" }}warning{{ else }}danger{{ end }}'>{{ $Health.Health }}</span>
-    </td>
-</tr>
-{{- end }}
 {{ end }}

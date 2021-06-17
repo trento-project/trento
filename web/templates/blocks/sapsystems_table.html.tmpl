@@ -1,7 +1,7 @@
 {{ define "sapsystems_table" }}
-<div class='table-responsive'>
-    <table class='table eos-table'>
-        <thead>
+    <div class='table-responsive'>
+        <table class='table eos-table'>
+            <thead>
             <tr>
                 <th scope='col'>SAP System</th>
                 <th scope='col'>Environment</th>
@@ -9,48 +9,54 @@
                 <th scope='col'>Hosts number</th>
                 <th scope='col'>Status</th>
             </tr>
-        </thead>
-        <tbody>
+            </thead>
+            <tbody>
             {{- if .EnvName }}
-            {{- $EnvName := .EnvName }}
-            {{- $LandName := .LandName }}
-            {{- $Env := index .Environments .EnvName }}
-            {{- $Land := index $Env.Landscapes .LandName }}
-            {{- range $Land.SAPSystems }}
-            <tr class='clickable' onclick="window.location='/sapsystems/{{ .Name }}?environment={{ $EnvName }}&landscape={{ $LandName }}'">
-                <td>{{ .Name }}</td>
-                <td><a href="/landscapes?environment={{ $EnvName }}">{{ $EnvName }}</a></td>
-                <td><a href="/sapsystems?landscape={{ $LandName }}">{{ $LandName }}</a></td>
-                <td>{{ len .Hosts }}</td>
-                <td>
-                    {{- $Health := .Health }}
-                    {{- /* It would be nice to show the summary of the the health as tooltip. How many passing, critical and warning in a nice an visual way */ -}}
-                    <span class='badge badge-pill badge-{{ if eq $Health.Health "passing" }}primary{{ else if eq $Health.Health "warning" }}warning{{ else }}danger{{ end }}'>{{ $Health.Health }}</span>
-                </td>
-            </tr>
-            {{- end }}
+                {{- $EnvName := .EnvName }}
+                {{- $LandName := .LandName }}
+                {{- $Env := index .Environments .EnvName }}
+                {{- $Land := index $Env.Landscapes .LandName }}
+                {{- range $Land.SAPSystems }}
+                    <tr class='clickable'
+                        onclick="window.location='/sapsystems/{{ .Name }}?environment={{ $EnvName }}&landscape={{ $LandName }}'">
+                        <td>{{ .Name }}</td>
+                        <td><a href="/landscapes?environment={{ $EnvName }}">{{ $EnvName }}</a></td>
+                        <td><a href="/sapsystems?landscape={{ $LandName }}">{{ $LandName }}</a></td>
+                        <td>{{ len .Hosts }}</td>
+                        <td>
+                            {{- $Health := .Health }}
+                            {{- /* It would be nice to show the summary of the the health as tooltip. How many passing, critical and warning in a nice an visual way */ -}}
+                            <span class='badge badge-pill badge-{{ if eq $Health.Health "passing" }}primary{{ else if eq $Health.Health "warning" }}warning{{ else }}danger{{ end }}'>{{ $Health.Health }}</span>
+                        </td>
+                    </tr>
+                {{- else }}
+                    {{ template "empty_table_body" 5}}
+                {{- end }}
             {{- else }}
-            {{- range .Environments }}
-            {{- $EnvName := .Name }}
-            {{- range .Landscapes }}
-            {{- $LandName := .Name }}
-            {{- range .SAPSystems }}
-            <tr class='clickable' onclick="window.location='/sapsystems/{{ .Name }}?environment={{ $EnvName }}&landscape={{ $LandName }}'">
-                <td>{{ .Name }}</td>
-                <td><a href="/landscapes?environment={{ $EnvName }}">{{ $EnvName }}</a></td>
-                <td><a href="/sapsystems?landscape={{ $LandName }}">{{ $LandName }}</a></td>
-                <td>{{ len .Hosts }}</td>
-                <td>
-                    {{- $Health := .Health }}
-                    {{- /* It would be nice to show the summary of the the health as tooltip. How many passing, critical and warning in a nice an visual way */ -}}
-                    <span class='badge badge-pill badge-{{ if eq $Health.Health "passing" }}primary{{ else if eq $Health.Health "warning" }}warning{{ else }}danger{{ end }}'>{{ $Health.Health }}</span>
-                </td>
-            </tr>
+                {{- range .Environments }}
+                    {{- $EnvName := .Name }}
+                    {{- range .Landscapes }}
+                        {{- $LandName := .Name }}
+                        {{- range .SAPSystems }}
+                            <tr class='clickable'
+                                onclick="window.location='/sapsystems/{{ .Name }}?environment={{ $EnvName }}&landscape={{ $LandName }}'">
+                                <td>{{ .Name }}</td>
+                                <td><a href="/landscapes?environment={{ $EnvName }}">{{ $EnvName }}</a></td>
+                                <td><a href="/sapsystems?landscape={{ $LandName }}">{{ $LandName }}</a></td>
+                                <td>{{ len .Hosts }}</td>
+                                <td>
+                                    {{- $Health := .Health }}
+                                    {{- /* It would be nice to show the summary of the the health as tooltip. How many passing, critical and warning in a nice an visual way */ -}}
+                                    <span class='badge badge-pill badge-{{ if eq $Health.Health "passing" }}primary{{ else if eq $Health.Health "warning" }}warning{{ else }}danger{{ end }}'>{{ $Health.Health }}</span>
+                                </td>
+                            </tr>
+                        {{- end }}
+                    {{- end }}
+                {{- else }}
+                    {{ template "empty_table_body" 5}}
+                {{- end }}
             {{- end }}
-            {{- end }}
-            {{- end }}
-            {{- end }}
-        </tbody>
-    </table>
-</div>
+            </tbody>
+        </table>
+    </div>
 {{ end }}

@@ -1,38 +1,42 @@
 {{ define "content" }}
-<div class="col">
-    <h6><a href="/hosts">Hosts</a> > {{ .Host.Name }}</h6>
-    <h1>Host details</h1>
-    <dl class="inline">
-      <dt class="inline">Name</dt>
-      <dd class="inline">{{ .Host.Name }}</dd>
-      {{ $Env := index .Host.TrentoMeta "trento-sap-environment" }}
-      {{ $Land := index .Host.TrentoMeta "trento-sap-landscape" }}
-      {{ $SAPSys := index .Host.TrentoMeta "trento-sap-system" }}
-      <dt class="inline">Environment</dt>
-      <dd class="inline"><a href="/environments/{{ $Env }}">{{ $Env }}</a></dd>
-      <dt class="inline">Landscape</dt>
-      <dd class="inline"><a href="/landscapes/{{ $Land }}?environment={{ $Env }}">{{ $Land }}</a></dd>
-      <dt class="inline">SAP System</dt>
-      <dd class="inline"><a href="/sapsystems/{{ $SAPSys }}?environment={{ $Env }}&landscape={{ $Land }}">{{ $SAPSys }}</a></dd>
-      <dt class="inline">Cluster</dt>
-      <dd class="inline"><a href="/clusters/{{ index .Host.TrentoMeta "trento-ha-cluster" }}">{{ index .Host.TrentoMeta "trento-ha-cluster" }}</a></dd>
-    </dl>
-    <hr/>
-    {{- if ne (len .SAPSystems) 0 }}
-    <p class='clearfix'/>
-    <h2>SAP instances</h2>
-    {{- range $Key, $SAPSystem := .SAPSystems }}
-    {{- range $Key, $SAPInstance := $SAPSystem.Instances }}
-    {{ template "sap_instance" $SAPInstance.SAPControl }}
-    {{- end }}
-    {{- end }}
-    <hr/>
-    {{- end }}
-    <p class='clearfix'/>
-    <h2>Checks</h2>
-    <div class='table-responsive'>
-        <table class='table eos-table'>
-            <thead>
+    <div class="col">
+        <h6><a href="/hosts">Hosts</a> > {{ .Host.Name }}</h6>
+        <h1>Host details</h1>
+        <dl class="inline">
+            <dt class="inline">Name</dt>
+            <dd class="inline">{{ .Host.Name }}</dd>
+            {{ $Env := index .Host.TrentoMeta "trento-sap-environment" }}
+            {{ $Land := index .Host.TrentoMeta "trento-sap-landscape" }}
+            {{ $SAPSys := index .Host.TrentoMeta "trento-sap-system" }}
+            <dt class="inline">Environment</dt>
+            <dd class="inline"><a href="/environments/{{ $Env }}">{{ $Env }}</a></dd>
+            <dt class="inline">Landscape</dt>
+            <dd class="inline"><a href="/landscapes/{{ $Land }}?environment={{ $Env }}">{{ $Land }}</a></dd>
+            <dt class="inline">SAP System</dt>
+            <dd class="inline"><a
+                        href="/sapsystems/{{ $SAPSys }}?environment={{ $Env }}&landscape={{ $Land }}">{{ $SAPSys }}</a>
+            </dd>
+            <dt class="inline">Cluster</dt>
+            <dd class="inline"><a
+                        href="/clusters/{{ index .Host.TrentoMeta "trento-ha-cluster" }}">{{ index .Host.TrentoMeta "trento-ha-cluster" }}</a>
+            </dd>
+        </dl>
+        <hr/>
+        {{- if ne (len .SAPSystems) 0 }}
+            <p class='clearfix'></p>
+            <h2>SAP instances</h2>
+            {{- range $Key, $SAPSystem := .SAPSystems }}
+                {{- range $Key, $SAPInstance := $SAPSystem.Instances }}
+                    {{ template "sap_instance" $SAPInstance.SAPControl }}
+                {{- end }}
+            {{- end }}
+            <hr/>
+        {{- end }}
+        <p class='clearfix'></p>
+        <h2>Checks</h2>
+        <div class='table-responsive'>
+            <table class='table eos-table'>
+                <thead>
                 <tr>
                     <th scope='col'>Check name</th>
                     <th scope='col'>CheckId</th>
@@ -40,22 +44,25 @@
                     <th scope='col'>Output</th>
                     <th scope='col'>Status</th>
                 </tr>
-            </thead>
-            <tbody>
+                </thead>
+                <tbody>
                 {{- $HostName := .Host.Name }}
                 {{- range .HealthChecks }}
-                <tr {{ if eq .CheckID "ha_config_checker" }}class='clickable' onclick="window.location='/hosts/{{ $HostName }}/ha-checks'"{{ end }}>
-                    <td>{{ .Name }}</td>
-                    <td>{{ .CheckID }}</td>
-                    <td>{{ .Notes }}</td>
-                    <td class='show-white-space'>{{ .Output }}</td>
-                    <td>
-                        <span class='badge badge-pill badge-{{ if eq .Status "passing" }}primary{{ else if eq .Status "warning" }}warning{{ else }}danger{{ end }}'>{{ .Status }}</span>
-                    </td>
-                </tr>
+                    <tr {{ if eq .CheckID "ha_config_checker" }}class='clickable'
+                        onclick="window.location='/hosts/{{ $HostName }}/ha-checks'"{{ end }}>
+                        <td>{{ .Name }}</td>
+                        <td>{{ .CheckID }}</td>
+                        <td>{{ .Notes }}</td>
+                        <td class='show-white-space'>{{ .Output }}</td>
+                        <td>
+                            <span class='badge badge-pill badge-{{ if eq .Status "passing" }}primary{{ else if eq .Status "warning" }}warning{{ else }}danger{{ end }}'>{{ .Status }}</span>
+                        </td>
+                    </tr>
+                {{- else }}
+                    {{ template "empty_table_body" 5}}
                 {{- end }}
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     </div>
-</div>
 {{ end }}

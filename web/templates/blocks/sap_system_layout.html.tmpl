@@ -1,7 +1,7 @@
 {{ define "sap_system_layout" }}
-<div class='table-responsive'>
-    <table class='table eos-table'>
-        <thead>
+    <div class='table-responsive'>
+        <table class='table eos-table'>
+            <thead>
             <tr>
                 <th scope='col'>Hostname</th>
                 <th scope='col'>Instance</th>
@@ -11,29 +11,31 @@
                 <th scope='col'>Start priority</th>
                 <th scope='col'>Status</th>
             </tr>
-        </thead>
-        <tbody>
-          {{ $SAPSystemName := .Name }}
-          {{- range $Index, $Host := .Hosts }}
-          {{ $SAPSystem := index $Host.GetSAPSystems $SAPSystemName }}
-          {{- range $Index, $SAPInstance := $SAPSystem.Instances }}
-          {{- $SAPControlInstances := $SAPInstance.SAPControl.Instances }}
-          {{- range $Index, $Instance := $SAPControlInstances }}
-          <tr>
-              <td>{{ $Instance.Hostname }}</td>
-              <td>{{ $Instance.InstanceNr }}</td>
-              <td>{{ $Instance.Features }}</td>
-              <td>{{ $Instance.HttpPort }}</td>
-              <td>{{ $Instance.HttpsPort }}</td>
-              <td>{{ $Instance.StartPriority }}</td>
-              <td>
-                  <span class='badge badge-pill badge-{{ if eq $Instance.Dispstatus "SAPControl-GREEN" }}primary{{ else if eq $Instance.Dispstatus "SAPControl-YELLOW" }}warning{{ else if eq $Instance.Dispstatus "SAPControl-GRAY" }}secondary{{ else }}danger{{ end }}'>{{ $Instance.Dispstatus }}</span>
-              </td>
-          </tr>
-          {{- end }}
-          {{- end }}
-          {{- end }}
-        </tbody>
-    </table>
-</div>
+            </thead>
+            <tbody>
+            {{ $SAPSystemName := .Name }}
+            {{- range $Index, $Host := .Hosts }}
+                {{ $SAPSystem := index $Host.GetSAPSystems $SAPSystemName }}
+                {{- range $Index, $SAPInstance := $SAPSystem.Instances }}
+                    {{- $SAPControlInstances := $SAPInstance.SAPControl.Instances }}
+                    {{- range $Index, $Instance := $SAPControlInstances }}
+                        <tr>
+                            <td>{{ $Instance.Hostname }}</td>
+                            <td>{{ $Instance.InstanceNr }}</td>
+                            <td>{{ $Instance.Features }}</td>
+                            <td>{{ $Instance.HttpPort }}</td>
+                            <td>{{ $Instance.HttpsPort }}</td>
+                            <td>{{ $Instance.StartPriority }}</td>
+                            <td>
+                                <span class='badge badge-pill badge-{{ if eq $Instance.Dispstatus "SAPControl-GREEN" }}primary{{ else if eq $Instance.Dispstatus "SAPControl-YELLOW" }}warning{{ else if eq $Instance.Dispstatus "SAPControl-GRAY" }}secondary{{ else }}danger{{ end }}'>{{ $Instance.Dispstatus }}</span>
+                            </td>
+                        </tr>
+                    {{- end }}
+                {{- end }}
+            {{- else }}
+                {{ template "empty_table_body" 7}}
+            {{- end }}
+            </tbody>
+        </table>
+    </div>
 {{ end }}

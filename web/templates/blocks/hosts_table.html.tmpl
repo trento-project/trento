@@ -1,7 +1,7 @@
 {{ define "hosts_table" }}
-<div class='table-responsive'>
-    <table class='table eos-table'>
-        <thead>
+    <div class='table-responsive'>
+        <table class='table eos-table'>
+            <thead>
             <tr>
                 <th scope='col'>Name</th>
                 <th scope='col'>Address</th>
@@ -9,28 +9,33 @@
                 <th scope='col'>Tags</th>
                 <th scope='col'>Status</th>
             </tr>
-        </thead>
-        <tbody>
+            </thead>
+            <tbody>
             {{- range .Hosts }}
-            <tr class='clickable' onclick="window.location='/hosts/{{ .Name }}'">
-                <td>{{ .Name }}</td>
-                <td>{{ .Address }}</td>
-                <td><a href="/clusters/{{ index .TrentoMeta "trento-ha-cluster" }}">{{ index .TrentoMeta "trento-ha-cluster" }}</a></td>
-                <td>
-                    {{- range $Key, $Value := .TrentoMeta }}
-                    {{- if eq $Key "trento-ha-cluster" }}
-                    {{- else }}
-                    <span class='badge badge-pill badge-info'>{{ $Value }}</span>
-                    {{- end }}
-                    {{- end }}
-                </td>
-                <td>
-                    {{- $Health := .Health }}
-                    <span class='badge badge-pill badge-{{ if eq $Health "passing" }}primary{{ else if eq $Health "warning" }}warning{{ else }}danger{{ end }}'>{{ $Health }}</span>
-                </td>
-            </tr>
+                <tr class='clickable' onclick="window.location='/hosts/{{ .Name }}'">
+                    <td>{{ .Name }}</td>
+                    <td>{{ .Address }}</td>
+                    <td>
+                        <a href="/clusters/{{ index .TrentoMeta "trento-ha-cluster" }}">{{ index .TrentoMeta "trento-ha-cluster" }}</a>
+                    </td>
+                    <td>
+                        {{- range $Key, $Value := .TrentoMeta }}
+                            {{- if eq $Key "trento-ha-cluster" }}
+                            {{- else }}
+                                <span class='badge badge-pill badge-info'>{{ $Value }}</span>
+                            {{- end }}
+                        {{- end }}
+                    </td>
+
+                    <td>
+                        {{- $Health := .Health }}
+                        <span class='badge badge-pill badge-{{ if eq $Health "passing" }}primary{{ else if eq $Health "warning" }}warning{{ else }}danger{{ end }}'>{{ $Health }}</span>
+                    </td>
+                </tr>
+            {{- else }}
+                {{ template "empty_table_body" 5}}
             {{- end }}
-        </tbody>
-    </table>
-</div>
+            </tbody>
+        </table>
+    </div>
 {{ end }}

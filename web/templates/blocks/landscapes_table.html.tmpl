@@ -1,6 +1,6 @@
 {{ define "landscapes_table" }}
-<table class='table eos-table'>
-    <thead>
+    <table class='table eos-table'>
+        <thead>
         <tr>
             <th scope='col'>Landscape</th>
             <th scope='col'>Environment</th>
@@ -8,17 +8,19 @@
             <th scope='col'>Hosts number</th>
             <th scope='col'>Status</th>
         </tr>
-    </thead>
-    <tbody>
+        </thead>
+        <tbody>
         {{- if .EnvName }}
-        {{ $EnvName := .EnvName }}
-        {{ $Env := index .Environments .EnvName }}
-        {{ template "landscapes_row" $Env }}
+            {{ $EnvName := .EnvName }}
+            {{ $Env := index .Environments .EnvName }}
+            {{ template "landscapes_row" $Env }}
         {{- else }}
-        {{- range .Environments }}
-        {{ template "landscapes_row" . }}
+            {{- range .Environments }}
+                {{ template "landscapes_row" . }}
+            {{- else }}
+                {{ template "empty_table_body" 5}}
+            {{- end }}
         {{- end }}
-        {{- end }}
-    </tbody>
-</table>
+        </tbody>
+    </table>
 {{ end }}

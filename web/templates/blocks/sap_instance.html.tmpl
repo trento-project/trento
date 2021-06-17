@@ -32,6 +32,10 @@
                         <span class='badge badge-pill badge-{{ if eq $Textstatus "Running" }}primary{{ else }}danger{{ end }}'>{{ $Textstatus }}</span>
                     </td>
                 </tr>
+            {{- else }}
+                <tr>
+                    <td colspan="6">There are currently no records to be shown</td>
+                </tr>
             {{- end }}
             </tbody>
         </table>

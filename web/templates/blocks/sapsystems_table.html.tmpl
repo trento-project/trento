@@ -29,6 +29,10 @@
                             <span class='badge badge-pill badge-{{ if eq $Health.Health "passing" }}primary{{ else if eq $Health.Health "warning" }}warning{{ else }}danger{{ end }}'>{{ $Health.Health }}</span>
                         </td>
                     </tr>
+                {{- else }}
+                    <tr>
+                        <td colspan="5">There are currently no records to be shown</td>
+                    </tr>
                 {{- end }}
             {{- else }}
                 {{- range .Environments }}
@@ -50,6 +54,10 @@
                             </tr>
                         {{- end }}
                     {{- end }}
+                {{- else }}
+                    <tr>
+                        <td colspan="5">There are currently no records to be shown</td>
+                    </tr>
                 {{- end }}
             {{- end }}
             </tbody>

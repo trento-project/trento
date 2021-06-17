@@ -58,6 +58,10 @@
                             <span class='badge badge-pill badge-{{ if eq .Status "passing" }}primary{{ else if eq .Status "warning" }}warning{{ else }}danger{{ end }}'>{{ .Status }}</span>
                         </td>
                     </tr>
+                {{- else }}
+                    <tr>
+                        <td colspan="5">There are currently no records to be shown</td>
+                    </tr>
                 {{- end }}
                 </tbody>
             </table>

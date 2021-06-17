@@ -92,6 +92,14 @@ func TestStore(t *testing.T) {
 						},
 					},
 				},
+				SystemReplication: SystemReplication{
+					"key1":      "value1",
+					"key2/key3": "value2",
+				},
+				HostConfiguration: HostConfiguration{
+					"key10":       "value10",
+					"key20/key30": "value20",
+				},
 			},
 		},
 	}
@@ -168,6 +176,14 @@ func TestStore(t *testing.T) {
 							Dispstatus:    sapcontrol.STATECOLOR_YELLOW,
 						},
 					},
+				},
+				SystemReplication: SystemReplication{
+					"key1":      "value1",
+					"key2/key3": "value2",
+				},
+				HostConfiguration: HostConfiguration{
+					"key10":       "value10",
+					"key20/key30": "value20",
 				},
 			},
 		},
@@ -254,6 +270,18 @@ func TestLoad(t *testing.T) {
 							},
 						},
 					},
+					"systemreplication": map[string]interface{}{
+						"key1": "value1",
+						"key2": map[string]interface{}{
+							"key3": "value2",
+						},
+					},
+					"hostconfiguration": map[string]interface{}{
+						"key10": "value10",
+						"key20": map[string]interface{}{
+							"key30": "value20",
+						},
+					},
 				},
 			},
 		},
@@ -332,6 +360,18 @@ func TestLoad(t *testing.T) {
 								Features:      "some other features",
 								Dispstatus:    sapcontrol.STATECOLOR_YELLOW,
 							},
+						},
+					},
+					SystemReplication: SystemReplication{
+						"key1": "value1",
+						"key2": map[string]interface{}{
+							"key3": "value2",
+						},
+					},
+					HostConfiguration: HostConfiguration{
+						"key10": "value10",
+						"key20": map[string]interface{}{
+							"key30": "value20",
 						},
 					},
 				},

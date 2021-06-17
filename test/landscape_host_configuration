@@ -1,0 +1,20 @@
+SAPCONTROL-OK: <begin>
+hostActualRoles=worker
+removeStatus=
+nameServerConfigRole=master 1
+failoverStatus=
+hostConfigRoles=worker
+failoverActualGroup=default
+storageConfigPartition=1
+host=hana01
+indexServerConfigRole=worker
+failoverConfigGroup=default
+storageActualPartition=1
+indexServerActualRole=master
+nameServerActualRole=master
+hostActive=yes
+workerActualGroups=default
+workerConfigGroups=default
+hostStatus=ok
+storagePartition=1
+SAPCONTROL-OK: <end>

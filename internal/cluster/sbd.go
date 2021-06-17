@@ -12,6 +12,8 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/pkg/errors"
+
+	"github.com/trento-project/trento/internal"
 )
 
 const (
@@ -24,8 +26,8 @@ const (
 
 type SBD struct {
 	cluster string
-	Devices []*SBDDevice      `mapstructure:"devices,omitempty"`
-	Config  map[string]string `mapstructure:"config,omitempty"`
+	Devices []*SBDDevice           `mapstructure:"devices,omitempty"`
+	Config  map[string]interface{} `mapstructure:"config,omitempty"`
 }
 
 type SBDDevice struct {
@@ -68,7 +70,7 @@ func NewSBD(cluster, sbdPath, sbdConfigPath string) (SBD, error) {
 		return s, fmt.Errorf("could not find SBD_DEVICE entry in sbd config file")
 	}
 
-	for _, device := range strings.Split(c["SBD_DEVICE"], ";") {
+	for _, device := range strings.Split(c["SBD_DEVICE"].(string), ";") {
 		sbdDevice := NewSBDDevice(sbdPath, device)
 		err := sbdDevice.LoadDeviceData()
 		if err != nil {
@@ -81,9 +83,7 @@ func NewSBD(cluster, sbdPath, sbdConfigPath string) (SBD, error) {
 	return s, nil
 }
 
-func getSBDConfig(sbdConfigPath string) (map[string]string, error) {
-	configMap := make(map[string]string)
-
+func getSBDConfig(sbdConfigPath string) (map[string]interface{}, error) {
 	sbdConfFile, err := os.Open(sbdConfigPath)
 	if err != nil {
 		return nil, fmt.Errorf("could not open sbd config file %s", err)
@@ -97,12 +97,8 @@ func getSBDConfig(sbdConfigPath string) (map[string]string, error) {
 		return nil, fmt.Errorf("could not read sbd config file %s", err)
 	}
 
-	// Loop through sbd list output and find for matches
-	r := regexp.MustCompile(`(?m)^(\w+)=(\S[^#\s]*)`)
-	values := r.FindAllStringSubmatch(string(sbdConfigRaw), -1)
-	for _, match := range values {
-		configMap[match[1]] = match[2]
-	}
+	configMap := internal.FindMatches(`(?m)^(\w+)=(\S[^#\s]*)`, sbdConfigRaw)
+
 	return configMap, nil
 }
 

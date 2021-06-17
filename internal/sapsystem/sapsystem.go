@@ -2,7 +2,9 @@ package sapsystem
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
 	"regexp"
 	"strings"
@@ -19,6 +21,7 @@ const (
 	sapInstallationPath  string = "/usr/sap"
 	sapIdentifierPattern string = "^[A-Z][A-Z0-9]{2}$" // PRD, HA1, etc
 	sapInstancePattern   string = "^[A-Z]+([0-9]{2})$" // HDB00, ASCS00, ERS10, etc
+	sapDefaultProfile    string = "DEFAULT.PFL"
 )
 
 const (
@@ -35,14 +38,24 @@ type SAPSystem struct {
 	//Id         string                `mapstructure:"id,omitempty"`
 	SID       string                  `mapstructure:"sid,omitempty"`
 	Type      int                     `mapstructure:"type,omitempty"`
+	Profile   SAPProfile              `mapstructure:"profile,omitempty"`
 	Instances map[string]*SAPInstance `mapstructure:"instances,omitempty"`
 }
+
+// The value is interface{} as some of the entries in the SAP profiles files and commands
+// are already using "/", so the result will be a map of strings/maps
+type SAPProfile map[string]interface{}
+type SystemReplication map[string]interface{}
+type HostConfiguration map[string]interface{}
 
 type SAPInstance struct {
 	Name       string      `mapstructure:"name,omitempty"`
 	Type       int         `mapstructure:"type,omitempty"`
 	Host       string      `mapstructure:"host,omitempty"`
 	SAPControl *SAPControl `mapstructure:"sapcontrol,omitempty"`
+	// Only for Database type
+	SystemReplication SystemReplication `mapstructure:"systemreplication,omitempty"`
+	HostConfiguration HostConfiguration `mapstructure:"hostconfiguration,omitempty"`
 }
 
 type SAPControl struct {
@@ -55,6 +68,12 @@ type SAPControl struct {
 var newWebService = func(instNumber string) sapcontrol.WebService {
 	return sapcontrol.NewWebService(instNumber)
 }
+
+//go:generate mockery --name=CustomCommand
+
+type CustomCommand func(name string, arg ...string) *exec.Cmd
+
+var customExecCommand CustomCommand = exec.Command
 
 func NewSAPSystemsList() (SAPSystemsList, error) {
 	var systems = SAPSystemsList{}
@@ -83,6 +102,14 @@ func NewSAPSystem(fs afero.Fs, sysPath string) (*SAPSystem, error) {
 		SID:       sysPath[strings.LastIndex(sysPath, "/")+1:],
 		Instances: make(map[string]*SAPInstance),
 	}
+
+	profilePath := getProfilePath(sysPath)
+	profile, err := getProfileData(fs, profilePath)
+	if err != nil {
+		log.Print(err.Error())
+		return system, err
+	}
+	system.Profile = profile
 
 	instPaths, err := findInstances(fs, sysPath)
 	if err != nil {
@@ -154,6 +181,30 @@ func findInstances(fs afero.Fs, sapPath string) ([][]string, error) {
 	return instances, nil
 }
 
+func getProfilePath(sysPath string) string {
+	return path.Join(sysPath, "SYS", "profile", sapDefaultProfile)
+}
+
+// Get SAP profile file content
+func getProfileData(fs afero.Fs, profilePath string) (map[string]interface{}, error) {
+	profile, err := fs.Open(profilePath)
+	if err != nil {
+		return nil, fmt.Errorf("could not open profile file %s", err)
+	}
+
+	defer profile.Close()
+
+	profileRaw, err := ioutil.ReadAll(profile)
+
+	if err != nil {
+		return nil, fmt.Errorf("could not read profile file %s", err)
+	}
+
+	configMap := internal.FindMatches(`([\w\/]+)\s=\s(.+)`, profileRaw)
+
+	return configMap, nil
+}
+
 func NewSAPInstance(w sapcontrol.WebService) (*SAPInstance, error) {
 	host, _ := os.Hostname()
 	var sapInstance = &SAPInstance{
@@ -175,7 +226,33 @@ func NewSAPInstance(w sapcontrol.WebService) (*SAPInstance, error) {
 		sapInstance.Type = Application
 	}
 
+	if sapInstance.Type == Database {
+		sid := sapInstance.SAPControl.Properties["SAPSYSTEMNAME"].Value
+		sapInstance.SystemReplication = systemReplicationStatus(sid, sapInstance.Name)
+		sapInstance.HostConfiguration = landscapeHostConfiguration(sid, sapInstance.Name)
+	}
+
 	return sapInstance, nil
+}
+
+func runPythonSupport(sid, instance, script string) map[string]interface{} {
+	user := fmt.Sprintf("%sadm", strings.ToLower(sid))
+	cmdPath := path.Join("/usr/sap", sid, instance, "exe/python_support", script)
+	cmd := fmt.Sprintf("python %s --sapcontrol=1", cmdPath)
+	// Even with a error return code, some data is available
+	srData, _ := customExecCommand("su", "-lc", cmd, user).Output()
+
+	dataMap := internal.FindMatches(`(\S+)=(.*)`, srData)
+
+	return dataMap
+}
+
+func systemReplicationStatus(sid, instance string) map[string]interface{} {
+	return runPythonSupport(sid, instance, "systemReplicationStatus.py")
+}
+
+func landscapeHostConfiguration(sid, instance string) map[string]interface{} {
+	return runPythonSupport(sid, instance, "landscapeHostConfiguration.py")
 }
 
 func NewSAPControl(w sapcontrol.WebService) (*SAPControl, error) {

@@ -1,0 +1,38 @@
+name: 'Deploy'
+description: 'Deploy trento'
+inputs:
+  role:
+    description: 'Trento role'
+    required: true
+    default: 'agent'
+runs:
+  using: "composite"
+  steps:
+    - name: stop-trento
+      run: sudo systemctl stop trento-${{ inputs.role }}
+      shell: bash
+    - name: uncompress
+      run: |
+        gunzip -f trento-amd64.gz
+        mv trento-amd64 trento
+      shell: bash
+    - name: chmod
+      run: chmod +x trento
+      shell: bash
+    - name: deploy-binary
+      run: rsync -av trento /srv/trento/
+      shell: bash
+    - name: deploy-rules
+      run: |
+        if [ "${{ inputs.role }}" = "agent" ]; then
+          rm -rf /srv/trento/examples
+          mkdir /srv/trento/examples
+          mv *.yaml /srv/trento/examples/
+        fi
+      shell: bash
+    - name: start-consul
+      run: sudo systemctl start consul
+      shell: bash
+    - name: start-trento
+      run: sudo systemctl start trento-${{ inputs.role }}
+      shell: bash

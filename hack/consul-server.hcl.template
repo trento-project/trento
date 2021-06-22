@@ -1,0 +1,12 @@
+data_dir = "/srv/consul/data/"
+log_level = "DEBUG"
+
+datacenter = "dc1"
+
+ui = true
+
+bind_addr = "@BIND_ADDR@"
+client_addr = "0.0.0.0"
+
+server = true
+bootstrap_expect = 1

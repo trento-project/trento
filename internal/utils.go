@@ -5,6 +5,8 @@ import (
 	"encoding/hex"
 	"io"
 	"os"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func Contains(s []string, str string) bool {
@@ -29,4 +31,20 @@ func Md5sum(filePath string) (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(hash.Sum(nil)), nil
+}
+
+func SetLogLevel(level string) {
+	switch level {
+	case "error":
+		log.SetLevel(log.ErrorLevel)
+	case "warn":
+		log.SetLevel(log.WarnLevel)
+	case "info":
+		log.SetLevel(log.InfoLevel)
+	case "debug":
+		log.SetLevel(log.DebugLevel)
+	default:
+		log.Warnln("Unrecognized minimum log level; using 'info' as default")
+		log.SetLevel(log.InfoLevel)
+	}
 }

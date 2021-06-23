@@ -11,9 +11,11 @@ import (
 
 	"github.com/trento-project/trento/cmd/agent"
 	"github.com/trento-project/trento/cmd/web"
+	"github.com/trento-project/trento/internal"
 )
 
 var cfgFile string
+var logLevel string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -32,6 +34,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.trento.yaml)")
+	rootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "", "then minimum severity (error, warn, info, debug) of logs to output")
 	rootCmd.AddCommand(web.NewWebCmd())
 	rootCmd.AddCommand(agent.NewAgentCmd())
 }
@@ -50,6 +53,11 @@ func initConfig() {
 		viper.AddConfigPath(home)
 		viper.SetConfigName(".trento")
 	}
+
+	if logLevel == "" {
+		logLevel = "info"
+	}
+	internal.SetLogLevel(logLevel)
 
 	viper.AutomaticEnv() // read in environment variables that match
 

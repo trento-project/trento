@@ -439,12 +439,12 @@ groups:
             - flag: "passed"
         remediation: |
           ## Abstract
-          For SAP HANA 1.0 you need version SPS10 rev3, SPS11 or newer.
+          For SAP HANA 1.0 you need version SPS10 rev3, SPS11 or newer.  
           SAP HANA 2.0 is supported with all known SPS versions.
-
+          
           ## Remediation
-          T.B.A. (IMHO the user would really hate to read a great advice like "Install compatible HANA and SPS")
-
+          Update SAP HANA to a supported version.
+          
           ## References
           - section 2 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
         scored: true

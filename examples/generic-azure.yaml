@@ -638,3 +638,38 @@ groups:
           ## References
           - Cluster installation in https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker
         scored: false
+      - id: 1.5.2
+        description: "hacluster password is not linux"
+        audit: |
+          function attemt_login {
+           /usr/bin/expect << 'EOF'
+           set timeout 5
+           spawn ssh -o "StrictHostKeyChecking no" hacluster@127.0.0.1 :
+           expect "assword:"
+           send -- "linux\r"
+           expect {
+             "assword:" { exit 1}
+             eof { exit 0 }
+           }
+
+           foreach {pid spawnid os_error_flag value} [wait] break
+           exit $value
+          EOF
+          return $?
+          }
+          # The test fails if we could successfully log into hacluster
+          if attemt_login; then echo passed; else echo blocked; fi
+        tests:
+          test_items:
+            - flag: blocked
+        remediation: |
+          ## Abstract
+          The password of the hacluster user should be changed after setting
+          up the clsuter
+
+          ## Remediation
+          ```sudo passwd hacluster```
+
+          ## References
+          - section 9.1.2 https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
+        scored: true

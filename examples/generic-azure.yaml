@@ -658,7 +658,7 @@ groups:
           return $?
           }
           # The test fails if we could successfully log into hacluster
-          if attemt_login; then echo passed; else echo blocked; fi
+          if attempt_login; then echo passed; else echo blocked; fi
         tests:
           test_items:
             - flag: blocked

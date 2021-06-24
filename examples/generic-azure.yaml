@@ -641,7 +641,7 @@ groups:
       - id: 1.5.2
         description: "hacluster password is not linux"
         audit: |
-          function attemt_login {
+          function attempt_login {
            /usr/bin/expect << 'EOF'
            set timeout 5
            spawn ssh -o "StrictHostKeyChecking no" hacluster@127.0.0.1 :

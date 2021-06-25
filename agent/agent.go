@@ -3,7 +3,6 @@ package agent
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"sync"
 	"time"
@@ -11,6 +10,7 @@ import (
 	"github.com/hashicorp/consul-template/manager"
 	consulApi "github.com/hashicorp/consul/api"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/trento-project/trento/agent/discovery"
 	"github.com/trento-project/trento/internal/consul"

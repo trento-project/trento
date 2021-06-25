@@ -1,10 +1,8 @@
 package web
 
 import (
-	"log"
-
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-
 	"github.com/trento-project/trento/web"
 )
 

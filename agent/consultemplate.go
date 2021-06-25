@@ -1,13 +1,12 @@
 package agent
 
 import (
-	"log"
 	"path"
-
-	"github.com/pkg/errors"
 
 	consultemplateconfig "github.com/hashicorp/consul-template/config"
 	"github.com/hashicorp/consul-template/manager"
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 const nodeMetadataTemplate = `{

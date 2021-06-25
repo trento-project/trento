@@ -2,13 +2,13 @@ package sapsystem
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path"
 	"regexp"
 	"strings"
 
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 
 	"github.com/trento-project/trento/internal"

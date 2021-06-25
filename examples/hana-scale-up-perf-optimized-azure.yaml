@@ -304,7 +304,7 @@ groups:
     description: "Check OS and package versions are supported and up-to-date"
     checks:
       - id: 2.2.1
-        description: "Check the base product"
+        description: "Check a supported OS distribution is being used"
         # Assume the perf-optimized scenario and
         # check only that the base probuct is always sles_sap.prod (case-insensitively)
         audit: 'readlink /etc/products.d/baseproduct | sed -e "s/\(.*\)/\L\1/"'
@@ -312,10 +312,15 @@ groups:
           test_items:
             - flag: 'sles_sap.prod'
         remediation: |
-          Install a SUSE supported OS release
+          ## Abstract
+          SAPHanaSR is only supported on SUSE Linux Enterprise Server for SAP Applications.
+          ## Remediation
+          Please use SUSE Linux Enterprise Server for SAP Applications.
+          ## Reference
+          https://documentation.suse.com/en-us/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
         scored: true
       - id: 2.2.2
-        description: "Check os release"
+        description: "Check OS version"
         audit: 'echo VERSION_ID=$(cat /etc/os-release | grep VERSION_ID= | sed "s/[^0-9]//g")'
         tests:
           test_items:

@@ -639,7 +639,7 @@ groups:
           - Cluster installation in https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker
         scored: false
       - id: 1.5.2
-        description: "hacluster password is not linux"
+        description: "hacluster password is changed from default 'linux'"
         audit: |
           function attempt_login {
            /usr/bin/expect << 'EOF'

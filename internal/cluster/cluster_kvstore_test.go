@@ -161,7 +161,7 @@ func TestStore(t *testing.T) {
 					},
 				},
 			},
-			"config": map[string]string{
+			"config": map[string]interface{}{
 				"param1": "value1",
 				"param2": "value2",
 			},
@@ -227,7 +227,7 @@ func TestStore(t *testing.T) {
 					},
 				},
 			},
-			Config: map[string]string{
+			Config: map[string]interface{}{
 				"param1": "value1",
 				"param2": "value2",
 			},
@@ -366,7 +366,7 @@ func TestLoad(t *testing.T) {
 						},
 					},
 				},
-				Config: map[string]string{
+				Config: map[string]interface{}{
 					"param1": "value1",
 					"param2": "value2",
 				},

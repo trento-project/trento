@@ -255,7 +255,7 @@ func TestLoadDeviceDataError(t *testing.T) {
 func TestGetSBDConfig(t *testing.T) {
 	sbdConfig, err := getSBDConfig("../../test/sbd_config")
 
-	expectedConfig := map[string]string{
+	expectedConfig := map[string]interface{}{
 		"SBD_PACEMAKER":           "yes",
 		"SBD_STARTMODE":           "always",
 		"SBD_DELAY_START":         "no",
@@ -275,7 +275,7 @@ func TestGetSBDConfig(t *testing.T) {
 func TestGetSBDConfigError(t *testing.T) {
 	sbdConfig, err := getSBDConfig("notexist")
 
-	expectedConfig := map[string]string(nil)
+	expectedConfig := map[string]interface{}(nil)
 
 	assert.Equal(t, expectedConfig, sbdConfig)
 	assert.EqualError(t, err, "could not open sbd config file open notexist: no such file or directory")
@@ -289,7 +289,7 @@ func TestNewSBD(t *testing.T) {
 
 	expectedSbd := SBD{
 		cluster: "mycluster",
-		Config: map[string]string{
+		Config: map[string]interface{}{
 			"SBD_PACEMAKER":           "yes",
 			"SBD_STARTMODE":           "always",
 			"SBD_DELAY_START":         "no",
@@ -368,7 +368,7 @@ func TestNewSBDError(t *testing.T) {
 
 	expectedSbd := SBD{
 		cluster: "mycluster",
-		Config: map[string]string{
+		Config: map[string]interface{}{
 			"SBD_PACEMAKER":           "yes",
 			"SBD_STARTMODE":           "always",
 			"SBD_DELAY_START":         "no",

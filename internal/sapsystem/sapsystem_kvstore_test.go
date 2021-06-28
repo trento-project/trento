@@ -100,6 +100,14 @@ func TestStore(t *testing.T) {
 					"key10":       "value10",
 					"key20/key30": "value20",
 				},
+				HdbnsutilSRstate: HdbnsutilSRstate{
+					"online": "true",
+					"mode":   "primary",
+					"mapping/hana01": []interface{}{
+						"Site2/hana02",
+						"Site1/hana01",
+					},
+				},
 			},
 		},
 	}
@@ -184,6 +192,14 @@ func TestStore(t *testing.T) {
 				HostConfiguration: HostConfiguration{
 					"key10":       "value10",
 					"key20/key30": "value20",
+				},
+				HdbnsutilSRstate: HdbnsutilSRstate{
+					"online": "true",
+					"mode":   "primary",
+					"mapping/hana01": []interface{}{
+						"Site2/hana02",
+						"Site1/hana01",
+					},
 				},
 			},
 		},
@@ -282,6 +298,14 @@ func TestLoad(t *testing.T) {
 							"key30": "value20",
 						},
 					},
+					"hdbnsutilsrstate": map[string]interface{}{
+						"online": "true",
+						"mode":   "primary",
+						"mapping/hana01": []interface{}{
+							"Site2/hana02",
+							"Site1/hana01",
+						},
+					},
 				},
 			},
 		},
@@ -372,6 +396,14 @@ func TestLoad(t *testing.T) {
 						"key10": "value10",
 						"key20": map[string]interface{}{
 							"key30": "value20",
+						},
+					},
+					HdbnsutilSRstate: HdbnsutilSRstate{
+						"online": "true",
+						"mode":   "primary",
+						"mapping/hana01": []interface{}{
+							"Site2/hana02",
+							"Site1/hana01",
 						},
 					},
 				},

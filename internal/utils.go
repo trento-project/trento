@@ -3,6 +3,7 @@ package internal
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"hash/crc32"
 	"io"
 	"os"
 	"regexp"
@@ -59,4 +60,10 @@ func FindMatches(pattern string, text []byte) map[string]interface{} {
 		configMap[match[1]] = match[2]
 	}
 	return configMap
+}
+
+func CRC32hash(input []byte) int {
+	crc32Table := crc32.MakeTable(crc32.IEEE)
+	return int(crc32.Checksum(input, crc32Table))
+
 }

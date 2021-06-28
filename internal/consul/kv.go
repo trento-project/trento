@@ -215,38 +215,52 @@ func (k *kv) PutMap(prefix string, data map[string]interface{}) error {
 	}
 
 	for key, value := range data {
-		switch reflect.ValueOf(value).Kind() {
-		case reflect.Map, reflect.Struct, reflect.Ptr:
-			mapInterface := make(map[string]interface{})
-			mapstructure.Decode(value, &mapInterface)
-			err := k.PutMap(path.Join(prefix, key), mapInterface)
-			if err != nil {
-				return err
-			}
-		case reflect.Slice:
-			// Store the slice with slice flag, to be able to reload as list in the ListMap funciton
-			err := k.PutTyped(fmt.Sprintf("%s/", path.Join(prefix, key)), []string{})
-			if err != nil {
-				return err
-			}
+		err := k.putInterface(path.Join(prefix, key), value)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
-			// Store slice elements
-			sliceValue := reflect.ValueOf(value)
-			for i := 0; i < sliceValue.Len(); i++ {
-				mapInterface := make(map[string]interface{})
-				mapstructure.Decode(sliceValue.Index(i).Interface(), &mapInterface)
-				// Index is composed by 4 digits to keep correct numbers order in KV storage
-				index := fmt.Sprintf("%04d", i)
-				err = k.PutMap(path.Join(prefix, key, index), mapInterface)
-				if err != nil {
-					return err
-				}
-			}
-		default:
-			err := k.PutTyped(path.Join(prefix, key), value)
-			if err != nil {
-				return err
-			}
+func (k *kv) putInterface(prefix string, value interface{}) error {
+	switch reflect.ValueOf(value).Kind() {
+	case reflect.Map, reflect.Struct, reflect.Ptr:
+		valueInterface := make(map[string]interface{})
+		mapstructure.Decode(value, &valueInterface)
+		err := k.PutMap(prefix, valueInterface)
+		if err != nil {
+			return err
+		}
+	case reflect.Slice:
+		err := k.putSlice(prefix, value)
+		if err != nil {
+			return err
+		}
+	default:
+		err := k.PutTyped(prefix, value)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (k *kv) putSlice(prefix string, value interface{}) error {
+	// Store the slice with slice flag, to be able to reload as list in the ListMap funciton
+	err := k.PutTyped(fmt.Sprintf("%s/", prefix), []string{})
+	if err != nil {
+		return err
+	}
+
+	// Store slice elements
+	sliceValue := reflect.ValueOf(value)
+	for i := 0; i < sliceValue.Len(); i++ {
+		// Index is composed by 4 digits to keep correct numbers order in KV storage
+		index := fmt.Sprintf("%04d", i)
+		err := k.putInterface(path.Join(prefix, index), sliceValue.Index(i).Interface())
+		if err != nil {
+			return err
 		}
 	}
 	return nil

@@ -16,11 +16,12 @@
                     <td>{{ .Name }}</td>
                     <td>{{ .Address }}</td>
                     <td>
-                        <a href="/clusters/{{ index .TrentoMeta "trento-ha-cluster" }}">{{ index .TrentoMeta "trento-ha-cluster" }}</a>
+                        <a href="/clusters/{{ index .TrentoMeta "trento-ha-cluster-id" }}">{{ index .TrentoMeta "trento-ha-cluster" }}</a>
                     </td>
                     <td>
                         {{- range $Key, $Value := .TrentoMeta }}
                             {{- if eq $Key "trento-ha-cluster" }}
+                            {{- else if eq $Key "trento-ha-cluster-id" }}
                             {{- else }}
                                 <span class='badge badge-pill badge-info'>{{ $Value }}</span>
                             {{- end }}

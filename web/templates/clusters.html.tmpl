@@ -6,15 +6,17 @@
                 <thead>
                 <tr>
                     <th scope='col'>Name</th>
-                    <th scope='col'>Hosts number</th>
-                    <th scope='col'>Resource number</th>
+                    <th scope='col'>Id</th>
+                    <th scope='col'>Host count</th>
+                    <th scope='col'>Resource count</th>
                     <th scope='col'>Status</th>
                 </tr>
                 </thead>
                 <tbody>
                 {{- range $Name, $Cluster := .Clusters }}
-                    <tr class='clickable' onclick="window.location='/clusters/{{ .Name }}'">
-                        <td>{{ $Name }}</td>
+                    <tr class='clickable' onclick="window.location='/clusters/{{ .Id }}'">
+                        <td>{{ $Cluster.Name }}</td>
+                        <td>{{ $Cluster.Id }}</td>
                         <td>{{ $Cluster.Crmmon.Summary.Nodes.Number }}</td>
                         <td>{{ $Cluster.Crmmon.Summary.Resources.Number }}</td>
                         <td>

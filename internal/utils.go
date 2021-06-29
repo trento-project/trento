@@ -26,6 +26,13 @@ func SetLogLevel(level string) {
 	}
 }
 
+func SetLogFormatter(timestampFormat string) {
+	customFormatter := new(log.TextFormatter)
+	customFormatter.TimestampFormat = timestampFormat
+	log.SetFormatter(customFormatter)
+	customFormatter.FullTimestamp = true
+}
+
 func Contains(s []string, str string) bool {
 	for _, v := range s {
 		if v == str {

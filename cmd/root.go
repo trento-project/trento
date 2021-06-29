@@ -58,6 +58,7 @@ func initConfig() {
 		logLevel = "info"
 	}
 	internal.SetLogLevel(logLevel)
+	internal.SetLogFormatter("2006-01-02 15:04:05")
 
 	viper.AutomaticEnv() // read in environment variables that match
 

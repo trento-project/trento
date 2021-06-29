@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"testing"
 
+	consulApi "github.com/hashicorp/consul/api"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/tdewolff/minify/v2"
 	"github.com/tdewolff/minify/v2/html"
@@ -13,7 +15,7 @@ import (
 	"github.com/trento-project/trento/internal/consul/mocks"
 )
 
-func TestClustersListHandler(t *testing.T) {
+func clustersListMap() map[string]interface{} {
 	listMap := map[string]interface{}{
 		"test_cluster": map[string]interface{}{
 			"cib": map[string]interface{}{
@@ -65,12 +67,16 @@ func TestClustersListHandler(t *testing.T) {
 		},
 	}
 
+	return listMap
+}
+
+func TestClustersListHandler(t *testing.T) {
 	consulInst := new(mocks.Client)
 	kv := new(mocks.KV)
 
 	consulInst.On("KV").Return(kv)
 
-	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(listMap, nil)
+	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
 	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil)
 
 	deps := DefaultDependencies()
@@ -110,11 +116,48 @@ func TestClustersListHandler(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("<td>2nd_cluster</td><td>2</td><td>10</td><td>.*passing.*</td>"), minified)
 }
 
+func TestClusterHandler(t *testing.T) {
+	consulInst := new(mocks.Client)
+
+	kv := new(mocks.KV)
+	consulInst.On("KV").Return(kv)
+
+	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
+	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil)
+
+	catalog := new(mocks.Catalog)
+	filter := &consulApi.QueryOptions{Filter: "Meta[\"trento-ha-cluster\"] == \"test_cluster\""}
+	catalog.On("Nodes", filter).Return(nil, nil, nil)
+	consulInst.On("Catalog").Return(catalog)
+
+	deps := DefaultDependencies()
+	deps.consul = consulInst
+
+	app, err := NewAppWithDeps("", 80, deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/clusters/test_cluster", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Accept", "text/html")
+
+	app.ServeHTTP(resp, req)
+
+	assert.NoError(t, err)
+	assert.Equal(t, 200, resp.Code)
+	assert.Contains(t, resp.Body.String(), "Cluster details")
+	assert.Contains(t, resp.Body.String(), "test_cluster")
+}
+
 func TestClusterHandler404Error(t *testing.T) {
 	var err error
 
 	kv := new(mocks.KV)
-	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(nil, nil)
+	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
 
 	consulInst := new(mocks.Client)
 	consulInst.On("KV").Return(kv)

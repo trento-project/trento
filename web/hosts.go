@@ -8,6 +8,7 @@ import (
 	consulApi "github.com/hashicorp/consul/api"
 	"github.com/pkg/errors"
 
+	"github.com/trento-project/trento/internal/cloud"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/environments"
 	"github.com/trento-project/trento/internal/hosts"
@@ -100,11 +101,19 @@ func NewHostHandler(client consul.Client) gin.HandlerFunc {
 			_ = c.Error(err)
 			return
 		}
+
+		cloudData, err := cloud.Load(client, name)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
 		host := hosts.NewHost(*catalogNode.Node, client)
 		c.HTML(http.StatusOK, "host.html.tmpl", gin.H{
 			"Host":         &host,
 			"HealthChecks": checks,
 			"SAPSystems":   systems,
+			"CloudData":    cloudData,
 		})
 	}
 }

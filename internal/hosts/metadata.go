@@ -6,4 +6,5 @@ type Metadata struct {
 	Environment string `mapstructure:"sap-environment,omitempty"`
 	Landscape   string `mapstructure:"sap-landscape,omitempty"`
 	SAPSystem   string `mapstructure:"sap-system,omitempty"`
+	CloudProvider string `mapstructure:"cloud-provider,omitempty"`
 }

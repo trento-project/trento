@@ -80,6 +80,7 @@ func NewWithConfig(cfg Config) (*Agent, error) {
 		discoveries: []discovery.Discovery{
 			discovery.NewClusterDiscovery(client),
 			discovery.NewSAPSystemsDiscovery(client),
+			discovery.NewCloudDiscovery(client),
 		},
 		webService:     newWebService(wsResultChan),
 		wsResultChan:   wsResultChan,
@@ -195,6 +196,13 @@ func (a *Agent) registerConsulService() error {
 				CheckID: discovery.SAPDiscoveryId,
 				Name:    "SAP System Discovery",
 				Notes:   "Collects details about SAP System components running on this node",
+				TTL:     a.cfg.DiscoveryTTL.String(),
+				Status:  consulApi.HealthWarning,
+			},
+			&consulApi.AgentServiceCheck{
+				CheckID: discovery.CloudDiscoveryId,
+				Name:    "Cloud metadata discovery",
+				Notes:   "Collects details about the cloud instance metadata",
 				TTL:     a.cfg.DiscoveryTTL.String(),
 				Status:  consulApi.HealthWarning,
 			},

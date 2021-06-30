@@ -20,6 +20,7 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
 	github.com/tdewolff/minify/v2 v2.9.16
+	github.com/vektra/mockery/v2 v2.9.0
 )
 
 replace github.com/trento-project/trento => ./

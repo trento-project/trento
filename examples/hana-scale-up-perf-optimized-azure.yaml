@@ -453,3 +453,29 @@ groups:
           ## References
           - section 2 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
         scored: true
+      - id: 2.2.10
+        description: "HANA's autostart is disabled"
+        audit: |
+          sid=$(sudo crm configure show | grep -m1 SID= | sed -e "s/.*SID=\(...\).*/\1/" | tr '[:lower:]' '[:upper:]')
+          inst=$(sudo crm configure show | grep -m1 InstanceNumber= | sed -e "s/.*InstanceNumber=\(..\).*/\1/")
+          sudo cat /usr/sap/${sid}/SYS/profile/${sid}_HDB${inst}_$(hostname)
+        tests:
+          test_items:
+            - flag: "Autostart"
+              compare:
+                op: eq
+                value: '0'
+        remediation: |
+          ## Abstract
+          Automated start of SAP HANA instances during system boot must be switched off
+
+          ## Remediation
+          1. Log on to the SAP HANA host as a user with root authorization.
+          2. Change to the system profile directory /usr/sap/<SID>/SYS/profile.
+          3. Edit the profile <SID>_HDB<instance number>_<host name>.
+          4. Change the parameter setting Autostart = 1 to Autostart = 0 .
+          5. Save the profile <SID>_HDB<instance number>_<host name>.
+
+          ## References
+          - section 2 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
+        scored: true

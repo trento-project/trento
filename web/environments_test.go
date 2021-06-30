@@ -14,7 +14,7 @@ import (
 	"github.com/trento-project/trento/internal/consul/mocks"
 )
 
-func setupTest() (*mocks.Client, *mocks.Catalog) {
+func setupEnvironmentsTest() (*mocks.Client, *mocks.Catalog) {
 	nodes1 := []*consulApi.Node{
 		{
 			Node:       "node1",
@@ -127,15 +127,15 @@ func setupTest() (*mocks.Client, *mocks.Catalog) {
 
 	filterSys1 := &consulApi.QueryOptions{
 		Filter: "(Meta[\"trento-sap-environment\"] == \"env1\") and (Meta[\"trento-sap-landscape\"] == \"land1\") and (Meta[\"trento-sap-system\"] == \"sys1\")"}
-	catalog.On("Nodes", (filterSys1)).Return(nodes1, nil, nil)
+	catalog.On("Nodes", filterSys1).Return(nodes1, nil, nil)
 
 	filterSys2 := &consulApi.QueryOptions{
 		Filter: "(Meta[\"trento-sap-environment\"] == \"env1\") and (Meta[\"trento-sap-landscape\"] == \"land2\") and (Meta[\"trento-sap-system\"] == \"sys2\")"}
-	catalog.On("Nodes", (filterSys2)).Return(nodes1, nil, nil)
+	catalog.On("Nodes", filterSys2).Return(nodes1, nil, nil)
 
 	filterSys3 := &consulApi.QueryOptions{
 		Filter: "(Meta[\"trento-sap-environment\"] == \"env2\") and (Meta[\"trento-sap-landscape\"] == \"land3\") and (Meta[\"trento-sap-system\"] == \"sys3\")"}
-	catalog.On("Nodes", (filterSys3)).Return(nodes2, nil, nil)
+	catalog.On("Nodes", filterSys3).Return(nodes2, nil, nil)
 
 	health.On("Node", "node1", (*consulApi.QueryOptions)(nil)).Return(node1HealthChecks, nil, nil)
 	health.On("Node", "node2", (*consulApi.QueryOptions)(nil)).Return(node2HealthChecks, nil, nil)
@@ -146,7 +146,7 @@ func setupTest() (*mocks.Client, *mocks.Catalog) {
 }
 
 func TestEnvironmentsListHandler(t *testing.T) {
-	consulInst, catalog := setupTest()
+	consulInst, catalog := setupEnvironmentsTest()
 
 	deps := DefaultDependencies()
 	deps.consul = consulInst
@@ -177,7 +177,7 @@ func TestEnvironmentsListHandler(t *testing.T) {
 }
 
 func TestLandscapesListHandler(t *testing.T) {
-	consulInst, catalog := setupTest()
+	consulInst, catalog := setupEnvironmentsTest()
 
 	deps := DefaultDependencies()
 	deps.consul = consulInst
@@ -208,7 +208,7 @@ func TestLandscapesListHandler(t *testing.T) {
 }
 
 func TestSAPSystemsListHandler(t *testing.T) {
-	consulInst, catalog := setupTest()
+	consulInst, catalog := setupEnvironmentsTest()
 
 	deps := DefaultDependencies()
 	deps.consul = consulInst
@@ -238,8 +238,32 @@ func TestSAPSystemsListHandler(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/sapsystems/sys3\\?environment=env2&landscape=land3'\".*<td>sys3</td><td>.*critical.*</td>"), responseBody)
 }
 
+func TestLandscapeHandler(t *testing.T) {
+	consulInst, _ := setupEnvironmentsTest()
+
+	deps := DefaultDependencies()
+	deps.consul = consulInst
+
+	var err error
+	app, err := NewAppWithDeps("", 80, deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/landscapes/land1?environment=env1", nil)
+	req.Header.Set("Accept", "text/html")
+
+	app.ServeHTTP(resp, req)
+
+	assert.NoError(t, err)
+	assert.Equal(t, 200, resp.Code)
+	assert.Contains(t, resp.Body.String(), "Landscape details")
+	assert.Contains(t, resp.Body.String(), "land1")
+}
+
 func TestLandscapeHandler404Error(t *testing.T) {
-	consulInst, _ := setupTest()
+	consulInst, _ := setupEnvironmentsTest()
 
 	deps := DefaultDependencies()
 	deps.consul = consulInst
@@ -261,8 +285,32 @@ func TestLandscapeHandler404Error(t *testing.T) {
 	assert.Contains(t, resp.Body.String(), "Not Found")
 }
 
+func TestEnvironmentHandler(t *testing.T) {
+	consulInst, _ := setupEnvironmentsTest()
+
+	deps := DefaultDependencies()
+	deps.consul = consulInst
+
+	var err error
+	app, err := NewAppWithDeps("", 80, deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/environments/env1", nil)
+	req.Header.Set("Accept", "text/html")
+
+	app.ServeHTTP(resp, req)
+
+	assert.NoError(t, err)
+	assert.Equal(t, 200, resp.Code)
+	assert.Contains(t, resp.Body.String(), "Environment details")
+	assert.Contains(t, resp.Body.String(), "env1")
+}
+
 func TestEnvironmentHandler404Error(t *testing.T) {
-	consulInst, _ := setupTest()
+	consulInst, _ := setupEnvironmentsTest()
 
 	deps := DefaultDependencies()
 	deps.consul = consulInst
@@ -284,8 +332,32 @@ func TestEnvironmentHandler404Error(t *testing.T) {
 	assert.Contains(t, resp.Body.String(), "Not Found")
 }
 
+func TestSAPSystemHandler(t *testing.T) {
+	consulInst, _ := setupEnvironmentsTest()
+
+	deps := DefaultDependencies()
+	deps.consul = consulInst
+
+	var err error
+	app, err := NewAppWithDeps("", 80, deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/sapsystems/sys1?environment=env1&landscape=land1", nil)
+	req.Header.Set("Accept", "text/html")
+
+	app.ServeHTTP(resp, req)
+
+	assert.NoError(t, err)
+	assert.Equal(t, 200, resp.Code)
+	assert.Contains(t, resp.Body.String(), "SAP System details")
+	assert.Contains(t, resp.Body.String(), "sys1")
+}
+
 func TestSAPSystemHandler404Error(t *testing.T) {
-	consulInst, _ := setupTest()
+	consulInst, _ := setupEnvironmentsTest()
 
 	deps := DefaultDependencies()
 	deps.consul = consulInst

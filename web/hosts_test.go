@@ -153,9 +153,79 @@ func TestHostsListHandler(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("<td>bar</td><td>192.168.1.2</td><td>.*land2.*</td><td>.*critical.*</td>"), minified)
 }
 
-func TestHostHandler404Error(t *testing.T) {
-	var err error
+func TestHostHandler(t *testing.T) {
+	consulInst := new(mocks.Client)
+	catalog := new(mocks.Catalog)
+	health := new(mocks.Health)
+	kv := new(mocks.KV)
 
+	consulInst.On("Catalog").Return(catalog)
+	consulInst.On("Health").Return(health)
+	consulInst.On("KV").Return(kv)
+
+	node := &consulApi.Node{
+		Node:       "test_host",
+		Datacenter: "dc1",
+		Address:    "192.168.1.1",
+		Meta: map[string]string{
+			"trento-sap-environment": "env1",
+			"trento-sap-system":      "sys1",
+			"trento-sap-landscape":   "land1",
+		},
+	}
+
+	catalogNode := &consulApi.CatalogNode{Node: node}
+	catalog.On("Node", "test_host", (*consulApi.QueryOptions)(nil)).Return(catalogNode, nil, nil)
+
+	healthChecks := consulApi.HealthChecks{
+		&consulApi.HealthCheck{
+			Status: consulApi.HealthPassing,
+		},
+	}
+	health.On("Node", "test_host", (*consulApi.QueryOptions)(nil)).Return(healthChecks, nil, nil)
+
+	path := "trento/v0/hosts/test_host/sapsystems/"
+	consulInst.On("WaitLock", path).Return(nil)
+	kv.On("ListMap", path, path).Return(nil, nil)
+
+	deps := DefaultDependencies()
+	deps.consul = consulInst
+
+	app, err := NewAppWithDeps("", 80, deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/hosts/test_host", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Accept", "text/html")
+
+	app.ServeHTTP(resp, req)
+
+	m := minify.New()
+	m.AddFunc("text/html", html.Minify)
+	m.Add("text/html", &html.Minifier{
+		KeepDefaultAttrVals: true,
+		KeepEndTags:         true,
+	})
+	minified, err := m.String("text/html", resp.Body.String())
+	if err != nil {
+		panic(err)
+	}
+
+	assert.Equal(t, 200, resp.Code)
+	assert.Contains(t, minified, "Host details")
+	assert.Regexp(t, regexp.MustCompile("<dd.*>test_host</dd>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<a.*environments.*>env1</a>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<a.*landscapes.*>land1</a>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<a.*sapsystems.*>sys1</a>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<span.*>passing</span>"), minified)
+}
+
+func TestHostHandler404Error(t *testing.T) {
 	consulInst := new(mocks.Client)
 	catalog := new(mocks.Catalog)
 	catalog.On("Node", "foobar", (*consulApi.QueryOptions)(nil)).Return((*consulApi.CatalogNode)(nil), nil, nil)

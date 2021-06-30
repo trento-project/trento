@@ -10,6 +10,34 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestClusterId(t *testing.T) {
+	root := new(cib.Root)
+
+	c := Cluster{
+		Cib:  *root,
+		Name: "sculpin",
+		Id:   "47d1190ffb4f781974c8356d7f863b03",
+	}
+
+	authkey, _ := getCorosyncAuthkeyMd5("../../test/authkey")
+
+	assert.Equal(t, c.Id, authkey)
+}
+
+func TestClusterAlias(t *testing.T) {
+	root := new(cib.Root)
+
+	c := Cluster{
+		Cib:  *root,
+		Name: "sculpin",
+		Id:   "47d1190ffb4f781974c8356d7f863b03",
+	}
+
+	name, _ := getName(c.Id)
+
+	assert.Equal(t, c.Name, name)
+}
+
 func TestClusterName(t *testing.T) {
 	root := new(cib.Root)
 
@@ -41,9 +69,10 @@ func TestClusterName(t *testing.T) {
 				},
 			},
 		},
+		Name: "cluster_name",
 	}
 
-	assert.Equal(t, "cluster_name", c.Name())
+	assert.Equal(t, "cluster_name", c.Name)
 }
 
 func TestIsDC(t *testing.T) {

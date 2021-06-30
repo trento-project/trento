@@ -40,6 +40,7 @@ func clustersListMap() map[string]interface{} {
 					},
 				},
 			},
+			"name": "test_cluster",
 		},
 		"2nd_cluster": map[string]interface{}{
 			"cib": map[string]interface{}{
@@ -64,6 +65,7 @@ func clustersListMap() map[string]interface{} {
 					},
 				},
 			},
+			"name": "2nd_cluster",
 		},
 	}
 
@@ -112,8 +114,8 @@ func TestClustersListHandler(t *testing.T) {
 
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, minified, "Clusters")
-	assert.Regexp(t, regexp.MustCompile("<td>test_cluster</td><td>3</td><td>5</td><td>.*passing.*</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td>2nd_cluster</td><td>2</td><td>10</td><td>.*passing.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td>test_cluster</td><td></td><td>3</td><td>5</td><td>.*passing.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td>2nd_cluster</td><td></td><td>2</td><td>10</td><td>.*passing.*</td>"), minified)
 }
 
 func TestClusterHandler(t *testing.T) {

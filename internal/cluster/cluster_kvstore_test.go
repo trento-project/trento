@@ -1,8 +1,8 @@
 package cluster
 
 import (
-	"fmt"
 	"os"
+	"path"
 	"testing"
 
 	"github.com/ClusterLabs/ha_cluster_exporter/collector/pacemaker/cib"
@@ -29,7 +29,7 @@ func TestStore(t *testing.T) {
 
 	consulInst.On("KV").Return(kv)
 
-	kvPath := fmt.Sprintf("%s%s", consul.KvClustersPath, "cluster_name")
+	kvPath := path.Join(consul.KvClustersPath, "47d1190ffb4f781974c8356d7f863b03")
 
 	expectedPutMap := map[string]interface{}{
 		"cib": map[string]interface{}{
@@ -137,6 +137,8 @@ func TestStore(t *testing.T) {
 			},
 			"Version": "1.2.3",
 		},
+		"id":   "47d1190ffb4f781974c8356d7f863b03",
+		"name": "sculpin",
 		"sbd": map[string]interface{}{
 			"devices": []*SBDDevice{
 				&SBDDevice{
@@ -232,6 +234,8 @@ func TestStore(t *testing.T) {
 				"param2": "value2",
 			},
 		},
+		Id:   "47d1190ffb4f781974c8356d7f863b03",
+		Name: "sculpin",
 	}
 
 	result := c.Store(consulInst)

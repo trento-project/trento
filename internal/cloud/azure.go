@@ -5,6 +5,7 @@ Based on https://docs.microsoft.com/en-us/azure/virtual-machines/windows/instanc
 package cloud
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -156,23 +157,33 @@ func NewAzureMetadata() (*AzureMetadata, error) {
 	q.Add("api-version", azureApiVersion)
 	req.URL.RawQuery = q.Encode()
 
+	log.Debug("Requesting Azure metadata...")
+
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Print(err)
+		log.Error(err)
 		return nil, err
 	}
 
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Print(err)
+		log.Error(err)
 		return nil, err
 	}
-	log.Print(string(body))
+
+	var pjson bytes.Buffer
+	err = json.Indent(&pjson, body, "", " ")
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+
+	log.Debugln(string(pjson.Bytes()))
 
 	err = json.Unmarshal(body, m)
 	if err != nil {
-		log.Print(err)
+		log.Error(err)
 		return nil, err
 	}
 

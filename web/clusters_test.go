@@ -17,7 +17,7 @@ import (
 
 func clustersListMap() map[string]interface{} {
 	listMap := map[string]interface{}{
-		"test_cluster": map[string]interface{}{
+		"47d1190ffb4f781974c8356d7f863b03": map[string]interface{}{
 			"cib": map[string]interface{}{
 				"Configuration": map[string]interface{}{
 					"CrmConfig": map[string]interface{}{
@@ -40,9 +40,9 @@ func clustersListMap() map[string]interface{} {
 					},
 				},
 			},
-			"name": "test_cluster",
+			"name": "sculpin",
 		},
-		"2nd_cluster": map[string]interface{}{
+		"e2f2eb50aef748e586a7baa85e0162cf": map[string]interface{}{
 			"cib": map[string]interface{}{
 				"Configuration": map[string]interface{}{
 					"CrmConfig": map[string]interface{}{
@@ -65,7 +65,7 @@ func clustersListMap() map[string]interface{} {
 					},
 				},
 			},
-			"name": "2nd_cluster",
+			"name": "panther",
 		},
 	}
 
@@ -114,8 +114,8 @@ func TestClustersListHandler(t *testing.T) {
 
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, minified, "Clusters")
-	assert.Regexp(t, regexp.MustCompile("<td>test_cluster</td><td></td><td>3</td><td>5</td><td>.*passing.*</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td>2nd_cluster</td><td></td><td>2</td><td>10</td><td>.*passing.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td>sculpin</td><td></td><td>3</td><td>5</td><td>.*passing.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td>panther</td><td></td><td>2</td><td>10</td><td>.*passing.*</td>"), minified)
 }
 
 func TestClusterHandler(t *testing.T) {
@@ -128,7 +128,7 @@ func TestClusterHandler(t *testing.T) {
 	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil)
 
 	catalog := new(mocks.Catalog)
-	filter := &consulApi.QueryOptions{Filter: "Meta[\"trento-ha-cluster\"] == \"test_cluster\""}
+	filter := &consulApi.QueryOptions{Filter: "Meta[\"trento-ha-cluster-id\"] == \"47d1190ffb4f781974c8356d7f863b03\""}
 	catalog.On("Nodes", filter).Return(nil, nil, nil)
 	consulInst.On("Catalog").Return(catalog)
 
@@ -141,7 +141,7 @@ func TestClusterHandler(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/clusters/test_cluster", nil)
+	req, err := http.NewRequest("GET", "/clusters/47d1190ffb4f781974c8356d7f863b03", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -152,7 +152,7 @@ func TestClusterHandler(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, resp.Body.String(), "Cluster details")
-	assert.Contains(t, resp.Body.String(), "test_cluster")
+	assert.Contains(t, resp.Body.String(), "sculpin")
 }
 
 func TestClusterHandler404Error(t *testing.T) {

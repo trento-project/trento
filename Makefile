@@ -34,7 +34,7 @@ fmt-check:
 
 generate:
 ifeq (, $(shell command -v mockery 2> /dev/null))
-	$(error "'mockery' command not found. You can install it locally with 'go install github.com/vektra/mockery/v2@latest'.")
+	$(error "'mockery' command not found. You can install it locally with 'go install github.com/vektra/mockery/v2'.")
 endif
 	go generate ./...
 

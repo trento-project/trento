@@ -128,7 +128,7 @@ func TestClusterHandler(t *testing.T) {
 	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil)
 
 	catalog := new(mocks.Catalog)
-	filter := &consulApi.QueryOptions{Filter: "Meta[\"trento-ha-cluster\"] == \"test_cluster\""}
+	filter := &consulApi.QueryOptions{Filter: "Meta[\"trento-ha-cluster-id\"] == \"test_cluster\""}
 	catalog.On("Nodes", filter).Return(nil, nil, nil)
 	consulInst.On("Catalog").Return(catalog)
 

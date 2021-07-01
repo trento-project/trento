@@ -141,15 +141,19 @@ type Subnet struct {
 	Prefix  string `json:"prefix,omitempty" mapstructure:"prefix,omitempty"`
 }
 
+// Extract the client creation for UT purposes
+//go:generate mockery --name=HTTPClient
+type HTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
+var client HTTPClient = &http.Client{Transport: &http.Transport{Proxy: nil}}
+
 func NewAzureMetadata() (*AzureMetadata, error) {
 	var err error
-	var transport = &http.Transport{Proxy: nil}
-
 	m := &AzureMetadata{}
 
-	client := http.Client{Transport: transport}
-
-	req, _ := http.NewRequest("GET", fmt.Sprintf("http://%s/metadata/instance", azureApiAddress), nil)
+	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("http://%s/metadata/instance", azureApiAddress), nil)
 	req.Header.Add("Metadata", "True")
 
 	q := req.URL.Query()
@@ -178,7 +182,6 @@ func NewAzureMetadata() (*AzureMetadata, error) {
 		log.Error(err)
 		return nil, err
 	}
-
 	log.Debugln(string(pjson.Bytes()))
 
 	err = json.Unmarshal(body, m)

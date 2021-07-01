@@ -22,11 +22,7 @@
                         </a>
                     </td>
                     <td>{{ .Address }}</td>
-                    <td>
-                        <a href='/clusters/{{ index .TrentoMeta "trento-cloud-provider" }}'>
-                            {{ index .TrentoMeta "trento-cloud-provider" }}
-                        </a>
-                    </td>
+                    <td>{{ index .TrentoMeta "trento-cloud-provider" }}</td>
                     <td>
                         <a href='/clusters/{{ index .TrentoMeta "trento-ha-cluster-id" }}'>
                             {{ index .TrentoMeta "trento-ha-cluster" }}

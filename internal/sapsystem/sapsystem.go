@@ -240,7 +240,7 @@ func NewSAPInstance(w sapcontrol.WebService) (*SAPInstance, error) {
 
 func runPythonSupport(sid, instance, script string) map[string]interface{} {
 	user := fmt.Sprintf("%sadm", strings.ToLower(sid))
-	cmdPath := path.Join("/usr/sap", sid, instance, "exe/python_support", script)
+	cmdPath := path.Join(sapInstallationPath, sid, instance, "exe/python_support", script)
 	cmd := fmt.Sprintf("python %s --sapcontrol=1", cmdPath)
 	// Even with a error return code, some data is available
 	srData, _ := customExecCommand("su", "-lc", cmd, user).Output()
@@ -260,7 +260,7 @@ func landscapeHostConfiguration(sid, instance string) map[string]interface{} {
 
 func hdbnsutilSrstate(sid, instance string) map[string]interface{} {
 	user := fmt.Sprintf("%sadm", strings.ToLower(sid))
-	cmdPath := path.Join("/usr/sap", sid, instance, "exe", "hdbnsutil")
+	cmdPath := path.Join(sapInstallationPath, sid, instance, "exe", "hdbnsutil")
 	cmd := fmt.Sprintf("%s -sr_state -sapcontrol=1", cmdPath)
 	srData, _ := customExecCommand("su", "-lc", cmd, user).Output()
 	dataMap := internal.FindMatches(`(.+)=(.*)`, srData)

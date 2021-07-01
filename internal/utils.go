@@ -59,6 +59,12 @@ func Md5sum(filePath string) (string, error) {
 	return hex.EncodeToString(hash.Sum(nil)), nil
 }
 
+// FindMatches finds regular expression matches in a key/value based
+// text (ini files, for example), and returns a map with them.
+// If the matched key has spaces, they will be replaced with underscores
+// If the same keys is found multiple times, the entry of the map will
+// have a list as value with all of the matched values
+// The pattern must have 2 groups. For example: `(.+)=(.*)`
 func FindMatches(pattern string, text []byte) map[string]interface{} {
 	configMap := make(map[string]interface{})
 

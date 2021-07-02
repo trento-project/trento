@@ -6,28 +6,41 @@
                 <th scope='col'>Name</th>
                 <th scope='col'>Address</th>
                 <th scope='col'>Cluster</th>
-                <th scope='col'>Tags</th>
+                <th scope='col'>System</th>
+                <th scope='col'>Landscape</th>
+                <th scope='col'>Environment</th>
                 <th scope='col'>Status</th>
             </tr>
             </thead>
             <tbody>
             {{- range .Hosts }}
-                <tr class='clickable' onclick="window.location='/hosts/{{ .Name }}'">
-                    <td>{{ .Name }}</td>
+                <tr>
+                    <td>
+                        <a href='/hosts/{{ .Name }}'>
+                            {{ .Name }}
+                        </a>
+                    </td>
                     <td>{{ .Address }}</td>
                     <td>
-                        <a href="/clusters/{{ index .TrentoMeta "trento-ha-cluster-id" }}">{{ index .TrentoMeta "trento-ha-cluster" }}</a>
+                        <a href='/clusters/{{ index .TrentoMeta "trento-ha-cluster-id" }}'>
+                            {{ index .TrentoMeta "trento-ha-cluster" }}
+                        </a>
                     </td>
                     <td>
-                        {{- range $Key, $Value := .TrentoMeta }}
-                            {{- if eq $Key "trento-ha-cluster" }}
-                            {{- else if eq $Key "trento-ha-cluster-id" }}
-                            {{- else }}
-                                <span class='badge badge-pill badge-info'>{{ $Value }}</span>
-                            {{- end }}
-                        {{- end }}
+                        <a href='/sapsystems/{{ index .TrentoMeta "trento-sap-system" }}?environment={{ index .TrentoMeta "trento-sap-environment" }}&landscape={{ index .TrentoMeta "trento-sap-landscape" }}'>
+                            {{ index .TrentoMeta "trento-sap-system" }}
+                        </a>
                     </td>
-
+                    <td>
+                        <a href='/landscapes/{{ index .TrentoMeta "trento-sap-landscape" }}?environment={{ index .TrentoMeta "trento-sap-environment" }}'>
+                            {{ index .TrentoMeta "trento-sap-landscape" }}
+                        </a>
+                    </td>
+                    <td>
+                        <a href='/environments/{{ index .TrentoMeta "trento-sap-environment" }}'>
+                            {{ index .TrentoMeta "trento-sap-environment" }}
+                        </a>
+                    </td>
                     <td>
                         {{- $Health := .Health }}
                         <span class='badge badge-pill badge-{{ if eq $Health "passing" }}primary{{ else if eq $Health "warning" }}warning{{ else }}danger{{ end }}'>{{ $Health }}</span>

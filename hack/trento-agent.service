@@ -1,0 +1,14 @@
+[Unit]
+Description=Trento agent service
+Requires=consul.service
+After=consul.service
+
+[Service]
+ExecStart=/srv/trento/trento agent start --consul-config-dir=/srv/consul/consul.d /srv/trento/examples/generic-azure.yaml
+Type=simple
+User=root
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

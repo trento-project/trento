@@ -1,6 +1,7 @@
 on:
   push:
   pull_request:
+  workflow_dispatch:
   release:
     types: [ published, created, edited ]
 
@@ -8,47 +9,108 @@ jobs:
   build:
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-go@v2
-      with:
-        go-version: ^1.16
-    - uses: actions/setup-node@v2
-      with:
-        node-version: '15'
-    - uses: actions/cache@v2
-      id: go-cache
-      with:
-        path: ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
-    - uses: actions/cache@v2
-      id: npm-cache
-      with:
-        path: ~/.npm
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
-    - name: install-mockery
-      run: go install github.com/vektra/mockery/v2
-    - name: test
-      run: make test
-    - name: static analysis
-      run: make vet-check
-    - name: coding styles
-      run: make fmt-check
-    - name: build
-      run: make -j4 cross-compiled
-    - name: compress
-      run: |
-        set -x
-        for FILE in build/*; do
-          gzip $FILE
-        done
-    - uses: actions/upload-artifact@v2
-      with:
-        name: trento-binaries
-        path: build
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: ^1.16
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "15"
+      - uses: actions/cache@v2
+        id: go-cache
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - uses: actions/cache@v2
+        id: npm-cache
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: install-mockery
+        run: go install github.com/vektra/mockery/v2
+      - name: test
+        run: make test
+      - name: static analysis
+        run: make vet-check
+      - name: coding styles
+        run: make fmt-check
+      - name: build
+        run: make -j4 cross-compiled
+      - name: compress
+        run: |
+          set -x
+          for FILE in build/*; do
+            gzip $FILE
+          done
+      - uses: actions/upload-artifact@v2
+        with:
+          name: trento-binaries
+          path: build
+      - uses: actions/upload-artifact@v2
+        with:
+          name: trento-amd64-binary
+          path: build/trento-amd64.gz
+
+  consul-cleanup:
+    runs-on: [ self-hosted, vmmonitoring ]
+    needs: build
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v2
+      - id: cleanup
+        uses: ./.github/actions/consul_cleanup
+
+  deploy-hana01:
+    runs-on: [ self-hosted, vmhana01 ]
+    needs: consul-cleanup
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v2
+      - id: cleanup
+        uses: ./.github/actions/consul_cleanup
+      - uses: actions/download-artifact@v2
+        with:
+          name: trento-amd64-binary
+      - id: deploy
+        uses: ./.github/actions/deploy
+        with:
+          role: agent
+
+  deploy-hana02:
+    runs-on: [ self-hosted, vmhana02 ]
+    needs: consul-cleanup
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v2
+      - id: cleanup
+        uses: ./.github/actions/consul_cleanup
+      - uses: actions/download-artifact@v2
+        with:
+          name: trento-amd64-binary
+      - id: deploy
+        uses: ./.github/actions/deploy
+        with:
+          role: agent
+
+  deploy-monitoring:
+    runs-on: [ self-hosted, vmmonitoring ]
+    needs: consul-cleanup
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v2
+      - id: cleanup
+        uses: ./.github/actions/consul_cleanup
+      - uses: actions/download-artifact@v2
+        with:
+          name: trento-amd64-binary
+      - id: deploy
+        uses: ./.github/actions/deploy
+        with:
+          role: web
 
   upload-release-assets:
     needs: build
@@ -57,8 +119,8 @@ jobs:
     steps:
       - uses: actions/download-artifact@v2
         with:
-          name: trento-binaries
+          name: trento-binaries-gz
       - uses: AButler/upload-release-assets@v2.0
         with:
-          files: 'trento-*'
+          files: "trento-*"
           repo-token: ${{ secrets.GITHUB_TOKEN }}

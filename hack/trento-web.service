@@ -1,0 +1,11 @@
+[Unit]
+Description=Trento Web UI
+
+[Service]
+ExecStart=/srv/trento/trento web serve
+Type=simple
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

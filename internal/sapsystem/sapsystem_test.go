@@ -124,6 +124,12 @@ func mockLandscapeHostConfiguration() *exec.Cmd {
 	return exec.Command("echo", string(content))
 }
 
+func mockHdbnsutilSrstate() *exec.Cmd {
+	lFile, _ := os.Open("../../test/hdbnsutil_srstate")
+	content, _ := ioutil.ReadAll(lFile)
+	return exec.Command("echo", string(content))
+}
+
 func TestNewSAPInstanceDatabase(t *testing.T) {
 	mockWebService := new(sapControlMocks.WebService)
 	mockCommand := new(sapSystemMocks.CustomCommand)
@@ -207,6 +213,10 @@ func TestNewSAPInstanceDatabase(t *testing.T) {
 
 	mockCommand.On("Execute", "su", "-lc", "python /usr/sap/PRD/HDB00/exe/python_support/landscapeHostConfiguration.py --sapcontrol=1", "prdadm").Return(
 		mockLandscapeHostConfiguration(),
+	)
+
+	mockCommand.On("Execute", "su", "-lc", "/usr/sap/PRD/HDB00/exe/hdbnsutil -sr_state -sapcontrol=1", "prdadm").Return(
+		mockHdbnsutilSrstate(),
 	)
 
 	sapInstance, _ := NewSAPInstance(mockWebService)
@@ -343,6 +353,29 @@ func TestNewSAPInstanceDatabase(t *testing.T) {
 			"workerConfigGroups":     "default",
 			"hostStatus":             "ok",
 			"storagePartition":       "1",
+		},
+		HdbnsutilSRstate: HdbnsutilSRstate{
+			"online":             "true",
+			"mode":               "primary",
+			"operation_mode":     "primary",
+			"site_id":            "1",
+			"site_name":          "Site1",
+			"isSource":           "true",
+			"isConsumer":         "false",
+			"hasConsumers":       "true",
+			"isTakeoverActive":   "false",
+			"isPrimarySuspended": "false",
+			"mapping/hana01": []interface{}{
+				"Site2/hana02",
+				"Site1/hana01",
+			},
+			"siteTier/Site1":            "1",
+			"siteTier/Site2":            "2",
+			"siteReplicationMode/Site1": "primary",
+			"siteReplicationMode/Site2": "sync",
+			"siteOperationMode/Site1":   "primary",
+			"siteOperationMode/Site2":   "logreplay",
+			"siteMapping/Site1":         "Site2",
 		},
 	}
 
@@ -487,6 +520,7 @@ func TestNewSAPInstanceApp(t *testing.T) {
 		},
 		SystemReplication: SystemReplication(nil),
 		HostConfiguration: HostConfiguration(nil),
+		HdbnsutilSRstate:  HdbnsutilSRstate(nil),
 	}
 
 	assert.Equal(t, expectedInstance, sapInstance)

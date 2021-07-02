@@ -302,6 +302,10 @@ func TestKVPutMap(t *testing.T) {
 						"itemd": "d",
 					},
 				},
+				"simple_list": []interface{}{
+					"value1",
+					"value2",
+				},
 			},
 			map[string]interface{}{
 				"item2": true,
@@ -350,6 +354,9 @@ func TestKVPutMap(t *testing.T) {
 		&consulApi.KVPair{Key: "/trento/list/0000/other_list/0000/itemb", Value: []byte("b"), Flags: stringFlag},
 		&consulApi.KVPair{Key: "/trento/list/0000/other_list/0001/itemc", Value: []byte("c"), Flags: stringFlag},
 		&consulApi.KVPair{Key: "/trento/list/0000/other_list/0001/itemd", Value: []byte("d"), Flags: stringFlag},
+		&consulApi.KVPair{Key: "/trento/list/0000/simple_list/", Value: []byte(""), Flags: sliceFlag},
+		&consulApi.KVPair{Key: "/trento/list/0000/simple_list/0000", Value: []byte("value1"), Flags: stringFlag},
+		&consulApi.KVPair{Key: "/trento/list/0000/simple_list/0001", Value: []byte("value2"), Flags: stringFlag},
 		&consulApi.KVPair{Key: "/trento/list/0001/item2", Value: []byte("true"), Flags: boolFlag},
 		&consulApi.KVPair{Key: "/trento/list/0002/item3", Value: []byte("3"), Flags: intFlag},
 		&consulApi.KVPair{Key: "/trento/list/0003/item4", Value: []byte("4"), Flags: intFlag},

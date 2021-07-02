@@ -47,6 +47,7 @@ type SAPSystem struct {
 type SAPProfile map[string]interface{}
 type SystemReplication map[string]interface{}
 type HostConfiguration map[string]interface{}
+type HdbnsutilSRstate map[string]interface{}
 
 type SAPInstance struct {
 	Name       string      `mapstructure:"name,omitempty"`
@@ -56,6 +57,7 @@ type SAPInstance struct {
 	// Only for Database type
 	SystemReplication SystemReplication `mapstructure:"systemreplication,omitempty"`
 	HostConfiguration HostConfiguration `mapstructure:"hostconfiguration,omitempty"`
+	HdbnsutilSRstate  HdbnsutilSRstate  `mapstructure:"hdbnsutilsrstate,omitempty"`
 }
 
 type SAPControl struct {
@@ -230,6 +232,7 @@ func NewSAPInstance(w sapcontrol.WebService) (*SAPInstance, error) {
 		sid := sapInstance.SAPControl.Properties["SAPSYSTEMNAME"].Value
 		sapInstance.SystemReplication = systemReplicationStatus(sid, sapInstance.Name)
 		sapInstance.HostConfiguration = landscapeHostConfiguration(sid, sapInstance.Name)
+		sapInstance.HdbnsutilSRstate = hdbnsutilSrstate(sid, sapInstance.Name)
 	}
 
 	return sapInstance, nil
@@ -237,7 +240,7 @@ func NewSAPInstance(w sapcontrol.WebService) (*SAPInstance, error) {
 
 func runPythonSupport(sid, instance, script string) map[string]interface{} {
 	user := fmt.Sprintf("%sadm", strings.ToLower(sid))
-	cmdPath := path.Join("/usr/sap", sid, instance, "exe/python_support", script)
+	cmdPath := path.Join(sapInstallationPath, sid, instance, "exe/python_support", script)
 	cmd := fmt.Sprintf("python %s --sapcontrol=1", cmdPath)
 	// Even with a error return code, some data is available
 	srData, _ := customExecCommand("su", "-lc", cmd, user).Output()
@@ -253,6 +256,15 @@ func systemReplicationStatus(sid, instance string) map[string]interface{} {
 
 func landscapeHostConfiguration(sid, instance string) map[string]interface{} {
 	return runPythonSupport(sid, instance, "landscapeHostConfiguration.py")
+}
+
+func hdbnsutilSrstate(sid, instance string) map[string]interface{} {
+	user := fmt.Sprintf("%sadm", strings.ToLower(sid))
+	cmdPath := path.Join(sapInstallationPath, sid, instance, "exe", "hdbnsutil")
+	cmd := fmt.Sprintf("%s -sr_state -sapcontrol=1", cmdPath)
+	srData, _ := customExecCommand("su", "-lc", cmd, user).Output()
+	dataMap := internal.FindMatches(`(.+)=(.*)`, srData)
+	return dataMap
 }
 
 func NewSAPControl(w sapcontrol.WebService) (*SAPControl, error) {

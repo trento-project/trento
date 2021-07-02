@@ -1,0 +1,22 @@
+SAPCONTROL-OK: <begin>
+online=true
+mode=primary
+operation mode=primary
+site id=1
+site name=Site1
+isSource=true
+isConsumer=false
+hasConsumers=true
+isTakeoverActive=false
+isPrimarySuspended=false
+mapping/hana01=Site2/hana02
+mapping/hana01=Site1/hana01
+siteTier/Site1=1
+siteTier/Site2=2
+siteReplicationMode/Site1=primary
+siteReplicationMode/Site2=sync
+siteOperationMode/Site1=primary
+siteOperationMode/Site2=logreplay
+siteMapping/Site1=Site2
+SAPCONTROL-OK: <end>
+done.

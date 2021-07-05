@@ -1,6 +1,10 @@
 package web
 
-import "github.com/gin-gonic/gin"
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+)
 
 func ErrorHandler(c *gin.Context) {
 	c.Next()
@@ -53,7 +57,15 @@ func (e *HttpError) Template() string {
 func NotFoundError(msg string) *HttpError {
 	return &HttpError{
 		msg,
-		404,
+		http.StatusNotFound,
 		"error404.html.tmpl",
+	}
+}
+
+func InternalServerError(msg string) *HttpError {
+	return &HttpError{
+		msg,
+		http.StatusInternalServerError,
+		"error.html.tmpl",
 	}
 }

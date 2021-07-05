@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"html/template"
 	"io/fs"
+	"net/http"
 	"path/filepath"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/gin-gonic/gin/render"
 
@@ -41,6 +44,52 @@ var defaultLayoutData = LayoutData{
 	Copyright: "© 2020-2021 SUSE LLC",
 }
 
+type LayoutHTML struct {
+	Templates    map[string]*template.Template
+	TemplateName string
+	Data         interface{}
+}
+
+func (r LayoutHTML) Render(w http.ResponseWriter) error {
+	r.WriteContentType(w)
+	tmpl, ok := r.Templates[r.TemplateName]
+	if !ok {
+		err := fmt.Errorf("template %s not found", r.TemplateName)
+		r.RenderErrorPage(InternalServerError(err.Error()), w)
+		return err
+	}
+
+	buf := &bytes.Buffer{}
+	err := tmpl.Execute(buf, r.Data)
+	if err != nil {
+		r.RenderErrorPage(InternalServerError(err.Error()), w)
+		return err
+	}
+
+	_, err = w.Write(buf.Bytes())
+	return err
+}
+
+func (r LayoutHTML) WriteContentType(w http.ResponseWriter) {
+	header := w.Header()
+	if val := header["Content-Type"]; len(val) == 0 {
+		header["Content-Type"] = []string{"text/html; charset=utf-8"}
+	}
+}
+
+func (r LayoutHTML) RenderErrorPage(e *HttpError, w http.ResponseWriter) {
+	tmpl, ok := r.Templates[e.template]
+	if !ok {
+		panic("error page template not found")
+	}
+	w.WriteHeader(e.code)
+	err := tmpl.Execute(w, r.Data)
+
+	if err != nil {
+		log.Fatal("Error while rendering error page template", err)
+	}
+}
+
 // The default constructor expects an FS, some data, and user templates;
 // user templates are the ones that can be referenced by the Gin context.
 func NewLayoutRender(templatesFS fs.FS, templates ...string) *LayoutRender {
@@ -59,13 +108,11 @@ func NewLayoutRender(templatesFS fs.FS, templates ...string) *LayoutRender {
 // Instance returns a render.HTML instance with the associated named Template
 func (r *LayoutRender) Instance(name string, data interface{}) render.Render {
 	r.data.Content = data
-	tmpl, ok := r.templates[name]
-	if !ok {
-		panic("template not found")
-	}
-	return render.HTML{
-		Template: tmpl,
-		Data:     r.data,
+
+	return LayoutHTML{
+		Templates:    r.templates,
+		TemplateName: name,
+		Data:         r.data,
 	}
 }
 

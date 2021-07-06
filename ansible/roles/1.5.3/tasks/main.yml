@@ -1,0 +1,290 @@
+---
+
+
+- name: 1.5.3_msl
+  shell: |
+    if cibadmin -Q --xpath "//primitive[@type='SAPHana']/@type" > /dev/null 2>&1; then
+        is_msl=$(cibadmin -Q --xpath "//master/primitive[@type='SAPHana']/@type" > /dev/null 2>&1; echo $?)
+        if [[ "${is_msl}" = "0" ]]; then
+            echo "is_msl"
+        else
+            echo "not_msl"
+        fi
+    else
+        # SAPHana is not configured
+        echo "SAPHana RA is not configured"
+    fi
+
+  register: result_msl
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result_msl }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.5.3_msl"
+    fact_value: "{{ result_msl.stdout }}"
+
+- name: 1.5.3_monitor_master_interval
+  shell: |
+    if cibadmin -Q --xpath "//primitive[@type='SAPHana']/@type" > /dev/null 2>&1; then
+        cibadmin -Q --xpath "//primitive[@type='SAPHana']/operations/op [@name='monitor'] [@role='Master']" | grep -oP 'interval="\K[^"]+'|| echo""
+    else
+        # SAPHana is not configured
+        echo "SAPHana RA is not configured"
+    fi
+
+  register: result_monitor_master_interval
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result_monitor_master_interval }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.5.3_monitor_master_interval"
+    fact_value: "{{ result_monitor_master_interval.stdout }}"
+
+
+- name: 1.5.3_monitor_master_timeout
+  shell: |
+    if cibadmin -Q --xpath "//primitive[@type='SAPHana']/@type" > /dev/null 2>&1; then
+        cibadmin -Q --xpath "//primitive[@type='SAPHana']/operations/op [@name='monitor'] [@role='Master']" | grep -oP 'timeout="\K[^"]+'|| echo ""
+    else
+        # SAPHana is not configured
+        echo "SAPHana RA is not configured"
+    fi
+
+  register: result_monitor_master_timeout
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result_monitor_master_timeout }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.5.3_monitor_master_timeout"
+    fact_value: "{{ result_monitor_master_timeout.stdout }}"
+
+
+- name: 1.5.3_monitor_slave_interval
+  shell: |
+    if cibadmin -Q --xpath "//primitive[@type='SAPHana']/@type" > /dev/null 2>&1; then
+        cibadmin -Q --xpath "//primitive[@type='SAPHana']/operations/op [@name='monitor'] [@role='Slave']" | grep -oP 'interval="\K[^"]+'|| echo ""
+    else
+        # SAPHana is not configured
+        echo "SAPHana RA is not configured"
+    fi
+
+  register: result_monitor_slave_interval
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result_monitor_slave_interval }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.5.3_monitor_slave_interval"
+    fact_value: "{{ result_monitor_slave_interval.stdout }}"
+
+
+- name: 1.5.3_monitor_slave_timeout
+  shell: |
+    if cibadmin -Q --xpath "//primitive[@type='SAPHana']/@type" > /dev/null 2>&1; then
+        cibadmin -Q --xpath "//primitive[@type='SAPHana']/operations/op [@name='monitor'] [@role='Slave']" | grep -oP 'timeout="\K[^"]+'|| echo ""
+    else
+        # SAPHana is not configured
+        echo "SAPHana RA is not configured"
+    fi
+
+  register: result_monitor_slave_timeout
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result_monitor_slave_timeout }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.5.3_monitor_slave_timeout"
+    fact_value: "{{ result_monitor_slave_timeout.stdout }}"
+
+
+- name: 1.5.3_start_interval
+  shell: |
+    if cibadmin -Q --xpath "//primitive[@type='SAPHana']/@type" > /dev/null 2>&1; then
+        cibadmin -Q --xpath "//primitive[@type='SAPHana']/operations/op [@name='start']" | grep -oP 'interval="\K[^"]+'|| echo ""
+    else
+        # SAPHana is not configured
+        echo "SAPHana RA is not configured"
+    fi
+
+  register: result_start_interval
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result_start_interval }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.5.3_start_interval"
+    fact_value: "{{ result_start_interval.stdout }}"
+
+
+- name: 1.5.3_start_timeout
+  shell: |
+    if cibadmin -Q --xpath "//primitive[@type='SAPHana']/@type" > /dev/null 2>&1; then
+        cibadmin -Q --xpath "//primitive[@type='SAPHana']/operations/op [@name='start']" | grep -oP 'timeout="\K[^"]+'|| echo ""
+    else
+        # SAPHana is not configured
+        echo "SAPHana RA is not configured"
+    fi
+
+  register: result_start_timeout
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result_start_timeout }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.5.3_start_timeout"
+    fact_value: "{{ result_start_timeout.stdout }}"
+
+
+- name: 1.5.3_stop_interval
+  shell: |
+    if cibadmin -Q --xpath "//primitive[@type='SAPHana']/@type" > /dev/null 2>&1; then
+        cibadmin -Q --xpath "//primitive[@type='SAPHana']/operations/op [@name='stop']" | grep -oP 'interval="\K[^"]+'|| echo ""
+    else
+        # SAPHana is not configured
+        echo "SAPHana RA is not configured"
+    fi
+
+  register: result_stop_interval
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result_stop_interval }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.5.3_stop_interval"
+    fact_value: "{{ result_stop_interval.stdout }}"
+
+
+- name: 1.5.3_promote_interval
+  shell: |
+    if cibadmin -Q --xpath "//primitive[@type='SAPHana']/@type" > /dev/null 2>&1; then
+        cibadmin -Q --xpath "//primitive[@type='SAPHana']/operations/op [@name='promote']" | grep -oP 'interval="\K[^"]+'|| echo ""
+    else
+        # SAPHana is not configured
+        echo "SAPHana RA is not configured"
+    fi
+
+  register: result_promote_interval
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result_promote_interval }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.5.3_promote_interval"
+    fact_value: "{{ result_promote_interval.stdout }}"
+
+
+- name: 1.5.3_promote_timeout
+  shell: |
+    if cibadmin -Q --xpath "//primitive[@type='SAPHana']/@type" > /dev/null 2>&1; then
+        cibadmin -Q --xpath "//primitive[@type='SAPHana']/operations/op [@name='promote']" | grep -oP 'timeout="\K[^"]+'|| echo ""
+    else
+        # SAPHana is not configured
+        echo "SAPHana RA is not configured"
+    fi
+
+  register: result_promote_timeout
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result_promote_timeout }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.5.3_promote_timeout"
+    fact_value: "{{ result_promote_timeout.stdout }}"
+
+
+- name: 1.5.3_PREFER_SITE_TAKEOVER
+  shell: |
+    if cibadmin -Q --xpath "//primitive[@type='SAPHana']/@type" > /dev/null 2>&1; then
+        cibadmin -Q --xpath "//primitive[@type='SAPHana']/instance_attributes/nvpair [@name='PREFER_SITE_TAKEOVER']" | grep -oP 'value="\K[^"]+' | tr '[:upper:]' '[:lower:]' || echo ""
+    else
+        # SAPHana is not configured
+        echo "SAPHana RA is not configured"
+    fi
+
+  register: result_PREFER_SITE_TAKEOVER
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result_PREFER_SITE_TAKEOVER }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.5.3_PREFER_SITE_TAKEOVER"
+    fact_value: "{{ result_PREFER_SITE_TAKEOVER.stdout }}"
+
+- name: 1.5.3_AUTOMATED_REGISTER
+  shell: |
+    if cibadmin -Q --xpath "//primitive[@type='SAPHana']/@type" > /dev/null 2>&1; then
+        cibadmin -Q --xpath "//primitive[@type='SAPHana']/instance_attributes/nvpair [@name='AUTOMATED_REGISTER']" | grep -oP 'value="\K[^"]+' | tr '[:upper:]' '[:lower:]'|| echo ""
+    else
+        # SAPHana is not configured
+        echo "SAPHana RA is not configured"
+    fi
+
+  register: result_AUTOMATED_REGISTER
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result_AUTOMATED_REGISTER }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.5.3_AUTOMATED_REGISTER"
+    fact_value: "{{ result_AUTOMATED_REGISTER.stdout }}"
+
+- name: 1.5.3_DUPLICATE_PRIMARY_TIMEOUT
+  shell: |
+    if cibadmin -Q --xpath "//primitive[@type='SAPHana']/@type" > /dev/null 2>&1; then
+        cibadmin -Q --xpath "//primitive[@type='SAPHana']/instance_attributes/nvpair [@name='DUPLICATE_PRIMARY_TIMEOUT']" | grep -oP 'value="\K[^"]+'|| echo ""
+    else
+        # SAPHana is not configured
+        echo "SAPHana RA is not configured"
+    fi
+
+  register: result_DUPLICATE_PRIMARY_TIMEOUT
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result_DUPLICATE_PRIMARY_TIMEOUT }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.5.3_DUPLICATE_PRIMARY_TIMEOUT"
+    fact_value: "{{ result_DUPLICATE_PRIMARY_TIMEOUT.stdout }}"
+

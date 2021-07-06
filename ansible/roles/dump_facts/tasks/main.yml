@@ -1,0 +1,13 @@
+---
+
+#- name: dump_facts
+
+- debug:
+    var: ha_check
+
+- name: Gen Yaml File
+  copy:
+    content: "{{ ha_check | to_yaml }}"
+    dest: "/tmp/config_dump.yml"
+  delegate_to: localhost
+  run_once: yes

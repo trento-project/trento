@@ -1,0 +1,70 @@
+---
+
+- name: 1.5.4_group
+  shell: |
+    if cibadmin -Q --xpath "//primitive[@type='IPaddr2']/@type" > /dev/null 2>&1; then
+        is_grouped=$(cibadmin -Q --xpath "//group/primitive[@type='IPaddr2']/@type" > /dev/null 2>&1; echo $?)
+        if [[ "${is_grouped}" = "0" ]]; then
+            echo "is_grouped"
+        else
+            echo "not_grouped"
+        fi
+    else
+        # Virtual IP is not configured
+        echo "vIP RA is not configured"
+    fi
+
+  register: result_group
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result_group }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.5.4_group"
+    fact_value: "{{ result_group.stdout }}"
+
+- name: 1.5.4_monitor_interval
+  shell: |
+    if cibadmin -Q --xpath "//primitive[@type='IPaddr2']/@type" > /dev/null 2>&1; then
+        cibadmin -Q --xpath "//primitive[@type='IPaddr2']/operations/op [@name='monitor']" | grep -oP 'interval="\K[^"]+'|| echo ""
+    else
+        # Virtual IP is not configured
+        echo "vIP RA is not configured"
+    fi
+
+  register: result_monitor_interval
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result_monitor_interval }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.5.4_monitor_interval"
+    fact_value: "{{ result_monitor_interval.stdout }}"
+
+- name: 1.5.4_monitor_timeout
+  shell: |
+    if cibadmin -Q --xpath "//primitive[@type='IPaddr2']/@type" > /dev/null 2>&1; then
+        cibadmin -Q --xpath "//primitive[@type='IPaddr2']/operations/op [@name='monitor']" | grep -oP 'timeout="\K[^"]+' || echo ""
+    else
+        # Virtual IP is not configured
+        echo "vIP RA is not configured"
+    fi
+
+  register: result_monitor_timeout
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result_monitor_timeout }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.5.4_monitor_timeout"
+    fact_value: "{{ result_monitor_timeout.stdout }}"
+

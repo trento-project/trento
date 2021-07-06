@@ -1,0 +1,16 @@
+---
+
+- name: 1.1.7
+  shell: 'grep -E "^\s*expected_votes:" corosync.conf | sed "s/[^0-9]//g"'
+  args:
+    chdir: "/etc/corosync"
+  register: result
+  changed_when: false
+
+- debug:
+    msg: "1.1.7: Pass"
+  when: result.stdout == expected['1.1.7']
+
+- debug:
+    msg: "1.1.7: Fail"
+  when: result.stdout != expected['1.1.7']

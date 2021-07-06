@@ -1,0 +1,31 @@
+---
+
+- name: 1.1.5.runtime.remediate
+  shell: 'corosync-cmapctl | grep "runtime.config.totem.token_retransmits_before_loss_const (u32) = " | sed "s/^.*= //"'
+  check_mode: no
+  register: result_run
+  changed_when: false
+
+- import_role:
+    name: 'corosync_restart'
+    tasks_from: main
+  when:
+    - result_run.stdout != expected['1.1.5']
+    - not ansible_check_mode
+
+
+- block:
+    - import_role:
+        name: post-results
+        tasks_from: fail
+      when:
+        - result_run.stdout != expected['1.1.5']
+    - import_role:
+        name: post-results
+        tasks_from: pass
+      when:
+        - result_run.stdout == expected['1.1.5']
+  when:
+    - ansible_check_mode
+  vars:
+    test: "1.1.5.runtime"

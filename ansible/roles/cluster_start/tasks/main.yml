@@ -1,0 +1,11 @@
+---
+
+- name: cluster_start
+  shell: 'crm cluster start'
+  run_once: yes
+  changed_when: false
+
+- name: cluster_maintenance_mode_false
+  shell: 'crm configure property maintenance-mode=false'
+  run_once: yes
+  changed_when: false

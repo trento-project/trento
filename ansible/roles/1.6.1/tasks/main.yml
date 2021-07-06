@@ -1,0 +1,91 @@
+---
+
+- name: 1.6.1_sidadm
+  shell: |
+    cat /etc/sudoers | grep -E ".+ +ALL=\(ALL\) +NOPASSWD: +/usr/sbin/crm_attribute +-n +hana_.+_site_srHook_\*" | sed "s/.*/true/"
+  register: result_sidadm
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result_sidadm }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.6.1_sidadm"
+    fact_value: "{{ result_sidadm.stdout }}"
+
+- name: 1.6.1_SOK_SITEA
+  shell: |
+    cat /etc/sudoers | grep -E "^Cmnd_Alias +SOK_SITEA += +/usr/sbin/crm_attribute" | grep -E "\-n +hana_.+_site_srHook_.+" | grep -E "\-v +SOK" | grep -E "\-t +crm_config" | grep -E "\-s +SAPHanaSR" | sed "s/.*/true/"
+  register: result_SOK_SITEA
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result_SOK_SITEA }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.6.1_SOK_SITEA"
+    fact_value: "{{ result_SOK_SITEA.stdout }}"
+
+- name: 1.6.1_SFAIL_SITEA
+  shell: |
+    cat /etc/sudoers | grep -E "^Cmnd_Alias +SFAIL_SITEA += +/usr/sbin/crm_attribute" | grep -E "\-n +hana_.+_site_srHook_.+" | grep -E "\-v +SFAIL" | grep -E "\-t +crm_config" | grep -E "\-s +SAPHanaSR" | sed "s/.*/true/"
+  register: result_SFAIL_SITEA
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result_SFAIL_SITEA }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.6.1_SFAIL_SITEA"
+    fact_value: "{{ result_SFAIL_SITEA.stdout }}"
+
+- name: 1.6.1_SOK_SITEB
+  shell: |
+    cat /etc/sudoers | grep -E "^Cmnd_Alias +SOK_SITEB += +/usr/sbin/crm_attribute" | grep -E "\-n +hana_.+_site_srHook_.+" | grep -E "\-v +SOK" | grep -E "\-t +crm_config" | grep -E "\-s +SAPHanaSR" | sed "s/.*/true/"
+  register: result_SOK_SITEB
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result_SOK_SITEB }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.6.1_SOK_SITEB"
+    fact_value: "{{ result_SOK_SITEB.stdout }}"
+
+- name: 1.6.1_SFAIL_SITEB
+  shell: |
+    cat /etc/sudoers | grep -E "^Cmnd_Alias +SFAIL_SITEB += +/usr/sbin/crm_attribute" | grep -E "\-n +hana_.+_site_srHook_.+" | grep -E "\-v +SFAIL" | grep -E "\-t +crm_config" | grep -E "\-s +SAPHanaSR" | sed "s/.*/true/"
+  register: result_SFAIL_SITEB
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result_SFAIL_SITEB }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.6.1_SFAIL_SITEB"
+    fact_value: "{{ result_SFAIL_SITEB.stdout }}"
+
+- name: 1.6.1_sidadm_all
+  shell: |
+    cat /etc/sudoers | grep -E ".+ +ALL=\(ALL\) +NOPASSWD:" | sed "s/.*: //" | grep SOK_SITEA | grep SFAIL_SITEA | grep SOK_SITEB | grep SFAIL_SITEB | sed "s/.*/true/"
+  register: result_sidadm_all
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result_sidadm_all }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.6.1_sidadm_all"
+    fact_value: "{{ result_sidadm_all.stdout }}"

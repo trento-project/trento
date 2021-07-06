@@ -1,0 +1,12 @@
+---
+
+- name: 1.3.3.result
+  shell: 'systemctl is-enabled sbd || true'
+  register: result_run
+
+- name: 1.3.3.remediate
+  shell: 'systemctl enable sbd'
+  register: result_rem
+  when: 
+    - result_run.stdout != expected['1.3.3']
+    - not ansible_check_mode

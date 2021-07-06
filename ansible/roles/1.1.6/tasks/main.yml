@@ -1,0 +1,17 @@
+---
+
+- name: 1.1.6
+  shell: 'grep -E "^\s*transport::" corosync.conf | sed "s/.*:\s*//"'
+  args:
+    chdir: "/etc/corosync"
+  register: result
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.1.6"
+    fact_value: "{{ result.stdout }}"

@@ -1,0 +1,108 @@
+---
+- hosts: target
+  tasks:
+    - name: "get vars for development env"
+      include_vars: "{{env}}_env.yml"
+
+    - name: Check that you can connect (GET) to a page and it returns a status 200
+      uri:
+        url: https://raw.githubusercontent.com/trento-project/trento/main/examples/azure-rules.yaml
+
+        return_content: yes
+      register: result
+
+
+    - debug:
+        msg: "{{ result.content }}"
+
+    - set_fact:
+        myvar: "{{ result.content | from_yaml }}"
+    - debug:
+        msg: "{{ myvar }}"
+
+    - debug: var=expected
+
+    - name: Check vars
+      shell : |
+        echo "1.1.1" "{{ expected['1.1.1'] }}"
+        echo "1.1.1_runtime" "{{ expected['1.1.1_runtime'] }}"
+        echo "1.1.2" "{{ expected['1.1.2'] }}"
+        echo "1.1.2_runtime" "{{ expected['1.1.2_runtime'] }}"
+        echo "1.1.3" "{{ expected['1.1.3'] }}"
+        echo "1.1.3_runtime" "{{ expected['1.1.3_runtime'] }}"
+        echo "1.1.4" "{{ expected['1.1.4'] }}"
+        echo "1.1.4_runtime" "{{ expected['1.1.4_runtime'] }}"
+        echo "1.1.5" "{{ expected['1.1.5'] }}"
+        echo "1.1.5_runtime" "{{ expected['1.1.5_runtime'] }}"
+        echo "1.1.6" "{{ expected['1.1.6'] }}"
+        echo "1.1.7" "{{ expected['1.1.7'] }}"
+        echo "1.1.8" "{{ expected['1.1.8'] }}"
+        echo "1.1.8_runtime" "{{ expected['1.1.8_runtime'] }}"
+        echo "1.2.1" "{{ expected['1.2.1'] }}"
+        echo "1.2.2" "{{ expected['1.2.2'] }}"
+        echo "1.3.1" "{{ expected['1.3.1'] }}"
+        echo "1.3.2" "{{ expected['1.3.2'] }}"
+        echo "1.3.3" "{{ expected['1.3.3'] }}"
+        echo "1.3.4" "{{ expected['1.3.4'] }}"
+        echo "1.3.5_msgwait" "{{ expected['1.3.5_msgwait'] }}"
+        echo "1.3.5_watchdog" "{{ expected['1.3.5_watchdog'] }}"
+        echo "1.4.1_monitor_interval" "{{ expected['1.4.1_monitor_interval'] }}"
+        echo "1.4.1_monitor_timeout" "{{ expected['1.4.1_monitor_timeout'] }}"
+        echo "1.4.1_pcmk_action_limit" "{{ expected['1.4.1_pcmk_action_limit'] }}"
+        echo "1.4.1_pcmk_monitor_retries" "{{ expected['1.4.1_pcmk_monitor_retries'] }}"
+        echo "1.4.1_pcmk_reboot_timeout" "{{ expected['1.4.1_pcmk_reboot_timeout'] }}"
+        echo "1_4_1.power.timeout" "{{ expected['1.4.1_power_timeout'] }}"
+        echo "1.4.2" "{{ expected['1.4.2'] }}"
+        echo "1.5.1_migration" "{{ expected['1.5.1_migration'] }}"
+        echo "1.5.1_resource" "{{ expected['1.5.1_resource'] }}"
+        echo "1.5.2_clone"  "{{ expected['1.5.2_clone'] }}"
+        echo "1.5.2_monitor_interval" "{{ expected['1.5.2_monitor_interval'] }}"
+        echo "1.5.2_monitor_timeout" "{{ expected['1.5.2_monitor_timeout'] }}"
+        echo "1.5.2_start_interval" "{{ expected['1.5.2_start_interval'] }}"
+        echo "1.5.2_start_timeout" "{{ expected['1.5.2_start_timeout'] }}"
+        echo "1.5.2_stop_interval" "{{ expected['1.5.2_stop_interval'] }}"
+        echo "1.5.2_stop_timeout" "{{ expected['1.5.2_stop_timeout'] }}"
+        echo "1.5.3_AUTOMATED_REGISTER" "{{ expected['1.5.3_AUTOMATED_REGISTER'] }}"
+        echo "1.5.3_DUPLICATE_PRIMARY_TIMEOUT" "{{ expected['1.5.3_DUPLICATE_PRIMARY_TIMEOUT'] }}"
+        echo "1.5.3_PREFER_SITE_TAKEOVER" "{{ expected['1.5.3_PREFER_SITE_TAKEOVER'] }}"
+        echo "1.5.3_monitor_master_interval" "{{ expected['1.5.3_monitor_master_interval'] }}"
+        echo "1.5.3_monitor_master_timeout" "{{ expected['1.5.3_monitor_master_timeout'] }}"
+        echo "1.5.3_monitor_slave_interval" "{{ expected['1.5.3_monitor_slave_interval'] }}"
+        echo "1.5.3_monitor_slave_timeout" "{{ expected['1.5.3_monitor_slave_timeout'] }}"
+        echo "1.5.3_promote_interval" "{{ expected['1.5.3_promote_interval'] }}"
+        echo "1.5.3_promote_timeout" "{{ expected['1.5.3_promote_timeout'] }}"
+        echo "1.5.3_start_interval" "{{ expected['1.5.3_start_interval'] }}"
+        echo "1.5.3_start_timeout" "{{ expected['1.5.3_start_timeout'] }}"
+        echo "1.5.3_stop_interval" "{{ expected['1.5.3_stop_interval'] }}"
+        echo "1.5.4_group" "{{ expected['1.5.4_group'] }}"
+        echo "1.5.4_monitor_interval" "{{ expected['1.5.4_monitor_interval'] }}"
+        echo "1.5.4_monitor_timeout" "{{ expected['1.5.4_monitor_timeout'] }}"
+        echo "1.5.5_group" "{{ expected['1.5.5_group'] }}"
+        echo "1.5.5_resource_stickiness" "{{ expected['1.5.5_resource_stickiness'] }}"
+        echo "1.5.6_rsc_colocation_rsc" "{{ expected['1.5.6_rsc_colocation_rsc'] }}"
+        echo "1.5.6_rsc_colocation_rsc_role" "{{ expected['1.5.6_rsc_colocation_rsc_role'] }}"
+        echo "1.5.6_rsc_colocation_score" "{{ expected['1.5.6_rsc_colocation_score'] }}"
+        echo "1.5.6_rsc_colocation_with_rsc" "{{ expected['1.5.6_rsc_colocation_with_rsc'] }}"
+        echo "1.5.6_rsc_colocation_with_rsc_role" "{{ expected['1.5.6_rsc_colocation_with_rsc_role'] }}"
+        echo "1.5.6_rsc_order_first" "{{ expected['1.5.6_rsc_order_first'] }}"
+        echo "1.5.6_rsc_order_kind" "{{ expected['1.5.6_rsc_order_kind'] }}"
+        echo "1.5.6_rsc_order_then" "{{ expected['1.5.6_rsc_order_then'] }}"
+        echo "1.6.1_sidadm" "{{ expected['1.6.1_sidadm'] }}"
+        echo "1.6.1_SOK_SITEA" "{{ expected['1.6.1_SOK_SITEA'] }}"
+        echo "1.6.1_SFAIL_SITEA" "{{ expected['1.6.1_SFAIL_SITEA'] }}"
+        echo "1.6.1_SOK_SITEB" "{{ expected['1.6.1_SOK_SITEB'] }}"
+        echo "1.6.1_SFAIL_SITEB" "{{ expected['1.6.1_SFAIL_SITEB'] }}"
+        echo "1.6.1_sidadm_all" "{{ expected['1.6.1_sidadm_all'] }}"
+      register: result_var
+
+    - debug:
+        msg: "{{ result_var }}"
+
+    - include_role:
+        name: "set-results"
+      vars:
+        fact_name: "globals"
+        fact_value: "{{ result_var.stdout_lines }}"
+
+    - debug:
+        var: ha_check

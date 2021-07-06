@@ -1,0 +1,25 @@
+---
+
+- name: stop {{ groups.target[0] }}
+  service:
+    name: corosync
+    state: stopped
+  when:
+    - inventory_hostname == groups.target[0]
+    - not ansible_check_mode
+
+- name: restart {{ groups.target[1] }}
+  service:
+    name: corosync
+    state: restarted
+  when:
+    - inventory_hostname == groups.target[1]
+    - not ansible_check_mode
+
+- name: start {{ groups.target[0] }}
+  service:
+    name: corosync
+    state: started
+  when:
+    - inventory_hostname == groups.target[0]
+    - not ansible_check_mode

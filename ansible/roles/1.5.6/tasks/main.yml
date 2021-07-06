@@ -1,0 +1,170 @@
+---
+
+- name: 1.5.6_rsc_colocation_score
+  shell: |
+    if cibadmin -Q --xpath "//constraints/rsc_colocation" > /dev/null 2>&1; then
+        cibadmin -Q --xpath "//constraints/rsc_colocation" | grep -oP ' score="\K[^"]+'|| echo ""
+    else
+        # Colocation constraint is not configured
+        echo "colocation constraint is not configured"
+    fi
+
+  register: result_rsc_colocation_score
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result_rsc_colocation_score }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.5.6_rsc_colocation_score"
+    fact_value: "{{ result_rsc_colocation_score.stdout }}"
+
+- name: 1.5.6_rsc_colocation_rsc
+  shell: |
+    if cibadmin -Q --xpath "//constraints/rsc_colocation" > /dev/null 2>&1; then
+        cibadmin -Q --xpath "//constraints/rsc_colocation" | grep -oP ' rsc="\K[^"]+' | grep -o g_ip || echo ""
+    else
+        # Colocation constraint is not configured
+        echo "colocation constraint is not configured"
+    fi
+
+  register: result_rsc_colocation_rsc
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result_rsc_colocation_rsc }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.5.6_rsc_colocation_rsc"
+    fact_value: "{{ result_rsc_colocation_rsc.stdout }}"
+
+- name: 1.5.6_rsc_colocation_rsc_role
+  shell: |
+    if cibadmin -Q --xpath "//constraints/rsc_colocation" > /dev/null 2>&1; then
+        cibadmin -Q --xpath "//constraints/rsc_colocation" | grep -oP ' rsc-role="\K[^"]+' || echo ""
+    else
+        # Colocation constraint is not configured
+        echo "colocation constraint is not configured"
+    fi
+
+  register: result_rsc_colocation_rsc_role
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result_rsc_colocation_rsc_role }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.5.6_rsc_colocation_rsc_role"
+    fact_value: "{{ result_rsc_colocation_rsc_role.stdout }}"
+
+- name: 1.5.6_rsc_colocation_with_rsc
+  shell: |
+    if cibadmin -Q --xpath "//constraints/rsc_colocation" > /dev/null 2>&1; then
+        cibadmin -Q --xpath "//constraints/rsc_colocation" | grep -oP ' with-rsc="\K[^"]+' | grep -o msl_SAPHana || echo ""
+    else
+        # Colocation constraint is not configured
+        echo "colocation constraint is not configured"
+    fi
+
+  register: result_rsc_colocation_with_rsc
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result_rsc_colocation_with_rsc }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.5.6_rsc_colocation_with_rsc"
+    fact_value: "{{ result_rsc_colocation_with_rsc.stdout }}"
+
+- name: 1.5.6_rsc_colocation_with_rsc_role
+  shell: |
+    if cibadmin -Q --xpath "//constraints/rsc_colocation" > /dev/null 2>&1; then
+        cibadmin -Q --xpath "//constraints/rsc_colocation" | grep -oP ' with-rsc-role="\K[^"]+' || echo ""
+    else
+        # Colocation constraint is not configured
+        echo "colocation constraint is not configured"
+    fi
+
+  register: result_rsc_colocation_with_rsc_role
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result_rsc_colocation_with_rsc_role }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.5.6_rsc_colocation_with_rsc_role"
+    fact_value: "{{ result_rsc_colocation_with_rsc_role.stdout }}"
+
+- name: 1.5.6_rsc_order_kind
+  shell: |
+    if cibadmin -Q --xpath "//constraints/rsc_order" > /dev/null 2>&1; then
+        cibadmin -Q --xpath "//constraints/rsc_order" | grep -oP ' kind="\K[^"]+' || echo ""
+    else
+        # Colocation constraint is not configured
+        echo "order constraint is not configured"
+    fi
+
+  register: result_rsc_order_kind
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result_rsc_order_kind }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.5.6_rsc_order_kind"
+    fact_value: "{{ result_rsc_order_kind.stdout }}"
+
+- name: 1.5.6_rsc_order_first
+  shell: |
+    if cibadmin -Q --xpath "//constraints/rsc_order" > /dev/null 2>&1; then
+        cibadmin -Q --xpath "//constraints/rsc_order" | grep -oP ' first="\K[^"]+' | grep -o cln_SAPHanaTopology || echo ""
+    else
+        # Colocation constraint is not configured
+        echo "order constraint is not configured"
+    fi
+
+  register: result_rsc_order_first
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result_rsc_order_first }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.5.6_rsc_order_first"
+    fact_value: "{{ result_rsc_order_first.stdout }}"
+
+- name: 1.5.6_rsc_order_then
+  shell: |
+    if cibadmin -Q --xpath "//constraints/rsc_order" > /dev/null 2>&1; then
+        cibadmin -Q --xpath "//constraints/rsc_order" | grep -oP ' then="\K[^"]+' | grep -o msl_SAPHana || echo ""
+    else
+        # Colocation constraint is not configured
+        echo "order constraint is not configured"
+    fi
+
+  register: result_rsc_order_then
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result_rsc_order_then }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.5.6_rsc_order_then"
+    fact_value: "{{ result_rsc_order_then.stdout }}"
+

@@ -1,0 +1,16 @@
+---
+
+- name: 1.2.1
+  shell: 'crm_attribute -t crm_config -G -n stonith-enabled --quiet'
+  register: result
+  changed_when: false
+
+- debug:
+    msg: "1.2.1: Pass"
+  when: result.stdout == expected['1.2.1']
+
+- debug:
+    msg: "1.2.1: Fail"
+  when: result.stdout != expected['1.2.1']
+
+

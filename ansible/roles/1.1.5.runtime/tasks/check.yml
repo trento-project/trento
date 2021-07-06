@@ -1,0 +1,14 @@
+---
+
+- name: 1.1.5.runtime
+  shell: 'corosync-cmapctl | grep "runtime.config.totem.token_retransmits_before_loss_const (u32) = " | sed "s/^.*= //"'
+  register: result
+  changed_when: false
+
+- debug:
+    msg: "1.1.5.runtime: Pass"
+  when: result.stdout == expected['1.1.5_runtime']
+
+- debug:
+    msg: "1.1.5.runtime: Fail"
+  when: result.stdout != expected['1.1.5_runtime']

@@ -1,0 +1,13 @@
+---
+
+- name: 1.1.8.runtime
+  shell: 'corosync-cmapctl | grep "runtime.votequorum.two_node (u8) = " | sed "s/^.*= //"'
+  register: result
+  changed_when: false
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.1.8.runtime"
+    fact_value: "{{ result.stdout }}"
+

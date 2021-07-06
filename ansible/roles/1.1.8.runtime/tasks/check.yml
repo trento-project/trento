@@ -1,0 +1,14 @@
+---
+
+- name: 1.1.8.runtime
+  shell: 'corosync-cmapctl | grep "runtime.votequorum.two_node (u8) = " | sed "s/^.*= //"'
+  register: result
+  changed_when: false
+
+- debug:
+    msg: "1.1.8.runtime: Pass"
+  when: result.stdout == expected['1.1.8_runtime']
+
+- debug:
+    msg: "1.1.8.runtime: Fail"
+  when: result.stdout != expected['1.1.8_runtime']

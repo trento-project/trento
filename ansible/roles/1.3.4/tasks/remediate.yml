@@ -1,0 +1,8 @@
+---
+
+- name: 1.3.4_remediate
+  shell: |
+    echo -n "SBD_COUNT="
+    grep -E '^SBD_DEVICE=' /etc/sysconfig/sbd |wc -l
+  register: result_run
+  changed_when: false

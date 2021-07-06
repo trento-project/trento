@@ -1,0 +1,139 @@
+---
+
+- name: 1.5.2_clone
+  shell: |
+    if cibadmin -Q --xpath "//primitive[@type='SAPHanaTopology']/@type" > /dev/null 2>&1; then
+        is_clone=$(cibadmin -Q --xpath "//clone/primitive[@type='SAPHanaTopology']/@type" > /dev/null 2>&1; echo $?)
+        if [[ "${is_clone}" = "0" ]]; then
+            echo "is_clone"
+        else
+            echo "not_clone"
+        fi
+    else
+        # SAPHanaTopology is not configured
+        echo "SAPHanaTopology is not configured"
+    fi
+  register: result_clone
+  changed_when: false
+
+- debug:
+    msg: "1.5.2_clone: Pass"
+  when: result_clone.stdout == expected['1.5.2_clone']
+
+- debug:
+    msg: "1.5.2_clone: Fail"
+  when: result_clone.stdout != expected['1.5.2_clone']
+
+- name: 1.5.2_monitor_interval
+  shell: |
+    if cibadmin -Q --xpath "//primitive[@type='SAPHanaTopology']/@type" > /dev/null 2>&1; then
+        cibadmin -Q --xpath "//primitive[@type='SAPHanaTopology']/operations/op [@name='monitor']" | grep -oP 'interval="\K[^"]+'||echo ""
+    else
+        # SAPHanaTopology is not configured
+        echo "SAPHanaTopology is not configured"
+    fi
+  register: result_monitor_interval
+  changed_when: false
+
+- debug:
+    msg: "1.5.2_monitor_interval: Pass"
+  when: result_monitor_interval.stdout == expected['1.5.2_monitor_interval']
+
+- debug:
+    msg: "1.5.2_monitor_interval: Fail"
+  when: result_monitor_interval.stdout != expected['1.5.2_monitor_interval']
+
+- name: 1.5.2_monitor_timeout
+  shell: |
+    if cibadmin -Q --xpath "//primitive[@type='SAPHanaTopology']/@type" > /dev/null 2>&1; then
+        cibadmin -Q --xpath "//primitive[@type='SAPHanaTopology']/operations/op [@name='monitor']" | grep -oP 'timeout="\K[^"]+'||echo ""
+    else
+        # SAPHanaTopology is not configured
+        echo "SAPHanaTopology is not configured"
+    fi
+  register: result_monitor_timeout
+  changed_when: false
+
+- debug:
+    msg: "1.5.2_monitor_timeout: Pass"
+  when: result_monitor_timeout.stdout == expected['1.5.2_monitor_timeout']
+
+- debug:
+    msg: "1.5.2_monitor_timeout: Fail"
+  when: result_monitor_timeout.stdout != expected['1.5.2_monitor_timeout']
+
+- name: 1.5.2_start_interval
+  shell: |
+    if cibadmin -Q --xpath "//primitive[@type='SAPHanaTopology']/@type" > /dev/null 2>&1; then
+        cibadmin -Q --xpath "//primitive[@type='SAPHanaTopology']/operations/op [@name='start']" | grep -oP 'interval="\K[^"]+'||echo ""
+    else
+        # SAPHanaTopology is not configured
+        echo "SAPHanaTopology is not configured"
+    fi
+  register: result_start_interval
+  changed_when: false
+
+- debug:
+    msg: "1.5.2_start_interval: Pass"
+  when: result_start_interval.stdout == expected['1.5.2_start_interval']
+
+- debug:
+    msg: "1.5.2_start_interval: Fail"
+  when: result_start_interval.stdout != expected['1.5.2_start_interval']
+
+- name: 1.5.2_start_timeout
+  shell: |
+    if cibadmin -Q --xpath "//primitive[@type='SAPHanaTopology']/@type" > /dev/null 2>&1; then
+        cibadmin -Q --xpath "//primitive[@type='SAPHanaTopology']/operations/op [@name='start']" | grep -oP 'timeout="\K[^"]+'||echo ""
+    else
+        # SAPHanaTopology is not configured
+        echo "SAPHanaTopology is not configured"
+    fi
+  register: result_start_timeout
+  changed_when: false
+
+- debug:
+    msg: "1.5.2_start_timeout: Pass"
+  when: result_start_timeout.stdout == expected['1.5.2_start_timeout']
+
+- debug:
+    msg: "1.5.2_start_timeout: Fail"
+  when: result_start_timeout.stdout != expected['1.5.2_start_timeout']
+
+- name: 1.5.2_stop_interval
+  shell: |
+    if cibadmin -Q --xpath "//primitive[@type='SAPHanaTopology']/@type" > /dev/null 2>&1; then
+        cibadmin -Q --xpath "//primitive[@type='SAPHanaTopology']/operations/op [@name='stop']" | grep -oP 'interval="\K[^"]+'||echo ""
+    else
+        # SAPHanaTopology is not configured
+        echo "SAPHanaTopology is not configured"
+    fi
+  register: result_stop_interval
+  changed_when: false
+
+- debug:
+    msg: "1.5.2_stop_interval: Pass"
+  when: result_stop_interval.stdout == expected['1.5.2_stop_interval']
+
+- debug:
+    msg: "1.5.2_stop_interval: Fail"
+  when: result_stop_interval.stdout != expected['1.5.2_stop_interval']
+
+- name: 1.5.2_stop_timeout
+  shell: |
+    if cibadmin -Q --xpath "//primitive[@type='SAPHanaTopology']/@type" > /dev/null 2>&1; then
+        cibadmin -Q --xpath "//primitive[@type='SAPHanaTopology']/operations/op [@name='stop']" | grep -oP 'timeout="\K[^"]+'||echo ""
+    else
+        # SAPHanaTopology is not configured
+        echo "SAPHanaTopology is not configured"
+    fi
+  register: result_stop_timeout
+  changed_when: false
+
+- debug:
+    msg: "1.5.2_stop_timeout: Pass"
+  when: result_stop_timeout.stdout == expected['1.5.2_stop_timeout']
+
+- debug:
+    msg: "1.5.2_stop_timeout: Fail"
+  when: result_stop_timeout.stdout != expected['1.5.2_stop_timeout']

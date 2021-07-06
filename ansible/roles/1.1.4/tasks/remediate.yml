@@ -1,0 +1,28 @@
+---
+
+- name: 1.1.4.remediate
+  replace:
+    path: /etc/corosync/corosync.conf
+    regexp: '(\s+)join:(\s)[0-9]+?$'
+    replace: '\1join: {{ expected["1.1.4"] }}'
+  register: config_updated
+
+- import_role:
+    name: corosync_restart
+  when:
+    - config_updated is changed
+    - not ansible_check_mode
+
+- block:
+    - import_role:
+        name: post-results
+        tasks_from: fail
+      when: config_updated is changed
+    - import_role:
+        name: post-results
+        tasks_from: pass
+      when: config_updated is not changed
+  when:
+    - ansible_check_mode
+  vars:
+    test: "1.1.4"

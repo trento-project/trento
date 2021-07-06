@@ -1,0 +1,28 @@
+---
+
+- name: 1.2.2
+  shell: |
+   timeout=$(crm_attribute -t crm_config -G -n stonith-timeout --quiet)
+          if [[cibadmin -Q --xpath "//primitive[@type='fence_azure_arm']/@type" > /dev/null 2>&1 ]]; then
+            if [[ "${timeout}" = "900" ]]; then
+              echo "correct"
+            else
+              echo "${timeout}"
+            fi
+          elif [[ "${timeout}" = "144" ]]; then
+            echo "correct"
+          else
+            echo "${timeout}"
+          fi
+
+  register: result
+  changed_when: false
+
+#- debug:
+#    msg: "{{ result }}"
+
+- include_role:
+    name: "set-results"
+  vars:
+    fact_name: "1.2.2"
+    fact_value: "{{ result.stdout }}"

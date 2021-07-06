@@ -1,0 +1,14 @@
+---
+
+- name: 1.1.2.runtime
+  shell:  'corosync-cmapctl | grep "runtime.config.totem.consensus (u32) = " | sed "s/^.*= //"'
+  register: result
+  changed_when: false
+
+- debug:
+    msg: "1.1.2.runtime: Pass"
+  when: result.stdout == expected['1.1.2_runtime']
+
+- debug:
+    msg: "1.1.2.runtime: Fail"
+  when: result.stdout != expected['1.1.2_runtime']

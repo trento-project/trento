@@ -1,0 +1,47 @@
+---
+
+- name: 1.5.5_group
+  shell: |
+    if cibadmin -Q --xpath "//primitive[@type='azure-lb']/@type" > /dev/null 2>&1; then
+        is_grouped=$(cibadmin -Q --xpath "//group/primitive[@type='azure-lb']/@type" > /dev/null 2>&1; echo $?)
+        if [[ "${is_grouped}" = "0" ]]; then
+            echo "is_grouped"
+        else
+            echo "not_grouped"
+        fi
+    else
+        # azure-lb RA is not configured
+        echo "azure-lb RA is not configured"
+    fi
+
+  register: result_group
+  changed_when: false
+
+- debug:
+    msg: "1.5.5_group: Pass"
+  when: result_group.stdout == expected['1.5.5_group']
+
+- debug:
+    msg: "1.5.5_group: Fail"
+  when: result_group.stdout != expected['1.5.5_group']
+
+- name: 1.5.5_resource_stickiness
+  shell: |
+    if cibadmin -Q --xpath "//primitive[@type='azure-lb']/@type" > /dev/null 2>&1; then
+        cibadmin -Q --xpath "//primitive[@type='azure-lb']/meta_attributes/nvpair [@name='resource-stickiness']" | grep -oP 'value="\K[^"]+'
+    else
+        # azure-lb RA is not configured
+        echo "azure-lb RA is not configured"
+    fi
+
+  register: result_resource_stickiness
+  changed_when: false
+
+- debug:
+    msg: "1.5.5_resource_stickiness: Pass"
+  when: result_resource_stickiness.stdout == expected['1.5.5_resource_stickiness']
+
+- debug:
+    msg: "1.5.5_resource_stickiness: Fail"
+  when: result_resource_stickiness.stdout != expected['1.5.5_resource_stickiness']
+

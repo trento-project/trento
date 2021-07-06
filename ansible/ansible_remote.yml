@@ -1,0 +1,10 @@
+target:
+  hosts:
+    hana1:
+      ansible_host: 192.168.122.10
+      ansible_connction: ssh
+      ansible_user: root
+    hana2:
+      ansible_host: 192.168.122.11
+      ansible_connction: ssh
+      ansible_user: root

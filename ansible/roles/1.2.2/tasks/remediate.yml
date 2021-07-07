@@ -1,0 +1,40 @@
+---
+- name: 1.2.2.result
+  shell: |
+   timeout=$(crm_attribute -t crm_config -G -n stonith-timeout --quiet)
+          if [[cibadmin -Q --xpath "//primitive[@type='fence_azure_arm']/@type" > /dev/null 2>&1 ]]; then
+            if [[ "${timeout}" = "900" ]]; then
+              echo "correct"
+            else
+              echo "${timeout}"
+            fi
+          elif [[ "${timeout}" = "144" ]]; then
+            echo "correct"
+          else
+            echo "${timeout}"
+          fi
+  check_mode: no
+  register: result_run
+  changed_when: false
+
+ debug:
+    msg: "1.2.2- The fencing timeout (`stonith-timeout`) determines the time Pacemaker will wait for fencing to succeed. The recommended values on Azure are `144` seconds for SBD only or `900` seconds when using SBD combined with the Azure Fence agent. \n Execute the following command to adjust the timeout for your usecase: (crm configure property stonith-timeout=144) or (crm configure property stonith-timeout=900)"
+  when:
+    - result_run.stdout != expected['1.2.2']
+    - not ansible_check_mode
+
+- block:
+    - import_role:
+        name: post-results
+        tasks_from: fail
+      when:
+        - result_run.stdout != expected['1.2.2']
+    - import_role:
+        name: post-results
+        tasks_from: pass
+      when:
+        - result_run.stdout == expected['1.2.2']
+  when:
+    - ansible_check_mode
+  vars:
+    test: "1.2.2"	

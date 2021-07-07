@@ -1,0 +1,19 @@
+---
+
+- name: 1.2.1.remediate
+  shell: 'crm configure property stonith-enabled=true'
+  register: config_updated
+
+- block:
+    - import_role:
+        name: post-results
+        tasks_from: fail
+      when: config_updated is changed
+    - import_role:
+        name: post-results
+        tasks_from: pass
+      when: config_updated is not changed
+  when:
+    - ansible_check_mode
+  vars:
+    test: "1.2.1"

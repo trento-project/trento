@@ -133,3 +133,10 @@
         tasks_from: remediate
       tags:
         - 1.3.4
+
+    - name: include 1.3.5 remediate
+      import_role:
+        name: '1.3.5'
+        tasks_from: remediate
+      tags:
+        - 1.3.5

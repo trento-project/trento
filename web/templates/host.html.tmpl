@@ -22,6 +22,28 @@
             </dd>
         </dl>
         <hr/>
+        {{- if eq .CloudData.Provider "azure" }}
+        <h1>Cloud details</h1>
+        {{- $Compute := .CloudData.Metadata.Compute }}
+        <dl class="inline">
+            <dt class="inline">VM Name</dt>
+            <dd class="inline"><a target="_blank"href="{{ .CloudData.Metadata.GetVmUrl }}" target="_blank">{{ $Compute.Name }}</a></dd>
+            <dt class="inline">Resource group</dt>
+            <dd class="inline"><a href="{{ .CloudData.Metadata.GetResourceGroupUrl }}" target="_blank">{{ $Compute.ResourceGroupName }}</a></dd>
+            <dt class="inline">Location</dt>
+            <dd class="inline">{{ $Compute.Location }}</dd>
+            <dt class="inline">VM Size</dt>
+            <dd class="inline">{{ $Compute.VmSize }}</dd>
+            <dt class="inline">Data disks number</dt>
+            <dd class="inline">{{ len $Compute.StorageProfile.DataDisks }}</dd>
+            <dt class="inline">Offer</dt>
+            <dd class="inline">{{ $Compute.Offer }}</dd>
+            <dt class="inline">SKU</dt>
+            <dd class="inline">{{ $Compute.Sku }}</dd>
+
+        </dl>
+        <hr/>
+        {{- end }}
         {{- if ne (len .SAPSystems) 0 }}
             <p class='clearfix'></p>
             <h2>SAP instances</h2>

@@ -5,6 +5,7 @@
             <tr>
                 <th scope='col'>Name</th>
                 <th scope='col'>Address</th>
+                <th scope='col'>Cloud provider</th>
                 <th scope='col'>Cluster</th>
                 <th scope='col'>System</th>
                 <th scope='col'>Landscape</th>
@@ -21,6 +22,7 @@
                         </a>
                     </td>
                     <td>{{ .Address }}</td>
+                    <td>{{ index .TrentoMeta "trento-cloud-provider" }}</td>
                     <td>
                         <a href='/clusters/{{ index .TrentoMeta "trento-ha-cluster-id" }}'>
                             {{ index .TrentoMeta "trento-ha-cluster" }}

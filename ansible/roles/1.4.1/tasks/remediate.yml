@@ -12,14 +12,14 @@
   register: result_pcmk_monitor_retries
   changed_when: false
   when:
-    - "{{ cloud_type }}" == "azure"
+    - cloud_type == "azure"
 
 - debug:
     msg: "1.4.1 The Azure SAP Clustering best practices determines specific timing and retries parameter values for proper functioning of the Azure Fence agent. Please, make sure to set the following values for the fence-agent parameter: pcmk_monitor_retries=4"
   when:
-    - result_pcmk_monitor_retries.stdout != expected['1.4.1_pcmk_monitor_retries']
+    - cloud_type == "azure"
     - not ansible_check_mode
-    - "{{ cloud_type }}" == "azure"
+    - result_pcmk_monitor_retries.stdout != expected['1.4.1_pcmk_monitor_retries']
 
 - block:
     - import_role:
@@ -34,7 +34,7 @@
         - result_pcmk_monitor_retries.stdout == expected['1.4.1_pcmk_monitor_retries']
   when:
     - ansible_check_mode
-    - "{{ cloud_type }}" == "azure"
+    - cloud_type == "azure"
   vars:
     test: "1.4.1_pcmk_monitor_retries"	
 
@@ -51,14 +51,14 @@
   register: result_pcmk_action_limit
   changed_when: false
   when:
-    - "{{ cloud_type }}" == "azure"
+    - cloud_type == "azure"
 
 - debug:
     msg: "1.4.1 The Azure SAP Clustering best practices determines specific timing and retries parameter values for proper functioning of the Azure Fence agent. Please, make sure to set the following values for the fence-agent parameter: pcmk_action_limit=3"
   when:
-    - result_pcmk_action_limit.stdout != expected['1.4.1_pcmk_action_limit']
+    - cloud_type == "azure"
     - not ansible_check_mode
-    - "{{ cloud_type }}" == "azure"
+    - result_pcmk_action_limit.stdout != expected['1.4.1_pcmk_action_limit']
 
 - block:
     - import_role:
@@ -73,7 +73,7 @@
         - result_pcmk_action_limit.stdout == expected['1.4.1_pcmk_action_limit']
   when:
     - ansible_check_mode
-    - "{{ cloud_type }}" == "azure"
+    - cloud_type == "azure"
   vars:
     test: "1.4.1_pcmk_action_limit"	
 
@@ -89,14 +89,14 @@
   register: result_power_timeout
   changed_when: false
   when:
-    - "{{ cloud_type }}" == "azure"
+    - cloud_type == "azure"
 
 - debug:
     msg: "1.4.1 The Azure SAP Clustering best practices determines specific timing and retries parameter values for proper functioning of the Azure Fence agent. Please, make sure to set the following values for the fence-agent parameter: power_timeout=240"
   when:
-    - result_power_timeout.stdout != expected['1.4.1_power_timeout']
+    - cloud_type == "azure"
     - not ansible_check_mode
-    - "{{ cloud_type }}" == "azure"
+    - result_power_timeout.stdout != expected['1.4.1_power_timeout']
 
 - block:
     - import_role:
@@ -111,7 +111,7 @@
         - result_power_timeout.stdout == expected['1.4.1_power_timeout']
   when:
     - ansible_check_mode
-    - "{{ cloud_type }}" == "azure"
+    - cloud_type == "azure"
   vars:
     test: "1.4.1_power_timeout"	
 
@@ -128,14 +128,14 @@
   register: result_pcmk_reboot_timeout
   changed_when: false
   when:
-    - "{{ cloud_type }}" == "azure"
+    - cloud_type == "azure"
 
 - debug:
     msg: "1.4.1 The Azure SAP Clustering best practices determines specific timing and retries parameter values for proper functioning of the Azure Fence agent. Please, make sure to set the following values for the fence-agent parameter: pcmk_reboot_timeout=900"
   when:
-    - result_pcmk_reboot_timeout.stdout != expected['1.4.1_pcmk_reboot_timeout']
+    - cloud_type == "azure"
     - not ansible_check_mode
-    - "{{ cloud_type }}" == "azure"
+    - result_pcmk_reboot_timeout.stdout != expected['1.4.1_pcmk_reboot_timeout']
 
 - block:
     - import_role:
@@ -150,7 +150,7 @@
         - result_pcmk_reboot_timeout.stdout == expected['1.4.1_pcmk_reboot_timeout']
   when:
     - ansible_check_mode
-    - "{{ cloud_type }}" == "azure"
+    - cloud_type == "azure"
   vars:
     test: "1.4.1_pcmk_reboot_timeout"	
 
@@ -166,14 +166,14 @@
   register: result_monitor_interval
   changed_when: false
   when:
-    - "{{ cloud_type }}" == "azure"
+    - cloud_type == "azure"
 
 - debug:
     msg: "1.4.1 The Azure SAP Clustering best practices determines specific timing and retries parameter values for proper functioning of the Azure Fence agent. Please, make sure to set the following monitor operation configuration: interval=3600"
   when:
-    - result_monitor_interval.stdout != expected['1.4.1_monitor_interval']
+    - cloud_type == "azure"
     - not ansible_check_mode
-    - "{{ cloud_type }}" == "azure"
+    - result_monitor_interval.stdout != expected['1.4.1_monitor_interval']
 
 - block:
     - import_role:
@@ -188,7 +188,7 @@
         - result_monitor_interval.stdout == expected['1.4.1_monitor_interval']
   when:
     - ansible_check_mode
-    - "{{ cloud_type }}" == "azure"
+    - cloud_type == "azure"
   vars:
     test: "1.4.1_monitor_interval"	
 
@@ -204,14 +204,14 @@
   register: result_monitor_timeout
   changed_when: false
   when:
-    - "{{ cloud_type }}" == "azure"
+    - cloud_type == "azure"
 
 - debug:
     msg: "1.4.1 The Azure SAP Clustering best practices determines specific timing and retries parameter values for proper functioning of the Azure Fence agent. Please, make sure to set the following monitor operation configuration: timeout=120"
   when:
-    - result_monitor_timeout.stdout != expected['1.4.1_monitor_timeout']
+    - cloud_type == "azure"
     - not ansible_check_mode
-    - "{{ cloud_type }}" == "azure"
+    - result_monitor_timeout.stdout != expected['1.4.1_monitor_timeout']
 
 - block:
     - import_role:
@@ -226,6 +226,6 @@
         - result_monitor_timeout.stdout == expected['1.4.1_monitor_timeout']
   when:
     - ansible_check_mode
-    - "{{ cloud_type }}" == "azure"
+    - cloud_type == "azure"
   vars:
     test: "1.4.1_monitor_timeout"	

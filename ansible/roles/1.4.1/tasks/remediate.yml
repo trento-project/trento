@@ -153,7 +153,7 @@
 - debug:
     msg: "1.4.1 The Azure SAP Clustering best practices determines specific timing and retries parameter values for proper functioning of the Azure Fence agent. Please, make sure to set the following monitor operation configuration: interval=3600"
   when:
-    - result_monitor_interval != expected['1.4.1_monitor_interval']
+    - result_monitor_interval.stdout != expected['1.4.1_monitor_interval']
     - not ansible_check_mode
 
 - block:
@@ -187,7 +187,7 @@
 - debug:
     msg: "1.4.1 The Azure SAP Clustering best practices determines specific timing and retries parameter values for proper functioning of the Azure Fence agent. Please, make sure to set the following monitor operation configuration: timeout=120"
   when:
-    - result_monitor_timeout != expected['1.4.1_monitor_timeout']
+    - result_monitor_timeout.stdout != expected['1.4.1_monitor_timeout']
     - not ansible_check_mode
 
 - block:

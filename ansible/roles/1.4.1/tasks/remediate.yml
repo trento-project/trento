@@ -14,12 +14,15 @@
   when:
     - cloud_type == "azure"
 
-- debug:
-    msg: "1.4.1 The Azure SAP Clustering best practices determines specific timing and retries parameter values for proper functioning of the Azure Fence agent. Please, make sure to set the following values for the fence-agent parameter: pcmk_monitor_retries=4"
+- block:
+    - import_role:
+        name: manual-remediation
   when:
     - cloud_type == "azure"
     - not ansible_check_mode
     - result_pcmk_monitor_retries.stdout != expected['1.4.1_pcmk_monitor_retries']
+  vars:
+    message: "1.4.1 The Azure SAP Clustering best practices determines specific timing and retries parameter values for proper functioning of the Azure Fence agent. Please, make sure to set the following values for the fence-agent parameter: pcmk_monitor_retries=4"
 
 - block:
     - import_role:

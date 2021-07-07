@@ -12,14 +12,14 @@
   register: result_pcmk_monitor_retries
   changed_when: false
   when:
-    - {{ cloud_typy }} == "azure"
+    - {{ cloud_type }} == "azure"
 
 - debug:
     msg: "1.4.1 The Azure SAP Clustering best practices determines specific timing and retries parameter values for proper functioning of the Azure Fence agent. Please, make sure to set the following values for the fence-agent parameter: pcmk_monitor_retries=4"
   when:
     - result_pcmk_monitor_retries.stdout != expected['1.4.1_pcmk_monitor_retries']
     - not ansible_check_mode
-    - {{ cloud_typy }} == "azure"
+    - {{ cloud_type }} == "azure"
 
 - block:
     - import_role:
@@ -34,7 +34,7 @@
         - result_pcmk_monitor_retries.stdout == expected['1.4.1_pcmk_monitor_retries']
   when:
     - ansible_check_mode
-    - {{ cloud_typy }} == "azure"
+    - {{ cloud_type }} == "azure"
   vars:
     test: "1.4.1_pcmk_monitor_retries"	
 
@@ -51,14 +51,14 @@
   register: result_pcmk_action_limit
   changed_when: false
   when:
-    - {{ cloud_typy }} == "azure"
+    - {{ cloud_type }} == "azure"
 
 - debug:
     msg: "1.4.1 The Azure SAP Clustering best practices determines specific timing and retries parameter values for proper functioning of the Azure Fence agent. Please, make sure to set the following values for the fence-agent parameter: pcmk_action_limit=3"
   when:
     - result_pcmk_action_limit.stdout != expected['1.4.1_pcmk_action_limit']
     - not ansible_check_mode
-    - {{ cloud_typy }} == "azure"
+    - {{ cloud_type }} == "azure"
 
 - block:
     - import_role:
@@ -73,7 +73,7 @@
         - result_pcmk_action_limit.stdout == expected['1.4.1_pcmk_action_limit']
   when:
     - ansible_check_mode
-    - {{ cloud_typy }} == "azure"
+    - {{ cloud_type }} == "azure"
   vars:
     test: "1.4.1_pcmk_action_limit"	
 
@@ -89,14 +89,14 @@
   register: result_power_timeout
   changed_when: false
   when:
-    - {{ cloud_typy }} == "azure"
+    - {{ cloud_type }} == "azure"
 
 - debug:
     msg: "1.4.1 The Azure SAP Clustering best practices determines specific timing and retries parameter values for proper functioning of the Azure Fence agent. Please, make sure to set the following values for the fence-agent parameter: power_timeout=240"
   when:
     - result_power_timeout.stdout != expected['1.4.1_power_timeout']
     - not ansible_check_mode
-    - {{ cloud_typy }} == "azure"
+    - {{ cloud_type }} == "azure"
 
 - block:
     - import_role:

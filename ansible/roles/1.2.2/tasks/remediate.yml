@@ -17,7 +17,7 @@
   register: result_run
   changed_when: false
 
- debug:
+- debug:
     msg: "1.2.2- The fencing timeout (`stonith-timeout`) determines the time Pacemaker will wait for fencing to succeed. The recommended values on Azure are `144` seconds for SBD only or `900` seconds when using SBD combined with the Azure Fence agent. \n Execute the following command to adjust the timeout for your usecase: (crm configure property stonith-timeout=144) or (crm configure property stonith-timeout=900)"
   when:
     - result_run.stdout != expected['1.2.2']

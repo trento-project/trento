@@ -43,7 +43,7 @@ func NewPaginationWithStrings(items int, page, perPage string) *Pagination {
 func NewPagination(items, page, perPage int) *Pagination {
 	pNumber := pagesNumber(items, perPage)
 
-	if page < 1 {
+	if page < 1 || items == 0 {
 		page = 1
 	} else if page > pNumber {
 		page = pNumber

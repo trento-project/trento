@@ -32,4 +32,19 @@ $(document).ready(function() {
     reloadTable(path)
     history.pushState(undefined, '', href);
   });
+
+  $('body').on('change', '.selectpicker', function() {
+    var href = new URL(window.location.href);
+    href.searchParams.delete(this.name)
+    values = $(this).val();
+    for (let i in values) {
+      if (values[i] != "") {
+        href.searchParams.append(this.name, values[i]);
+      }
+    }
+
+    path = href.pathname + href.search;
+    reloadTable(path)
+    history.pushState(undefined, '', href);
+  });
 });

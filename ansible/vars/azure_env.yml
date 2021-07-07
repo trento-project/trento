@@ -1,4 +1,6 @@
 ---
+cloud_type: "azure"
+
 expected:
   "1.1.1": "30000"
   "1.1.1_runtime": "30000"

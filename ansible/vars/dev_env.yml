@@ -1,4 +1,6 @@
 ---
+cloud_type: "vagrant"
+
 expected:
   "1.1.1": "5000"
   "1.1.1_runtime": "5000"

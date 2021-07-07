@@ -68,7 +68,6 @@ func (p *Pagination) GetPages() []*Page {
 		} else if i >= p.Page-2 && i <= p.Page+2 {
 			pages = append(pages, newPage)
 		}
-
 	}
 
 	return pages

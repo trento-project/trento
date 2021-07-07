@@ -1,0 +1,38 @@
+---
+
+- name: 1.4.2.result
+  shell: |
+    cf_status=$(crm_attribute -t crm_config -G -n concurrent-fencing --quiet)
+    if cibadmin -Q --xpath "//primitive[@type='fence_azure_arm']/@type" > /dev/null 2>&1; then
+        if [[ ${cf_status} = "true" ]]; then
+            echo "correct"
+        else
+           echo "${cf_status}"
+        fi
+    else
+        echo "fence_azure_arm not configured"
+    fi
+  check_mode: no
+  register: result_run
+  changed_when: false
+
+- name: 1.4.2.remediate
+  shell: 'crm configure property concurrent-fencing=true'
+  register: config_updated
+  when:
+    - result_run.stdout != expected['1.4.2']
+    - not ansible_check_mode
+
+- block:
+    - import_role:
+        name: post-results
+        tasks_from: fail
+      when: config_updated is changed
+    - import_role:
+        name: post-results
+        tasks_from: pass
+      when: config_updated is not changed
+  when:
+    - ansible_check_mode
+  vars:
+    test: "1.4.2"

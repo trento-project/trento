@@ -147,3 +147,10 @@
         tasks_from: remediate
       tags:
         - 1.4.1
+
+    - name: include 1.4.2 remediate
+      import_role:
+        name: '1.4.2'
+        tasks_from: remediate
+      tags:
+        - 1.4.2

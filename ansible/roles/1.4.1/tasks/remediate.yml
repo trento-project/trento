@@ -17,12 +17,12 @@
 - block:
     - import_role:
         name: manual-remediation
+  vars:
+    message: "1.4.1 The Azure SAP Clustering best practices determines specific timing and retries parameter values for proper functioning of the Azure Fence agent. Please, make sure to set the following values for the fence-agent parameter: pcmk_monitor_retries=4"
   when:
     - cloud_type == "azure"
     - not ansible_check_mode
     - result_pcmk_monitor_retries.stdout != expected['1.4.1_pcmk_monitor_retries']
-  vars:
-    message: "1.4.1 The Azure SAP Clustering best practices determines specific timing and retries parameter values for proper functioning of the Azure Fence agent. Please, make sure to set the following values for the fence-agent parameter: pcmk_monitor_retries=4"
 
 - block:
     - import_role:
@@ -56,8 +56,11 @@
   when:
     - cloud_type == "azure"
 
-- debug:
-    msg: "1.4.1 The Azure SAP Clustering best practices determines specific timing and retries parameter values for proper functioning of the Azure Fence agent. Please, make sure to set the following values for the fence-agent parameter: pcmk_action_limit=3"
+- block:
+    - import_role:
+        name: manual-remediation
+  vars:
+    message: "1.4.1 The Azure SAP Clustering best practices determines specific timing and retries parameter values for proper functioning of the Azure Fence agent. Please, make sure to set the following values for the fence-agent parameter: pcmk_action_limit=3"
   when:
     - cloud_type == "azure"
     - not ansible_check_mode
@@ -94,8 +97,11 @@
   when:
     - cloud_type == "azure"
 
-- debug:
-    msg: "1.4.1 The Azure SAP Clustering best practices determines specific timing and retries parameter values for proper functioning of the Azure Fence agent. Please, make sure to set the following values for the fence-agent parameter: power_timeout=240"
+- block:
+    - import_role:
+        name: manual-remediation
+  vars:
+    message: "1.4.1 The Azure SAP Clustering best practices determines specific timing and retries parameter values for proper functioning of the Azure Fence agent. Please, make sure to set the following values for the fence-agent parameter: power_timeout=240"
   when:
     - cloud_type == "azure"
     - not ansible_check_mode
@@ -133,8 +139,11 @@
   when:
     - cloud_type == "azure"
 
-- debug:
-    msg: "1.4.1 The Azure SAP Clustering best practices determines specific timing and retries parameter values for proper functioning of the Azure Fence agent. Please, make sure to set the following values for the fence-agent parameter: pcmk_reboot_timeout=900"
+- block:
+    - import_role:
+        name: manual-remediation
+  vars:
+    message: "1.4.1 The Azure SAP Clustering best practices determines specific timing and retries parameter values for proper functioning of the Azure Fence agent. Please, make sure to set the following values for the fence-agent parameter: pcmk_reboot_timeout=900"
   when:
     - cloud_type == "azure"
     - not ansible_check_mode
@@ -171,8 +180,11 @@
   when:
     - cloud_type == "azure"
 
-- debug:
-    msg: "1.4.1 The Azure SAP Clustering best practices determines specific timing and retries parameter values for proper functioning of the Azure Fence agent. Please, make sure to set the following monitor operation configuration: interval=3600"
+- block:
+    - import_role:
+        name: manual-remediation
+  vars:
+    message: "1.4.1 The Azure SAP Clustering best practices determines specific timing and retries parameter values for proper functioning of the Azure Fence agent. Please, make sure to set the following monitor operation configuration: interval=3600"
   when:
     - cloud_type == "azure"
     - not ansible_check_mode
@@ -209,8 +221,11 @@
   when:
     - cloud_type == "azure"
 
-- debug:
-    msg: "1.4.1 The Azure SAP Clustering best practices determines specific timing and retries parameter values for proper functioning of the Azure Fence agent. Please, make sure to set the following monitor operation configuration: timeout=120"
+- block:
+    - import_role:
+        name: manual-remediation
+  vars:
+    message: "1.4.1 The Azure SAP Clustering best practices determines specific timing and retries parameter values for proper functioning of the Azure Fence agent. Please, make sure to set the following monitor operation configuration: timeout=120"
   when:
     - cloud_type == "azure"
     - not ansible_check_mode

@@ -424,7 +424,7 @@ groups:
         remediation: |
           Update python packages
         scored: true
-      - id: 2.2.7
+      - id: 2.2.8
         description: "HANA and SPS versions are compatible"
         audit: |
           sid=$(sudo crm configure show | grep -m1 SID= | sed -e "s/.*SID=\(...\).*/\1/" | tr '[:upper:]' '[:lower:]')
@@ -444,7 +444,7 @@ groups:
             - flag: "passed"
         remediation: |
           ## Abstract
-          For SAP HANA 1.0 you need version SPS10 rev3, SPS11 or newer.  
+          For SUSE HA Solutions for SAP HANA 1.0 you need version SPS10 rev3, SPS11 or newer.
           SAP HANA 2.0 is supported with all known SPS versions.
           
           ## Remediation

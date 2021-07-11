@@ -31,12 +31,97 @@ func clustersListMap() map[string]interface{} {
 				},
 			},
 			"crmmon": map[string]interface{}{
+				"Clones": []interface{}{
+					map[string]interface{}{
+						"Resources": []interface{}{
+							map[string]interface{}{
+								"Agent": "ocf::suse:SAPHana",
+								"Node": map[string]interface{}{
+									"Name": "test_node_1",
+								},
+							},
+							map[string]interface{}{
+								"Agent": "ocf::suse:SAPHanaTopology",
+								"Node": map[string]interface{}{
+									"Name": "test_node_1",
+								},
+							},
+						},
+					},
+				},
+				"NodeAttributes": map[string]interface{}{
+					"Nodes": []interface{}{
+						map[string]interface{}{
+							"Name": "test_node_1",
+							"Attributes": []interface{}{
+								map[string]interface{}{
+									"Name":  "hana_prd_srmode",
+									"Value": "sync",
+								},
+								map[string]interface{}{
+									"Name":  "hana_prd_op_mode",
+									"Value": "logreplay",
+								},
+								map[string]interface{}{
+									"Name":  "hana_prd_roles",
+									"Value": "4:P:master1:master:worker:master",
+								},
+								map[string]interface{}{
+									"Name":  "hana_prd_sync_state",
+									"Value": "PRIM",
+								},
+								map[string]interface{}{
+									"Name":  "hana_prd_site",
+									"Value": "site1",
+								},
+							},
+						},
+						map[string]interface{}{
+							"Name": "test_node_2",
+							"Attributes": []interface{}{
+								map[string]interface{}{
+									"Name":  "hana_prd_srmode",
+									"Value": "sync",
+								},
+								map[string]interface{}{
+									"Name":  "hana_prd_op_mode",
+									"Value": "logreplay",
+								},
+								map[string]interface{}{
+									"Name":  "hana_prd_roles",
+									"Value": "4:S:master1:master:worker:master",
+								},
+								map[string]interface{}{
+									"Name":  "hana_prd_sync_state",
+									"Value": "SFAIL",
+								},
+								map[string]interface{}{
+									"Name":  "hana_prd_site",
+									"Value": "site2",
+								},
+							},
+						},
+					},
+				},
 				"Summary": map[string]interface{}{
 					"Nodes": map[string]interface{}{
 						"Number": 3,
 					},
+					"LastChange": map[string]interface{}{
+						"Time": "Wed Jun 30 18:11:37 2021",
+					},
 					"Resources": map[string]interface{}{
 						"Number": 5,
+					},
+				},
+				"Resources": []interface{}{
+					map[string]interface{}{
+						"Id":    "sbd",
+						"Agent": "stonith:external/sbd",
+						"Role":  "started",
+						"Node": map[string]interface{}{
+							"Name": "test_node_1",
+						},
 					},
 				},
 			},
@@ -118,19 +203,46 @@ func TestClustersListHandler(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("<td>panther</td><td></td><td>2</td><td>10</td><td>.*passing.*</td>"), minified)
 }
 
-func TestClusterHandler(t *testing.T) {
+func TestClusterHandlerHANA(t *testing.T) {
+	nodes := []*consulApi.Node{
+		{
+			Node:    "test_node_1",
+			Address: "192.168.1.1",
+		},
+		{
+			Node:    "test_node_2",
+			Address: "192.168.1.2",
+		},
+	}
+
+	node1HealthChecks := consulApi.HealthChecks{
+		&consulApi.HealthCheck{
+			Status: consulApi.HealthPassing,
+		},
+	}
+
+	node2HealthChecks := consulApi.HealthChecks{
+		&consulApi.HealthCheck{
+			Status: consulApi.HealthCritical,
+		},
+	}
+
 	consulInst := new(mocks.Client)
 
 	kv := new(mocks.KV)
 	consulInst.On("KV").Return(kv)
-
 	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
 	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil)
 
 	catalog := new(mocks.Catalog)
 	filter := &consulApi.QueryOptions{Filter: "Meta[\"trento-ha-cluster-id\"] == \"47d1190ffb4f781974c8356d7f863b03\""}
-	catalog.On("Nodes", filter).Return(nil, nil, nil)
+	catalog.On("Nodes", filter).Return(nodes, nil, nil)
 	consulInst.On("Catalog").Return(catalog)
+
+	health := new(mocks.Health)
+	health.On("Node", "test_node_1", (*consulApi.QueryOptions)(nil)).Return(node1HealthChecks, nil, nil)
+	health.On("Node", "test_node_2", (*consulApi.QueryOptions)(nil)).Return(node2HealthChecks, nil, nil)
+	consulInst.On("Health").Return(health)
 
 	deps := DefaultDependencies()
 	deps.consul = consulInst
@@ -149,10 +261,68 @@ func TestClusterHandler(t *testing.T) {
 
 	app.ServeHTTP(resp, req)
 
+	m := minify.New()
+	m.AddFunc("text/html", html.Minify)
+	m.Add("text/html", &html.Minifier{
+		KeepDefaultAttrVals: true,
+		KeepEndTags:         true,
+	})
+	minified, err := m.String("text/html", resp.Body.String())
+	if err != nil {
+		panic(err)
+	}
+
 	assert.NoError(t, err)
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, resp.Body.String(), "Cluster details")
-	assert.Contains(t, resp.Body.String(), "sculpin")
+	assert.Regexp(t, regexp.MustCompile("<strong>Cluster name:</strong><br><span.*>sculpin</span>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<strong>Cluster type:</strong><br><span.*>HANA scale-up</span>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<strong>HANA system replication mode:</strong><br><span.*>sync</span>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<strong>Stonith type:</strong><br><span.*>external/sbd</span>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<strong>HANA system replication operation mode:</strong><br><span.*>logreplay</span>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<strong>CIB last written:</strong><br><span.*>Wed Jun 30 18:11:37 2021</span>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<strong>HANA secondary sync state:</strong><br><span.*>SFAIL</span>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td>test_node_1</td><td>192.168.1.1</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td>test_node_2</td><td>192.168.1.2</td>"), minified)
+}
+
+func TestClusterHandlerGeneric(t *testing.T) {
+	consulInst := new(mocks.Client)
+
+	kv := new(mocks.KV)
+	consulInst.On("KV").Return(kv)
+
+	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
+	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil)
+
+	catalog := new(mocks.Catalog)
+	filter := &consulApi.QueryOptions{Filter: "Meta[\"trento-ha-cluster-id\"] == \"e2f2eb50aef748e586a7baa85e0162cf\""}
+	catalog.On("Nodes", filter).Return(nil, nil, nil)
+	consulInst.On("Catalog").Return(catalog)
+
+	deps := DefaultDependencies()
+	deps.consul = consulInst
+
+	app, err := NewAppWithDeps("", 80, deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/clusters/e2f2eb50aef748e586a7baa85e0162cf", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Accept", "text/html")
+
+	app.ServeHTTP(resp, req)
+
+	assert.NoError(t, err)
+	assert.Equal(t, 200, resp.Code)
+	assert.Contains(t, resp.Body.String(), "Cluster details")
+	assert.Contains(t, resp.Body.String(), "panther")
+	assert.NotContains(t, resp.Body.String(), "HANA scale-out")
+	assert.NotContains(t, resp.Body.String(), "HANA scale-up")
 }
 
 func TestClusterHandler404Error(t *testing.T) {

@@ -4,14 +4,13 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net"
 	"os"
 	"path/filepath"
 	"strconv"
 
 	consulAgent "github.com/hashicorp/consul/agent"
 	configAgent "github.com/hashicorp/consul/agent/config"
-	"github.com/hashicorp/consul/agent/connect"
-	"github.com/hashicorp/consul/sdk/freeport"
 	"github.com/hashicorp/go-uuid"
 )
 
@@ -28,53 +27,38 @@ func GetNodeName() string {
 	return id
 }
 
-func randomPortsSource() (data string) {
-	ports := freeport.MustTake(5)
-
+func getDefaultPorts() (data string) {
 	return `
 		ports = {
-			dns = ` + strconv.Itoa(ports[0]) + `
+			dns = ` + strconv.Itoa(8600) + `
 			http = ` + strconv.Itoa(8500) + `
 			https = ` + strconv.Itoa(-1) + `
-			serf_lan = ` + strconv.Itoa(ports[1]) + `
-			serf_wan = ` + strconv.Itoa(ports[2]) + `
-			server = ` + strconv.Itoa(ports[3]) + `
-			grpc = ` + strconv.Itoa(ports[4]) + `
+			serf_lan = ` + strconv.Itoa(8301) + `
+			serf_wan = ` + strconv.Itoa(8302) + `
+			server = ` + strconv.Itoa(8300) + `
+			grpc = ` + strconv.Itoa(8502) + `
 		}
 	`
 }
 
-func GetConfigHCL(hostname string) string {
+func getConfigHCL(bindAddr net.IP, srvAddr net.IP) string {
 	return fmt.Sprintf(`
-		bind_addr = "127.0.0.1"
-		advertise_addr = "127.0.0.1"
-		datacenter = "dc1"
-		bootstrap = false
-		bootstrap_expect = 1
-		server = true				
-		node_name = "Node-%[1]s"
-		connect {
-			enabled = true
-			ca_config {
-				cluster_id = "%[2]s"
-			}
-		}
-		performance {
-			raft_multiplier = 1
-		}`, hostname, connect.TestClusterID,
+		bind_addr = "%s"		
+		retry_join = ["%s"]		
+		`, bindAddr, srvAddr,
 	)
 }
 
-func NewConsulAgent(hcl string) (*consulAgent.Agent, error) {
-	portsConfig := randomPortsSource()
+func NewConsulAgent(bindAddr net.IP, srvAddr net.IP) (*consulAgent.Agent, error) {
+	portsConfig := getDefaultPorts()
 	log.Println(portsConfig)
 	d := filepath.ToSlash("./consul-agent-data")
 	hclDataDir := fmt.Sprintf(`data_dir = "%s"`, d)
-	testHCLConfig := GetConfigHCL(GetNodeName())
+	consulHCLConfig := getConfigHCL(bindAddr, srvAddr)
 
 	loader := func(source configAgent.Source) (*configAgent.RuntimeConfig, []string, error) {
 		opts := configAgent.BuilderOpts{
-			HCL: []string{testHCLConfig, portsConfig, hcl, hclDataDir},
+			HCL: []string{consulHCLConfig, portsConfig, "", hclDataDir},
 		}
 		overrides := []configAgent.Source{}
 		cfg, warnings, err := configAgent.Load(opts, source, overrides...)

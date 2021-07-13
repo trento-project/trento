@@ -62,7 +62,7 @@ web/frontend/assets: web/frontend/assets/js web/frontend/assets/stylesheets web/
 
 web/frontend/assets/js: web/frontend/node_modules
 	mkdir -p web/frontend/assets/js/eos-ds
-	cp web/frontend/javascripts/layout.js web/frontend/assets/js/layout.js
+	cp web/frontend/javascripts/*.js web/frontend/assets/js/
 	cp web/frontend/node_modules/eos-ds/dist/js/index.js web/frontend/assets/js/eos-ds/index.js
 
 web/frontend/assets/stylesheets: web/frontend/node_modules

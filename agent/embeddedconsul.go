@@ -14,6 +14,16 @@ import (
 	"github.com/hashicorp/go-uuid"
 )
 
+const (
+	CONSUL_DNS_PORT      = 8600
+	CONSUL_HTTP_PORT     = 8500
+	CONSUL_HTTPS_PORT    = -1 // Disabled
+	CONSUL_SERF_LAN_PORT = 8301
+	CONSUL_SERF_WAN_PORT = 8302
+	CONSUL_SERVER_PORT   = 8300
+	CONSUL_GRPC_PORT     = 8502
+)
+
 func GetNodeName() string {
 	id, err := os.Hostname()
 	if err != nil {
@@ -30,13 +40,13 @@ func GetNodeName() string {
 func getDefaultPorts() (data string) {
 	return `
 		ports = {
-			dns = ` + strconv.Itoa(8600) + `
-			http = ` + strconv.Itoa(8500) + `
-			https = ` + strconv.Itoa(-1) + `
-			serf_lan = ` + strconv.Itoa(8301) + `
-			serf_wan = ` + strconv.Itoa(8302) + `
-			server = ` + strconv.Itoa(8300) + `
-			grpc = ` + strconv.Itoa(8502) + `
+			dns = ` + strconv.Itoa(CONSUL_DNS_PORT) + `
+			http = ` + strconv.Itoa(CONSUL_HTTP_PORT) + `
+			https = ` + strconv.Itoa(CONSUL_HTTPS_PORT) + `
+			serf_lan = ` + strconv.Itoa(CONSUL_SERF_LAN_PORT) + `
+			serf_wan = ` + strconv.Itoa(CONSUL_SERF_WAN_PORT) + `
+			server = ` + strconv.Itoa(CONSUL_SERVER_PORT) + `
+			grpc = ` + strconv.Itoa(CONSUL_GRPC_PORT) + `
 		}
 	`
 }

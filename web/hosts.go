@@ -51,11 +51,17 @@ func NewHostListHandler(client consul.Client) gin.HandlerFunc {
 		hContainer := NewHostsHealthContainer(hostList)
 		hContainer.Layout = "horizontal"
 
+		page := c.DefaultQuery("page", "1")
+		perPage := c.DefaultQuery("per_page", "10")
+		pagination := NewPaginationWithStrings(len(hostList), page, perPage)
+		firstElem, lastElem := pagination.GetSliceNumbers()
+
 		c.HTML(http.StatusOK, "hosts.html.tmpl", gin.H{
-			"Hosts":           hostList,
+			"Hosts":           hostList[firstElem:lastElem],
 			"Filters":         filters,
 			"AppliedFilters":  query,
 			"HealthContainer": hContainer,
+			"Pagination":      pagination,
 		})
 	}
 }

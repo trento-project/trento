@@ -15,6 +15,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/trento-project/trento/agent/discovery"
+	"github.com/trento-project/trento/internal"
 	"github.com/trento-project/trento/internal/consul"
 )
 
@@ -44,8 +45,8 @@ type Config struct {
 	ConsulConfigDir   string
 	AgentHCLConfig    string
 	UseEmbeddedConsul bool
-	ConsulBindAddr    net.IP
-	ConsulSrvAddr     net.IP
+	ConsulBindAddr    string
+	ConsulSrvAddr     string
 }
 
 func New() (*Agent, error) {
@@ -76,8 +77,12 @@ func NewWithConfig(cfg Config) (*Agent, error) {
 
 	var consulAgent *consulAgent.Agent
 	if cfg.UseEmbeddedConsul {
-
-		consulAgent, err = NewConsulAgent(cfg.ConsulBindAddr, cfg.ConsulSrvAddr)
+		consulBindAddr := net.ParseIP(cfg.ConsulBindAddr)
+		consulSrvAddr, err := internal.ParseIPOrHostname(cfg.ConsulSrvAddr)
+		if err != nil {
+			return nil, errors.Wrap(err, "Consul server couldn't be resolved to a valid IP address")
+		}
+		consulAgent, err = NewConsulAgent(consulBindAddr, consulSrvAddr)
 		if err != nil {
 			return nil, errors.Wrap(err, "could not start embedded consul agent")
 		}

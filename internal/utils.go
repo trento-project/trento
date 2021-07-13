@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"hash/crc32"
 	"io"
+	"net"
 	"os"
 	"regexp"
 	"strings"
@@ -89,4 +90,19 @@ func CRC32hash(input []byte) int {
 	crc32Table := crc32.MakeTable(crc32.IEEE)
 	return int(crc32.Checksum(input, crc32Table))
 
+}
+
+func ParseIPOrHostname(host string) (net.IP, error) {
+	addr := net.ParseIP(host)
+
+	if addr != nil {
+		return addr, nil
+	}
+
+	addrs, err := net.LookupHost(host)
+	if err != nil {
+		return nil, err
+	}
+
+	return net.ParseIP(strings.Join(addrs, "")), nil
 }

@@ -15,7 +15,7 @@ import (
 	"github.com/trento-project/trento/internal/hosts"
 )
 
-func TestNewHealthContainer(t *testing.T) {
+func TestNewHostsHealthContainer(t *testing.T) {
 	consulInst := new(mocks.Client)
 	health := new(mocks.Health)
 	consulInst.On("Health").Return(health)
@@ -56,12 +56,12 @@ func TestNewHealthContainer(t *testing.T) {
 	health.On("Node", "node5", (*consulApi.QueryOptions)(nil)).Return(warningHealthChecks, nil, nil)
 	health.On("Node", "node6", (*consulApi.QueryOptions)(nil)).Return(criticalHealthChecks, nil, nil)
 
-	hCont := NewHealthContainer(nodes)
+	hCont := NewHostsHealthContainer(nodes)
 
 	expectedHealth := &HealthContainer{
-		Passing:  2,
-		Warning:  2,
-		Critical: 2,
+		PassingCount:  2,
+		WarningCount:  2,
+		CriticalCount: 2,
 	}
 
 	assert.Equal(t, expectedHealth, hCont)

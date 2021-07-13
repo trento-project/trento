@@ -15,23 +15,16 @@ import (
 	"github.com/trento-project/trento/internal/sapsystem"
 )
 
-type HealthContainer struct {
-	Passing  int
-	Warning  int
-	Critical int
-	Layout   string
-}
-
-func NewHealthContainer(hostList hosts.HostList) *HealthContainer {
+func NewHostsHealthContainer(hostList hosts.HostList) *HealthContainer {
 	h := &HealthContainer{}
 	for _, host := range hostList {
 		switch host.Health() {
-		case "passing":
-			h.Passing += 1
-		case "warning":
-			h.Warning += 1
-		case "critical":
-			h.Critical += 1
+		case consulApi.HealthPassing:
+			h.PassingCount += 1
+		case consulApi.HealthWarning:
+			h.WarningCount += 1
+		case consulApi.HealthCritical:
+			h.CriticalCount += 1
 		}
 	}
 	return h
@@ -40,10 +33,10 @@ func NewHealthContainer(hostList hosts.HostList) *HealthContainer {
 func NewHostListHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		query := c.Request.URL.Query()
-		query_filter := hosts.CreateFilterMetaQuery(query)
-		health_filter := query["health"]
+		queryFilter := hosts.CreateFilterMetaQuery(query)
+		healthFilter := query["health"]
 
-		hosts, err := hosts.Load(client, query_filter, health_filter)
+		hostList, err := hosts.Load(client, queryFilter, healthFilter)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -55,14 +48,14 @@ func NewHostListHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		health := NewHealthContainer(hosts)
-		health.Layout = "horizontal"
+		hContainer := NewHostsHealthContainer(hostList)
+		hContainer.Layout = "horizontal"
 
 		c.HTML(http.StatusOK, "hosts.html.tmpl", gin.H{
-			"Hosts":          hosts,
-			"Filters":        filters,
-			"AppliedFilters": query,
-			"Health":         health,
+			"Hosts":           hostList,
+			"Filters":         filters,
+			"AppliedFilters":  query,
+			"HealthContainer": hContainer,
 		})
 	}
 }

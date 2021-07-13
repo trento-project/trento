@@ -1,7 +1,14 @@
 # This playbook deploys a simple stand alone checker for SAP/HANS.
+
 - hosts: all
-  
+
   tasks:
+#    - name: include test var
+#      include_vars:
+#        file: tests.yml
+#      tags:
+#        - always
+
     - name: include load_facts
       import_role:
         name: load_facts
@@ -168,3 +175,10 @@
         tasks_from: remediate
       tags:
         - 1.4.2
+
+    - name: Global Results
+      set_fact:
+        global_ha_results: "{{ ha_results }}"
+        global_tests: "{{ tests }}"
+      tags:
+        - always

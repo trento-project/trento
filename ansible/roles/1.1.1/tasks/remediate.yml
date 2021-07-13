@@ -1,10 +1,16 @@
 ---
 
-- name: 1.1.1.remediate
+- name: Set Test ID
+  set_fact:
+    test_id: '1.1.1'
+    test_desc: 'stuff'
+    test_remediation: 'ansible'
+
+- name: "{{ test_id }}.remediate"
   replace:
     path: /etc/corosync/corosync.conf
     regexp: '(\s+)token:(\s)[0-9]+?$'
-    replace: '\1token: {{ expected["1.1.1"] }}'
+    replace: '\1token: {{ expected[test_id] }}'
   register: config_updated
 
 - import_role:
@@ -16,13 +22,10 @@
 - block:
     - import_role:
         name: post-results
-        tasks_from: fail
-      when: config_updated is changed
-    - import_role:
-        name: post-results
-        tasks_from: pass
-      when: config_updated is not changed
   when:
     - ansible_check_mode
   vars:
-    test: "1.1.1"
+    test: "{{ test_id }}"
+    desc: "{{ test_desc }}"
+    status: "{{ config_updated is changed | ternary ('Failed','Passed') }}"
+    remediation: "{{ test_remediation }}"

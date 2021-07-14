@@ -1,10 +1,21 @@
 ---
 
-- name: 1.1.4.remediate
+- name: Set Test ID
+  set_fact:
+    test_id: '1.1.4'
+
+- name: "Set other facts for {{ test_id }}"
+  set_fact:
+    test_mid: "1.1"
+    test_name: "Corosync"
+    test_desc: "Corosync join parameter is set to {{ expected[test_id] }}"
+    test_remediation: 'ansible'
+
+- name: "{{ test_id }}.remediate"
   replace:
     path: /etc/corosync/corosync.conf
     regexp: '(\s+)join:(\s)[0-9]+?$'
-    replace: '\1join: {{ expected["1.1.4"] }}'
+    replace: '\1join: {{ expected[test_id] }}'
   register: config_updated
 
 - import_role:
@@ -16,13 +27,12 @@
 - block:
     - import_role:
         name: post-results
-        tasks_from: fail
-      when: config_updated is changed
-    - import_role:
-        name: post-results
-        tasks_from: pass
-      when: config_updated is not changed
   when:
     - ansible_check_mode
   vars:
-    test: "1.1.4"
+    id: "{{ test_mid }}"
+    test: "{{ test_id }}"
+    name: "{{ test_name }}"
+    desc: "{{ test_desc }}"
+    status: "{{ config_updated is changed | ternary ('Failed','Passed') }}"
+    remediation: "{{ test_remediation }}"

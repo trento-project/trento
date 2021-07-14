@@ -8,7 +8,7 @@
     test_mid: "1.1"
     test_name: "Corosync"
     test_desc: "Corosync expected_votes parameter is set to {{ expected[test_id] }}"
-    test_remediation: 'ansible'
+    test_remediation: "ansible"
 
 - name: "{{ test_id }}.remediate"
   replace:
@@ -34,4 +34,4 @@
     name: "{{ test_name }}"
     desc: "{{ test_desc }}"
     status: "{{ config_updated is changed | ternary ('Failed','Passed') }}"
-    remediation: "{{ test_remediation }}
+    remediation: "{{ test_remediation }}"

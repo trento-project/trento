@@ -26,6 +26,19 @@ type Host struct {
 	client consul.Client
 }
 
+func (h HostList) Health() string {
+	var checks consulApi.HealthChecks
+	for _, n := range h {
+		c, _, _ := n.client.Health().Node(n.Name(), nil)
+		checks = append(checks, c...)
+	}
+	if checks != nil {
+		return checks.AggregatedStatus()
+	}
+
+	return ""
+}
+
 func NewHost(node consulApi.Node, client consul.Client) Host {
 	return Host{node, client}
 }

@@ -45,7 +45,7 @@
         <hr/>
         <p class='clearfix'></p>
         {{- if .Cluster.IsFencingSBD }}
-            {{ template "sbd" .Cluster.SBD }}
+            {{ template "sbd_generic" .Cluster.SBD }}
             <hr/>
             <p class='clearfix'></p>
         {{- end }}

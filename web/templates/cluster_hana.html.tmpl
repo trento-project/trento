@@ -1,0 +1,113 @@
+{{ define "content" }}
+    <h1>Cluster details</h1>
+    <div class="row">
+        <div class="col">
+            <h6>
+                <a href="/clusters">Clusters</a> > {{ .Cluster.Name }}
+            </h6>
+        </div>
+        <div class="col text-right">
+            <i class="eos-icons eos-dark eos-18 ">schedule</i> Updated at:
+            <span id="last_update" class="text-nowrap text-muted">
+                Not available
+            </span>
+        </div>
+    </div>
+    {{ $firstNode := index .Nodes 0 }}
+    <div class="border-bottom border-top mb-4">
+        <div class="row">
+            <div class="col-sm-9 border-right">
+                <div class="row mt-5 mb-5">
+                    <div class="col-3">
+                        <strong>Cluster name:</strong><br>
+                        <span class="text-muted">{{ .Cluster.Name }}</span>
+                    </div>
+                    <div class="col-3">
+                        <strong>Cluster type:</strong><br>
+                        <span class="text-muted">{{ .ClusterType }}</span>
+                    </div>
+                    <div class="col-6">
+                        <strong>HANA system replication mode:</strong><br>
+                        <span class="text-muted">{{ index $firstNode.Attributes "hana_prd_srmode" }}</span>
+                    </div>
+
+                    <div class="col-3 mt-5">
+                        <strong>Pacemaker status:</strong><br>
+                        <span class="text-muted">-</span>
+                    </div>
+                    <div class="col-3 mt-5">
+                        <strong>SAPHanaSR health state:</strong><br>
+                        {{ $HANAHealthState := $firstNode.HANAHealthState }}
+                        {{- if eq $HANAHealthState  "4" }}
+                            <i class="eos-icons eos-18 text-success">fiber_manual_record</i>
+                            <span class="text-muted">{{ $HANAHealthState }}</span>
+                        {{- else  if or (eq $HANAHealthState "2") (eq $HANAHealthState "3")  }}
+                            <i class="eos-icons eos-18 text-warning">fiber_manual_record</i>
+                            <span class="text-muted">{{ $firstNode.HealthState }}</span>
+                        {{- else  if or (eq $HANAHealthState "1")  }}
+                            <i class="eos-icons eos-18 text-danger">fiber_manual_record</i>
+                            <span class="text-muted">{{ $HANAHealthState }}</span>
+                        {{- else }}
+                            -
+                        {{- end}}
+                    </div>
+                    <div class="col-6 mt-5">
+                        <strong>HANA secondary sync state:</strong><br>
+                        {{ $secondarySyncState := .Nodes.HANASecondarySyncState }}
+                        {{ $badgeClass := "badge-primary" }}
+                        {{- if eq $secondarySyncState "SFAIL" }}
+                            {{ $badgeClass =  "badge-danger" }}
+                        {{- end }}
+                        <span class="badge badge-pill {{ $badgeClass }} ml-0">{{ $secondarySyncState }}</span>
+                    </div>
+
+                    <div class="col-3 mt-5">
+                        <strong>Stonith type:</strong><br>
+                        <span class="text-muted">{{ .Cluster.FencingType }}</span>
+                    </div>
+                    <div class="col-3 mt-5">
+                        <strong>CIB last written:</strong><br>
+                        <span class="text-muted">{{ .Cluster.Crmmon.Summary.LastChange.Time }}</span>
+                    </div>
+                    <div class="col-6 mt-5">
+                        <strong>HANA system replication operation mode:</strong><br>
+                        <span class="text-muted">{{ index $firstNode.Attributes "hana_prd_op_mode" }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="mt-3">
+                    {{ template "health_container" .HealthContainer }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h4>Stopped resources</h4>
+    <div class="row mt-4 mb-4">
+        <div class="col-xl-12">
+            {{- range .StoppedResources }}
+                <span class="badge badge-pill badge-secondary ml-0">{{ .Id }}</span>
+            {{- else }}
+                <p class="text-muted">No stopped resources</p>
+            {{- end}}
+        </div>
+    </div>
+
+    <h3>Pacemaker Site details</h3>
+    <div class="row mt-4">
+        <div class="col-xl-12">
+            {{ template "sites" .Nodes.GroupBySite }}
+        </div>
+    </div>
+    <hr>
+
+    <h3>SBD/Stonith</h3>
+    {{- if .Cluster.IsFencingSBD }}
+        {{ template "sbd" .Cluster.SBD }}
+    {{- end }}
+
+    {{- range .Nodes }}
+        {{ template "node_modal" . }}
+    {{- end}}
+{{- end }}

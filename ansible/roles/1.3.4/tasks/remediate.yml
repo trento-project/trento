@@ -15,7 +15,7 @@
       ## Remediation
       It is recommended to configure 3 SBD devices for production environments
       ## References 
-      https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#set-up-sbd-device
+      <pre> https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#set-up-sbd-device </pre>
 
 - name: "{{ test_id }}.result"
   shell: |

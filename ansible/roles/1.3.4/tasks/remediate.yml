@@ -1,6 +1,23 @@
 ---
 
-- name: 1.3.4.result
+- name: Set Test ID
+  set_fact:
+    test_id: '1.3.4'
+
+- name: "Set other facts for {{ test_id }}"
+  set_fact:
+    test_mid: "1.3"
+    test_name: "Multiple SBD devices are configured"
+    test_desc: "It is recommended to configure {{ expected[test_id] }} SBD devices for production environments"
+    test_remediation: | 
+      ## Abstract 
+      The Multiple SDB Devices configuration is not as recommended for production environments
+      ## Remediation
+      It is recommended to configure 3 SBD devices for production environments
+      ## References 
+      https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#set-up-sbd-device
+
+- name: "{{ test_id }}.result"
   shell: |
     echo -n "SBD_COUNT="
     grep -E '^SBD_DEVICE=' /etc/sysconfig/sbd |wc -l
@@ -8,24 +25,21 @@
   changed_when: false
   register: result_run
 
-- debug: 
-    msg: "1.3.4-It is recommended to configure 3 SBD devices for production environments \n References: https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#set-up-sbd-device" 
-  when:
-    - result_run.stdout != expected['1.3.4']
-    - not ansible_check_mode 
+#- debug: 
+#    msg: "1.3.4-It is recommended to configure 3 SBD devices for production environments \n References: https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#set-up-sbd-device" 
+#  when:
+#    - result_run.stdout != expected['1.3.4']
+#    - not ansible_check_mode 
 
 - block:
     - import_role:
         name: post-results
-        tasks_from: fail
-      when:
-        - result_run.stdout != expected['1.3.4']
-    - import_role:
-        name: post-results
-        tasks_from: pass
-      when:
-        - result_run.stdout == expected['1.3.4']
   when:
     - ansible_check_mode
   vars:
-    test: "1.3.4"
+    id: "{{ test_mid }}"
+    test: "{{ test_id }}"
+    name: "{{ test_name }}"
+    desc: "{{ test_desc }}"
+    status: "{{ config_updated is changed | ternary ('Failed','Passed') }}"
+    remediation: "{{ test_remediation }}"

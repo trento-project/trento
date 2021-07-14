@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/trento-project/trento/internal"
+
 	consulApi "github.com/hashicorp/consul/api"
 
 	"github.com/gin-gonic/gin"
@@ -261,16 +263,183 @@ func (nodes Nodes) PassingCount() int {
 	return warning
 }
 
+type ClustersRow struct {
+	Id              string
+	Name            string
+	Health          string
+	SIDs            []string
+	Type            string
+	ResourcesNumber int
+	HostsNumber     int
+}
+
+type ClustersTable []*ClustersRow
+
+func NewClustersTable(clusters map[string]*cluster.Cluster, hosts map[string]hosts.HostList) ClustersTable {
+	var clusterTable ClustersTable
+
+	for id, c := range clusters {
+		var health string
+		var sids []string
+
+		hl, ok := hosts[id]
+
+		if ok && len(hl) > 0 {
+			health = hl.Health()
+			set := make(map[string]struct{})
+
+			for _, h := range hl {
+				ss, err := h.GetSAPSystems()
+				if err != nil {
+					continue
+				}
+
+				for _, s := range ss {
+					_, ok := set[s.SID]
+					if !ok {
+						set[s.SID] = struct{}{}
+						sids = append(sids, s.SID)
+
+					}
+				}
+			}
+		}
+
+		clustersRow := &ClustersRow{
+			Id:              id,
+			Name:            c.Name,
+			Health:          health,
+			SIDs:            sids,
+			Type:            detectClusterType(c),
+			ResourcesNumber: c.Crmmon.Summary.Resources.Number,
+			HostsNumber:     c.Crmmon.Summary.Nodes.Number,
+		}
+		clusterTable = append(clusterTable, clustersRow)
+	}
+
+	return clusterTable
+}
+
+func (t ClustersTable) Filter(name []string, health []string, sid []string, clusterType []string) ClustersTable {
+	var filteredClustersTable ClustersTable
+
+	for _, r := range t {
+		nameFilter := len(name) == 0 || internal.Contains(name, r.Name)
+		healthFilter := len(health) == 0 || internal.Contains(health, r.Health)
+
+		sidFilter := false
+		if len(sid) == 0 {
+			sidFilter = true
+		} else {
+			for _, s := range sid {
+				if internal.Contains(r.SIDs, s) {
+					sidFilter = true
+					break
+				}
+			}
+		}
+
+		clusterTypeFilter := len(clusterType) == 0 || internal.Contains(clusterType, r.Type)
+
+		if nameFilter && healthFilter && sidFilter && clusterTypeFilter {
+			filteredClustersTable = append(filteredClustersTable, r)
+		}
+	}
+	return filteredClustersTable
+}
+
+func (t ClustersTable) GetAllSIDs() []string {
+	var sids []string
+	set := make(map[string]struct{})
+
+	for _, r := range t {
+		for _, s := range r.SIDs {
+			_, ok := set[s]
+			if !ok {
+				set[s] = struct{}{}
+				sids = append(sids, s)
+			}
+		}
+	}
+
+	return sids
+}
+
+func (t ClustersTable) GetAllClusterTypes() []string {
+	var clusterTypes []string
+	set := make(map[string]struct{})
+
+	for _, r := range t {
+
+		_, ok := set[r.Type]
+		if !ok {
+			set[r.Type] = struct{}{}
+			clusterTypes = append(clusterTypes, r.Type)
+		}
+
+	}
+
+	return clusterTypes
+}
+
+func NewClustersHealthContainer(t ClustersTable) *HealthContainer {
+	h := &HealthContainer{}
+	for _, r := range t {
+		switch r.Health {
+		case consulApi.HealthPassing:
+			h.PassingCount += 1
+		case consulApi.HealthWarning:
+			h.WarningCount += 1
+		case consulApi.HealthCritical:
+			h.CriticalCount += 1
+		}
+	}
+	return h
+}
+
 func NewClusterListHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		query := c.Request.URL.Query()
+
+		healthFilter := query["health"]
+		sidFilter := query["sid"]
+		nameFilter := query["name"]
+		clusterTypeFilter := query["type"]
+
 		clusters, err := cluster.Load(client)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 
+		hostList := make(map[string]hosts.HostList)
+		for clusterId, _ := range clusters {
+			filterQuery := fmt.Sprintf("Meta[\"trento-ha-cluster-id\"] == \"%s\"", clusterId)
+			h, err := hosts.Load(client, filterQuery, nil)
+			if err != nil {
+				_ = c.Error(err)
+				return
+			}
+
+			hostList[clusterId] = h
+		}
+
+		clustersTable := NewClustersTable(clusters, hostList)
+		clustersTable = clustersTable.Filter(nameFilter, healthFilter, sidFilter, clusterTypeFilter)
+
+		healthContainer := NewClustersHealthContainer(clustersTable)
+		healthContainer.Layout = "horizontal"
+
+		page := c.DefaultQuery("page", "1")
+		perPage := c.DefaultQuery("per_page", "10")
+		pagination := NewPaginationWithStrings(len(clustersTable), page, perPage)
+		firstElem, lastElem := pagination.GetSliceNumbers()
+
 		c.HTML(http.StatusOK, "clusters.html.tmpl", gin.H{
-			"Clusters": clusters,
+			"ClustersTable":   clustersTable[firstElem:lastElem],
+			"AppliedFilters":  query,
+			"Pagination":      pagination,
+			"HealthContainer": healthContainer,
 		})
 	}
 }
@@ -318,7 +487,7 @@ func NewClusterHandler(client consul.Client) gin.HandlerFunc {
 				CriticalCount: nodes.CriticalCount(),
 				WarningCount:  nodes.WarningCount(),
 				PassingCount:  nodes.PassingCount(),
-				Layout:        "vertical`",
+				Layout:        "vertical",
 			},
 		})
 	}

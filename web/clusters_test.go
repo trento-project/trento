@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/stretchr/testify/mock"
+
 	consulApi "github.com/hashicorp/consul/api"
 
 	"github.com/stretchr/testify/assert"
@@ -159,12 +161,15 @@ func clustersListMap() map[string]interface{} {
 
 func TestClustersListHandler(t *testing.T) {
 	consulInst := new(mocks.Client)
+
 	kv := new(mocks.KV)
-
 	consulInst.On("KV").Return(kv)
-
 	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
 	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil)
+
+	catalog := new(mocks.Catalog)
+	consulInst.On("Catalog").Return(catalog)
+	catalog.On("Nodes", mock.Anything).Return([]*consulApi.Node{}, nil, nil)
 
 	deps := DefaultDependencies()
 	deps.consul = consulInst
@@ -199,8 +204,8 @@ func TestClustersListHandler(t *testing.T) {
 
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, minified, "Clusters")
-	assert.Regexp(t, regexp.MustCompile("<td>sculpin</td><td></td><td>3</td><td>5</td><td>.*passing.*</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td>panther</td><td></td><td>2</td><td>10</td><td>.*passing.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td>sculpin</td><td>47d1190ffb4f781974c8356d7f863b03</td><td>HANA scale-up</td><td>3</td><td>5</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td>panther</td><td>e2f2eb50aef748e586a7baa85e0162cf</td>"), minified)
 }
 
 func TestClusterHandlerHANA(t *testing.T) {

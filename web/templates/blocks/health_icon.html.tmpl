@@ -1,0 +1,11 @@
+{{ define "health_icon" }}
+    {{- if eq . "passing" }}
+        <i class="eos-icons eos-18 text-success">check_circle</i>
+    {{- else if eq . "warning" }}
+        <i class="eos-icons eos-18 text-warning">warning</i>
+    {{- else if eq . "critical" }}
+        <i class="eos-icons eos-18 text-danger">error</i>
+    {{- else }}
+        <i class="eos-icons eos-18 text-muted">fiber_manual_record</i>
+    {{- end }}
+{{- end }}

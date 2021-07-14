@@ -20,13 +20,7 @@
                     {{- range $nodes}}
                         <tr>
                             <td>
-                                {{- if eq .Health "passing" }}
-                                    <i class="eos-icons eos-18 text-success">check_circle</i>
-                                {{- else if eq .Health "warning" }}
-                                    <i class="eos-icons eos-18 text-warning">warning</i>
-                                {{- else }}
-                                    <i class="eos-icons eos-18 text-danger">error</i>
-                                {{- end}}
+                                {{ template "health_icon" .Health }}
                             </td>
                             <td>
                                 {{ .Name }}

@@ -119,9 +119,13 @@ func (c *CheckRunner) startCheckRunnerTicker() {
 		return
 	}
 
-	ansibleRunner.SetAraHost(c.cfg.AraServer)
+	ansibleRunner.SetAraServer(c.cfg.AraServer)
 
 	tick := func() {
+		if !ansibleRunner.isAraServerUp() {
+			log.Error("ARA server not found. Skipping ansible execution as the data is not recorded")
+			return
+		}
 		ansibleRunner.RunPlaybook()
 	}
 
@@ -141,6 +145,7 @@ func repeat(tick func(), interval time.Duration, ctx context.Context) {
 		select {
 		case <-ticker.C:
 			tick()
+			log.Debugf("Next execution in %s", interval)
 		case <-ctx.Done():
 			return
 		}

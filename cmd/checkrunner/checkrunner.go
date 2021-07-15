@@ -13,6 +13,7 @@ import (
 
 var araServer string
 var interval int
+var ansibleFolder string
 
 func NewCheckRunnerCmd() *cobra.Command {
 	checkRunnerCmd := &cobra.Command{
@@ -28,6 +29,7 @@ func NewCheckRunnerCmd() *cobra.Command {
 
 	startCmd.Flags().StringVar(&araServer, "ara-server", "http://127.0.0.1:8000", "ARA server url (ex: http://localhost:8000)")
 	startCmd.Flags().IntVarP(&interval, "interval", "i", 5, "Interval in minutes to run the checks")
+	startCmd.Flags().StringVar(&ansibleFolder, "ansible-folder", "/usr/etc/trento", "Folder where the ansible file structure will be created")
 
 	checkRunnerCmd.AddCommand(startCmd)
 
@@ -47,6 +49,7 @@ func start(cmd *cobra.Command, args []string) {
 
 	cfg.AraServer = araServer
 	cfg.Interval = time.Duration(interval) * time.Minute
+	cfg.AnsibleFolder = ansibleFolder
 
 	runner, err := checkrunner.NewWithConfig(cfg)
 	if err != nil {

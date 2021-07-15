@@ -127,9 +127,15 @@ func (a *AnsibleRunner) isAraServerUp() bool {
 	log.Debugf("Looking for the ARA server at: %s", host)
 
 	resp, err := http.Get(host)
-	log.Debugf("ARA server response code: %s", resp.Status)
 
 	if err != nil || resp.StatusCode != http.StatusOK {
+		log.Debugf("Error requesting ARA server api: %s", err)
+		return false
+	}
+
+	log.Debugf("ARA server response code: %s", resp.Status)
+
+	if resp.StatusCode != http.StatusOK {
 		return false
 	}
 

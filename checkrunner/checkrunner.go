@@ -3,8 +3,10 @@ package checkrunner
 import (
 	"context"
 	"embed"
-	//"fmt"
-	//"os"
+	"fmt"
+	"io/fs"
+	"os"
+	"path"
 	"sync"
 	"time"
 
@@ -14,6 +16,10 @@ import (
 //go:embed ansible
 var ansibleFS embed.FS
 
+const (
+	AnsibleMain = "ansible/main.yaml"
+)
+
 type CheckRunner struct {
 	cfg       Config
 	ctx       context.Context
@@ -21,8 +27,9 @@ type CheckRunner struct {
 }
 
 type Config struct {
-	AraServer string
-	Interval  time.Duration
+	AraServer     string
+	Interval      time.Duration
+	AnsibleFolder string
 }
 
 func NewWithConfig(cfg Config) (*CheckRunner, error) {
@@ -39,8 +46,9 @@ func NewWithConfig(cfg Config) (*CheckRunner, error) {
 
 func DefaultConfig() (Config, error) {
 	return Config{
-		AraServer: "http://127.0.0.1:8000",
-		Interval:  5 * time.Minute,
+		AraServer:     "http://127.0.0.1:8000",
+		Interval:      5 * time.Minute,
+		AnsibleFolder: "/usr/etc/trento",
 	}, nil
 }
 
@@ -67,20 +75,22 @@ func (c *CheckRunner) Stop() {
 	c.ctxCancel()
 }
 
-/*
-func createTempAnsible() error {
-	err := os.RemoveAll("consul.d/ansible")
+func createAnsibleFiles(folder string) error {
+	log.Infof("Creating the ansible file structure in %s", folder)
+	// Clean the folder if it stores old files
+	err := os.RemoveAll(folder)
 	if err != nil {
-		log.Print(err)
+		log.Error(err)
 		return err
 	}
 
-	err = os.Mkdir("consul.d/ansible", 0644)
+	err = os.MkdirAll(folder, 0644)
 	if err != nil {
-		log.Print(err)
+		log.Error(err)
 		return err
 	}
 
+	// Create the ansible file structure from the FS
 	err = fs.WalkDir(ansibleFS, "ansible", func(fileName string, dir fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -88,28 +98,39 @@ func createTempAnsible() error {
 		if !dir.IsDir() {
 			content, err := ansibleFS.ReadFile(fileName)
 			if err != nil {
-				log.Printf("Error reading file %s", fileName)
+				log.Errorf("Error reading file %s", fileName)
 				return err
 			}
-			f, err := os.Create(path.Join("consul.d", fileName))
+			f, err := os.Create(path.Join(folder, fileName))
 			if err != nil {
-				log.Printf("Error creating file %s", fileName)
+				log.Errorf("Error creating file %s", fileName)
 				return err
 			}
 			fmt.Fprintf(f, "%s", content)
 		} else {
-			os.Mkdir(path.Join("consul.d", fileName), 0644)
+			os.Mkdir(path.Join(folder, fileName), 0644)
 		}
 		return nil
 	})
 
+	if err != nil {
+		log.Errorf("An error ocurred during the ansible file structure creation: %s", err)
+		return err
+	}
+
+	log.Info("Ansible file structure successfully created")
+
 	return nil
 }
-*/
 
 func (c *CheckRunner) startCheckRunnerTicker() {
+	err := createAnsibleFiles(c.cfg.AnsibleFolder)
+	if err != nil {
+		return
+	}
+
 	ansibleRunner, err := NewAnsibleRunner(
-		"/srv/trento/consul.d/ansible/main.yaml", "/srv/trento/consul.d/ansible_hosts")
+		path.Join(c.cfg.AnsibleFolder, AnsibleMain), "/srv/trento/consul.d/ansible_hosts")
 	if err != nil {
 		return
 	}

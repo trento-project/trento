@@ -1,0 +1,13 @@
+---
+- hosts: all
+  gather_facts: False
+  ignore_errors: yes
+  tasks:
+    - name: Corosync Token is set to 30000
+      lineinfile:
+        path: /etc/corosync/corosync.conf
+        regexp: 'token:\s*30000'
+        state: absent
+      check_mode: yes
+      register: out
+      failed_when: not out.found

@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/trento-project/trento/cmd/agent"
+	"github.com/trento-project/trento/cmd/checkrunner"
 	"github.com/trento-project/trento/cmd/web"
 	"github.com/trento-project/trento/internal"
 )
@@ -37,6 +38,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "", "then minimum severity (error, warn, info, debug) of logs to output")
 	rootCmd.AddCommand(web.NewWebCmd())
 	rootCmd.AddCommand(agent.NewAgentCmd())
+	rootCmd.AddCommand(checkrunner.NewCheckRunnerCmd())
 }
 
 // initConfig reads in config file and ENV variables if set.

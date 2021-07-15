@@ -27,12 +27,7 @@
                 });
             });
         </script>
-        <select name="health" id="health" class="selectpicker" multiple
-                data-selected-text-format="count > 3" data-actions-box="true" title="Health">
-            <option data-content="<span class='badge badge-success'>Passing</span>" value="passing">Passing</option>
-            <option data-content="<span class='badge badge-warning'>Warning</span>" value="warning">Warning</option>
-            <option data-content="<span class='badge badge-danger'>Critical</span>" value="critical">Critical
-        </select>
+        {{ template "health_filter" }}
         <select name="sid" id="sid" class="selectpicker" multiple
                 data-selected-text-format="count > 3" data-actions-box="true" data-live-search="true" title="SID">
             {{- range .ClustersTable.GetAllSIDs }}
@@ -52,7 +47,7 @@
                 data-selected-text-format="count > 3" data-actions-box="true" data-live-search="true"
                 title="Cluster type">
             {{- range .ClustersTable.GetAllClusterTypes }}
-                    <option value="{{ . }}">{{ . }}</option>
+                <option value="{{ . }}">{{ . }}</option>
             {{- end}}
         </select>
     </div>

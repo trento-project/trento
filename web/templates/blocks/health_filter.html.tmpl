@@ -1,0 +1,8 @@
+{{ define "health_filter" }}
+    <select name="health" id="health" class="selectpicker" multiple data-selected-text-format="count > 3"
+            data-act/healions-box="true" title="Health status...">
+    <option data-content="<span class='badge badge-success'>Passing</span>" value="passing">Passing</option>
+    <option data-content="<span class='badge badge-warning'>Warning</span>" value="warning">Warning</option>
+    <option data-content="<span class='badge badge-danger'>Critical</span>" value="critical">Critical</option>
+    </select>
+{{- end }}

@@ -82,6 +82,20 @@ func stoppedResources(c *cluster.Cluster) []*Resource {
 	return stoppedResources
 }
 
+func getHanaSID(c *cluster.Cluster) string {
+	for _, r := range c.Cib.Configuration.Resources.Clones {
+		if r.Primitive.Type == "SAPHanaTopology" {
+			for _, a := range r.Primitive.InstanceAttributes {
+				if a.Name == "SID" {
+					return a.Value
+				}
+			}
+		}
+	}
+
+	return ""
+}
+
 // HANARole parses the hana_prd_roles string and returns the HANA Role
 // Possible values: master, slave
 // e.g. 4:P:master1:master:worker:master returns master (last element)
@@ -275,35 +289,15 @@ type ClustersRow struct {
 
 type ClustersTable []*ClustersRow
 
-func NewClustersTable(clusters map[string]*cluster.Cluster, hosts map[string]hosts.HostList) ClustersTable {
+func NewClustersTable(clusters map[string]*cluster.Cluster) ClustersTable {
 	var clusterTable ClustersTable
 
 	for id, c := range clusters {
 		var health string
+		// TODO: Cost-optimized has multiple SIDs
 		var sids []string
 
-		hl, ok := hosts[id]
-
-		if ok && len(hl) > 0 {
-			health = hl.Health()
-			set := make(map[string]struct{})
-
-			for _, h := range hl {
-				ss, err := h.GetSAPSystems()
-				if err != nil {
-					continue
-				}
-
-				for _, s := range ss {
-					_, ok := set[s.SID]
-					if !ok {
-						set[s.SID] = struct{}{}
-						sids = append(sids, s.SID)
-
-					}
-				}
-			}
-		}
+		sids = append(sids, getHanaSID(c))
 
 		clustersRow := &ClustersRow{
 			Id:              id,
@@ -412,19 +406,7 @@ func NewClusterListHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		hostList := make(map[string]hosts.HostList)
-		for clusterId, _ := range clusters {
-			filterQuery := fmt.Sprintf("Meta[\"trento-ha-cluster-id\"] == \"%s\"", clusterId)
-			h, err := hosts.Load(client, filterQuery, nil)
-			if err != nil {
-				_ = c.Error(err)
-				return
-			}
-
-			hostList[clusterId] = h
-		}
-
-		clustersTable := NewClustersTable(clusters, hostList)
+		clustersTable := NewClustersTable(clusters)
 		clustersTable = clustersTable.Filter(nameFilter, healthFilter, sidFilter, clusterTypeFilter)
 
 		healthContainer := NewClustersHealthContainer(clustersTable)

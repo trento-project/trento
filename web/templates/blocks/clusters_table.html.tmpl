@@ -15,7 +15,7 @@
             <tbody>
             {{- range . }}
                 <tr class='clickable' onclick="window.location='/clusters/{{ .Id }}'">
-                    <td>{{ template "health_icon" .Health }}</td>
+                    <td class="row-status">{{ template "health_icon" .Health }}</td>
                     <td>{{- range $i, $v := .SIDs }}{{- if $i }},{{- end }} {{ . }}{{- end }}</td>
                     <td>{{ .Name }}</td>
                     <td>{{ .Id }}</td>

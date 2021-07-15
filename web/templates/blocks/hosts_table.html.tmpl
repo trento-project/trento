@@ -17,7 +17,7 @@
             {{- range .Hosts }}
                 <tr>
                     <td class="row-status">
-                        <i class="eos-icons eos-18 {{ if eq .Health "passing" }} success">check_circle{{ else if eq .Health "warning" }} warning">warning{{ else }} critical">error{{ end }}</i>
+                        {{ template "health_icon" .Health }}
                     </td>
                     <td>
                         <a href='/hosts/{{ .Name }}'>

@@ -10,6 +10,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/hashicorp/consul-template/manager"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -21,24 +23,32 @@ const (
 )
 
 type CheckRunner struct {
-	cfg       Config
-	ctx       context.Context
-	ctxCancel context.CancelFunc
+	cfg            Config
+	ctx            context.Context
+	ctxCancel      context.CancelFunc
+	templateRunner *manager.Runner
 }
 
 type Config struct {
 	AraServer     string
+	ConsulAddr    string
 	Interval      time.Duration
 	AnsibleFolder string
 }
 
 func NewWithConfig(cfg Config) (*CheckRunner, error) {
+	templateRunner, err := NewTemplateRunner(cfg.AnsibleFolder, cfg.ConsulAddr)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not create the consul template runner")
+	}
+
 	ctx, ctxCancel := context.WithCancel(context.Background())
 
 	runner := &CheckRunner{
-		cfg:       cfg,
-		ctx:       ctx,
-		ctxCancel: ctxCancel,
+		cfg:            cfg,
+		ctx:            ctx,
+		ctxCancel:      ctxCancel,
+		templateRunner: templateRunner,
 	}
 
 	return runner, nil
@@ -47,18 +57,28 @@ func NewWithConfig(cfg Config) (*CheckRunner, error) {
 func DefaultConfig() (Config, error) {
 	return Config{
 		AraServer:     "http://127.0.0.1:8000",
+		ConsulAddr:    "127.0.0.1:8500",
 		Interval:      5 * time.Minute,
 		AnsibleFolder: "/usr/etc/trento",
 	}, nil
 }
 
 func (c *CheckRunner) Start() error {
-	var wg sync.WaitGroup
+	var wg, renderedWg sync.WaitGroup
 
 	wg.Add(1)
+	renderedWg.Add(1)
+	go func(wg, renderedWg *sync.WaitGroup) {
+		log.Println("Starting consul-template loop...")
+		defer wg.Done()
+		c.startConsulTemplate(renderedWg)
+		log.Println("consul-template loop stopped.")
+	}(&wg, &renderedWg)
 
-	//createTempAnsible()
+	// Wait until the ansible inventory file is rendered
+	renderedWg.Wait()
 
+	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
 		log.Println("Starting the check runner loop...")
 		defer wg.Done()
@@ -78,13 +98,14 @@ func (c *CheckRunner) Stop() {
 func createAnsibleFiles(folder string) error {
 	log.Infof("Creating the ansible file structure in %s", folder)
 	// Clean the folder if it stores old files
-	err := os.RemoveAll(folder)
+	ansibleFolder := path.Join(folder, "ansible")
+	err := os.RemoveAll(ansibleFolder)
 	if err != nil {
 		log.Error(err)
 		return err
 	}
 
-	err = os.MkdirAll(folder, 0644)
+	err = os.MkdirAll(ansibleFolder, 0644)
 	if err != nil {
 		log.Error(err)
 		return err
@@ -130,7 +151,8 @@ func (c *CheckRunner) startCheckRunnerTicker() {
 	}
 
 	ansibleRunner, err := NewAnsibleRunner(
-		path.Join(c.cfg.AnsibleFolder, AnsibleMain), "/srv/trento/consul.d/ansible_hosts")
+		path.Join(c.cfg.AnsibleFolder, AnsibleMain),
+		path.Join(c.cfg.AnsibleFolder, ansibleHostFile))
 	if err != nil {
 		return
 	}

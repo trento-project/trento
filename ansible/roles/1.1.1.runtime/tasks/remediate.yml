@@ -2,7 +2,7 @@
 
 - name: Set Test ID
   set_fact:
-    test_id: '1.1.1.runtime'
+    test_id: '1.1.1_runtime'
 
 - name: "Set other facts for {{ test_id }}"
   set_fact:

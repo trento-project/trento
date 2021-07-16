@@ -22,16 +22,3 @@
   when:
     - config_updated is changed
     - not ansible_check_mode
-
-- block:
-    - import_role:
-        name: post-results
-  when:
-    - ansible_check_mode
-  vars:
-    id: "{{ test_mid }}"
-    test: "{{ test_id }}"
-    name: "{{ test_name }}"
-    desc: "{{ test_desc }}"
-    status: "{{ config_updated is changed | ternary ('Failed','Passed') }}"
-    remediation: "{{ test_remediation }}"

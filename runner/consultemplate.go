@@ -1,4 +1,4 @@
-package checkrunner
+package runner
 
 import (
 	"fmt"
@@ -64,15 +64,15 @@ func NewTemplateRunner(runnerConfig *Config) (*manager.Runner, error) {
 
 	cTemplateConfig.Finalize()
 
-	runner, err := manager.NewRunner(cTemplateConfig, false)
+	cTemplateRunner, err := manager.NewRunner(cTemplateConfig, false)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not start consul-template")
 	}
 
-	return runner, nil
+	return cTemplateRunner, nil
 }
 
-func (c *CheckRunner) startConsulTemplate(renderedWg *sync.WaitGroup) {
+func (c *Runner) startConsulTemplate(renderedWg *sync.WaitGroup) {
 	var rendered bool = false
 	go c.templateRunner.Start()
 	defer c.stopConsulTemplate()
@@ -92,7 +92,7 @@ func (c *CheckRunner) startConsulTemplate(renderedWg *sync.WaitGroup) {
 	}
 }
 
-func (c *CheckRunner) stopConsulTemplate() {
+func (c *Runner) stopConsulTemplate() {
 	log.Println("Stopping consul-template")
 	c.templateRunner.StopImmediately()
 	log.Println("Stopped consul-template")

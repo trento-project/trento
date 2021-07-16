@@ -1,4 +1,4 @@
-package checkrunner
+package runner
 
 import (
 	"os"
@@ -9,7 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/trento-project/trento/checkrunner"
+	"github.com/trento-project/trento/runner"
 )
 
 var araServer string
@@ -17,15 +17,15 @@ var interval int
 var ansibleFolder string
 var consulAddr string
 
-func NewCheckRunnerCmd() *cobra.Command {
-	checkRunnerCmd := &cobra.Command{
-		Use:   "checkrunner",
-		Short: "Command tree related to the check runner component",
+func NewRunnerCmd() *cobra.Command {
+	runnerCmd := &cobra.Command{
+		Use:   "runner",
+		Short: "Command tree related to the runner component",
 	}
 
 	startCmd := &cobra.Command{
 		Use:   "start",
-		Short: "Starts the check runner",
+		Short: "Starts the runner process. This process takes care of running the checks",
 		Run:   start,
 	}
 
@@ -34,9 +34,9 @@ func NewCheckRunnerCmd() *cobra.Command {
 	startCmd.Flags().IntVarP(&interval, "interval", "i", 5, "Interval in minutes to run the checks")
 	startCmd.Flags().StringVar(&ansibleFolder, "ansible-folder", "/usr/etc/trento", "Folder where the ansible file structure will be created")
 
-	checkRunnerCmd.AddCommand(startCmd)
+	runnerCmd.AddCommand(startCmd)
 
-	return checkRunnerCmd
+	return runnerCmd
 }
 
 func start(cmd *cobra.Command, args []string) {
@@ -45,9 +45,9 @@ func start(cmd *cobra.Command, args []string) {
 	signals := make(chan os.Signal)
 	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
 
-	cfg, err := checkrunner.DefaultConfig()
+	cfg, err := runner.DefaultConfig()
 	if err != nil {
-		log.Fatal("Failed to create the check runner configuration: ", err)
+		log.Fatal("Failed to create the runner configuration: ", err)
 	}
 
 	cfg.AraServer = araServer
@@ -56,21 +56,21 @@ func start(cmd *cobra.Command, args []string) {
 	cfg.AnsibleFolder = ansibleFolder
 	cfg.ConsulTemplateLogLevel = viper.GetString("log-level")
 
-	runner, err := checkrunner.NewWithConfig(cfg)
+	runner, err := runner.NewWithConfig(cfg)
 	if err != nil {
-		log.Fatal("Failed to create the check runner instance: ", err)
+		log.Fatal("Failed to create the runner instance: ", err)
 	}
 
 	go func() {
 		quit := <-signals
 		log.Printf("Caught %s signal!", quit)
 
-		log.Println("Stopping the checker...")
+		log.Println("Stopping the runner...")
 		runner.Stop()
 	}()
 
 	err = runner.Start()
 	if err != nil {
-		log.Fatal("Failed to start the check runner service: ", err)
+		log.Fatal("Failed to start the runner service: ", err)
 	}
 }

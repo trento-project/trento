@@ -1,4 +1,4 @@
-package checkrunner
+package runner
 
 import (
 	"context"
@@ -22,7 +22,7 @@ const (
 	AnsibleMain = "ansible/main.yaml"
 )
 
-type CheckRunner struct {
+type Runner struct {
 	cfg            Config
 	ctx            context.Context
 	ctxCancel      context.CancelFunc
@@ -37,7 +37,7 @@ type Config struct {
 	ConsulTemplateLogLevel string
 }
 
-func NewWithConfig(cfg Config) (*CheckRunner, error) {
+func NewWithConfig(cfg Config) (*Runner, error) {
 	templateRunner, err := NewTemplateRunner(&cfg)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create the consul template runner")
@@ -45,7 +45,7 @@ func NewWithConfig(cfg Config) (*CheckRunner, error) {
 
 	ctx, ctxCancel := context.WithCancel(context.Background())
 
-	runner := &CheckRunner{
+	runner := &Runner{
 		cfg:            cfg,
 		ctx:            ctx,
 		ctxCancel:      ctxCancel,
@@ -65,7 +65,7 @@ func DefaultConfig() (Config, error) {
 	}, nil
 }
 
-func (c *CheckRunner) Start() error {
+func (c *Runner) Start() error {
 	var wg, renderedWg sync.WaitGroup
 
 	wg.Add(1)
@@ -82,10 +82,10 @@ func (c *CheckRunner) Start() error {
 
 	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
-		log.Println("Starting the check runner loop...")
+		log.Println("Starting the runner loop...")
 		defer wg.Done()
-		c.startCheckRunnerTicker()
-		log.Println("Check runner loop stopped.")
+		c.startRunnerTicker()
+		log.Println("Runner loop stopped.")
 	}(&wg)
 
 	wg.Wait()
@@ -93,7 +93,7 @@ func (c *CheckRunner) Start() error {
 	return nil
 }
 
-func (c *CheckRunner) Stop() {
+func (c *Runner) Stop() {
 	c.ctxCancel()
 }
 
@@ -146,7 +146,7 @@ func createAnsibleFiles(folder string) error {
 	return nil
 }
 
-func (c *CheckRunner) startCheckRunnerTicker() {
+func (c *Runner) startRunnerTicker() {
 	err := createAnsibleFiles(c.cfg.AnsibleFolder)
 	if err != nil {
 		return

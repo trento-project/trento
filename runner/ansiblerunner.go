@@ -3,7 +3,7 @@
 // https://github.com/ansible-community/ara
 // https://ara.readthedocs.io/en/latest/index.html
 
-package checkrunner
+package runner
 
 import (
 	"fmt"

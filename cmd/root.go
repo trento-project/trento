@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/trento-project/trento/cmd/agent"
-	"github.com/trento-project/trento/cmd/checkrunner"
+	"github.com/trento-project/trento/cmd/runner"
 	"github.com/trento-project/trento/cmd/web"
 	"github.com/trento-project/trento/internal"
 )
@@ -42,7 +42,7 @@ func init() {
 
 	rootCmd.AddCommand(web.NewWebCmd())
 	rootCmd.AddCommand(agent.NewAgentCmd())
-	rootCmd.AddCommand(checkrunner.NewCheckRunnerCmd())
+	rootCmd.AddCommand(runner.NewRunnerCmd())
 }
 
 // initConfig reads in config file and ENV variables if set.

@@ -1,19 +1,16 @@
 ---
 
-- name: 1.2.1.remediate
+- name: Set Test ID
+  set_fact:
+    test_id: '1.2.1'
+
+- name: "Set other facts for {{ test_id }}"
+  set_fact:
+    test_mid: "1.2"
+    test_name: "Pacemaker"
+    test_desc: "Fencing is enabled {{ expected[test_id] }}"
+    test_remediation: "ansible"
+
+- name: "{{ test_id }}.remediate"
   shell: 'crm configure property stonith-enabled=true'
   register: config_updated
-
-- block:
-    - import_role:
-        name: post-results
-        tasks_from: fail
-      when: config_updated is changed
-    - import_role:
-        name: post-results
-        tasks_from: pass
-      when: config_updated is not changed
-  when:
-    - ansible_check_mode
-  vars:
-    test: "1.2.1"

@@ -14,3 +14,19 @@
 - name: "{{ test_id }}.remediate"
   shell: 'crm configure property stonith-enabled=true'
   register: config_updated
+
+- block:
+    - import_role:
+        name: post-results
+  when:
+    - ansible_check_mode
+  vars:
+    status: "{{ config_updated is changed | ternary ('Failed','Passed') }}"
+
+- block:
+    - import_role:
+        name: post-results
+  when:
+    - ansible_check_mode
+  vars:
+    status: "{{ config_updated is changed | ternary ('Failed','Passed') }}"

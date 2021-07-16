@@ -23,3 +23,11 @@
   when:
     - result_run.stdout != expected['1.1.4']
     - not ansible_check_mode
+
+- block:
+    - import_role:
+        name: post-results
+  when:
+    - ansible_check_mode
+  vars:
+    status: "{{ config_updated is changed | ternary ('Failed','Passed') }}"

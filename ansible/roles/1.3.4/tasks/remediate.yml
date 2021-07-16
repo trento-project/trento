@@ -25,6 +25,14 @@
   changed_when: false
   register: result_run
 
+- block:
+    - import_role:
+        name: post-results
+  when:
+    - ansible_check_mode
+  vars:
+    status: "{{ config_updated is changed | ternary ('Failed','Passed') }}"
+
 #- debug: 
 #    msg: "1.3.4-It is recommended to configure 3 SBD devices for production environments \n References: https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#set-up-sbd-device" 
 #  when:

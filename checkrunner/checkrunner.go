@@ -30,14 +30,15 @@ type CheckRunner struct {
 }
 
 type Config struct {
-	AraServer     string
-	ConsulAddr    string
-	Interval      time.Duration
-	AnsibleFolder string
+	AraServer              string
+	ConsulAddr             string
+	Interval               time.Duration
+	AnsibleFolder          string
+	ConsulTemplateLogLevel string
 }
 
 func NewWithConfig(cfg Config) (*CheckRunner, error) {
-	templateRunner, err := NewTemplateRunner(cfg.AnsibleFolder, cfg.ConsulAddr)
+	templateRunner, err := NewTemplateRunner(&cfg)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create the consul template runner")
 	}
@@ -56,10 +57,11 @@ func NewWithConfig(cfg Config) (*CheckRunner, error) {
 
 func DefaultConfig() (Config, error) {
 	return Config{
-		AraServer:     "http://127.0.0.1:8000",
-		ConsulAddr:    "127.0.0.1:8500",
-		Interval:      5 * time.Minute,
-		AnsibleFolder: "/usr/etc/trento",
+		AraServer:              "http://127.0.0.1:8000",
+		ConsulAddr:             "127.0.0.1:8500",
+		Interval:               5 * time.Minute,
+		AnsibleFolder:          "/usr/etc/trento",
+		ConsulTemplateLogLevel: "info",
 	}, nil
 }
 

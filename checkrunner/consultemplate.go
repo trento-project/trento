@@ -2,10 +2,13 @@ package checkrunner
 
 import (
 	"fmt"
+	"os"
 	"path"
+	"strings"
 	"sync"
 
 	consultemplateconfig "github.com/hashicorp/consul-template/config"
+	consultemplatelogging "github.com/hashicorp/consul-template/logging"
 	"github.com/hashicorp/consul-template/manager"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -34,23 +37,34 @@ var ansibleHostsTemplate = fmt.Sprintf(`{{- with node }}
 
 const ansibleHostFile = "ansible_hosts"
 
-func NewTemplateRunner(folder, consuldAddr string) (*manager.Runner, error) {
-	config := consultemplateconfig.DefaultConfig()
+func NewTemplateRunner(runnerConfig *Config) (*manager.Runner, error) {
 	consulConfig := consultemplateconfig.DefaultConsulConfig()
-	consulConfig.Address = &consuldAddr
-	config.Consul = consulConfig
+	consulConfig.Address = &runnerConfig.ConsulAddr
+
+	loggingConfig := &consultemplatelogging.Config{
+		Level:  strings.ToUpper(runnerConfig.ConsulTemplateLogLevel),
+		Syslog: false,
+		Writer: os.Stdout,
+	}
+
+	consultemplatelogging.Setup(loggingConfig)
+
+	cTemplateConfig := consultemplateconfig.DefaultConfig()
+	cTemplateConfig.Consul = consulConfig
 
 	contents := ansibleHostsTemplate
-	destination := path.Join(folder, ansibleHostFile)
-	*config.Templates = append(
-		*config.Templates,
+	destination := path.Join(runnerConfig.AnsibleFolder, ansibleHostFile)
+	*cTemplateConfig.Templates = append(
+		*cTemplateConfig.Templates,
 		&consultemplateconfig.TemplateConfig{
 			Contents:    &contents,
 			Destination: &destination,
 		},
 	)
 
-	runner, err := manager.NewRunner(config, false)
+	cTemplateConfig.Finalize()
+
+	runner, err := manager.NewRunner(cTemplateConfig, false)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not start consul-template")
 	}

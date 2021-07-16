@@ -8,6 +8,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"github.com/trento-project/trento/checkrunner"
 )
 
@@ -53,6 +54,7 @@ func start(cmd *cobra.Command, args []string) {
 	cfg.ConsulAddr = consulAddr
 	cfg.Interval = time.Duration(interval) * time.Minute
 	cfg.AnsibleFolder = ansibleFolder
+	cfg.ConsulTemplateLogLevel = viper.GetString("log-level")
 
 	runner, err := checkrunner.NewWithConfig(cfg)
 	if err != nil {

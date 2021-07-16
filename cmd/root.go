@@ -35,7 +35,11 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.trento.yaml)")
-	rootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "", "then minimum severity (error, warn, info, debug) of logs to output")
+	rootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "info", "then minimum severity (error, warn, info, debug) of logs to output")
+
+	// Make log-level available in the children commands
+	viper.BindPFlag("log-level", rootCmd.PersistentFlags().Lookup("log-level"))
+
 	rootCmd.AddCommand(web.NewWebCmd())
 	rootCmd.AddCommand(agent.NewAgentCmd())
 	rootCmd.AddCommand(checkrunner.NewCheckRunnerCmd())
@@ -56,9 +60,6 @@ func initConfig() {
 		viper.SetConfigName(".trento")
 	}
 
-	if logLevel == "" {
-		logLevel = "info"
-	}
 	internal.SetLogLevel(logLevel)
 	internal.SetLogFormatter("2006-01-02 15:04:05")
 

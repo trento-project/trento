@@ -171,22 +171,23 @@ func NewNodes(c *cluster.Cluster, hl hosts.HostList) Nodes {
 					Role: r.Role,
 				}
 
+				switch {
+				case r.Active:
+					resource.Status = "active"
+				case r.Blocked:
+					resource.Status = "blocked"
+				case r.Failed:
+					resource.Status = "failed"
+				case r.FailureIgnored:
+					resource.Status = "failure_ignored"
+				case r.Orphaned:
+					resource.Status = "orphaned"
+				}
+
 				for _, p := range c.Cib.Configuration.Resources.Primitives {
 					if r.Agent == "ocf::heartbeat:IPaddr2" && r.Id == p.Id {
 						node.VirtualIps = append(node.VirtualIps, p.InstanceAttributes[0].Value)
 						break
-					}
-					switch {
-					case r.Active:
-						resource.Status = "active"
-					case r.Blocked:
-						resource.Status = "blocked"
-					case r.Failed:
-						resource.Status = "failed"
-					case r.FailureIgnored:
-						resource.Status = "failure_ignored"
-					case r.Orphaned:
-						resource.Status = "orphaned"
 					}
 				}
 

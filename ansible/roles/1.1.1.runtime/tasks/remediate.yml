@@ -1,6 +1,17 @@
 ---
 
-- name: 1.1.1.runtime.remediate
+- name: Set Test ID
+  set_fact:
+    test_id: '1.1.1.runtime'
+
+- name: "Set other facts for {{ test_id }}"
+  set_fact:
+    test_mid: "1.1"
+    test_name: "Corosync"
+    test_desc: "Corosync Token is set to {{ expected[test_id] }} runtime"
+    test_remediation: "ansible"
+
+- name: "{{ test_id }}.remediate"
   shell: 'corosync-cmapctl | grep "runtime.config.totem.token (u32) = " | sed "s/^.*= //"'
   check_mode: no
   register: result_run
@@ -12,20 +23,3 @@
   when: 
     - result_run.stdout != expected['1.1.1']
     - not ansible_check_mode
-
-
-- block:
-    - import_role:
-        name: post-results
-        tasks_from: fail
-      when:
-        - result_run.stdout != expected['1.1.1']
-    - import_role:
-        name: post-results
-        tasks_from: pass
-      when:
-        - result_run.stdout == expected['1.1.1']
-  when:
-    - ansible_check_mode
-  vars:
-    test: "1.1.1.runtime"

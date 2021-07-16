@@ -131,9 +131,19 @@ func clustersListMap() map[string]interface{} {
 				},
 				"Resources": []interface{}{
 					map[string]interface{}{
-						"Id":    "sbd",
-						"Agent": "stonith:external/sbd",
-						"Role":  "started",
+						"Id":     "sbd",
+						"Agent":  "stonith:external/sbd",
+						"Role":   "Started",
+						"Active": true,
+						"Node": map[string]interface{}{
+							"Name": "test_node_1",
+						},
+					},
+					map[string]interface{}{
+						"Id":     "dummy_failed",
+						"Agent":  "dummy",
+						"Role":   "Started",
+						"Failed": true,
 						"Node": map[string]interface{}{
 							"Name": "test_node_1",
 						},
@@ -289,6 +299,7 @@ func TestClusterHandlerHANA(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, resp.Body.String(), "Cluster details")
+	// Summary
 	assert.Regexp(t, regexp.MustCompile("<strong>Cluster name:</strong><br><span.*>sculpin</span>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<strong>Cluster type:</strong><br><span.*>HANA scale-up</span>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<strong>HANA system replication mode:</strong><br><span.*>sync</span>"), minified)
@@ -296,8 +307,13 @@ func TestClusterHandlerHANA(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("<strong>HANA system replication operation mode:</strong><br><span.*>logreplay</span>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<strong>CIB last written:</strong><br><span.*>Wed Jun 30 18:11:37 2021</span>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<strong>HANA secondary sync state:</strong><br><span.*>SFAIL</span>"), minified)
+	// Nodes
 	assert.Regexp(t, regexp.MustCompile("<td>test_node_1</td><td>192.168.1.1</td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td>test_node_2</td><td>192.168.1.2</td>"), minified)
+	// Resources
+	assert.Regexp(t, regexp.MustCompile("<td>sbd</td><td>stonith:external/sbd</td><td>Started</td><td>active</td><td>0</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td>dummy_failed</td><td>dummy</td><td>Started</td><td>failed</td><td>0</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<h4>Stopped resources</h4><div.*><div.*><span .*>dummy_failed</span>"), minified)
 }
 
 func TestClusterHandlerGeneric(t *testing.T) {

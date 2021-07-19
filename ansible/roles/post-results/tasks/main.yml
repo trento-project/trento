@@ -1,9 +1,5 @@
 ---
 
-- name: set_results {{ test_id }}
-  set_fact:
-    ha_results: "{{ (ha_results | default({})) | combine({test_id: status}) }}"
-
 - name: set_global_results {{ test_id }}
   set_fact:
     tests: "{{ (tests | default({})) | combine({inventory_hostname: {test_id: {'result': status,'desc': test_desc,'remediation': test_remediation,'mid': test_mid, 'name': test_name} } }, recursive=True) }}"

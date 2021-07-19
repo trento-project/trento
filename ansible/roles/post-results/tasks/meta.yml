@@ -1,0 +1,5 @@
+---
+
+- name: set_global_results {{ test_id }}
+  set_fact:
+    tests_meta_data: "{{ (tests_meta_data | default({})) | combine({inventory_hostname: {test_id: {'result': status,'desc': test_desc,'remediation': test_remediation,'mid': test_mid, 'name': test_name} } }, recursive=True) }}"

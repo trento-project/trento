@@ -220,8 +220,7 @@
 
     - name: Global Results
       set_fact:
-        global_ha_results: "{{ ha_results }}"
-        global_tests: "{{ tests }}"
+        global_meta_data: "{{ (tests_meta_data | default({})) }}"
       tags:
         - always
       delegate_to: localhost

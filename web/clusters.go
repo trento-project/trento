@@ -146,21 +146,21 @@ func NewNodes(c *cluster.Cluster, hl hosts.HostList) Nodes {
 
 	var nodes Nodes
 
+	// TODO: remove plain resources grouping as in the future we'll need to distinguish between Cloned and Groups
+	resources := c.Crmmon.Resources
+	for _, g := range c.Crmmon.Groups {
+		resources = append(resources, g.Resources...)
+	}
+
+	for _, c := range c.Crmmon.Clones {
+		resources = append(resources, c.Resources...)
+	}
+
 	for _, n := range c.Crmmon.NodeAttributes.Nodes {
 		node := &Node{Name: n.Name, Attributes: make(map[string]string)}
 
 		for _, a := range n.Attributes {
 			node.Attributes[a.Name] = a.Value
-		}
-
-		// TODO: remove plain resources grouping as in the future we'll need to distinguish between Cloned and Groups
-		resources := c.Crmmon.Resources
-		for _, g := range c.Crmmon.Groups {
-			resources = append(resources, g.Resources...)
-		}
-
-		for _, c := range c.Crmmon.Clones {
-			resources = append(resources, c.Resources...)
 		}
 
 		for _, r := range resources {
@@ -171,22 +171,25 @@ func NewNodes(c *cluster.Cluster, hl hosts.HostList) Nodes {
 					Role: r.Role,
 				}
 
-				for _, p := range c.Cib.Configuration.Resources.Primitives {
-					if r.Agent == "ocf::heartbeat:IPaddr2" && r.Id == p.Id {
-						node.VirtualIps = append(node.VirtualIps, p.InstanceAttributes[0].Value)
-						break
-					}
-					switch {
-					case r.Active:
-						resource.Status = "active"
-					case r.Blocked:
-						resource.Status = "blocked"
-					case r.Failed:
-						resource.Status = "failed"
-					case r.FailureIgnored:
-						resource.Status = "failure_ignored"
-					case r.Orphaned:
-						resource.Status = "orphaned"
+				switch {
+				case r.Active:
+					resource.Status = "active"
+				case r.Blocked:
+					resource.Status = "blocked"
+				case r.Failed:
+					resource.Status = "failed"
+				case r.FailureIgnored:
+					resource.Status = "failure_ignored"
+				case r.Orphaned:
+					resource.Status = "orphaned"
+				}
+
+				if r.Agent == "ocf::heartbeat:IPaddr2" {
+					for _, p := range c.Cib.Configuration.Resources.Primitives {
+						if r.Id == p.Id {
+							node.VirtualIps = append(node.VirtualIps, p.InstanceAttributes[0].Value)
+							break
+						}
 					}
 				}
 

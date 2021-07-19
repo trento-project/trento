@@ -22,9 +22,9 @@
 - import_role:
     name: cluster_stop
   when:
-    - result.stdout != {{ expected[test_id] }}
     - not ansible_check_mode
     - inventory_hostname == groups.target[0]
+    - result.stdout != expected[test_id]
 
 - name: "{{ test_id }}.remediate"
   replace:

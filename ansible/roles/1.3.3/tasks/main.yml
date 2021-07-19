@@ -1,15 +1,34 @@
 ---
 
-- name: 1.3.3.result
+- name: Set Test ID
+  set_fact:
+    test_id: '1.3.3'
+
+- name: "Set other facts for {{ test_id }}"
+  set_fact:
+    test_mid: "1.3"
+    test_name: "SBD"
+    test_desc: "SBD service is enabled {{ expected[test_id] }}"
+    test_remediation: "ansible"
+
+- name: "{{ test_id }}.result"
   shell: 'systemctl is-enabled sbd || true'
   check_mode: no
   changed_when: false
 
   register: result_run
 
-- name: 1.3.3.remediate
+- name: "{{ test_id }}.remediate"
   shell: 'systemctl enable sbd'
-  register: result_rem
-  when: 
-    - result_run.stdout != expected['1.3.3']
+  register: config_updated
+  when:
+    - result_run.stdout != expected[test_id]
     - not ansible_check_mode
+
+- block:
+    - import_role:
+        name: post-results
+  when:
+    - ansible_check_mode
+  vars:
+    status: "{{ config_updated is changed | ternary ('Failed','Passed') }}"

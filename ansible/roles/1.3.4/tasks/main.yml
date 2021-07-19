@@ -23,7 +23,7 @@
     grep -E '^SBD_DEVICE=' /etc/sysconfig/sbd |wc -l
   check_mode: no
   changed_when: false
-  register: result_run
+  register: config_updated
 
 - block:
     - import_role:

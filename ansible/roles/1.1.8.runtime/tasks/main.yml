@@ -1,13 +1,25 @@
 ---
 
-- name: 1.1.8.runtime
+- name: Set Test ID
+  set_fact:
+    test_id: '1.1.8_runtime'
+
+- name: "Set other facts for {{ test_id }}"
+  set_fact:
+    test_mid: "1.1"
+    test_name: "Corosync"
+    test_desc: "Corosync two_node parameter is set to {{ expected[test_id] }} runtime"
+    test_remediation: "ansible"
+
+- name: "{{ test_id }}.remediate"
   shell: 'corosync-cmapctl | grep "runtime.votequorum.two_node (u8) = " | sed "s/^.*= //"'
-  register: result
+  check_mode: no
+  register: result_run
   changed_when: false
 
-- include_role:
-    name: "set-results"
-  vars:
-    fact_name: "1.1.8.runtime"
-    fact_value: "{{ result.stdout }}"
-
+- import_role:
+    name: 'corosync_restart'
+    tasks_from: main
+  when:
+    - result_run.stdout != expected['1.1.8']
+    - not ansible_check_mode

@@ -1,17 +1,33 @@
 ---
 
-- name: 1.1.1
-  shell: 'grep -E "^\s*token:" corosync.conf | sed "s/[^0-9]//g"'
-  args:
-    chdir: "/etc/corosync"
-  register: result
-  changed_when: false
+- name: Set Test ID
+  set_fact:
+    test_id: '1.1.1'
 
-#- debug:
-#    msg: "{{ result }}"
+- name: "Set other facts for {{ test_id }}"
+  set_fact:
+    test_mid: "1.1"
+    test_name: "Corosync"
+    test_desc: "Corosync Token is set to {{ expected[test_id] }}"
+    test_remediation: "ansible"
 
-- include_role:
-    name: "set-results"
+- name: "{{ test_id }}.remediate"
+  replace:
+    path: /etc/corosync/corosync.conf
+    regexp: '(\s+)token:(\s)[0-9]+?$'
+    replace: '\1token: {{ expected[test_id] }}'
+  register: config_updated
+
+- import_role:
+    name: corosync_restart
+  when:
+    - config_updated is changed
+    - not ansible_check_mode
+
+- block:
+    - import_role:
+        name: post-results
+  when:
+    - ansible_check_mode
   vars:
-    fact_name: "1.1.1"
-    fact_value: "{{ result.stdout }}"
+    status: "{{ config_updated is changed | ternary ('Failed','Passed') }}"

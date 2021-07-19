@@ -11,14 +11,14 @@
     test_desc: "SBD service is enabled {{ expected[test_id] }}"
     test_remediation: "ansible"
 
-- name: {{ test_id }}.result
+- name: "{{ test_id }}.result"
   shell: 'systemctl is-enabled sbd || true'
   check_mode: no
   changed_when: false
 
   register: result_run
 
-- name: {{ test_id }}.remediate
+- name: "{{ test_id }}.remediate"
   shell: 'systemctl enable sbd'
   register: config_updated
   when:

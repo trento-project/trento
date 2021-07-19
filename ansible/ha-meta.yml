@@ -1,0 +1,228 @@
+# This playbook gathers meta data facts for SAP/HANA checker.
+
+- hosts: all
+
+  tasks:
+    - name: include load_facts
+      import_role:
+        name: load_facts
+      tags:
+        - always
+      delegate_to: localhost
+      run_once: yes
+
+    - name: include 1.1.1 remediate
+      import_role:
+        name: '1.1.1'
+        tasks_from: meta
+      tags:
+        - always
+      delegate_to: localhost
+      run_once: yes
+
+    - name: include 1.1.1.runtime remediate
+      import_role:
+        name: '1.1.1.runtime'
+        tasks_from: meta
+      tags:
+        - always
+      delegate_to: localhost
+      run_once: yes
+
+    - name: include 1.1.2 remediate
+      import_role:
+        name: '1.1.2'
+        tasks_from: meta
+      tags:
+        - always
+      delegate_to: localhost
+      run_once: yes
+
+    - name: include 1.1.2.runtime remediate
+      import_role:
+        name: '1.1.2.runtime'
+        tasks_from: meta
+      tags:
+        - always
+      delegate_to: localhost
+      run_once: yes
+
+    - name: include 1.1.3 remediate
+      import_role:
+        name: '1.1.3'
+        tasks_from: meta
+      tags:
+        - always
+      delegate_to: localhost
+      run_once: yes
+ 
+    - name: include 1.1.3.runtime remediate
+      import_role:
+        name: '1.1.3.runtime'
+        tasks_from: meta
+      tags:
+        - always
+      delegate_to: localhost
+      run_once: yes
+
+    - name: include 1.1.4 remediate
+      import_role:
+        name: '1.1.4'
+        tasks_from: meta
+      tags:
+        - always
+      delegate_to: localhost
+      run_once: yes
+
+    - name: include 1.1.4.runtime remediate
+      import_role:
+        name: '1.1.4.runtime'
+        tasks_from: meta
+      tags:
+        - always
+      delegate_to: localhost
+      run_once: yes
+
+    - name: include 1.1.5 remediate
+      import_role:
+        name: '1.1.5'
+        tasks_from: meta
+      tags:
+        - always
+      delegate_to: localhost
+      run_once: yes
+
+    - name: include 1.1.5.runtime remediate
+      import_role:
+        name: '1.1.5.runtime'
+        tasks_from: meta
+      tags:
+        - always
+      delegate_to: localhost
+      run_once: yes
+
+    - name: include 1.1.6 remediate
+      import_role:
+        name: '1.1.6'
+        tasks_from: meta
+      tags:
+        - always
+      delegate_to: localhost
+      run_once: yes
+
+    - name: include 1.1.7 remediate
+      import_role:
+        name: '1.1.7'
+        tasks_from: meta
+      tags:
+        - always
+      delegate_to: localhost
+      run_once: yes
+
+    - name: include 1.1.8 remediate
+      import_role:
+        name: '1.1.8'
+        tasks_from: meta
+      tags:
+        - always
+      delegate_to: localhost
+      run_once: yes
+
+    - name: include 1.1.8.runtime remediate
+      import_role:
+        name: '1.1.8.runtime'
+        tasks_from: meta
+      tags:
+        - always
+      delegate_to: localhost
+      run_once: yes
+
+    - name: include 1.2.1 remediate
+      import_role:
+        name: '1.2.1'
+        tasks_from: meta
+      tags:
+        - always
+      delegate_to: localhost
+      run_once: yes
+
+    - name: include 1.2.2 remediate
+      import_role:
+        name: '1.2.2'
+        tasks_from: meta
+      tags:
+        - always
+      delegate_to: localhost
+      run_once: yes
+
+    - name: include 1.3.1 remediate
+      import_role:
+        name: '1.3.1'
+        tasks_from: meta
+      tags:
+        - always
+      delegate_to: localhost
+      run_once: yes
+
+    - name: include 1.3.2 remediate
+      import_role:
+        name: '1.3.2'
+        tasks_from: meta
+      tags:
+        - always
+      delegate_to: localhost
+      run_once: yes
+
+    - name: include 1.3.3 remediate
+      import_role:
+        name: '1.3.3'
+        tasks_from: meta
+      tags:
+        - always
+      delegate_to: localhost
+      run_once: yes
+
+    - name: include 1.3.4 remediate
+      import_role:
+        name: '1.3.4'
+        tasks_from: meta
+      tags:
+        - always
+      delegate_to: localhost
+      run_once: yes
+
+    - name: include 1.3.5 remediate
+      import_role:
+        name: '1.3.5'
+        tasks_from: meta
+      tags:
+        - always
+      delegate_to: localhost
+      run_once: yes
+
+    - name: include 1.4.1 remediate
+      import_role:
+        name: '1.4.1'
+        tasks_from: meta
+      tags:
+        - always
+      delegate_to: localhost
+      run_once: yes
+
+    - name: include 1.4.2 remediate
+      import_role:
+        name: '1.4.2'
+        tasks_from: meta
+      tags:
+        - always
+      delegate_to: localhost
+      run_once: yes
+
+    - name: Global Results
+      set_fact:
+        global_ha_results: "{{ ha_results }}"
+        global_tests: "{{ tests }}"
+      tags:
+        - always
+      delegate_to: localhost
+      run_once: yes

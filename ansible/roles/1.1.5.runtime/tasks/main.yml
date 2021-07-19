@@ -1,13 +1,33 @@
 ---
 
-- name: 1.1.5.runtime
+- name: Set Test ID
+  set_fact:
+    test_id: '1.1.5_runtime'
+
+- name: "Set other facts for {{ test_id }}"
+  set_fact:
+    test_mid: "1.1"
+    test_name: "Corosync"
+    test_desc: " Corosync token_retransmits_before_loss_const parameter is set to {{ expected[test_id] }} runtime"
+    test_remediation: "ansible"
+
+- name: "{{ test_id }}.remediate"
   shell: 'corosync-cmapctl | grep "runtime.config.totem.token_retransmits_before_loss_const (u32) = " | sed "s/^.*= //"'
-  register: result
+  check_mode: no
+  register: result_run
   changed_when: false
 
-- include_role:
-    name: "set-results"
-  vars:
-    fact_name: "1.1.5.runtime"
-    fact_value: "{{ result.stdout }}"
+- import_role:
+    name: 'corosync_restart'
+    tasks_from: main
+  when:
+    - result_run.stdout != expected['1.1.5']
+    - not ansible_check_mode
 
+- block:
+    - import_role:
+        name: post-results
+  when:
+    - ansible_check_mode
+  vars:
+    status: "{{ config_updated is changed | ternary ('Failed','Passed') }}"

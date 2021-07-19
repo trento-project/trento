@@ -1,0 +1,19 @@
+---
+
+- name: Set Test ID
+  set_fact:
+    test_id: '1.2.1'
+
+- name: "Set other facts for {{ test_id }}"
+  set_fact:
+    test_mid: "1.2"
+    test_name: "Pacemaker"
+    test_desc: "Fencing is enabled {{ expected[test_id] }}"
+    test_remediation: "ansible"
+
+- block:
+    - import_role:
+        name: post-results
+        tasks_from: meta
+  when:
+    - always

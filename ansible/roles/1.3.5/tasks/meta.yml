@@ -28,12 +28,12 @@
 - block:
     - import_role:
         name: post-results
-        tasks_from: fail
+        tasks_from: main
       when:
         - result_msgwait.stdout != expected['1.3.5_msgwait']
     - import_role:
         name: post-results
-        tasks_from: pass
+        tasks_from: main
       when:
         - result_msgwait.stdout == expected['1.3.5_msgwait']
   when:
@@ -69,12 +69,12 @@
 - block:
     - import_role:
         name: post-results
-        tasks_from: fail
+        tasks_from: main
       when:
         - result_watchdog.stdout != expected['1.3.5_watchdog']
     - import_role:
         name: post-results
-        tasks_from: pass
+        tasks_from: main
       when:
         - result_watchdog.stdout == expected['1.3.5_watchdog']
   when:

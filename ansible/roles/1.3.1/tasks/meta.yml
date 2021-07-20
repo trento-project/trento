@@ -15,5 +15,3 @@
     - import_role:
         name: post-results
         tasks_from: meta
-  when:
-    - always

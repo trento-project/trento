@@ -26,11 +26,11 @@
 - block:
     - import_role:
         name: post-results
-        tasks_from: fail
+        tasks_from: meta
       when: config_updated is changed
     - import_role:
         name: post-results
-        tasks_from: pass
+        tasks_from: meta
       when: config_updated is not changed
   when:
     - ansible_check_mode

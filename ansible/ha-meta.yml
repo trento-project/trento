@@ -6,8 +6,6 @@
     - name: include load_facts
       import_role:
         name: load_facts
-      tags:
-        - always
       delegate_to: localhost
       run_once: yes
 
@@ -173,14 +171,14 @@
       delegate_to: localhost
       run_once: yes
 
-    - name: include 1.3.3 remediate
-      import_role:
-        name: '1.3.3'
-        tasks_from: meta
-      tags:
-        - always
-      delegate_to: localhost
-      run_once: yes
+#    - name: include 1.3.3 remediate
+#      import_role:
+#        name: '1.3.3'
+#        tasks_from: meta
+#      tags:
+#        - always
+#      delegate_to: localhost
+#      run_once: yes
 
     - name: include 1.3.4 remediate
       import_role:
@@ -191,15 +189,15 @@
       delegate_to: localhost
       run_once: yes
 
-    - name: include 1.3.5 remediate
-      import_role:
-        name: '1.3.5'
-        tasks_from: meta
-      tags:
-        - always
-      delegate_to: localhost
-      run_once: yes
-
+#    - name: include 1.3.5 remediate
+#      import_role:
+#        name: '1.3.5'
+#        tasks_from: meta
+#      tags:
+#        - always
+#      delegate_to: localhost
+#      run_once: yes
+#
 #    - name: include 1.4.1 remediate
 #      import_role:
 #        name: '1.4.1'
@@ -218,10 +216,8 @@
 #      delegate_to: localhost
 #      run_once: yes
 
-    - name: Global Results
+    - name: Set Global Meta Data
       set_fact:
         global_meta_data: "{{ (tests_meta_data | default({})) }}"
-      tags:
-        - always
       delegate_to: localhost
       run_once: yes

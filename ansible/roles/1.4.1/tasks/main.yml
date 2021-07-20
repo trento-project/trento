@@ -27,12 +27,12 @@
 - block:
     - import_role:
         name: post-results
-        tasks_from: fail
+        tasks_from: main
       when:
         - result_pcmk_monitor_retries.stdout != expected['1.4.1_pcmk_monitor_retries']
     - import_role:
         name: post-results
-        tasks_from: pass
+        tasks_from: main
       when:
         - result_pcmk_monitor_retries.stdout == expected['1.4.1_pcmk_monitor_retries']
   when:
@@ -69,12 +69,12 @@
 - block:
     - import_role:
         name: post-results
-        tasks_from: fail
+        tasks_from: main
       when:
         - result_pcmk_action_limit.stdout != expected['1.4.1_pcmk_action_limit']
     - import_role:
         name: post-results
-        tasks_from: pass
+        tasks_from: main
       when:
         - result_pcmk_action_limit.stdout == expected['1.4.1_pcmk_action_limit']
   when:
@@ -110,12 +110,12 @@
 - block:
     - import_role:
         name: post-results
-        tasks_from: fail
+        tasks_from: main
       when:
         - result_power_timeout.stdout != expected['1.4.1_power_timeout']
     - import_role:
         name: post-results
-        tasks_from: pass
+        tasks_from: main
       when:
         - result_power_timeout.stdout == expected['1.4.1_power_timeout']
   when:
@@ -152,12 +152,12 @@
 - block:
     - import_role:
         name: post-results
-        tasks_from: fail
+        tasks_from: main
       when:
         - result_pcmk_reboot_timeout.stdout != expected['1.4.1_pcmk_reboot_timeout']
     - import_role:
         name: post-results
-        tasks_from: pass
+        tasks_from: main
       when:
         - result_pcmk_reboot_timeout.stdout == expected['1.4.1_pcmk_reboot_timeout']
   when:
@@ -193,12 +193,12 @@
 - block:
     - import_role:
         name: post-results
-        tasks_from: fail
+        tasks_from: main
       when:
         - result_monitor_interval.stdout != expected['1.4.1_monitor_interval']
     - import_role:
         name: post-results
-        tasks_from: pass
+        tasks_from: main
       when:
         - result_monitor_interval.stdout == expected['1.4.1_monitor_interval']
   when:
@@ -234,12 +234,12 @@
 - block:
     - import_role:
         name: post-results
-        tasks_from: fail
+        tasks_from: main
       when:
         - result_monitor_timeout.stdout != expected['1.4.1_monitor_timeout']
     - import_role:
         name: post-results
-        tasks_from: pass
+        tasks_from: main
       when:
         - result_monitor_timeout.stdout == expected['1.4.1_monitor_timeout']
   when:

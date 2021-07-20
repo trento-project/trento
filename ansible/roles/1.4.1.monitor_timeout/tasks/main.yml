@@ -8,7 +8,7 @@
   set_fact:
     test_mid: "1.4"
     test_name: "Azure Fence Agent Checks"
-    test_desc: "Azure Fence Agent retries and timeout parameters check monitor timeout{{ expected[test_id] }}"
+    test_desc: "Azure Fence Agent retries and timeout parameters check monitor timeout = {{ expected[test_id] }}"
     test_remediation: |
           ## Abstract
           The Azure SAP Clustering best practices determines specific timing and retries parameter values for proper

@@ -20,7 +20,7 @@
           <pre>-  https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#1-create-the-stonith-devices</pre>
 
 
-- name: {{ test_id }}.power_timeout
+- name: "{{ test_id }}.power_timeout"
   shell: |
     if cibadmin -Q --xpath "//primitive[@type='fence_azure_arm']/@type" > /dev/null 2>&1; then
         cibadmin -Q --xpath "//primitive[@type='fence_azure_arm']/instance_attributes/nvpair[@name='power_timeout']" | grep -oP 'value="\K[^"]+' || echo ""

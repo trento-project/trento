@@ -8,7 +8,7 @@
   set_fact:
     test_mid: "1.4"
     test_name: "Azure Fence Agent Checks"
-    test_desc: "Azure Fence Agent retries and timeout parameters check monitor timeout{{ expected[test_id] }}"
+    test_desc: "Azure Fence Agent retries and timeout parameters check monitor timeout = {{ expected[test_id] }}"
     test_remediation: |
           ## Abstract
           The Azure SAP Clustering best practices determines specific timing and retries parameter values for proper
@@ -19,7 +19,7 @@
           ## References
           <pre>-  https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#1-create-the-stonith-devices</pre>
 
-- name: "{{ test_id }}.monitor_timeout
+- name: "{{ test_id }}.monitor_timeout"
   shell: |
     if cibadmin -Q --xpath "//primitive[@type='fence_azure_arm']/@type" > /dev/null 2>&1; then
         cibadmin -Q --xpath "//primitive[@type='fence_azure_arm']/operations/op [@name='monitor']" | grep -oP 'timeout="\K[^"]+' || echo ""

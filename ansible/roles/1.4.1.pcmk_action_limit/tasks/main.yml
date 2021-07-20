@@ -19,7 +19,7 @@
           <pre>-  https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#1-create-the-stonith-devices</pre>
 
 
-- name: {{ test_id }}.pcmk_action_limit
+- name: "{{ test_id }}.pcmk_action_limit"
   shell: |
     if cibadmin -Q --xpath "//primitive[@type='fence_azure_arm']/@type" > /dev/null 2>&1; then
         cibadmin -Q --xpath "//primitive[@type='fence_azure_arm']/instance_attributes/nvpair[@name='pcmk_action_limit']" | grep -oP 'value="\K[^"]+' || echo ""

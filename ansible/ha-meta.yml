@@ -221,3 +221,10 @@
         global_meta_data: "{{ (tests_meta_data | default({})) }}"
       delegate_to: localhost
       run_once: yes
+
+    - name: Set Ara Global Meta Data
+      ara_record:
+        key: "Test_Meta_Data"
+        value: "{{ global_meta_data | to_nice_json  }}"
+      delegate_to: localhost
+      run_once: yes

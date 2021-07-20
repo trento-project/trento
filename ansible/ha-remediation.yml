@@ -149,19 +149,19 @@
       tags:
         - 1.3.4
 
-    - name: include 1.3.5.1 remediate
+    - name: include 1.3.5.msgwait_result remediate
       import_role:
-        name: '1.3.5.1'
+        name: '1.3.5.msgwait_result'
         tasks_from: main
       tags:
-        - 1.3.5.1
+        - 1.3.5.msgwait_result
 
-    - name: include 1.3.5.2 remediate
+    - name: include 1.3.5.watchdog_result remediate
       import_role:
-        name: '1.3.5.2'
+        name: '1.3.5.watchdog_result'
         tasks_from: main
       tags:
-        - 1.3.5.2
+        - 1.3.5.watchdog_result
 
 #    - name: include 1.4.1 remediate
 #      import_role:

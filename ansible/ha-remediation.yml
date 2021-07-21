@@ -204,13 +204,13 @@
         tasks_from: main
       tags:
         - 1.4.1.monitor_timeout
-#
-#    - name: include 1.4.2 remediate
-#      import_role:
-#        name: '1.4.2'
-#        tasks_from: main
-#      tags:
-#        - 1.4.2
+
+    - name: include 1.4.2 remediate
+      import_role:
+        name: '1.4.2'
+        tasks_from: main
+      tags:
+        - 1.4.2
 
 #    - name: Global Results
 #      set_fact:

@@ -1,0 +1,55 @@
+{{ define "content" }}
+    <div class="row">
+        <div class="col">
+            <h1>Checks catalog</h1>
+        </div>
+        <div class="col text-right">
+            <i class="eos-icons eos-dark eos-18 ">schedule</i> Updated at:
+            <span id="last_update" class="text-nowrap text-muted">
+                    Not available
+                </span>
+        </div>
+    </div>
+    <hr class="margin-10px"/>
+    <div class="table-responsive">
+        <table class="table eos-table">
+            <thead>
+            <tr>
+                <th scope="col" style="width: 15%">Test ID</th>
+                <th scope="col" style="width: 74%">Description</th>
+                <th scope="col"></th>
+            </tr>
+            </thead>
+            <tbody>
+            {{- range $y, $c := .Checks }}
+                <tr>
+                    <td class="align-top">{{ .ID }}</td>
+                    <td class="align-top">
+                        {{ .Description }}
+                        <div class="ha-check-remediation collapse" id="info-{{ $y }}">
+                            {{ markdown (.Remediation) }}
+                        </div>
+                        <div class="ha-check-remediation collapse" id="info-{{ $y }}">
+                            <h2>Implementation</h2>
+                            <pre>{{ .Implementation }}</pre>
+                        </div>
+                    </td>
+
+                    <td class="align-top text-center">
+                        <a class="link-dark" type="button"
+                           data-toggle="collapse"
+                           href="#info-{{ $y }}"
+                           aria-expanded="false"
+                           aria-controls="info-{{ $y }}"
+                           title="Details">
+                            <i class='eos-icons eos-18'>info</i>
+                        </a>
+                    </td>
+                </tr>
+            {{- else }}
+                {{ template "empty_table_body" 4}}
+            {{- end }}
+            </tbody>
+        </table>
+    </div>
+{{ end }}

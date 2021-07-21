@@ -9,6 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/trento-project/trento/internal/consul"
+	"github.com/trento-project/trento/web/services"
+	"github.com/trento-project/trento/web/services/ara"
 )
 
 //go:embed frontend/assets
@@ -17,6 +19,8 @@ var assetsFS embed.FS
 //go:embed templates
 var templatesFS embed.FS
 
+const araAddrDefault = "127.0.0.1:8000"
+
 type App struct {
 	host string
 	port int
@@ -24,15 +28,24 @@ type App struct {
 }
 
 type Dependencies struct {
-	consul consul.Client
-	engine *gin.Engine
+	consul        consul.Client
+	engine        *gin.Engine
+	checksService services.ChecksService
 }
 
 func DefaultDependencies() Dependencies {
 	consulClient, _ := consul.DefaultClient()
 	engine := gin.Default()
 
-	return Dependencies{consulClient, engine}
+	araService := ara.NewAraService(araAddrDefault)
+	checksService := services.NewChecksService(araService)
+
+	return Dependencies{consulClient, engine, checksService}
+}
+
+func (d *Dependencies) SetAraAddr(araAddr string) {
+	araService := ara.NewAraService(araAddr)
+	d.checksService = services.NewChecksService(araService)
 }
 
 // shortcut to use default dependencies
@@ -55,6 +68,7 @@ func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
 	engine.GET("/hosts", NewHostListHandler(deps.consul))
 	engine.GET("/hosts/:name", NewHostHandler(deps.consul))
 	engine.GET("/hosts/:name/ha-checks", NewHAChecksHandler(deps.consul))
+	engine.GET("/catalog", NewChecksCatalogHandler(deps.checksService))
 	engine.GET("/clusters", NewClusterListHandler(deps.consul))
 	engine.GET("/clusters/:id", NewClusterHandler(deps.consul))
 	engine.GET("/environments", NewEnvironmentListHandler(deps.consul))

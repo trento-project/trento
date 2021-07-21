@@ -21,7 +21,7 @@
     name: 'corosync_restart'
     tasks_from: main
   when: 
-    - config_updated.stdout != expected['1.1.1']
+    - config_updated is changed
     - not ansible_check_mode
 
 - block:

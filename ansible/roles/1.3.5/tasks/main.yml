@@ -18,7 +18,7 @@
 
 - name: "{{ test_id }}"
   shell: |
-    DEF_WDTIMEOUT=60
+    DEF_WDTIMEOUT={{ expected[test_id] }}
     result_wdtimeout=${DEF_TIMEOUT}
     sbdarray=$(grep -E '^SBD_DEVICE=' /etc/sysconfig/sbd  | grep -oP 'SBD_DEVICE=\K[^.]+' | sed 's/\"//g')
     IFS=';' sbdarray=( $sbdarray )

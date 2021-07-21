@@ -14,15 +14,14 @@
 - name: "{{ test_id }}.result"
   shell: 'systemctl is-enabled sbd || true'
   check_mode: no
-  changed_when: false
-
-  register: result_run
+  register: config_updated
+  changed_when: config_updated.stdout != expected[test_id]
 
 - name: "{{ test_id }}.remediate"
   shell: 'systemctl enable sbd'
   register: config_updated
   when:
-    - result_run.stdout != expected[test_id]
+    - config_updated is changed
     - not ansible_check_mode
 
 - block:

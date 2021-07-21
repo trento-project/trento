@@ -30,9 +30,10 @@
         result_msgwait="${msgwait}"
         fi
       done
+    echo $result_msgwait
   register: config_updated
   check_mode: no
-  changed_when: false
+  changed_when: config_updated.stdout != expected[test_id]
 
 - block:
     - import_role:

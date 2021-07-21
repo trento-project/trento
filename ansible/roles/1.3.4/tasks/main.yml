@@ -22,8 +22,8 @@
     echo -n "SBD_COUNT="
     grep -E '^SBD_DEVICE=' /etc/sysconfig/sbd |wc -l
   check_mode: no
-  changed_when: false
   register: config_updated
+  changed_when: config_updated.stdout != expected[test_id]
 
 - block:
     - import_role:
@@ -33,8 +33,4 @@
   vars:
     status: "{{ config_updated is changed | ternary ('Failed','Passed') }}"
 
-#- debug: 
-#    msg: "1.3.4-It is recommended to configure 3 SBD devices for production environments \n References: https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#set-up-sbd-device" 
-#  when:
-#    - result_run.stdout != expected['1.3.4']
-#    - not ansible_check_mode 
+

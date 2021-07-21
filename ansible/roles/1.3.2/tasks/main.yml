@@ -16,28 +16,30 @@
   args:
     chdir: "/etc/sysconfig/"
   check_mode: no
-  register: result
-  changed_when: false
+  register: config_updated
+  changed_when: config_updated.stdout != expected[test_id]
 
 - import_role:
     name: cluster_stop
   when:
     - not ansible_check_mode
     - inventory_hostname == groups.target[0]
-    - result.stdout != expected[test_id]
+    - config_updated is changed
 
 - name: "{{ test_id }}.remediate"
   replace:
     path: /etc/sysconfig/sbd
     regexp: '^\s*SBD_STARTMODE=[a-zA-Z]+?$'
     replace: '{{ expected[test_id] }}'
-  register: config_updated
+  when:
+    - not ansible_check_mode
+    - config_updated is changed
 
 - import_role:
     name: cluster_start
   when:
-    - config_updated is changed
     - not ansible_check_mode
+    - config_updated is changed
     - inventory_hostname == groups.target[0]
 
 - block:

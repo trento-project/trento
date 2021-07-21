@@ -14,14 +14,14 @@
 - name: "{{ test_id }}.remediate"
   shell: 'corosync-cmapctl | grep "runtime.config.totem.token (u32) = " | sed "s/^.*= //"'
   check_mode: no
-  register: result_run
-  changed_when: false
+  register: config_updated
+  changed_when: config_updated.stdout != expected['1.1.1']
 
 - import_role:
     name: 'corosync_restart'
     tasks_from: main
   when: 
-    - result_run.stdout != expected['1.1.1']
+    - config_updated.stdout != expected['1.1.1']
     - not ansible_check_mode
 
 - block:

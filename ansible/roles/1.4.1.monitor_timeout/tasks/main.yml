@@ -19,7 +19,7 @@
           ## References
           <pre>-  https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#1-create-the-stonith-devices</pre>
 
-- name: "{{ test_id }}.monitor_timeout"
+- name: "{{ test_id }}"
   shell: |
     if cibadmin -Q --xpath "//primitive[@type='fence_azure_arm']/@type" > /dev/null 2>&1; then
         cibadmin -Q --xpath "//primitive[@type='fence_azure_arm']/operations/op [@name='monitor']" | grep -oP 'timeout="\K[^"]+' || echo ""
@@ -29,26 +29,16 @@
     fi
   check_mode: no
   register: config_updated
-  changed_when: false
+  changed_when: config_updated.stdout != expected[test_id]
   when:
     - cloud_type == "azure"
 
 - block:
     - import_role:
         name: post-results
-  when:
-    - ansible_check_mode
   vars:
     status: "{{ config_updated is changed | ternary ('Failed','Passed') }}"
-
-
-#- block:
-#    - import_role:
-#        name: manual-remediation
-#  vars:
-#    message: "1.4.1 The Azure SAP Clustering best practices determines specific timing and retries parameter values for proper functioning of the Azure Fence agent. Please, make sure to set the following monitor operation configuration: timeout=120"
-#  when:
-#    - cloud_type == "azure"
-#    - not ansible_check_mode
-#    - result_monitor_timeout.stdout != expected['1.4.1_monitor_timeout']
+  when:
+    - ansible_check_mode
+    - cloud_type == "azure"
 

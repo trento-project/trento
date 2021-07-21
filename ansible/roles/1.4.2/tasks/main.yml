@@ -1,6 +1,17 @@
 ---
 
-- name: 1.4.2.result
+- name: Set Test ID
+  set_fact:
+    test_id: '1.4.2'
+
+- name: "Set other facts for {{ test_id }}"
+  set_fact:
+    test_mid: "1.4"
+    test_name: "Azure Fence Agent Checks"
+    test_desc: "Concurrent fencing should be enabled if Azure Fence is configured {{ expected[test_id] }}"
+    test_remediation: "ansible"
+
+- name: "{{ test_id }}.result"
   shell: |
     cf_status=$(crm_attribute -t crm_config -G -n concurrent-fencing --quiet)
     if cibadmin -Q --xpath "//primitive[@type='fence_azure_arm']/@type" > /dev/null 2>&1; then
@@ -13,26 +24,25 @@
         echo "fence_azure_arm not configured"
     fi
   check_mode: no
-  register: result_run
-  changed_when: false
+  register: config_updated
+  changed_when: config_updated.stdout != expected[test_id]
+  when:
+    - cloud_type == "azure"
 
-- name: 1.4.2.remediate
+- name: "{{ test_id }}.remediate"
   shell: 'crm configure property concurrent-fencing=true'
   register: config_updated
   when:
-    - result_run.stdout != expected['1.4.2']
+    - config_updated is changed
     - not ansible_check_mode
+    - cloud_type == "azure"
 
 - block:
     - import_role:
         name: post-results
-        tasks_from: main
-      when: config_updated is changed
-    - import_role:
-        name: post-results
-        tasks_from: main
-      when: config_updated is not changed
+  vars:
+    status: "{{ config_updated is changed | ternary ('Failed','Passed') }}"
   when:
     - ansible_check_mode
-  vars:
-    test: "1.4.2"
+    - cloud_type == "azure"
+

@@ -1,230 +1,134 @@
 # This playbook gathers meta data facts for SAP/HANA checker.
 
-- hosts: all
+- hosts: localhost
 
   tasks:
     - name: include load_facts
       import_role:
         name: load_facts
-      delegate_to: localhost
-      run_once: yes
 
     - name: include 1.1.1 meta
       import_role:
         name: '1.1.1'
         tasks_from: meta
-      tags:
-        - always
-      delegate_to: localhost
-      run_once: yes
 
     - name: include 1.1.1.runtime meta
       import_role:
         name: '1.1.1.runtime'
         tasks_from: meta
-      tags:
-        - always
-      delegate_to: localhost
-      run_once: yes
 
     - name: include 1.1.2 meta
       import_role:
         name: '1.1.2'
         tasks_from: meta
-      tags:
-        - always
-      delegate_to: localhost
-      run_once: yes
 
     - name: include 1.1.2.runtime meta
       import_role:
         name: '1.1.2.runtime'
         tasks_from: meta
-      tags:
-        - always
-      delegate_to: localhost
-      run_once: yes
 
     - name: include 1.1.3 meta
       import_role:
         name: '1.1.3'
         tasks_from: meta
-      tags:
-        - always
-      delegate_to: localhost
-      run_once: yes
- 
+
     - name: include 1.1.3.runtime meta
       import_role:
         name: '1.1.3.runtime'
         tasks_from: meta
-      tags:
-        - always
-      delegate_to: localhost
-      run_once: yes
 
     - name: include 1.1.4 meta
       import_role:
         name: '1.1.4'
         tasks_from: meta
-      tags:
-        - always
-      delegate_to: localhost
-      run_once: yes
 
     - name: include 1.1.4.runtime meta
       import_role:
         name: '1.1.4.runtime'
         tasks_from: meta
-      tags:
-        - always
-      delegate_to: localhost
-      run_once: yes
 
     - name: include 1.1.5 meta
       import_role:
         name: '1.1.5'
         tasks_from: meta
-      tags:
-        - always
-      delegate_to: localhost
-      run_once: yes
 
     - name: include 1.1.5.runtime meta
       import_role:
         name: '1.1.5.runtime'
         tasks_from: meta
-      tags:
-        - always
-      delegate_to: localhost
-      run_once: yes
 
     - name: include 1.1.6 meta
       import_role:
         name: '1.1.6'
         tasks_from: meta
-      tags:
-        - always
-      delegate_to: localhost
-      run_once: yes
 
     - name: include 1.1.7 meta
       import_role:
         name: '1.1.7'
         tasks_from: meta
-      tags:
-        - always
-      delegate_to: localhost
-      run_once: yes
 
     - name: include 1.1.8 meta
       import_role:
         name: '1.1.8'
         tasks_from: meta
-      tags:
-        - always
-      delegate_to: localhost
-      run_once: yes
 
     - name: include 1.1.8.runtime meta
       import_role:
         name: '1.1.8.runtime'
         tasks_from: meta
-      tags:
-        - always
-      delegate_to: localhost
-      run_once: yes
 
     - name: include 1.2.1 meta
       import_role:
         name: '1.2.1'
         tasks_from: meta
-      tags:
-        - always
-      delegate_to: localhost
-      run_once: yes
 
     - name: include 1.2.2 meta
       import_role:
         name: '1.2.2'
         tasks_from: meta
-      tags:
-        - always
-      delegate_to: localhost
-      run_once: yes
 
     - name: include 1.3.1 meta
       import_role:
         name: '1.3.1'
         tasks_from: meta
-      tags:
-        - always
-      delegate_to: localhost
-      run_once: yes
 
     - name: include 1.3.2 meta
       import_role:
         name: '1.3.2'
         tasks_from: meta
-      tags:
-        - always
-      delegate_to: localhost
-      run_once: yes
 
 #    - name: include 1.3.3 meta
 #      import_role:
 #        name: '1.3.3'
 #        tasks_from: meta
-#      tags:
-#        - always
-#      delegate_to: localhost
-#      run_once: yes
 
     - name: include 1.3.4 meta
       import_role:
         name: '1.3.4'
         tasks_from: meta
-      tags:
-        - always
-      delegate_to: localhost
-      run_once: yes
 
 #    - name: include 1.3.5 meta
 #      import_role:
 #        name: '1.3.5'
 #        tasks_from: meta
-#      tags:
-#        - always
-#      delegate_to: localhost
-#      run_once: yes
-#
+
+
 #    - name: include 1.4.1 meta
 #      import_role:
 #        name: '1.4.1'
 #        tasks_from: meta
-#      tags:
-#        - always
-#      delegate_to: localhost
-#      run_once: yes
-#
+
+
 #    - name: include 1.4.2 meta
 #      import_role:
 #        name: '1.4.2'
 #        tasks_from: meta
-#      tags:
-#        - always
-#      delegate_to: localhost
-#      run_once: yes
 
     - name: Set Global Meta Data
       set_fact:
         global_meta_data: "{{ (tests_meta_data | default({})) }}"
-      delegate_to: localhost
-      run_once: yes
 
     - name: Set Ara Global Meta Data
       ara_record:
         key: "Test_Meta_Data"
         value: "{{ global_meta_data | to_nice_json  }}"
-      delegate_to: localhost
-      run_once: yes

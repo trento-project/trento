@@ -12,209 +12,173 @@
     - name: include 1.1.1 remediate
       import_role:
         name: '1.1.1'
-        tasks_from: main
       tags:
         - 1.1.1
 
     - name: include 1.1.1.runtime remediate
       import_role:
         name: '1.1.1.runtime'
-        tasks_from: main
       tags:
         - 1.1.1.runtime
 
     - name: include 1.1.2 remediate
       import_role:
         name: '1.1.2'
-        tasks_from: main
       tags:
         - 1.1.2
 
     - name: include 1.1.2.runtime remediate
       import_role:
         name: '1.1.2.runtime'
-        tasks_from: main
       tags:
         - 1.1.2.runtime
 
     - name: include 1.1.3 remediate
       import_role:
         name: '1.1.3'
-        tasks_from: main
       tags:
         - 1.1.3
  
     - name: include 1.1.3.runtime remediate
       import_role:
         name: '1.1.3.runtime'
-        tasks_from: main
       tags:
         - 1.1.3.runtime
 
     - name: include 1.1.4 remediate
       import_role:
         name: '1.1.4'
-        tasks_from: main
       tags:
         - 1.1.4
 
     - name: include 1.1.4.runtime remediate
       import_role:
         name: '1.1.4.runtime'
-        tasks_from: main
       tags:
         - 1.1.4.runtime
 
     - name: include 1.1.5 remediate
       import_role:
         name: '1.1.5'
-        tasks_from: main
       tags:
         - 1.1.5
 
     - name: include 1.1.5.runtime remediate
       import_role:
         name: '1.1.5.runtime'
-        tasks_from: main
       tags:
         - 1.1.5.runtime
 
     - name: include 1.1.6 remediate
       import_role:
         name: '1.1.6'
-        tasks_from: main
       tags:
         - 1.1.6
 
     - name: include 1.1.7 remediate
       import_role:
         name: '1.1.7'
-        tasks_from: main
       tags:
         - 1.1.7
 
     - name: include 1.1.8 remediate
       import_role:
         name: '1.1.8'
-        tasks_from: main
       tags:
         - 1.1.8
 
     - name: include 1.1.8.runtime remediate
       import_role:
         name: '1.1.8.runtime'
-        tasks_from: main
       tags:
         - 1.1.8.runtime
 
     - name: include 1.2.1 remediate
       import_role:
         name: '1.2.1'
-        tasks_from: main
       tags:
         - 1.2.1
 
     - name: include 1.2.2 remediate
       import_role:
         name: '1.2.2'
-        tasks_from: main
       tags:
         - 1.2.2
 
     - name: include 1.3.1 remediate
       import_role:
         name: '1.3.1'
-        tasks_from: main
       tags:
         - 1.3.1
 
     - name: include 1.3.2 remediate
       import_role:
         name: '1.3.2'
-        tasks_from: main
       tags:
         - 1.3.2
 
     - name: include 1.3.3 remediate
       import_role:
         name: '1.3.3'
-        tasks_from: main
       tags:
         - 1.3.3
 
     - name: include 1.3.4 remediate
       import_role:
         name: '1.3.4'
-        tasks_from: main
       tags:
         - 1.3.4
 
     - name: include 1.3.5 remediate
       import_role:
         name: '1.3.5'
-        tasks_from: main
       tags:
         - 1.3.5
 
     - name: include 1.3.5 remediate
       import_role:
         name: '1.3.6'
-        tasks_from: main
       tags:
         - 1.3.6
 
     - name: include 1.4.1.pcmk_monitor_retries_result remediate
       import_role:
         name: '1.4.1.pcmk_monitor_retries_result'
-        tasks_from: main
       tags:
         - 1.4.1.pcmk_monitor_retries_result
 
     - name: include 1.4.1.pcmk_action_limit remediate
       import_role:
         name: '1.4.1.pcmk_action_limit'
-        tasks_from: main
       tags:
         - 1.4.1.pcmk_action_limit
 
     - name: include 1.4.1.power_timeout
       import_role:
         name: '1.4.1.power_timeout'
-        tasks_from: main
       tags:
         - 1.4.1.power_timeout
 
     - name: include 1.4.1.pcmk_reboot_timeout remediate
       import_role:
         name: '1.4.1.pcmk_reboot_timeout'
-        tasks_from: main
       tags:
         - 1.4.1.pcmk_reboot_timeout
 
     - name: include 1.4.1.monitor_interval
       import_role:
         name: '1.4.1.monitor_interval'
-        tasks_from: main
       tags:
         - 1.4.1.monitor_interval
 
     - name: include 1.4.1.monitor_timeout
       import_role:
         name: '1.4.1.monitor_timeout'
-        tasks_from: main
       tags:
         - 1.4.1.monitor_timeout
 
     - name: include 1.4.2 remediate
       import_role:
         name: '1.4.2'
-        tasks_from: main
       tags:
         - 1.4.2
-
-#    - name: Global Results
-#      set_fact:
-#        global_ha_results: "{{ ha_results }}"
-#        global_tests: "{{ tests }}"
-#      tags:
-#        - always

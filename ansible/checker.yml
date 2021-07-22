@@ -35,8 +35,9 @@
 
     - name: set_global_results
       set_fact:
-        global_results: "{{ hostvars.hana1.tests }}{{ hostvars.hana2.tests }}"
-      run_once: yes
+        global_results: "{{ (global_results |  default({})) }}{{ hostvars[item]['tests'] }}"
+      with_inventory_hostnames:
+        - all
 
     - name: Set Ara Global Results
       ara_record:

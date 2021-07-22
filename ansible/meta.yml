@@ -1,0 +1,37 @@
+# This playbook gathers meta data facts for SAP/HANA checker.
+
+- hosts: localhost
+
+  tasks:
+    - name: include load_facts
+      import_role:
+        name: load_facts
+
+    - name: include 1.1.1 meta
+      import_role:
+        name: '1.1.1'
+        tasks_from: meta
+
+    - name: include 1.1.1.runtime meta
+      import_role:
+        name: '1.1.1.runtime'
+        tasks_from: meta
+
+    - name: include 1.2.1 meta
+      import_role:
+        name: '1.2.1'
+        tasks_from: meta
+
+    - name: include 1.3.5 meta
+      import_role:
+        name: '1.3.5'
+        tasks_from: meta
+
+    - name: Set Global Meta Data
+      set_fact:
+        global_meta_data: "{{ (tests_meta_data | default({})) }}"
+
+    - name: Set Ara Global Meta Data
+      ara_record:
+        key: "Test_Meta_Data"
+        value: "{{ global_meta_data | to_nice_json  }}"

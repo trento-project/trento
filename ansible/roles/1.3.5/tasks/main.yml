@@ -1,0 +1,43 @@
+---
+
+- name: Set Test ID
+  set_fact:
+    test_id: '1.3.5'
+
+- name: "Set other facts for {{ test_id }}"
+  set_fact:
+    test_mid: "1.3"
+    test_name: "SBD"
+    test_desc: "SBD Timing parameters configured properly {{ expected[test_id] }}"
+    test_remediation: |
+          ## Remediation
+          Make sure you configure your SBD Watchdog Timeout to 60s as recommended on the best practices.
+
+          ## References
+          <pre> https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#set-up-sbd-device</pre>
+
+- name: "{{ test_id }}"
+  shell: |
+    DEF_WDTIMEOUT={{ expected[test_id] }}
+    result_wdtimeout=${DEF_WDTIMEOUT}
+    sbdarray=$(grep -E '^SBD_DEVICE=' /etc/sysconfig/sbd  | grep -oP 'SBD_DEVICE=\K[^.]+' | sed 's/\"//g')
+    IFS=';' sbdarray=( $sbdarray )
+    for i in "${sbdarray[@]}"
+    do
+      wdtimeout=$(/usr/sbin/sbd -d ${i} dump | grep -oP 'Timeout \(watchdog\)  *: \K\d+')|| echo ""
+      if [[ "${wdtimeout}" -ne "${DEF_WDTIMEOUT}" ]]; then
+        result_watchdog="${wdtimeout}"
+        fi
+      done
+    echo $result_wdtimeout
+  check_mode: no
+  register: config_updated
+  changed_when: config_updated.stdout != expected[test_id]
+
+- block:
+    - import_role:
+        name: post-results
+  when:
+    - ansible_check_mode
+  vars:
+    status: "{{ config_updated is changed | ternary ('Failed','Passed') }}"

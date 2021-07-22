@@ -1,0 +1,33 @@
+---
+
+- name: Set Test ID
+  set_fact:
+    test_id: '1.1.1_runtime'
+
+- name: "Set other facts for {{ test_id }}"
+  set_fact:
+    test_mid: "1.1"
+    test_name: "Corosync"
+    test_desc: "Corosync Token is set to {{ expected[test_id] }} runtime"
+    test_remediation: "ansible"
+
+- name: "{{ test_id }}.remediate"
+  shell: 'corosync-cmapctl | grep "runtime.config.totem.token (u32) = " | sed "s/^.*= //"'
+  check_mode: no
+  register: config_updated
+  changed_when: config_updated.stdout != expected['1.1.1']
+
+- import_role:
+    name: 'corosync_restart'
+    tasks_from: main
+  when: 
+    - config_updated is changed
+    - not ansible_check_mode
+
+- block:
+    - import_role:
+        name: post-results
+  when:
+    - ansible_check_mode
+  vars:
+    status: "{{ config_updated is changed | ternary ('Failed','Passed') }}"

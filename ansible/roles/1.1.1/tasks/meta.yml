@@ -1,0 +1,18 @@
+---
+
+- name: Set Test ID
+  set_fact:
+    test_id: '1.1.1'
+
+- name: "Set other facts for {{ test_id }}"
+  set_fact:
+    test_mid: "1.1"
+    test_name: "Corosync"
+    test_desc: "Corosync Token is set to {{ expected[test_id] }}"
+    test_remediation: "ansible"
+
+- block:
+    - import_role:
+        name: post-results
+        tasks_from: meta
+

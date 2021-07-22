@@ -45,3 +45,4 @@
         value: "{{ global_results | to_nice_json  }}"
       run_once: yes
       delegate_to: localhost
+      changed_when: false

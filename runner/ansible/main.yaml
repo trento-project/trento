@@ -1,0 +1,6 @@
+---
+- name: Facts
+  import_playbook: facts.yaml
+
+- name: Hosts
+  import_playbook: host.yaml

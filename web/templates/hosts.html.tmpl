@@ -27,29 +27,29 @@
                     });
                 });
             </script>
-            <select name="trento-sap-environment" id="trento-sap-environment" class="selectpicker" multiple
+            <select name="environment" id="environment" class="selectpicker" multiple
                     data-selected-text-format="count > 3" data-actions-box="true" title="SAP environment...">
-                {{- range index .Filters "environments" }}
+                {{- range index .Filters "environment" }}
                     <option value="{{ . }}">{{ . }}</option>
                 {{- end }}
             </select>
-            <select name="trento-sap-landscape" id="trento-sap-landscape" class="selectpicker" multiple
+            <select name="landscape" id="landscape" class="selectpicker" multiple
                     data-selected-text-format="count > 3" data-actions-box="true" title="SAP landscape...">
-                {{- range index .Filters "landscapes" }}
+                {{- range index .Filters "landscape" }}
                     <option value="{{ . }}">{{ . }}</option>
                 {{- end }}
             </select>
 
-            <select name="trento-sap-system" id="trento-sap-system" class="selectpicker" multiple
+            <select name="sap_system" id="sap_system" class="selectpicker" multiple
                     data-selected-text-format="count > 3" data-actions-box="true" title="SAP system...">
-                {{- range index .Filters "sapsystems" }}
+                {{- range index .Filters "sap_system" }}
                     <option value="{{ . }}">{{ . }}</option>
                 {{- end }}
             </select>
 
             {{ template "health_filter" }}
         </div>
-        {{ template "hosts_table" . }}
+        {{ template "hosts_table_read_model" . }}
         {{ template "pagination" .Pagination }}
     </div>
 {{ end }}

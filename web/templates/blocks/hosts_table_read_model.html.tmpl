@@ -1,0 +1,56 @@
+{{ define "hosts_table_read_model" }}
+    <div class='table-responsive'>
+        <table class='table eos-table'>
+            <thead>
+            <tr>
+                <th scope='col'></th>
+                <th scope='col'>Name</th>
+                <th scope='col'>Address</th>
+                <th scope='col'>Cloud provider</th>
+                <th scope='col'>Cluster</th>
+                <th scope='col'>System</th>
+                <th scope='col'>Landscape</th>
+                <th scope='col'>Environment</th>
+            </tr>
+            </thead>
+            <tbody>
+            {{- range .Hosts }}
+                <tr>
+                    <td class="row-status">
+                        {{ template "health_icon" .Health }}
+                    </td>
+                    <td>
+                        <a href='/hosts/{{ .Name }}'>
+                            {{ .Name }}
+                        </a>
+                    </td>
+                    <td>{{ .Address }}</td>
+                    <td>{{ .CloudProvider }}</td>
+                    <td>
+                        <a href='/clusters/{{ .Cluster }}'>
+                            {{ .Cluster }}
+                        </a>
+                    </td>
+                    <td>
+                        <a href='/sapsystems/{{ .SAPSystem }}?environment={{ .Environment }}&landscape={{ .Landscape }}'>
+                            {{ .SAPSystem }}
+                        </a>
+                    </td>
+                    <td>
+                        <a href='/landscapes/{{ .Landscape }}?environment={{ .Environment }}'>
+                            {{ .Landscape }}
+                        </a>
+                    </td>
+                    <td>
+                        <a href='/environments/{{ .Environment }}'>
+                            {{ .Environment }}
+                        </a>
+                    </td>
+                </tr>
+            {{- else }}
+                {{ template "empty_table_body" 5}}
+            {{- end }}
+            </tbody>
+        </table>
+    </div>
+{{ end }}

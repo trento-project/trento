@@ -2,7 +2,11 @@ package web
 
 import (
 	"net/http"
-	"sort"
+	"strconv"
+
+	"github.com/trento-project/trento/web/models"
+
+	"github.com/trento-project/trento/web/service"
 
 	"github.com/gin-gonic/gin"
 	consulApi "github.com/hashicorp/consul/api"
@@ -10,15 +14,14 @@ import (
 
 	"github.com/trento-project/trento/internal/cloud"
 	"github.com/trento-project/trento/internal/consul"
-	"github.com/trento-project/trento/internal/environments"
 	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/internal/sapsystem"
 )
 
-func NewHostsHealthContainer(hostList hosts.HostList) *HealthContainer {
+func NewHostsHealthContainer(hosts []models.Host) *HealthContainer {
 	h := &HealthContainer{}
-	for _, host := range hostList {
-		switch host.Health() {
+	for _, host := range hosts {
+		switch host.Health {
 		case consulApi.HealthPassing:
 			h.PassingCount += 1
 		case consulApi.HealthWarning:
@@ -30,65 +33,42 @@ func NewHostsHealthContainer(hostList hosts.HostList) *HealthContainer {
 	return h
 }
 
-func NewHostListHandler(client consul.Client) gin.HandlerFunc {
+func NewHostListHandler(h service.IHostsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		pageNr, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+		pageSize, _ := strconv.Atoi(c.DefaultQuery("per_page", "10"))
+		page := &service.Page{
+			PageNr:   pageNr,
+			PageSize: pageSize,
+		}
+		pagination := NewPagination(h.GetHostsCount(), pageNr, pageSize)
+
 		query := c.Request.URL.Query()
-		queryFilter := hosts.CreateFilterMetaQuery(query)
-		healthFilter := query["health"]
-
-		hostList, err := hosts.Load(client, queryFilter, healthFilter)
-		if err != nil {
-			_ = c.Error(err)
-			return
+		filters := map[string][]string{
+			"health":      query["health"],
+			"sap_system":  query["sap_system"],
+			"landscape":   query["landscape"],
+			"environment": query["environment"],
 		}
+		hs := h.GetHosts(page, filters)
 
-		filters, err := loadFilters(client)
-		if err != nil {
-			_ = c.Error(err)
-			return
+		hc := NewHostsHealthContainer(hs)
+		hc.Layout = "horizontal"
+
+		filtersOptions := map[string][]string{
+			"sap_system":  h.GetHostsSAPSystems(),
+			"landscape":   h.GetHostsLandscapes(),
+			"environment": h.GetHostsEnvironments(),
 		}
-
-		hContainer := NewHostsHealthContainer(hostList)
-		hContainer.Layout = "horizontal"
-
-		page := c.DefaultQuery("page", "1")
-		perPage := c.DefaultQuery("per_page", "10")
-		pagination := NewPaginationWithStrings(len(hostList), page, perPage)
-		firstElem, lastElem := pagination.GetSliceNumbers()
 
 		c.HTML(http.StatusOK, "hosts.html.tmpl", gin.H{
-			"Hosts":           hostList[firstElem:lastElem],
-			"Filters":         filters,
-			"AppliedFilters":  query,
-			"HealthContainer": hContainer,
+			"Hosts":           hs,
 			"Pagination":      pagination,
+			"HealthContainer": hc,
+			"Filters":         filtersOptions,
+			"AppliedFilters":  query,
 		})
 	}
-}
-
-func loadFilters(client consul.Client) (map[string][]string, error) {
-	filter_data := make(map[string][]string)
-
-	envs, err := environments.Load(client)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not get the filters")
-	}
-
-	for envKey, envValue := range envs {
-		filter_data["environments"] = append(filter_data["environments"], envKey)
-		for landKey, landValue := range envValue.Landscapes {
-			filter_data["landscapes"] = append(filter_data["landscapes"], landKey)
-			for sysKey, _ := range landValue.SAPSystems {
-				filter_data["sapsystems"] = append(filter_data["sapsystems"], sysKey)
-			}
-		}
-	}
-
-	sort.Strings(filter_data["environments"])
-	sort.Strings(filter_data["landscapes"])
-	sort.Strings(filter_data["sapsystems"])
-
-	return filter_data, nil
 }
 
 func loadHealthChecks(client consul.Client, node string) ([]*consulApi.HealthCheck, error) {

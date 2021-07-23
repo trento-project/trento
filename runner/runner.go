@@ -60,7 +60,7 @@ func DefaultConfig() (Config, error) {
 		AraServer:              "http://127.0.0.1:8000",
 		ConsulAddr:             "127.0.0.1:8500",
 		Interval:               5 * time.Minute,
-		AnsibleFolder:          "/usr/etc/trento",
+		AnsibleFolder:          "/tmp/trento",
 		ConsulTemplateLogLevel: "info",
 	}, nil
 }

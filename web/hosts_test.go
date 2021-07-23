@@ -6,57 +6,31 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/gin-gonic/gin"
+
+	"github.com/stretchr/testify/mock"
+	consulMock "github.com/trento-project/trento/internal/consul/mocks"
+	hostsServiceMock "github.com/trento-project/trento/web/service/mocks"
+
+	"github.com/trento-project/trento/web/models"
+
 	consulApi "github.com/hashicorp/consul/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/tdewolff/minify/v2"
 	"github.com/tdewolff/minify/v2/html"
-	"github.com/trento-project/trento/internal/consul"
-	"github.com/trento-project/trento/internal/consul/mocks"
-	"github.com/trento-project/trento/internal/hosts"
 )
 
 func TestNewHostsHealthContainer(t *testing.T) {
-	consulInst := new(mocks.Client)
-	health := new(mocks.Health)
-	consulInst.On("Health").Return(health)
-
-	host1 := hosts.NewHost(consulApi.Node{Node: "node1"}, consulInst)
-	host2 := hosts.NewHost(consulApi.Node{Node: "node2"}, consulInst)
-	host3 := hosts.NewHost(consulApi.Node{Node: "node3"}, consulInst)
-	host4 := hosts.NewHost(consulApi.Node{Node: "node4"}, consulInst)
-	host5 := hosts.NewHost(consulApi.Node{Node: "node5"}, consulInst)
-	host6 := hosts.NewHost(consulApi.Node{Node: "node6"}, consulInst)
-
-	nodes := hosts.HostList{
-		&host1, &host2, &host3, &host4, &host5, &host6,
+	hosts := []models.Host{
+		{Health: consulApi.HealthPassing},
+		{Health: "passing"},
+		{Health: consulApi.HealthWarning},
+		{Health: "warning"},
+		{Health: consulApi.HealthCritical},
+		{Health: "critical"},
 	}
 
-	passHealthChecks := consulApi.HealthChecks{
-		&consulApi.HealthCheck{
-			Status: consulApi.HealthPassing,
-		},
-	}
-
-	warningHealthChecks := consulApi.HealthChecks{
-		&consulApi.HealthCheck{
-			Status: consulApi.HealthCritical,
-		},
-	}
-
-	criticalHealthChecks := consulApi.HealthChecks{
-		&consulApi.HealthCheck{
-			Status: consulApi.HealthWarning,
-		},
-	}
-
-	health.On("Node", "node1", (*consulApi.QueryOptions)(nil)).Return(passHealthChecks, nil, nil)
-	health.On("Node", "node2", (*consulApi.QueryOptions)(nil)).Return(warningHealthChecks, nil, nil)
-	health.On("Node", "node3", (*consulApi.QueryOptions)(nil)).Return(criticalHealthChecks, nil, nil)
-	health.On("Node", "node4", (*consulApi.QueryOptions)(nil)).Return(passHealthChecks, nil, nil)
-	health.On("Node", "node5", (*consulApi.QueryOptions)(nil)).Return(warningHealthChecks, nil, nil)
-	health.On("Node", "node6", (*consulApi.QueryOptions)(nil)).Return(criticalHealthChecks, nil, nil)
-
-	hCont := NewHostsHealthContainer(nodes)
+	hCont := NewHostsHealthContainer(hosts)
 
 	expectedHealth := &HealthContainer{
 		PassingCount:  2,
@@ -68,131 +42,47 @@ func TestNewHostsHealthContainer(t *testing.T) {
 }
 
 func TestHostsListHandler(t *testing.T) {
-	nodes := []*consulApi.Node{
+	hosts := []models.Host{
 		{
-			Node:       "foo",
-			Datacenter: "dc1",
-			Address:    "192.168.1.1",
-			Meta: map[string]string{
-				"trento-sap-environment": "env1",
-				"trento-sap-landscape":   "land1",
-				"trento-sap-system":      "sys1",
-				"trento-cloud-provider":  "azure",
-			},
+			Name:          "foo",
+			Address:       "192.168.1.1",
+			Health:        consulApi.HealthPassing,
+			Environment:   "env1",
+			Landscape:     "land1",
+			SAPSystem:     "sys1",
+			CloudProvider: "azure",
 		},
 		{
-			Node:       "bar",
-			Datacenter: "dc",
-			Address:    "192.168.1.2",
-			Meta: map[string]string{
-				"trento-sap-environment": "env2",
-				"trento-sap-landscape":   "land2",
-				"trento-sap-system":      "sys2",
-				"trento-cloud-provider":  "aws",
-			},
+			Name:          "bar",
+			Address:       "192.168.1.2",
+			Health:        consulApi.HealthCritical,
+			Environment:   "env2",
+			Landscape:     "land2",
+			SAPSystem:     "sys2",
+			CloudProvider: "aws",
 		},
 		{
-			Node:       "buzz",
-			Datacenter: "dc",
-			Address:    "192.168.1.3",
-			Meta: map[string]string{
-				"trento-sap-environment": "env2",
-				"trento-sap-landscape":   "land2",
-				"trento-sap-system":      "sys2",
-				"trento-cloud-provider":  "gcp",
-			},
+			Name:          "buzz",
+			Address:       "192.168.1.3",
+			Health:        consulApi.HealthWarning,
+			Environment:   "env3",
+			Landscape:     "land3",
+			SAPSystem:     "sys3",
+			CloudProvider: "gcp",
 		},
 	}
 
-	fooHealthChecks := consulApi.HealthChecks{
-		&consulApi.HealthCheck{
-			Status: consulApi.HealthPassing,
-		},
+	hostServiceMock := new(hostsServiceMock.IHostsService)
+	hostServiceMock.On("GetHosts", mock.Anything, mock.Anything).Return(hosts)
+	hostServiceMock.On("GetHostsCount").Return(len(hosts))
+	hostServiceMock.On("GetHostsSAPSystems").Return([]string{"sys1", "sys2", "sys3"})
+	hostServiceMock.On("GetHostsLandscapes").Return([]string{"land1", "land2", "land3"})
+	hostServiceMock.On("GetHostsEnvironments").Return([]string{"env1", "env2", "env3"})
+	deps := Dependencies{
+		hostsService: hostServiceMock,
+		engine:       gin.Default(),
 	}
 
-	barHealthChecks := consulApi.HealthChecks{
-		&consulApi.HealthCheck{
-			Status: consulApi.HealthCritical,
-		},
-	}
-
-	buzzHealthChecks := consulApi.HealthChecks{
-		&consulApi.HealthCheck{
-			Status: consulApi.HealthWarning,
-		},
-	}
-
-	filters := map[string]interface{}{
-		"env1": map[string]interface{}{
-			"name": "env1",
-			"landscapes": map[string]interface{}{
-				"land1": map[string]interface{}{
-					"name": "land1",
-					"sapsystems": map[string]interface{}{
-						"sys1": map[string]interface{}{
-							"name": "sys1",
-						},
-					},
-				},
-				"land2": map[string]interface{}{
-					"name": "land2",
-					"sapsystems": map[string]interface{}{
-						"sys2": map[string]interface{}{
-							"name": "sys2",
-						},
-					},
-				},
-			},
-		},
-		"env2": map[string]interface{}{
-			"name": "env2",
-			"landscapes": map[string]interface{}{
-				"land3": map[string]interface{}{
-					"name": "land3",
-					"sapsystems": map[string]interface{}{
-						"sys3": map[string]interface{}{
-							"name": "sys3",
-						},
-					},
-				},
-			},
-		},
-	}
-
-	consulInst := new(mocks.Client)
-	catalog := new(mocks.Catalog)
-	health := new(mocks.Health)
-	kv := new(mocks.KV)
-
-	consulInst.On("Catalog").Return(catalog)
-	consulInst.On("Health").Return(health)
-	consulInst.On("KV").Return(kv)
-
-	kv.On("ListMap", consul.KvEnvironmentsPath, consul.KvEnvironmentsPath).Return(filters, nil)
-
-	query := &consulApi.QueryOptions{Filter: ""}
-	catalog.On("Nodes", (*consulApi.QueryOptions)(query)).Return(nodes, nil, nil)
-
-	filterSys1 := &consulApi.QueryOptions{
-		Filter: "(Meta[\"trento-sap-environment\"] == \"env1\") and (Meta[\"trento-sap-landscape\"] == \"land1\") and (Meta[\"trento-sap-system\"] == \"sys1\")"}
-	catalog.On("Nodes", (filterSys1)).Return(nodes, nil, nil)
-
-	filterSys2 := &consulApi.QueryOptions{
-		Filter: "(Meta[\"trento-sap-environment\"] == \"env1\") and (Meta[\"trento-sap-landscape\"] == \"land2\") and (Meta[\"trento-sap-system\"] == \"sys2\")"}
-	catalog.On("Nodes", (filterSys2)).Return(nodes, nil, nil)
-
-	filterSys3 := &consulApi.QueryOptions{
-		Filter: "(Meta[\"trento-sap-environment\"] == \"env2\") and (Meta[\"trento-sap-landscape\"] == \"land3\") and (Meta[\"trento-sap-system\"] == \"sys3\")"}
-	catalog.On("Nodes", (filterSys3)).Return(nodes, nil, nil)
-
-	health.On("Node", "foo", (*consulApi.QueryOptions)(nil)).Return(fooHealthChecks, nil, nil)
-	health.On("Node", "bar", (*consulApi.QueryOptions)(nil)).Return(barHealthChecks, nil, nil)
-	health.On("Node", "buzz", (*consulApi.QueryOptions)(nil)).Return(buzzHealthChecks, nil, nil)
-
-	deps := DefaultDependencies()
-	deps.consul = consulInst
-
-	var err error
 	app, err := NewAppWithDeps("", 80, deps)
 	if err != nil {
 		t.Fatal(err)
@@ -205,10 +95,6 @@ func TestHostsListHandler(t *testing.T) {
 	}
 
 	app.ServeHTTP(resp, req)
-
-	consulInst.AssertExpectations(t)
-	catalog.AssertExpectations(t)
-	health.AssertExpectations(t)
 
 	m := minify.New()
 	m.AddFunc("text/html", html.Minify)
@@ -228,19 +114,19 @@ func TestHostsListHandler(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("<div.*alert-danger.*<i.*error.*</i>.*Critical.*1"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td.*<i.*success.*check_circle.*</i></td><td>.*foo.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*sys1.*</td><td>.*land1.*</td><td>.*env1.*</td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td.*<i.*success.*check_circle.*</i></td><td>.*foo.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*sys1.*</td><td>.*land1.*</td><td>.*env1.*</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<select name=trento-sap-environment.*>.*env1.*env2.*</select>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<select name=trento-sap-landscape.*>.*land1.*land2.*land3.*</select>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<select name=trento-sap-system.*>.*sys1.*sys2.*sys3.*</select>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<select name=environment.*>.*env1.*env2.*</select>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<select name=landscape.*>.*land1.*land2.*land3.*</select>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<select name=sap_system.*>.*sys1.*sys2.*sys3.*</select>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td.*<i.*success.*check_circle.*</i></td><td>.*foo.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*sys1.*</td><td>.*land1.*</td><td>.*env1.*</td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td.*<i.*danger.*error.*</i></td><td>.*bar.*</td><td>192.168.1.2</td><td>.*aws.*</td><td>.*sys2.*</td><td>.*land2.*</td><td>.*env2.*</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*<i.*warning.*warning.*</i></td><td>.*buzz.*</td><td>192.168.1.3</td><td>.*gcp.*</td><td>.*sys2.*</td><td>.*land2.*</td><td>.*env2.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*<i.*warning.*warning.*</i></td><td>.*buzz.*</td><td>192.168.1.3</td><td>.*gcp.*</td><td>.*sys3.*</td><td>.*land3.*</td><td>.*env3.*</td>"), minified)
 }
 
 func TestHostHandler(t *testing.T) {
-	consulInst := new(mocks.Client)
-	catalog := new(mocks.Catalog)
-	health := new(mocks.Health)
-	kv := new(mocks.KV)
+	consulInst := new(consulMock.Client)
+	catalog := new(consulMock.Catalog)
+	health := new(consulMock.Health)
+	kv := new(consulMock.KV)
 
 	consulInst.On("Catalog").Return(catalog)
 	consulInst.On("Health").Return(health)
@@ -317,10 +203,10 @@ func TestHostHandler(t *testing.T) {
 }
 
 func TestHostHandlerAzure(t *testing.T) {
-	consulInst := new(mocks.Client)
-	catalog := new(mocks.Catalog)
-	health := new(mocks.Health)
-	kv := new(mocks.KV)
+	consulInst := new(consulMock.Client)
+	catalog := new(consulMock.Catalog)
+	health := new(consulMock.Health)
+	kv := new(consulMock.KV)
 
 	consulInst.On("Catalog").Return(catalog)
 	consulInst.On("Health").Return(health)
@@ -420,8 +306,8 @@ func TestHostHandlerAzure(t *testing.T) {
 }
 
 func TestHostHandler404Error(t *testing.T) {
-	consulInst := new(mocks.Client)
-	catalog := new(mocks.Catalog)
+	consulInst := new(consulMock.Client)
+	catalog := new(consulMock.Catalog)
 	catalog.On("Node", "foobar", (*consulApi.QueryOptions)(nil)).Return((*consulApi.CatalogNode)(nil), nil, nil)
 	consulInst.On("Catalog").Return(catalog)
 
@@ -450,8 +336,8 @@ func TestHostHandler404Error(t *testing.T) {
 func TestHAChecksHandler404(t *testing.T) {
 	var err error
 
-	consulInst := new(mocks.Client)
-	catalog := new(mocks.Catalog)
+	consulInst := new(consulMock.Client)
+	catalog := new(consulMock.Catalog)
 	catalog.On("Node", "foobar", (*consulApi.QueryOptions)(nil)).Return((*consulApi.CatalogNode)(nil), nil, nil)
 	consulInst.On("Catalog").Return(catalog)
 

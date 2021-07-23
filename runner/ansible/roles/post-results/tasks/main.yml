@@ -1,0 +1,6 @@
+---
+
+- name: set_global_results {{ test_id }}
+  set_fact:
+    tests: "{{ (tests | default({})) | combine({inventory_hostname: {test_id: {'result': status} } }, recursive=True) }}"
+  delegate_to: localhost

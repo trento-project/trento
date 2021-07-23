@@ -1,0 +1,37 @@
+- hosts: all
+
+  tasks:
+    - name: include load_facts
+      import_role:
+        name: load_facts
+
+    - name: include 1.1.1
+      import_role:
+        name: '1.1.1'
+
+    - name: include 1.1.1.runtime
+      import_role:
+        name: '1.1.1.runtime'
+
+    - name: include 1.2.1
+      import_role:
+        name: '1.2.1'
+
+    - name: include 1.3.5
+      import_role:
+        name: '1.3.5'
+
+    - name: set_global_results
+      set_fact:
+        global_results: "{{ (global_results |  default({})) }}{{ hostvars[item]['tests'] }}"
+      with_inventory_hostnames:
+        - all
+
+    - name: Set Ara Global Results
+      ara_record:
+        key: "trento-results"
+        value: "{{ global_results | to_nice_json  }}"
+        type: json
+      run_once: yes
+      delegate_to: localhost
+      changed_when: false

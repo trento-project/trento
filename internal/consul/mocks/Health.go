@@ -13,6 +13,38 @@ type Health struct {
 	mock.Mock
 }
 
+// Checks provides a mock function with given fields: service, q
+func (_m *Health) Checks(service string, q *api.QueryOptions) (api.HealthChecks, *api.QueryMeta, error) {
+	ret := _m.Called(service, q)
+
+	var r0 api.HealthChecks
+	if rf, ok := ret.Get(0).(func(string, *api.QueryOptions) api.HealthChecks); ok {
+		r0 = rf(service, q)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(api.HealthChecks)
+		}
+	}
+
+	var r1 *api.QueryMeta
+	if rf, ok := ret.Get(1).(func(string, *api.QueryOptions) *api.QueryMeta); ok {
+		r1 = rf(service, q)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*api.QueryMeta)
+		}
+	}
+
+	var r2 error
+	if rf, ok := ret.Get(2).(func(string, *api.QueryOptions) error); ok {
+		r2 = rf(service, q)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // Node provides a mock function with given fields: node, q
 func (_m *Health) Node(node string, q *api.QueryOptions) (api.HealthChecks, *api.QueryMeta, error) {
 	ret := _m.Called(node, q)

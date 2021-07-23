@@ -23,9 +23,11 @@
 
     - name: set_global_results
       set_fact:
-        global_results: "{{ (global_results |  default({})) }}{{ hostvars[item]['tests'] }}"
+        global_results: "{{ (global_results |  default({})) | combine(hostvars[item]['tests']) }}"
       with_inventory_hostnames:
         - all
+      run_once: yes
+      delegate_to: localhost
 
     - name: Set Ara Global Results
       ara_record:

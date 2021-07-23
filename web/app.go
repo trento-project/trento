@@ -6,9 +6,15 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/cloudquery/sqlite"
+	"github.com/trento-project/trento/web/models"
+	"gorm.io/gorm"
 
+	"github.com/trento-project/trento/web/projectors"
+
+	"github.com/gin-gonic/gin"
 	"github.com/trento-project/trento/internal/consul"
+	"github.com/trento-project/trento/web/service"
 )
 
 //go:embed frontend/assets
@@ -24,15 +30,36 @@ type App struct {
 }
 
 type Dependencies struct {
-	consul consul.Client
-	engine *gin.Engine
+	consul       consul.Client
+	engine       *gin.Engine
+	db           *gorm.DB
+	hostsService service.IHostsService
 }
 
 func DefaultDependencies() Dependencies {
 	consulClient, _ := consul.DefaultClient()
 	engine := gin.Default()
 
-	return Dependencies{consulClient, engine}
+	db, err := gorm.Open(sqlite.Open("trento.db"), &gorm.Config{
+		DisableForeignKeyConstraintWhenMigrating: true,
+	})
+
+	if err != nil {
+		panic("failed to connect database")
+	}
+
+	// NOTE: sqlite drive does not support multiple threads
+	dbConfig, _ := db.DB()
+	dbConfig.SetMaxOpenConns(1)
+
+	err = db.AutoMigrate(models.Host{}, projectors.Subscription{})
+	if err != nil {
+		panic("failed to migrate the database")
+	}
+
+	hostsService := service.NewHostsService(db)
+
+	return Dependencies{consul: consulClient, engine: engine, db: db, hostsService: hostsService}
 }
 
 // shortcut to use default dependencies
@@ -52,7 +79,7 @@ func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
 	engine.Use(ErrorHandler)
 	engine.StaticFS("/static", http.FS(assetsFS))
 	engine.GET("/", HomeHandler)
-	engine.GET("/hosts", NewHostListHandler(deps.consul))
+	engine.GET("/hosts", NewHostListHandler(deps.hostsService))
 	engine.GET("/hosts/:name", NewHostHandler(deps.consul))
 	engine.GET("/hosts/:name/ha-checks", NewHAChecksHandler(deps.consul))
 	engine.GET("/clusters", NewClusterListHandler(deps.consul))
@@ -80,6 +107,13 @@ func (a *App) Start() error {
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
+	hostsProjectorHandler := projectors.NewHostsHandler("hosts", 5*time.Second, a.Dependencies.consul)
+	hostsProjector := projectors.NewProjector(hostsProjectorHandler, a.db)
+	hostsProjector.Run()
+
+	hostsHealthProjectorHandler := projectors.NewHostsHealthHandler("hosts_health", 5*time.Second, a.Dependencies.consul)
+	hostsHealthProjector := projectors.NewProjector(hostsHealthProjectorHandler, a.db)
+	hostsHealthProjector.Run()
 
 	return s.ListenAndServe()
 }

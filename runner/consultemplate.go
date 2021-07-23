@@ -5,7 +5,6 @@ import (
 	"os"
 	"path"
 	"strings"
-	"sync"
 
 	consultemplateconfig "github.com/hashicorp/consul-template/config"
 	consultemplatelogging "github.com/hashicorp/consul-template/logging"
@@ -62,6 +61,8 @@ func NewTemplateRunner(runnerConfig *Config) (*manager.Runner, error) {
 		},
 	)
 
+	cTemplateConfig.Once = true
+
 	cTemplateConfig.Finalize()
 
 	cTemplateRunner, err := manager.NewRunner(cTemplateConfig, false)
@@ -72,20 +73,15 @@ func NewTemplateRunner(runnerConfig *Config) (*manager.Runner, error) {
 	return cTemplateRunner, nil
 }
 
-func (c *Runner) startConsulTemplate(renderedWg *sync.WaitGroup) {
-	var rendered bool = false
+func (c *Runner) startConsulTemplate() {
 	go c.templateRunner.Start()
 	defer c.stopConsulTemplate()
 
 	for {
 		select {
 		case <-c.templateRunner.TemplateRenderedCh():
-			if rendered {
-				continue
-			}
 			log.Info("Template rendered and file created")
-			renderedWg.Done()
-			rendered = true
+			return
 		case <-c.ctx.Done():
 			return
 		}

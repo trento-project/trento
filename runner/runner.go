@@ -66,19 +66,7 @@ func DefaultConfig() (Config, error) {
 }
 
 func (c *Runner) Start() error {
-	var wg, renderedWg sync.WaitGroup
-
-	wg.Add(1)
-	renderedWg.Add(1)
-	go func(wg, renderedWg *sync.WaitGroup) {
-		log.Println("Starting consul-template loop...")
-		defer wg.Done()
-		c.startConsulTemplate(renderedWg)
-		log.Println("consul-template loop stopped.")
-	}(&wg, &renderedWg)
-
-	// Wait until the ansible inventory file is rendered
-	renderedWg.Wait()
+	var wg sync.WaitGroup
 
 	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
@@ -152,6 +140,8 @@ func (c *Runner) startRunnerTicker() {
 		return
 	}
 
+	c.startConsulTemplate()
+
 	ansibleRunner, err := NewAnsibleRunner(
 		path.Join(c.cfg.AnsibleFolder, AnsibleMain),
 		path.Join(c.cfg.AnsibleFolder, ansibleHostFile))
@@ -167,6 +157,14 @@ func (c *Runner) startRunnerTicker() {
 	ansibleRunner.SetAraServer(c.cfg.AraServer)
 
 	tick := func() {
+		// As consul-template is executed as run-once, we need to create the runner everytime
+		tmpRunner, err := NewTemplateRunner(&c.cfg)
+		if err != nil {
+			return
+		}
+		c.templateRunner = tmpRunner
+		c.startConsulTemplate()
+
 		if !ansibleRunner.isAraServerUp() {
 			log.Error("ARA server not found. Skipping ansible execution as the data is not recorded")
 			return

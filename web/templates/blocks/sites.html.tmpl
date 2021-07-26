@@ -23,7 +23,9 @@
                                 {{ template "health_icon" .Health }}
                             </td>
                             <td>
-                                {{ .Name }}
+                                <a href='/hosts/{{ .Name }}'>
+                                    {{ .Name }}
+                                </a>
                             </td>
                             <td>
                                 {{ .Ip }}

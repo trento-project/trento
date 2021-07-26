@@ -1,9 +1,0 @@
----
-
-- name: set_results {{ fact_name }}
-  set_fact:
-    ha_check: "{{ (ha_check | default({})) | combine({fact_name: fact_value}) }}"
-
-- debug:
-    var: ha_check[fact_name]
-    verbosity: 1

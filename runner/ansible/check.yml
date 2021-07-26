@@ -21,7 +21,7 @@
       import_role:
         name: '1.3.5'
 
-    - name: set_global_results
+    - name: Set Global Results
       set_fact:
         global_results: "{{ (global_results |  default({})) | combine(hostvars[item]['tests']) }}"
       with_inventory_hostnames:
@@ -29,7 +29,7 @@
       run_once: yes
       delegate_to: localhost
 
-    - name: Set Ara Global Results
+    - name: Post Global Results To ARA
       ara_record:
         key: "trento-results"
         value: "{{ global_results | to_nice_json  }}"

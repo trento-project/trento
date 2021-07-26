@@ -1,7 +1,7 @@
 ---
 
 - name: load_facts
-  include_vars: "{{env}}_env.yml"
+  include_vars: "{{ env | default('azure') }}_env.yml"
   delegate_to: localhost
   run_once: yes
 

@@ -15,8 +15,8 @@
       wdtimeout=$(/usr/sbin/sbd -d ${i} dump | grep -oP 'Timeout \(watchdog\)  *: \K\d+')|| echo ""
       if [[ "${wdtimeout}" -ne "${DEF_WDTIMEOUT}" ]]; then
         result_watchdog="${wdtimeout}"
-        fi
-      done
+      fi
+    done
     echo $result_wdtimeout
   check_mode: no
   register: config_updated
@@ -28,4 +28,4 @@
   when:
     - ansible_check_mode
   vars:
-    status: "{{ config_updated is changed | ternary ('false','true') }}"
+    status: "{{ config_updated is not changed }}"

@@ -24,6 +24,7 @@ clean-binary:
 clean-frontend:
 	rm -rf web/frontend/assets
 	rm -rf web/frontend/node_modules
+	rm -rf web/frontend/package.json
 
 fmt:
 	go fmt ./...
@@ -54,6 +55,7 @@ vet-check: generate web-assets
 
 web-deps: web/frontend/node_modules
 web/frontend/node_modules:
+	cp package.json web/frontend/
 	cd web/frontend; npm install
 
 web-assets: web/frontend/assets

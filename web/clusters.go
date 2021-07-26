@@ -465,6 +465,7 @@ func NewClusterHandler(client consul.Client) gin.HandlerFunc {
 
 		c.HTML(http.StatusOK, "cluster_hana.html.tmpl", gin.H{
 			"Cluster":          cluster,
+			"SID":              getHanaSID(cluster),
 			"Nodes":            nodes,
 			"StoppedResources": stoppedResources(cluster),
 			"ClusterType":      clusterType,

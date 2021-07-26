@@ -1,12 +1,16 @@
 VERSION ?= $(shell hack/get_version_from_git.sh)
 LDFLAGS = -X github.com/trento-project/trento/cmd.version="$(VERSION)"
-GO_BUILD = CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)"
 ARCHS ?= amd64 arm64 ppc64le s390x
+DEBUG ?= 0
 
-default: LDFLAGS += -s -w
-default: GO_BUILD += -trimpath
+ifeq ($(DEBUG), 0)
+	LDFLAGS += -s -w
+	GO_BUILD = CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)" -trimpath
+else
+	GO_BUILD = CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)"
+endif
+
 default: clean mod-tidy fmt vet-check test build
-debug: clean mod-tidy fmt vet-check build
 
 .PHONY: build clean clean-binary clean-frontend cross-compiled default fmt fmt-check generate mod-tidy test vet-check web-assets
 

@@ -14,10 +14,10 @@
     do
       wdtimeout=$(/usr/sbin/sbd -d ${i} dump | grep -oP 'Timeout \(watchdog\)  *: \K\d+')|| echo ""
       if [[ "${wdtimeout}" -ne "${DEF_WDTIMEOUT}" ]]; then
-        result_watchdog="${wdtimeout}"
+        result_wdtimeout="${wdtimeout}"
       fi
     done
-    echo $result_wdtimeout
+    echo "${result_wdtimeout}"
   check_mode: no
   register: config_updated
   changed_when: config_updated.stdout != expected[test_id]

@@ -1,0 +1,21 @@
+---
+
+- name: Set Test ID
+  set_fact:
+    test_id: '1.1.6'
+
+- name: "{{ test_id }}.check"
+  replace:
+    path: /etc/corosync/corosync.conf
+    regexp: '(\s+)transport:(\s)[0-9]+?$'
+    replace: '\1transport: {{ expected[test_id] }}'
+  register: config_updated
+  when: ansible_check_mode
+
+- block:
+    - import_role:
+        name: post-results
+  when:
+    - ansible_check_mode
+  vars:
+    status: "{{ config_updated is not changed }}"

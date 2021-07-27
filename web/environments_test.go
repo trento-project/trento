@@ -127,15 +127,15 @@ func setupEnvironmentsTest() (*mocks.Client, *mocks.Catalog, *mocks.KV) {
 	kv.On("ListMap", consul.KvEnvironmentsPath, consul.KvEnvironmentsPath).Return(filters, nil)
 
 	filterSys1 := &consulApi.QueryOptions{
-		Filter: "(Meta[\"trento-sap-environment\"] == \"env1\") and (Meta[\"trento-sap-landscape\"] == \"land1\") and (Meta[\"trento-sap-system\"] == \"PRD\")"}
+		Filter: "(Meta[\"trento-sap-environment\"] == \"env1\") and (Meta[\"trento-sap-landscape\"] == \"land1\") and (Meta[\"trento-sap-systems\"] contains \"PRD\")"}
 	catalog.On("Nodes", filterSys1).Return(nodes1, nil, nil)
 
 	filterSys2 := &consulApi.QueryOptions{
-		Filter: "(Meta[\"trento-sap-environment\"] == \"env1\") and (Meta[\"trento-sap-landscape\"] == \"land2\") and (Meta[\"trento-sap-system\"] == \"HA2\")"}
+		Filter: "(Meta[\"trento-sap-environment\"] == \"env1\") and (Meta[\"trento-sap-landscape\"] == \"land2\") and (Meta[\"trento-sap-systems\"] contains \"HA2\")"}
 	catalog.On("Nodes", filterSys2).Return(nodes1, nil, nil)
 
 	filterSys3 := &consulApi.QueryOptions{
-		Filter: "(Meta[\"trento-sap-environment\"] == \"env2\") and (Meta[\"trento-sap-landscape\"] == \"land3\") and (Meta[\"trento-sap-system\"] == \"HA3\")"}
+		Filter: "(Meta[\"trento-sap-environment\"] == \"env2\") and (Meta[\"trento-sap-landscape\"] == \"land3\") and (Meta[\"trento-sap-systems\"] contains \"HA3\")"}
 	catalog.On("Nodes", filterSys3).Return(nodes2, nil, nil)
 
 	health.On("Node", "node1", (*consulApi.QueryOptions)(nil)).Return(node1HealthChecks, nil, nil)

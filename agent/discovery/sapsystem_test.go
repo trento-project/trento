@@ -60,7 +60,7 @@ func TestStoreSAPSystemTags(t *testing.T) {
 	expectedHostMetadata := map[string]interface{}{
 		"sap-environment": "env1",
 		"sap-landscape":   "land1",
-		"sap-system":      "DEV",
+		"sap-systems":     "DEV",
 	}
 
 	kv.On("ListMap", consul.KvEnvironmentsPath, consul.KvEnvironmentsPath).Return(env, nil)
@@ -69,7 +69,7 @@ func TestStoreSAPSystemTags(t *testing.T) {
 
 	sapSystem := &sapsystem.SAPSystem{SID: "DEV", Type: sapsystem.Database}
 
-	err := storeSAPSystemTags(client, sapSystem)
+	err := storeSAPSystemTags(client, []*sapsystem.SAPSystem{sapSystem})
 	assert.NoError(t, err)
 
 	kv.AssertExpectations(t)
@@ -120,13 +120,13 @@ func TestStoreSAPSystemTagsWithNoEnvs(t *testing.T) {
 	expectedHostMetadata := map[string]interface{}{
 		"sap-environment": "default",
 		"sap-landscape":   "default",
-		"sap-system":      "DEV",
+		"sap-systems":     "DEV",
 	}
 	kv.On("PutMap", fmt.Sprintf(consul.KvHostsMetadataPath, host), expectedHostMetadata).Return(nil, nil)
 
 	sapSystem := &sapsystem.SAPSystem{SID: "DEV", Type: sapsystem.Database}
 
-	err := storeSAPSystemTags(client, sapSystem)
+	err := storeSAPSystemTags(client, []*sapsystem.SAPSystem{sapSystem})
 	assert.NoError(t, err)
 
 	kv.AssertExpectations(t)

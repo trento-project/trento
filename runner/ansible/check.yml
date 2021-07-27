@@ -1,5 +1,9 @@
 - hosts: all
 
+  vars:
+    ara_playbook_labels:
+      - test
+
   tasks:
     - name: include load_facts
       import_role:

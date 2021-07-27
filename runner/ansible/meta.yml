@@ -1,0 +1,36 @@
+- hosts: localhost
+  gather_facts: False
+
+  vars:
+    ara_playbook_labels:
+      - meta
+
+  tasks:
+    - name: include load_facts
+      import_role:
+        name: load_facts
+
+    - name: include 1.1.1 meta
+      include_role:
+        name: '1.1.1'
+        tasks_from: meta
+
+    - name: include 1.1.1.runtime meta
+      import_role:
+        name: '1.1.1.runtime'
+        tasks_from: meta
+
+    - name: include 1.2.1 meta
+      include_role:
+        name: '1.2.1'
+        tasks_from: meta
+
+    - name: include 1.3.5 meta
+      include_role:
+        name: '1.3.5'
+        tasks_from: meta
+
+    - name: Post metadata
+      include_role:
+        name: post-metadata
+        tasks_from: post

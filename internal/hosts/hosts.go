@@ -89,7 +89,7 @@ func (n *Host) HAChecks() *check.Controls {
 	return checks
 }
 
-func (n *Host) GetSAPSystems() (map[string]*sapsystem.SAPSystem, error) {
+func (n *Host) GetSAPSystems() (sapsystem.SAPSystemsMap, error) {
 	systems, err := sapsystem.Load(n.client, n.Name())
 	if err != nil {
 		return nil, err
@@ -101,17 +101,25 @@ func (n *Host) GetSAPSystems() (map[string]*sapsystem.SAPSystem, error) {
 // https://github.com/hashicorp/consul/blob/master/agent/consul/catalog_endpoint.go#L298
 func CreateFilterMetaQuery(query map[string][]string) string {
 	var filters []string
+	var operator string
 	// Need to sort the keys to have stable output. Mostly for unit testing
 	sortedQuery := sortKeys(query)
 
 	if len(query) != 0 {
 		var filter string
 		for _, key := range sortedQuery {
+			switch key {
+			case "trento-sap-systems":
+				operator = "contains"
+			default:
+				operator = "=="
+			}
 			if strings.HasPrefix(key, TrentoPrefix) {
 				filter = ""
 				values := query[key]
 				for _, value := range values {
-					filter = fmt.Sprintf("%sMeta[\"%s\"] == \"%s\"", filter, key, value)
+					filter = fmt.Sprintf("%sMeta[\"%s\"] %s \"%s\"", filter, key, operator, value)
+
 					if values[len(values)-1] != value {
 						filter = fmt.Sprintf("%s or ", filter)
 					}

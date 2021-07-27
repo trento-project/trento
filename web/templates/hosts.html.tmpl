@@ -40,7 +40,7 @@
                 {{- end }}
             </select>
 
-            <select name="trento-sap-system" id="trento-sap-system" class="selectpicker" multiple
+            <select name="trento-sap-systems" id="trento-sap-systems" class="selectpicker" multiple
                     data-selected-text-format="count > 3" data-actions-box="true" title="SAP system...">
                 {{- range index .Filters "sapsystems" }}
                     <option value="{{ . }}">{{ . }}</option>

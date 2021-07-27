@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"net/http"
 	"path/filepath"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 
@@ -149,6 +150,7 @@ func (r *LayoutRender) addFileFromFS(templatesFS fs.FS, file string) {
 			return a + b
 		},
 		"markdown": markdownToHTML,
+		"split":    strings.Split,
 	})
 	patterns := append([]string{r.root, file}, r.blocks...)
 	tmpl = template.Must(tmpl.ParseFS(templatesFS, patterns...))

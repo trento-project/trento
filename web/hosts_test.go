@@ -76,7 +76,7 @@ func TestHostsListHandler(t *testing.T) {
 			Meta: map[string]string{
 				"trento-sap-environment": "env1",
 				"trento-sap-landscape":   "land1",
-				"trento-sap-system":      "sys1",
+				"trento-sap-systems":     "sys1",
 				"trento-cloud-provider":  "azure",
 			},
 		},
@@ -87,7 +87,7 @@ func TestHostsListHandler(t *testing.T) {
 			Meta: map[string]string{
 				"trento-sap-environment": "env2",
 				"trento-sap-landscape":   "land2",
-				"trento-sap-system":      "sys2",
+				"trento-sap-systems":     "sys2",
 				"trento-cloud-provider":  "aws",
 			},
 		},
@@ -98,7 +98,7 @@ func TestHostsListHandler(t *testing.T) {
 			Meta: map[string]string{
 				"trento-sap-environment": "env2",
 				"trento-sap-landscape":   "land2",
-				"trento-sap-system":      "sys2",
+				"trento-sap-systems":     "sys3",
 				"trento-cloud-provider":  "gcp",
 			},
 		},
@@ -174,15 +174,15 @@ func TestHostsListHandler(t *testing.T) {
 	catalog.On("Nodes", (*consulApi.QueryOptions)(query)).Return(nodes, nil, nil)
 
 	filterSys1 := &consulApi.QueryOptions{
-		Filter: "(Meta[\"trento-sap-environment\"] == \"env1\") and (Meta[\"trento-sap-landscape\"] == \"land1\") and (Meta[\"trento-sap-system\"] == \"sys1\")"}
+		Filter: "(Meta[\"trento-sap-environment\"] == \"env1\") and (Meta[\"trento-sap-landscape\"] == \"land1\") and (Meta[\"trento-sap-systems\"] contains \"sys1\")"}
 	catalog.On("Nodes", (filterSys1)).Return(nodes, nil, nil)
 
 	filterSys2 := &consulApi.QueryOptions{
-		Filter: "(Meta[\"trento-sap-environment\"] == \"env1\") and (Meta[\"trento-sap-landscape\"] == \"land2\") and (Meta[\"trento-sap-system\"] == \"sys2\")"}
+		Filter: "(Meta[\"trento-sap-environment\"] == \"env1\") and (Meta[\"trento-sap-landscape\"] == \"land2\") and (Meta[\"trento-sap-systems\"] contains \"sys2\")"}
 	catalog.On("Nodes", (filterSys2)).Return(nodes, nil, nil)
 
 	filterSys3 := &consulApi.QueryOptions{
-		Filter: "(Meta[\"trento-sap-environment\"] == \"env2\") and (Meta[\"trento-sap-landscape\"] == \"land3\") and (Meta[\"trento-sap-system\"] == \"sys3\")"}
+		Filter: "(Meta[\"trento-sap-environment\"] == \"env2\") and (Meta[\"trento-sap-landscape\"] == \"land3\") and (Meta[\"trento-sap-systems\"] contains \"sys3\")"}
 	catalog.On("Nodes", (filterSys3)).Return(nodes, nil, nil)
 
 	health.On("Node", "foo", (*consulApi.QueryOptions)(nil)).Return(fooHealthChecks, nil, nil)
@@ -230,10 +230,10 @@ func TestHostsListHandler(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("<td.*<i.*success.*check_circle.*</i></td><td>.*foo.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*sys1.*</td><td>.*land1.*</td><td>.*env1.*</td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<select name=trento-sap-environment.*>.*env1.*env2.*</select>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<select name=trento-sap-landscape.*>.*land1.*land2.*land3.*</select>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<select name=trento-sap-system.*>.*sys1.*sys2.*sys3.*</select>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<select name=trento-sap-systems.*>.*sys1.*sys2.*sys3.*</select>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td.*<i.*success.*check_circle.*</i></td><td>.*foo.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*sys1.*</td><td>.*land1.*</td><td>.*env1.*</td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td.*<i.*danger.*error.*</i></td><td>.*bar.*</td><td>192.168.1.2</td><td>.*aws.*</td><td>.*sys2.*</td><td>.*land2.*</td><td>.*env2.*</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*<i.*warning.*warning.*</i></td><td>.*buzz.*</td><td>192.168.1.3</td><td>.*gcp.*</td><td>.*sys2.*</td><td>.*land2.*</td><td>.*env2.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*<i.*warning.*warning.*</i></td><td>.*buzz.*</td><td>192.168.1.3</td><td>.*gcp.*</td><td>.*sys3.*</td><td>.*land2.*</td><td>.*env2.*</td>"), minified)
 }
 
 func TestHostHandler(t *testing.T) {
@@ -252,8 +252,35 @@ func TestHostHandler(t *testing.T) {
 		Address:    "192.168.1.1",
 		Meta: map[string]string{
 			"trento-sap-environment": "env1",
-			"trento-sap-system":      "sys1",
+			"trento-sap-systems":     "sys1",
 			"trento-sap-landscape":   "land1",
+		},
+	}
+
+	sapSystemMap := map[string]interface{}{
+		"sys1": map[string]interface{}{
+			"sid":  "sys1",
+			"type": 1,
+			"instances": map[string]interface{}{
+				"HDB00": map[string]interface{}{
+					"name": "HDB00",
+					"type": 1,
+					"host": "test_host",
+					"sapcontrol": map[string]interface{}{
+						"properties": map[string]interface{}{
+							"INSTANCE_NAME": map[string]interface{}{
+								"Value": "HDB00",
+							},
+							"SAPSYSTEMNAME": map[string]interface{}{
+								"Value": "sys1",
+							},
+							"SAPSYSTEM": map[string]interface{}{
+								"Value": "bananas",
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 
@@ -269,7 +296,7 @@ func TestHostHandler(t *testing.T) {
 
 	sapsystemPath := "trento/v0/hosts/test_host/sapsystems/"
 	consulInst.On("WaitLock", sapsystemPath).Return(nil)
-	kv.On("ListMap", sapsystemPath, sapsystemPath).Return(nil, nil)
+	kv.On("ListMap", sapsystemPath, sapsystemPath).Return(sapSystemMap, nil)
 
 	cloudListMap := map[string]interface{}{
 		"provider": "other",
@@ -332,7 +359,7 @@ func TestHostHandlerAzure(t *testing.T) {
 		Address:    "192.168.1.1",
 		Meta: map[string]string{
 			"trento-sap-environment": "env1",
-			"trento-sap-system":      "sys1",
+			"trento-sap-systems":     "sys1",
 			"trento-sap-landscape":   "land1",
 		},
 	}

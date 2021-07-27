@@ -30,6 +30,7 @@ const (
 )
 
 type SAPSystemsList []*SAPSystem
+type SAPSystemsMap map[string]*SAPSystem
 
 // A SAPSystem in this context is a SAP installation under one SID.
 // It will have application or database type, mutually exclusive
@@ -97,6 +98,16 @@ func NewSAPSystemsList() (SAPSystemsList, error) {
 	}
 
 	return systems, nil
+}
+
+func (sl SAPSystemsList) GetSIDsString() string {
+	var sidString []string
+
+	for _, system := range sl {
+		sidString = append(sidString, system.SID)
+	}
+
+	return strings.Join(sidString, ",")
 }
 
 func NewSAPSystem(fs afero.Fs, sysPath string) (*SAPSystem, error) {

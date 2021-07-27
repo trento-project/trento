@@ -1,6 +1,12 @@
 - hosts: all
 
   tasks:
+    - name: require check mode
+      fail:
+         msg: "Only supported for --check option"
+      when:
+        - not ansible_check_mode
+
     - name: include load_facts
       import_role:
         name: load_facts

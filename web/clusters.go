@@ -429,6 +429,19 @@ func NewClusterListHandler(client consul.Client) gin.HandlerFunc {
 	}
 }
 
+type Check struct {
+	ID             string `json:"id,omitempty" mapstructure:"id,omitempty"`
+	Name           string `json:"name,omitempty" mapstructure:"name,omitempty"`
+	Description    string `json:"description,omitempty" mapstructure:"description,omitempty"`
+	Remediation    string `json:"remediation,omitempty" mapstructure:"remediation,omitempty"`
+	Implementation string `json:"implementation,omitempty" mapstructure:"implementation,omitempty"`
+	Labels         string `json:"labels,omitempty" mapstructure:"labels,omitempty"`
+}
+
+func (c *Check) NormalizeID() string {
+	return strings.Replace(c.ID, ".", "-", -1)
+}
+
 func NewClusterHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		clusterId := c.Param("id")
@@ -461,19 +474,87 @@ func NewClusterHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
+		checks := map[string][]*Check{
+			"azure": {
+				&Check{
+					ID:             "1.1.1",
+					Name:           "check 1",
+					Description:    "description 1",
+					Remediation:    "remediation 1",
+					Implementation: "implementation 1",
+					Labels:         "labels 1",
+				},
+				&Check{
+					ID:             "1.1.2",
+					Name:           "check 2",
+					Description:    "description 2",
+					Remediation:    "remediation 2",
+					Implementation: "implementation 2",
+					Labels:         "labels 2",
+				},
+				&Check{
+					ID:             "1.1.3",
+					Name:           "check 3",
+					Description:    "description 3",
+					Remediation:    "remediation 3",
+					Implementation: "implementation 3",
+					Labels:         "labels 3",
+				},
+			},
+			"corosync": {
+				&Check{
+					ID:             "1.2.1",
+					Name:           "check 1",
+					Description:    "description 1",
+					Remediation:    "remediation 1",
+					Implementation: "implementation 1",
+					Labels:         "labels 1",
+				},
+				&Check{
+					ID:             "1.2.2",
+					Name:           "check 2",
+					Description:    "description 2",
+					Remediation:    "remediation 2",
+					Implementation: "implementation 2",
+					Labels:         "labels 2",
+				},
+			},
+			"pacemaker": {
+				&Check{
+					ID:             "1.3.1",
+					Name:           "check 1",
+					Description:    "description 1",
+					Remediation:    "remediation 1",
+					Implementation: "implementation 1",
+					Labels:         "labels 1",
+				},
+				&Check{
+					ID:             "1.3.2",
+					Name:           "check 2",
+					Description:    "description 2",
+					Remediation:    "remediation 2",
+					Implementation: "implementation 2",
+					Labels:         "labels 2",
+				},
+			},
+		}
+
 		nodes := NewNodes(cluster, hosts)
+
+		hContainer := &HealthContainer{
+			CriticalCount: nodes.CriticalCount(),
+			WarningCount:  nodes.WarningCount(),
+			PassingCount:  nodes.PassingCount(),
+			Layout:        "vertical",
+		}
 
 		c.HTML(http.StatusOK, "cluster_hana.html.tmpl", gin.H{
 			"Cluster":          cluster,
 			"Nodes":            nodes,
 			"StoppedResources": stoppedResources(cluster),
 			"ClusterType":      clusterType,
-			"HealthContainer": &HealthContainer{
-				CriticalCount: nodes.CriticalCount(),
-				WarningCount:  nodes.WarningCount(),
-				PassingCount:  nodes.PassingCount(),
-				Layout:        "vertical",
-			},
+			"HealthContainer":  hContainer,
+			"ChecksCatalog":    checks,
 		})
 	}
 }

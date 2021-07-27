@@ -11,19 +11,21 @@
               <div class="modal-body">
                   <h6>Checks selection</h6>
                   <div id="checksAccordion">
+                      {{- range $group, $data := .ChecksCatalog }}
                       <div class="card">
-                          <div class="card-header card-header-check-selection" id="checkGroupOne">
+                          <div class="card-header card-header-check-selection" id="check-{{ $group }}">
                               <div class='form-check float-left'>
-                                  <input class='parent form-check-input eos-checkbox' type='checkbox' id='azure'>
-                                  <label class='form-check-label' for='azure'>Azure</label>
+                                  <input class='parent form-check-input eos-checkbox' type='checkbox' id='{{ $group }}'>
+                                  <label class='form-check-label' for='{{ $group }}'>{{ $group }}</label>
                               </div>
                               <div class='dropdown float-right'>
-                                  <div class='dropdown-toggle' data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                  <div class='dropdown-toggle' data-toggle="collapse" data-target="#collapse-{{ $group }}" aria-expanded="true" aria-controls="collapse-{{ $group }}">
                                       <i class="eos-icons eos-18">keyboard_arrow_down</i>
                                   </div>
                               </div>
                           </div>
-                          <div id="collapseOne" class="collapse" aria-labelledby="checkGroupOne" data-parent="#checksAccordion">
+
+                          <div id="collapse-{{ $group }}" class="collapse" aria-labelledby="check-{{ $group }}" data-parent="#checksAccordion">
                               <div class="card-body card-check-selection">
                                   <div class='table-responsive'>
                                       <table class='table table-sm eos-table'>
@@ -35,82 +37,27 @@
                                               </tr>
                                           </thead>
                                           <tbody>
+                                              {{- range $index, $check := $data }}
                                               <tr>
                                                   <td class="row-status">
                                                       <div class='form-check'>
-                                                         <input class='parent-azure form-check-input eos-checkbox' type='checkbox' id='azure-1-1-1'>
-                                                         <label class='form-check-label' for='azure-1-1-1'>1.1.1</label>
+                                                         <input class='parent-{{ $group }} form-check-input eos-checkbox' type='checkbox' id='{{ $group }}-{{ .NormalizeID }}'>
+                                                         <label class='form-check-label' for='{{ $group }}-{{ .NormalizeID }}'>{{ .ID }}</label>
                                                      </div>
                                                   </td>
-                                                  <td>1.1.1</td>
-                                                  <td>My test description</td>
+                                                  <td>{{ .ID }}</td>
+                                                  <td>{{ .Description}}</td>
                                               </tr>
-                                              <tr>
-                                                  <td class="row-status">
-                                                      <div class='form-check'>
-                                                         <input class='parent-azure form-check-input eos-checkbox' type='checkbox' id='azure-1-1-2'>
-                                                         <label class='form-check-label' for='azure-1-1-2'>1.1.1</label>
-                                                     </div>
-                                                  </td>
-                                                  <td>1.1.2</td>
-                                                  <td>My test description</td>
-                                              </tr>
+                                              {{- else }}
+                                                  {{ template "empty_table_body" 3 }}
+                                              {{- end }}
                                           </tbody>
                                       </table>
                                   </div>
                               </div>
                           </div>
                       </div>
-                      <div class="card">
-                          <div class="card-header card-header-check-selection" id="checkGroupTwo">
-                              <div class='form-check float-left'>
-                                  <input class='parent form-check-input eos-checkbox' type='checkbox' id='corosync'>
-                                  <label class='form-check-label' for='corosync'>Corosync</label>
-                              </div>
-                              <div class='dropdown float-right'>
-                                  <div class='dropdown-toggle' data-toggle="collapse" data-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
-                                      <i class="eos-icons eos-18">keyboard_arrow_down</i>
-                                  </div>
-                              </div>
-                          </div>
-                          <div id="collapseTwo" class="collapse" aria-labelledby="checkGroupTwo" data-parent="#checksAccordion">
-                              <div class="card-body card-check-selection">
-                                  <div class='table-responsive'>
-                                      <table class='table table-sm eos-table'>
-                                          <thead>
-                                              <tr>
-                                                  <th class='header-check-selection' scope='col'></th>
-                                                  <th class='header-check-selection' scope='col'>Test ID</th>
-                                                  <th class='header-check-selection' scope='col'>Description</th>
-                                              </tr>
-                                          </thead>
-                                          <tbody>
-                                              <tr>
-                                                  <td class="row-status">
-                                                      <div class='form-check'>
-                                                         <input class='parent-corosync form-check-input eos-checkbox' type='checkbox' id='corosync-1-2-1'>
-                                                         <label class='form-check-label' for='corosync-1-2-1'>1.2.1</label>
-                                                     </div>
-                                                  </td>
-                                                  <td>1.2.1</td>
-                                                  <td>My test description</td>
-                                              </tr>
-                                              <tr>
-                                                  <td class="row-status">
-                                                      <div class='form-check'>
-                                                         <input class='parent-corosync form-check-input eos-checkbox' type='checkbox' id='corosync-1-2-2'>
-                                                         <label class='form-check-label' for='corosync-1-2-2'>1.2.2</label>
-                                                     </div>
-                                                  </td>
-                                                  <td>1.2.2</td>
-                                                  <td>My test description</td>
-                                              </tr>
-                                          </tbody>
-                                      </table>
-                                  </div>
-                              </div>
-                          </div>
-                      </div>
+                      {{- end }}
                   </div>
               </div>
               <div class="modal-footer">

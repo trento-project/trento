@@ -8,7 +8,7 @@
   shell: 'grep SBD_PACEMAKER /etc/sysconfig/sbd'
   check_mode: no
   register: config_updated
-  changed_when: config_updated != expected[test_id]
+  changed_when: config_updated.stdout != expected[test_id]
 
 - block:
     - import_role:

@@ -8,3 +8,4 @@
 - name: Print metadata
   debug:
     msg: '{{ record.value }}'
+    verbosity: 1

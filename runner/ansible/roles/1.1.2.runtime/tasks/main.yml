@@ -1,14 +1,13 @@
 ---
-
 - name: Set Test ID
   set_fact:
-    test_id: '1.1.1.runtime'
+    test_id: '1.1.2.runtime'
 
 - name: "{{ test_id }}.check"
-  shell: 'corosync-cmapctl | grep "runtime.config.totem.token (u32) = " | sed "s/^.*= //"'
+  shell:  'corosync-cmapctl | grep "runtime.config.totem.consensus (u32) = " | sed "s/^.*= //"'
   check_mode: no
   register: config_updated
-  changed_when: config_updated.stdout != expected['1.1.1']
+  changed_when: config_updated.stdout != expected['1.1.2']
 
 - block:
     - import_role:

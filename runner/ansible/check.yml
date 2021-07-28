@@ -5,6 +5,12 @@
       - test
 
   tasks:
+    - name: require check mode
+      fail:
+         msg: "Only supported for --check option"
+      when:
+        - not ansible_check_mode
+
     - name: include load_facts
       import_role:
         name: load_facts
@@ -16,6 +22,54 @@
     - name: include 1.1.1.runtime
       import_role:
         name: '1.1.1.runtime'
+
+    - name: include 1.1.2
+      import_role:
+        name: '1.1.2'
+
+    - name: include 1.1.2.runtime
+      import_role:
+        name: '1.1.2.runtime'
+
+    - name: include 1.1.3
+      import_role:
+        name: '1.1.3'
+
+    - name: include 1.1.3.runtime
+      import_role:
+        name: '1.1.3.runtime'
+
+    - name: include 1.1.4
+      import_role:
+        name: '1.1.4'
+
+    - name: include 1.1.4.runtime
+      import_role:
+        name: '1.1.4.runtime'
+
+    - name: include 1.1.5
+      import_role:
+        name: '1.1.5'
+
+    - name: include 1.1.5.runtime
+      import_role:
+        name: '1.1.5.runtime'
+
+    - name: include 1.1.6
+      import_role:
+        name: '1.1.6'
+
+    - name: include 1.1.7
+      import_role:
+        name: '1.1.7'
+
+    - name: include 1.1.8
+      import_role:
+        name: '1.1.8'
+
+    - name: include 1.1.8.runtime
+      import_role:
+        name: '1.1.8.runtime'
 
     - name: include 1.2.1
       import_role:

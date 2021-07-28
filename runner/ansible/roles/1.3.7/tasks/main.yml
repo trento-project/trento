@@ -15,7 +15,7 @@
     # convoluted, but normal count method does not work with jinja2
     temp_ar=(${!sbdarray[@]});  device_count=`expr ${temp_ar[-1]} + 1`
     # If there is at least 1 device and there is an sbd device used by pacemaker
-    if [[ $device_count != "0" ]] && crm conf show | grep "stonith:external/sbd"; then
+    if [[ $device_count != "0" ]] && crm conf show | grep -q "stonith:external/sbd"; then
       echo passed
       exit 0
     fi

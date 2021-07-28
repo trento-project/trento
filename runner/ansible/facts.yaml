@@ -1,6 +1,0 @@
----
-- hosts: all
-  tasks:
-    - name: Gather installed packages facts
-      ansible.builtin.package_facts:
-      delegate_facts: true

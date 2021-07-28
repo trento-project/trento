@@ -1,0 +1,11 @@
+- name: Post metadata to ARA
+  ara_record:
+    key: trento-metadata
+    value: '{{ metadata }}'
+    type: json
+  register: record
+
+- name: Print metadata
+  debug:
+    msg: '{{ record.value }}'
+    verbosity: 1

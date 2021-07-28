@@ -272,10 +272,32 @@ func TestHostHandler(t *testing.T) {
 								"Value": "HDB00",
 							},
 							"SAPSYSTEMNAME": map[string]interface{}{
-								"Value": "sys1",
+								"Value": "PRD",
 							},
 							"SAPSYSTEM": map[string]interface{}{
-								"Value": "bananas",
+								"Value": "00",
+							},
+						},
+						"processes": map[string]interface{}{
+							"proc1": map[string]interface{}{
+								"Name":       "proc1",
+								"Dispstatus": "SAPControl-GREEN",
+								"Textstatus": "Green",
+							},
+							"proc2": map[string]interface{}{
+								"Name":       "proc2",
+								"Dispstatus": "SAPControl-YELLOW",
+								"Textstatus": "Yellow",
+							},
+							"proc3": map[string]interface{}{
+								"Name":       "proc3",
+								"Dispstatus": "SAPControl-RED",
+								"Textstatus": "Red",
+							},
+							"proc4": map[string]interface{}{
+								"Name":       "proc4",
+								"Dispstatus": "SAPControl-GRAY",
+								"Textstatus": "Gray",
 							},
 						},
 					},
@@ -336,11 +358,21 @@ func TestHostHandler(t *testing.T) {
 
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, minified, "Host details")
+
 	assert.Regexp(t, regexp.MustCompile("<dd.*>test_host</dd>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<a.*environments.*>env1</a>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<a.*landscapes.*>land1</a>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<a.*sapsystems.*>sys1</a>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<span.*>passing</span>"), minified)
+	// SAP Instance
+	assert.Regexp(t, regexp.MustCompile("<dt.*>Name</dt><dd.*>HDB00</dd>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<dt.*>SID</dt><dd.*>PRD</dd>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<dt.*>Instance number</dt><dd.*>00</dd>"), minified)
+	// Processes
+	assert.Regexp(t, regexp.MustCompile("<td>proc1</td>.*<span.*primary.*>Green</span>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td>proc2</td>.*<span.*warning.*>Yellow</span>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td>proc3</td>.*<span.*danger.*>Red</span>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td>proc4</td>.*<span.*secondary.*>Gray</span>"), minified)
 }
 
 func TestHostHandlerAzure(t *testing.T) {

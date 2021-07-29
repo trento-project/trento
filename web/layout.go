@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/trento-project/trento/version"
 
 	"github.com/gin-gonic/gin/render"
 
@@ -29,6 +30,7 @@ type LayoutRender struct {
 type LayoutData struct {
 	Title     string
 	Copyright string
+	Version   string
 	Submenu   Submenu
 	Content   interface{}
 }
@@ -43,6 +45,7 @@ type SubmenuItem struct {
 var defaultLayoutData = LayoutData{
 	Title:     "Trento Console",
 	Copyright: "© 2020-2021 SUSE LLC",
+	Version:   version.GetShortVersion(),
 }
 
 type LayoutHTML struct {

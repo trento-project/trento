@@ -6,20 +6,15 @@
 - name: "{{ test_id }}.check"
   shell: |
    timeout=$(crm_attribute -t crm_config -G -n stonith-timeout --quiet)
-          if [[cibadmin -Q --xpath "//primitive[@type='fence_azure_arm']/@type" > /dev/null 2>&1 ]]; then
-            if [[ "${timeout}" = "900" ]]; then
-              echo "correct"
-            else
-              echo "${timeout}"
-            fi
-          elif [[ "${timeout}" = "144" ]]; then
-            echo "correct"
-          else
-            echo "${timeout}"
-          fi
+   if [[cibadmin -Q --xpath "//primitive[@type='fence_azure_arm']/@type" > /dev/null 2>&1 ]]; then
+     exit $([[ "${timeout}" = "{{ expected['1.2.2.fence_azure_arm'] }}" ]])
+   else
+     exit $([[ "${timeout}" = "{{ expected['1.2.2.sbd'] }}" ]])
+   fi
   check_mode: no
   register: config_updated
-  changed_when: config_updated.stdout != expected[test_id]
+  changed_when: config_updated.rc != 0
+  failed_when: config_updated.rc > 1
 
 - block:
     - import_role:

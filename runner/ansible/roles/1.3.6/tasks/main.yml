@@ -6,7 +6,7 @@
 
 - name: "{{ test_id }}.check"
   shell: |
-    DEF_MSGWAIT=120
+    DEF_MSGWAIT={{ expected[test_id] }}
     result_msgwait=${DEF_MSGWAIT}
     sbdarray=$(grep -E '^SBD_DEVICE=' /etc/sysconfig/sbd  | grep -oP 'SBD_DEVICE=\K[^.]+' | sed 's/\"//g')
     IFS=';' sbdarray=( $sbdarray )

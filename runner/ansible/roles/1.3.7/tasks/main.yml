@@ -19,6 +19,12 @@
       echo passed
       exit 0
     fi
+    # If the qdevice is configured it\'s also good
+    if corosync-quorumtool | tail -n1 | grep -i qdevice; then
+      echo passed
+      exit 0
+    fi
+    echo failed
   register: config_updated
   check_mode: no
   changed_when: config_updated.stdout != expected[test_id]

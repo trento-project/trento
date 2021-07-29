@@ -19,7 +19,8 @@ import (
 var ansibleFS embed.FS
 
 const (
-	AnsibleMain = "ansible/main.yaml"
+	AnsibleMain = "ansible/check.yml"
+	AnsibleMeta = "ansible/meta.yml"
 )
 
 type Runner struct {
@@ -68,11 +69,28 @@ func DefaultConfig() (Config, error) {
 func (c *Runner) Start() error {
 	var wg sync.WaitGroup
 
+	if err := createAnsibleFiles(c.cfg.AnsibleFolder); err != nil {
+		return err
+	}
+
+	metaRunner, err := NewAnsibleMetaRunner(&c.cfg)
+	if err != nil {
+		return err
+	}
+
+	if !metaRunner.IsAraServerUp() {
+		return fmt.Errorf("ARA server not available")
+	}
+
+	if err = metaRunner.RunPlaybook(); err != nil {
+		return err
+	}
+
 	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
 		log.Println("Starting the runner loop...")
 		defer wg.Done()
-		c.startRunnerTicker()
+		c.startCheckRunnerTicker()
 		log.Println("Runner loop stopped.")
 	}(&wg)
 
@@ -95,7 +113,7 @@ func createAnsibleFiles(folder string) error {
 		return err
 	}
 
-	err = os.MkdirAll(ansibleFolder, 0644)
+	err = os.MkdirAll(ansibleFolder, 0755)
 	if err != nil {
 		log.Error(err)
 		return err
@@ -119,7 +137,7 @@ func createAnsibleFiles(folder string) error {
 			}
 			fmt.Fprintf(f, "%s", content)
 		} else {
-			os.Mkdir(path.Join(folder, fileName), 0644)
+			os.Mkdir(path.Join(folder, fileName), 0755)
 		}
 		return nil
 	})
@@ -134,27 +152,53 @@ func createAnsibleFiles(folder string) error {
 	return nil
 }
 
-func (c *Runner) startRunnerTicker() {
-	err := createAnsibleFiles(c.cfg.AnsibleFolder)
+func NewAnsibleMetaRunner(cfg *Config) (*AnsibleRunner, error) {
+	playbookPath := path.Join(cfg.AnsibleFolder, AnsibleMeta)
+	ansibleRunner, err := DefaultAnsibleRunnerWithAra()
 	if err != nil {
-		return
+		return ansibleRunner, err
 	}
+
+	if err = ansibleRunner.SetPlaybook(playbookPath); err != nil {
+		return ansibleRunner, err
+	}
+
+	ansibleRunner.SetAraServer(cfg.AraServer)
+
+	return ansibleRunner, err
+}
+
+func NewAnsibleCheckRunner(cfg *Config) (*AnsibleRunner, error) {
+	playbookPath := path.Join(cfg.AnsibleFolder, AnsibleMain)
+	inventoryPath := path.Join(cfg.AnsibleFolder, ansibleHostFile)
+
+	ansibleRunner, err := DefaultAnsibleRunnerWithAra()
+	if err != nil {
+		return ansibleRunner, err
+	}
+
+	if err = ansibleRunner.SetPlaybook(playbookPath); err != nil {
+		return ansibleRunner, err
+	}
+
+	if err = ansibleRunner.SetInventory(inventoryPath); err != nil {
+		return ansibleRunner, err
+	}
+
+	ansibleRunner.Check = true
+	ansibleRunner.SetAraServer(cfg.AraServer)
+
+	return ansibleRunner, nil
+}
+
+func (c *Runner) startCheckRunnerTicker() {
 
 	c.startConsulTemplate()
 
-	ansibleRunner, err := NewAnsibleRunner(
-		path.Join(c.cfg.AnsibleFolder, AnsibleMain),
-		path.Join(c.cfg.AnsibleFolder, ansibleHostFile))
+	checkRunner, err := NewAnsibleCheckRunner(&c.cfg)
 	if err != nil {
 		return
 	}
-
-	err = ansibleRunner.LoadAraPlugins()
-	if err != nil {
-		return
-	}
-
-	ansibleRunner.SetAraServer(c.cfg.AraServer)
 
 	tick := func() {
 		// As consul-template is executed as run-once, we need to create the runner everytime
@@ -165,11 +209,11 @@ func (c *Runner) startRunnerTicker() {
 		c.templateRunner = tmpRunner
 		c.startConsulTemplate()
 
-		if !ansibleRunner.isAraServerUp() {
+		if !checkRunner.IsAraServerUp() {
 			log.Error("ARA server not found. Skipping ansible execution as the data is not recorded")
 			return
 		}
-		ansibleRunner.RunPlaybook()
+		checkRunner.RunPlaybook()
 	}
 
 	interval := c.cfg.Interval

@@ -22,60 +22,58 @@ const (
 	AraApiServer           = "ARA_API_SERVER"
 )
 
+//go:generate mockery --name=CustomCommand
+
+type CustomCommand func(name string, arg ...string) *exec.Cmd
+
+var customExecCommand CustomCommand = exec.Command
+
 type AnsibleRunner struct {
 	Playbook  string
 	Inventory string
 	Envs      map[string]string
+	Check     bool
 }
 
-func runPlaybook(playbook, inventory string, envs map[string]string) error {
-	log.Infof("Running ansible playbook %s, with inventory %s...", playbook, inventory)
-
-	cmd := exec.Command("ansible-playbook", playbook, fmt.Sprintf("--inventory=%s", inventory))
-
-	cmd.Env = os.Environ()
-	for key, value := range envs {
-		newEnv := fmt.Sprintf("%s=%s", key, value)
-		log.Debugf("New environment variable: %s", newEnv)
-		cmd.Env = append(cmd.Env, newEnv)
+func DefaultAnsibleRunner() *AnsibleRunner {
+	return &AnsibleRunner{
+		Playbook: "main.yml",
+		Envs:     make(map[string]string),
+		Check:    false,
 	}
-
-	output, err := cmd.CombinedOutput()
-
-	log.Debugf("Ansible output:\n%s:", output)
-
-	if err != nil {
-		log.Errorf("An error occurred while running ansible: %s", err)
-		return err
-	}
-
-	log.Info("Ansible playbook execution finished successfully")
-
-	return nil
 }
 
-func NewAnsibleRunner(playbook, inventory string) (*AnsibleRunner, error) {
-	r := &AnsibleRunner{Envs: make(map[string]string)}
-
-	if _, err := os.Stat(playbook); os.IsNotExist(err) {
-		log.Errorf("Playbook file %s does not exist", playbook)
-		return r, err
+func DefaultAnsibleRunnerWithAra() (*AnsibleRunner, error) {
+	a := DefaultAnsibleRunner()
+	if err := a.LoadAraPlugins(); err != nil {
+		return a, err
 	}
 
-	r.Playbook = playbook
-
-	if _, err := os.Stat(inventory); os.IsNotExist(err) {
-		log.Errorf("Inventory file %s does not exist", inventory)
-		return r, err
-	}
-
-	r.Inventory = inventory
-
-	return r, nil
+	return a, nil
 }
 
 func (a *AnsibleRunner) setEnv(name, value string) {
 	a.Envs[name] = value
+}
+
+func (a *AnsibleRunner) SetPlaybook(playbook string) error {
+	if _, err := os.Stat(playbook); os.IsNotExist(err) {
+		log.Errorf("Playbook file %s does not exist", playbook)
+		return err
+	}
+
+	a.Playbook = playbook
+	return nil
+}
+
+func (a *AnsibleRunner) SetInventory(inventory string) error {
+	if _, err := os.Stat(inventory); os.IsNotExist(err) {
+		log.Errorf("Inventory file %s does not exist", inventory)
+		return err
+	}
+
+	a.Inventory = inventory
+	return nil
 }
 
 // ARA_API_CLIENT is always set to "http" to ensure the usage of the REST API
@@ -89,7 +87,7 @@ func (a *AnsibleRunner) SetAraServer(host string) {
 func (a *AnsibleRunner) LoadAraPlugins() error {
 	log.Info("Loading ARA plugins...")
 
-	araCallback := exec.Command("python3", "-m", "ara.setup.callback_plugins")
+	araCallback := customExecCommand("python3", "-m", "ara.setup.callback_plugins")
 	araCallbackPath, err := araCallback.Output()
 	if err != nil {
 		log.Errorf("An error occurred getting the ARA callback plugin path: %s", err)
@@ -100,7 +98,7 @@ func (a *AnsibleRunner) LoadAraPlugins() error {
 
 	a.setEnv(AnsibleCallbackPlugins, araCallbackPathStr)
 
-	araAction := exec.Command("python3", "-m", "ara.setup.action_plugins")
+	araAction := customExecCommand("python3", "-m", "ara.setup.action_plugins")
 	araActionPath, err := araAction.Output()
 	if err != nil {
 		log.Errorf("An error occurred getting the ARA actions plugin path: %s", err)
@@ -116,7 +114,7 @@ func (a *AnsibleRunner) LoadAraPlugins() error {
 	return nil
 }
 
-func (a *AnsibleRunner) isAraServerUp() bool {
+func (a *AnsibleRunner) IsAraServerUp() bool {
 	server, ok := a.Envs[AraApiServer]
 	if !ok {
 		log.Warn("ARA server usage not configured")
@@ -143,5 +141,40 @@ func (a *AnsibleRunner) isAraServerUp() bool {
 }
 
 func (a *AnsibleRunner) RunPlaybook() error {
-	return runPlaybook(a.Playbook, a.Inventory, a.Envs)
+	var cmdItems []string
+
+	log.Infof("Ansible playbook %s", a.Playbook)
+	cmdItems = append(cmdItems, a.Playbook)
+
+	if a.Inventory != "" {
+		log.Infof("Inventory %s", a.Inventory)
+		cmdItems = append(cmdItems, fmt.Sprintf("--inventory=%s", a.Inventory))
+	}
+
+	if a.Check {
+		log.Info("Running in check mode")
+		cmdItems = append(cmdItems, "--check")
+	}
+
+	cmd := customExecCommand("ansible-playbook", cmdItems...)
+
+	cmd.Env = os.Environ()
+	for key, value := range a.Envs {
+		newEnv := fmt.Sprintf("%s=%s", key, value)
+		log.Debugf("New environment variable: %s", newEnv)
+		cmd.Env = append(cmd.Env, newEnv)
+	}
+
+	output, err := cmd.CombinedOutput()
+
+	log.Debugf("Ansible output:\n%s:", output)
+
+	if err != nil {
+		log.Errorf("An error occurred while running ansible: %s", err)
+		return err
+	}
+
+	log.Info("Ansible playbook execution finished successfully")
+
+	return nil
 }

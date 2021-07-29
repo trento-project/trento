@@ -11,6 +11,10 @@ import (
 	"github.com/trento-project/trento/runner/mocks"
 )
 
+const (
+	TestAnsibleFolder string = "../test/ansible_test"
+)
+
 // TODO: This test could be improved to check the definitve ansible files structure
 // once we have something fixed
 func TestCreateAnsibleFiles(t *testing.T) {
@@ -26,7 +30,7 @@ func TestCreateAnsibleFiles(t *testing.T) {
 func TestNewAnsibleMetaRunner(t *testing.T) {
 
 	cfg := &Config{
-		AnsibleFolder: "../test/ansible_test",
+		AnsibleFolder: TestAnsibleFolder,
 		AraServer:     "127.0.0.1",
 	}
 
@@ -45,7 +49,7 @@ func TestNewAnsibleMetaRunner(t *testing.T) {
 	a, err := NewAnsibleMetaRunner(cfg)
 
 	expectedMetaRunner := &AnsibleRunner{
-		Playbook: "../test/ansible_test/ansible/meta.yml",
+		Playbook: path.Join(TestAnsibleFolder, "ansible/meta.yml"),
 		Envs: map[string]string{
 			"ANSIBLE_CALLBACK_PLUGINS": "callback",
 			"ANSIBLE_ACTION_PLUGINS":   "action",
@@ -64,7 +68,7 @@ func TestNewAnsibleMetaRunner(t *testing.T) {
 func TestNewAnsibleCheckRunner(t *testing.T) {
 
 	cfg := &Config{
-		AnsibleFolder: "../test/ansible_test",
+		AnsibleFolder: TestAnsibleFolder,
 		AraServer:     "127.0.0.1",
 	}
 
@@ -83,8 +87,8 @@ func TestNewAnsibleCheckRunner(t *testing.T) {
 	a, err := NewAnsibleCheckRunner(cfg)
 
 	expectedMetaRunner := &AnsibleRunner{
-		Playbook:  "../test/ansible_test/ansible/check.yml",
-		Inventory: "../test/ansible_test/ansible_hosts",
+		Playbook:  path.Join(TestAnsibleFolder, "ansible/check.yml"),
+		Inventory: path.Join(TestAnsibleFolder, "ansible_hosts"),
 		Envs: map[string]string{
 			"ANSIBLE_CALLBACK_PLUGINS": "callback",
 			"ANSIBLE_ACTION_PLUGINS":   "action",

@@ -81,7 +81,7 @@ type InstanceProperty struct {
 
 type SAPInstance struct {
 	Hostname      string     `xml:"hostname,omitempty" json:"hostname,omitempty" mapstructure:"hostname,omitempty"`
-	InstanceNr    int32      `xml:"instanceNr,omitempty" json:"instanceNr,omitempty" mapstructure:"instancenr,omitempty"`
+	InstanceNr    int32      `xml:"instanceNr,omitempty" json:"instanceNr" mapstructure:"instancenr"`
 	HttpPort      int32      `xml:"httpPort,omitempty" json:"httpPort,omitempty" mapstructure:"httpport,omitempty"`
 	HttpsPort     int32      `xml:"httpsPort,omitempty" json:"httpsPort,omitempty" mapstructure:"httpsport,omitempty"`
 	StartPriority string     `xml:"startPriority,omitempty" json:"startPriority,omitempty" mapstructure:"startpriority,omitempty"`

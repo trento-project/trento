@@ -9,6 +9,7 @@
     sbdarray=$(grep -E '^SBD_DEVICE=' /etc/sysconfig/sbd  | grep -oP 'SBD_DEVICE=\K[^.]+' | sed 's/\"//g')
     IFS=';' sbdarray=( $sbdarray )
     # convoluted, but normal count method does not work with jinja2
+    # issue: https://github.com/ansible/ansible/issues/16968
     temp_ar=(${!sbdarray[@]});  device_count=`expr ${temp_ar[-1]} + 1`
     echo "$device_count"
   check_mode: no

@@ -7,7 +7,6 @@
 - name: "{{ test_id }}.check"
   shell: |
     if [[ $(crm_node -l | wc -l) != "2" ]]; then
-      echo passed
       exit 0
     fi
     sbdarray=$(grep -E '^SBD_DEVICE=' /etc/sysconfig/sbd  | grep -oP 'SBD_DEVICE=\K[^.]+' | sed 's/\"//g')
@@ -16,18 +15,17 @@
     temp_ar=(${!sbdarray[@]});  device_count=`expr ${temp_ar[-1]} + 1`
     # If there is at least 1 device and there is an sbd device used by pacemaker
     if [[ $device_count != "0" ]] && crm conf show | grep -q "stonith:external/sbd"; then
-      echo passed
       exit 0
     fi
     # If the qdevice is configured it\'s also good
     if corosync-quorumtool | tail -n1 | grep -i qdevice; then
-      echo passed
       exit 0
     fi
-    echo failed
+    exit 1
   register: config_updated
   check_mode: no
-  changed_when: config_updated.stdout != expected[test_id]
+  changed_when: config_updated.rc != 0
+  failed_when: config_updated.rc > 1
 
 - block:
     - import_role:

@@ -15,8 +15,8 @@
       msgwait=$(/usr/sbin/sbd -d ${i} dump | grep -oP 'Timeout \(msgwait\)  *: \K\d+')|| echo ""
       if [[ "${msgwait}" -ne "${DEF_MSGWAIT}" ]]; then
         result_msgwait="${msgwait}"
-        fi
-      done
+      fi
+    done
     echo $result_msgwait
   register: config_updated
   check_mode: no

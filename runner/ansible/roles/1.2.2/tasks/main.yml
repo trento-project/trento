@@ -7,9 +7,9 @@
   shell: |
    timeout=$(crm_attribute -t crm_config -G -n stonith-timeout --quiet)
    if [[cibadmin -Q --xpath "//primitive[@type='fence_azure_arm']/@type" > /dev/null 2>&1 ]]; then
-     exit $([[ "${timeout}" = "{{ expected['1.2.2.fence_azure_arm'] }}" ]])
+     exit $([[ "${timeout}" = "{{ expected[test_id + '.fence_azure_arm'] }}" ]])
    else
-     exit $([[ "${timeout}" = "{{ expected['1.2.2.sbd'] }}" ]])
+     exit $([[ "${timeout}" = "{{ expected[test_id + '.sbd'] }}" ]])
    fi
   check_mode: no
   register: config_updated

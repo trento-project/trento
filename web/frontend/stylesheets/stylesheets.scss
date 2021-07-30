@@ -110,3 +110,28 @@ td i.warning {
 td i.critical {
   color: $eos-bc-red-500;
 }
+
+#checksAccordion .card .card-body {
+  background: white;
+}
+
+.collapse-toggle {
+  display: inline;
+  cursor: pointer;
+}
+
+.collapse-toggle:after {
+  font-family: 'eos-icons';
+  content: "keyboard_arrow_up";
+  float: right;
+  font-size: 24px;
+  font-weight: normal;
+}
+
+.collapse-toggle.collapsed:after {
+  font-family: 'eos-icons';
+  content: "keyboard_arrow_down";
+  float: right;
+  font-size: 24px;
+  font-weight: normal;
+}

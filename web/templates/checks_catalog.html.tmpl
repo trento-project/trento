@@ -11,48 +11,63 @@
         </div>
     </div>
     <hr class="margin-10px"/>
-    {{- range $group, $checkList := .Checks }}
-    <h4>{{ $group }}</h4>
-    <div class="table-responsive">
-        <table class="table eos-table">
-            <thead>
-            <tr>
-                <th scope="col" style="width: 15%">Test ID</th>
-                <th scope="col" style="width: 74%">Description</th>
-                <th scope="col"></th>
-            </tr>
-            </thead>
-            <tbody>
-            {{- range $checkList }}
-                <tr>
-                    <td class="align-top">{{ .ID }}</td>
-                    <td class="align-top">
-                        {{ .Description }}
-                        <div class="ha-check-remediation collapse" id="info-{{ .NormalizeID }}">
-                            {{ markdown (.Remediation) }}
-                        </div>
-                        <div class="ha-check-remediation collapse" id="info-{{ .NormalizeID }}">
-                            <h2>Implementation</h2>
-                            <pre>{{ .Implementation }}</pre>
-                        </div>
-                    </td>
+    <div id="checksAccordion">
+        {{- $groupIndex := 0 }}
+        {{- range $group, $checkList := .Checks }}
+        {{- $groupIndex = sum $groupIndex 1 }}
+        <div class="card">
+            <div class="card-header" id="heading-{{ $groupIndex }}">
+                <h4 class="float-left">
+                    {{ $group }}
+                </h4>
+                <i class="eos-icons eos-18 collapse-toggle clickable collapsed" data-toggle="collapse" data-target="#collapse-{{ $groupIndex }}"></i>
+            </div>
+            <div id="collapse-{{ $groupIndex }}" class="collapse" aria-labelledby="heading-{{ $groupIndex }}" data-parent="#checksAccordion">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table eos-table">
+                            <thead>
+                            <tr>
+                                <th scope="col" style="width: 15%">Test ID</th>
+                                <th scope="col" style="width: 74%">Description</th>
+                                <th scope="col"></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {{- range $checkList }}
+                                <tr>
+                                    <td class="align-top">{{ .ID }}</td>
+                                    <td class="align-top">
+                                        {{ .Description }}
+                                        <div class="ha-check-remediation collapse" id="info-{{ .NormalizeID }}">
+                                            {{ markdown (.Remediation) }}
+                                        </div>
+                                        <div class="ha-check-remediation collapse" id="info-{{ .NormalizeID }}">
+                                            <h2>Implementation</h2>
+                                            <pre>{{ .Implementation }}</pre>
+                                        </div>
+                                    </td>
 
-                    <td class="align-top text-center">
-                        <a class="link-dark" type="button"
-                           data-toggle="collapse"
-                           href="#info-{{ .NormalizeID }}"
-                           aria-expanded="false"
-                           aria-controls="info-{{ .NormalizeID }}"
-                           title="Details">
-                            <i class='eos-icons eos-18'>info</i>
-                        </a>
-                    </td>
-                </tr>
-            {{- else }}
-                {{ template "empty_table_body" 4}}
-            {{- end }}
-            </tbody>
-        </table>
+                                    <td class="align-top text-center">
+                                        <a class="link-dark" type="button"
+                                           data-toggle="collapse"
+                                           href="#info-{{ .NormalizeID }}"
+                                           aria-expanded="false"
+                                           aria-controls="info-{{ .NormalizeID }}"
+                                           title="Details">
+                                            <i class='eos-icons eos-18'>info</i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {{- else }}
+                                {{ template "empty_table_body" 4}}
+                            {{- end }}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
         {{- end }}
     </div>
 {{ end }}

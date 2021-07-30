@@ -18,34 +18,41 @@ func TestChecksCatalogHandler(t *testing.T) {
 	deps := DefaultDependencies()
 	deps.checksService = checksMocks
 
-	checks := []*models.Check{
-		&models.Check{
-			ID:             "1.1.1",
-			Name:           "check 1",
-			Description:    "description 1",
-			Remediation:    "remediation 1",
-			Implementation: "implementation 1",
-			Labels:         "labels 1",
+	checks := map[string]map[string]*models.Check{
+		"group 1": {
+			"1.1.1": &models.Check{
+				ID:             "1.1.1",
+				Name:           "check 1",
+				Group:          "group 1",
+				Description:    "description 1",
+				Remediation:    "remediation 1",
+				Implementation: "implementation 1",
+				Labels:         "labels 1",
+			},
+			"1.1.2": &models.Check{
+				ID:             "1.1.2",
+				Name:           "check 2",
+				Group:          "group 1",
+				Description:    "description 2",
+				Remediation:    "remediation 2",
+				Implementation: "implementation 2",
+				Labels:         "labels 2",
+			},
 		},
-		&models.Check{
-			ID:             "1.1.2",
-			Name:           "check 2",
-			Description:    "description 2",
-			Remediation:    "remediation 2",
-			Implementation: "implementation 2",
-			Labels:         "labels 2",
-		},
-		&models.Check{
-			ID:             "1.1.3",
-			Name:           "check 3",
-			Description:    "description 3",
-			Remediation:    "remediation 3",
-			Implementation: "implementation 3",
-			Labels:         "labels 3",
+		"group 2": {
+			"1.2.3": &models.Check{
+				ID:             "1.2.3",
+				Name:           "check 3",
+				Group:          "group 2",
+				Description:    "description 3",
+				Remediation:    "remediation 3",
+				Implementation: "implementation 3",
+				Labels:         "labels 3",
+			},
 		},
 	}
 
-	checksMocks.On("GetChecksCatalog").Return(
+	checksMocks.On("GetChecksCatalogByGroup").Return(
 		checks, nil,
 	)
 
@@ -67,8 +74,12 @@ func TestChecksCatalogHandler(t *testing.T) {
 
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, responseBody, "Checks catalog")
-	assert.Regexp(t, regexp.MustCompile("<td.*>1.1.1</td><td.*>description 1<div.*><p>remediation 1</p></div><div.*implementation 1.*</div>.*</td>"), responseBody)
-	assert.Regexp(t, regexp.MustCompile("<td.*>1.1.2</td><td.*>description 2<div.*><p>remediation 2</p></div><div.*implementation 2.*</div>.*</td>"), responseBody)
-	assert.Regexp(t, regexp.MustCompile("<td.*>1.1.3</td><td.*>description 3<div.*><p>remediation 3</p></div><div.*implementation 3.*</div>.*</td>"), responseBody)
-	assert.Equal(t, 4, strings.Count(responseBody, "<tr>"))
+
+	assert.Regexp(t, regexp.MustCompile("<h4.*>group 1</h4>.*<td.*>1.1.1</td><td.*>description 1<div.*id=info-1-1-1.*><p>remediation 1</p></div><div.*implementation 1.*</div>.*</td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<h4.*>group 1</h4>.*<td.*>1.1.2</td><td.*>description 2<div.*id=info-1-1-2.*><p>remediation 2</p></div><div.*implementation 2.*</div>.*</td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<h4.*>group 2</h4>.*<td.*>1.2.3</td><td.*>description 3<div.*id=info-1-2-3.*><p>remediation 3</p></div><div.*implementation 3.*</div>.*</td>"), responseBody)
+	assert.Equal(t, 2, strings.Count(responseBody, "<h4"))
+	assert.Equal(t, 5, strings.Count(responseBody, "<tr>"))
+
+	checksMocks.AssertExpectations(t)
 }

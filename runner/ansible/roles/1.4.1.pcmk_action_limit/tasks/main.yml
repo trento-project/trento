@@ -1,0 +1,24 @@
+---
+- name: Set Test ID
+  set_fact:
+    test_id: '1.4.1.pcmk_action_limit'
+
+- name: "{{ test_id }}.check"
+  shell: |
+    if cibadmin -Q --xpath "//primitive[@type='fence_azure_arm']/@type" > /dev/null 2>&1; then
+        cibadmin -Q --xpath "//primitive[@type='fence_azure_arm']/instance_attributes/nvpair[@name='pcmk_action_limit']" | grep -oP 'value="\K[^"]+' || echo ""
+    else
+        # Azure Fence Agent is not configured. We echo expected values just to fulfill the check
+        echo 3
+    fi
+  check_mode: no
+  register: config_updated
+  changed_when: config_updated.stdout != expected[test_id]
+
+- block:
+    - import_role:
+        name: post-results
+  when:
+    - ansible_check_mode
+  vars:
+    status: "{{ config_updated is changed }}"

@@ -11,6 +11,8 @@
         </div>
     </div>
     <hr class="margin-10px"/>
+    {{- range $group, $checkList := .Checks }}
+    <h4>{{ $group }}</h4>
     <div class="table-responsive">
         <table class="table eos-table">
             <thead>
@@ -21,15 +23,15 @@
             </tr>
             </thead>
             <tbody>
-            {{- range $y, $c := .Checks }}
+            {{- range $checkList }}
                 <tr>
                     <td class="align-top">{{ .ID }}</td>
                     <td class="align-top">
                         {{ .Description }}
-                        <div class="ha-check-remediation collapse" id="info-{{ $y }}">
+                        <div class="ha-check-remediation collapse" id="info-{{ .NormalizeID }}">
                             {{ markdown (.Remediation) }}
                         </div>
-                        <div class="ha-check-remediation collapse" id="info-{{ $y }}">
+                        <div class="ha-check-remediation collapse" id="info-{{ .NormalizeID }}">
                             <h2>Implementation</h2>
                             <pre>{{ .Implementation }}</pre>
                         </div>
@@ -38,9 +40,9 @@
                     <td class="align-top text-center">
                         <a class="link-dark" type="button"
                            data-toggle="collapse"
-                           href="#info-{{ $y }}"
+                           href="#info-{{ .NormalizeID }}"
                            aria-expanded="false"
-                           aria-controls="info-{{ $y }}"
+                           aria-controls="info-{{ .NormalizeID }}"
                            title="Details">
                             <i class='eos-icons eos-18'>info</i>
                         </a>
@@ -51,5 +53,6 @@
             {{- end }}
             </tbody>
         </table>
+        {{- end }}
     </div>
 {{ end }}

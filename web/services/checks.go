@@ -10,7 +10,8 @@ import (
 //go:generate mockery --name=ChecksService
 
 type ChecksService interface {
-	GetChecksCatalog() ([]*models.Check, error)
+	GetChecksCatalog() (map[string]*models.Check, error)
+	GetChecksCatalogByGroup() (map[string]map[string]*models.Check, error)
 }
 
 type checksService struct {
@@ -21,8 +22,8 @@ func NewChecksService(araService ara.AraService) ChecksService {
 	return &checksService{araService: araService}
 }
 
-func (c *checksService) GetChecksCatalog() ([]*models.Check, error) {
-	checkList := []*models.Check{}
+func (c *checksService) GetChecksCatalog() (map[string]*models.Check, error) {
+	checkList := make(map[string]*models.Check)
 
 	records, err := c.araService.GetRecordList("key=trento-metadata&order=-id")
 	if err != nil {
@@ -41,4 +42,23 @@ func (c *checksService) GetChecksCatalog() ([]*models.Check, error) {
 	mapstructure.Decode(record.Value, &checkList)
 
 	return checkList, nil
+}
+
+func (c *checksService) GetChecksCatalogByGroup() (map[string]map[string]*models.Check, error) {
+	groupedCheckList := make(map[string]map[string]*models.Check)
+
+	checkList, err := c.GetChecksCatalog()
+	if err != nil {
+		return groupedCheckList, err
+	}
+
+	for cId, c := range checkList {
+		normalizedGroup := c.NormalizeGroup()
+		if _, ok := groupedCheckList[normalizedGroup]; !ok {
+			groupedCheckList[normalizedGroup] = make(map[string]*models.Check)
+		}
+		groupedCheckList[normalizedGroup][cId] = c
+	}
+
+	return groupedCheckList, nil
 }

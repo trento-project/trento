@@ -13,15 +13,15 @@ type ChecksService struct {
 }
 
 // GetChecksCatalog provides a mock function with given fields:
-func (_m *ChecksService) GetChecksCatalog() ([]*models.Check, error) {
+func (_m *ChecksService) GetChecksCatalog() (map[string]*models.Check, error) {
 	ret := _m.Called()
 
-	var r0 []*models.Check
-	if rf, ok := ret.Get(0).(func() []*models.Check); ok {
+	var r0 map[string]*models.Check
+	if rf, ok := ret.Get(0).(func() map[string]*models.Check); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*models.Check)
+			r0 = ret.Get(0).(map[string]*models.Check)
 		}
 	}
 

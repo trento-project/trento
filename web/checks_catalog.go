@@ -10,7 +10,7 @@ import (
 
 func NewChecksCatalogHandler(s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		checkList, err := s.GetChecksCatalog()
+		checkList, err := s.GetChecksCatalogByGroup()
 		if err != nil {
 			_ = c.Error(err)
 			return

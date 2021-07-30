@@ -1,11 +1,15 @@
 package web
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/trento-project/trento/internal"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/environments"
+	"github.com/trento-project/trento/internal/hosts"
+	"github.com/trento-project/trento/internal/sapsystem"
 )
 
 func NewEnvironmentListHandler(client consul.Client) gin.HandlerFunc {
@@ -209,27 +213,33 @@ func (t SAPSystemsTable) GetAllSIDs() []string {
 
 func NewSAPSystemListHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var envName, landName string
-
+		var sapSystemsList sapsystem.SAPSystemsList
 		query := c.Request.URL.Query()
-		if len(query["environment"]) > 0 {
-			envName = query["environment"][0]
-		}
+		sidFilter := query["sid"]
 
-		if len(query["landscape"]) > 0 {
-			landName = query["landscape"][0]
-		}
-
-		environments, err := environments.Load(client)
+		hostList, err := hosts.Load(client, "", nil)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 
+		for _, h := range hostList {
+			sapSystems, err := h.GetSAPSystems()
+			if err != nil {
+				_ = c.Error(err)
+				return
+			}
+
+			for _, s := range sapSystems {
+				sapSystemsList = append(sapSystemsList, s)
+			}
+		}
+
+		sapSystemsTable := NewSAPSystemsTable(sapSystemsList, hostList)
+		sapSystemsTable = sapSystemsTable.filter(sidFilter)
+
 		c.HTML(http.StatusOK, "sapsystems.html.tmpl", gin.H{
-			"Environments": environments,
-			"EnvName":      envName,
-			"LandName":     landName,
+			"SAPSystemsTable": sapSystemsTable,
 		})
 	}
 }

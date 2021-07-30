@@ -55,3 +55,21 @@ footer.footer-side-menu ul.footer-list {
   border-radius: 0;
   border: none;
 }
+
+.collapse-toggle:after {
+  font-family: 'eos-icons';
+  content: "keyboard_arrow_up";
+  float: right;
+  font-size: 24px;
+  font-weight: normal;
+  display: inline;
+}
+
+.collapse-toggle.collapsed:after {
+  font-family: 'eos-icons';
+  content: "keyboard_arrow_down";
+  float: right;
+  font-size: 24px;
+  font-weight: normal;
+  display: inline;
+}

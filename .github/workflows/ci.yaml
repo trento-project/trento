@@ -112,6 +112,73 @@ jobs:
         with:
           role: web
 
+
+# TODO: This duplication is going to be removed once we make use of the installer
+# in the CI
+  deploy-netweaver01:
+    runs-on: [ self-hosted, vmnetweaver01 ]
+    needs: consul-cleanup
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v2
+      - id: cleanup
+        uses: ./.github/actions/consul_cleanup
+      - uses: actions/download-artifact@v2
+        with:
+          name: trento-amd64-binary
+      - id: deploy
+        uses: ./.github/actions/deploy
+        with:
+          role: agent
+
+  deploy-netweaver02:
+    runs-on: [ self-hosted, vmnetweaver02 ]
+    needs: consul-cleanup
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v2
+      - id: cleanup
+        uses: ./.github/actions/consul_cleanup
+      - uses: actions/download-artifact@v2
+        with:
+          name: trento-amd64-binary
+      - id: deploy
+        uses: ./.github/actions/deploy
+        with:
+          role: agent
+
+  deploy-netweaver03:
+    runs-on: [ self-hosted, vmnetweaver03 ]
+    needs: consul-cleanup
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v2
+      - id: cleanup
+        uses: ./.github/actions/consul_cleanup
+      - uses: actions/download-artifact@v2
+        with:
+          name: trento-amd64-binary
+      - id: deploy
+        uses: ./.github/actions/deploy
+        with:
+          role: agent
+
+  deploy-netweaver04:
+    runs-on: [ self-hosted, vmnetweaver04 ]
+    needs: consul-cleanup
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v2
+      - id: cleanup
+        uses: ./.github/actions/consul_cleanup
+      - uses: actions/download-artifact@v2
+        with:
+          name: trento-amd64-binary
+      - id: deploy
+        uses: ./.github/actions/deploy
+        with:
+          role: agent
+
   upload-release-assets:
     needs: build
     if: github.event.release

@@ -9,10 +9,12 @@ import (
 
 	consulApi "github.com/hashicorp/consul/api"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/tdewolff/minify/v2"
 	"github.com/tdewolff/minify/v2/html"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/consul/mocks"
+	"github.com/trento-project/trento/internal/sapsystem"
 )
 
 func setupEnvironmentsTest() (*mocks.Client, *mocks.Catalog, *mocks.KV) {
@@ -208,8 +210,91 @@ func TestLandscapesListHandler(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/landscapes/land3\\?environment=env2'\".*<td>land3</td><td>.*env2.*<td>1</td><td>2</td><td>.*critical.*</td>"), responseBody)
 }
 
+func sapSystemsMap(instanceName string, host string, instanceNr int, features string) map[string]interface{} {
+	return map[string]interface{}{
+		"HA1": map[string]interface{}{
+			"sid":  "HA1",
+			"type": sapsystem.Application,
+			"instances": map[string]interface{}{
+				instanceName: map[string]interface{}{
+					"name": instanceName,
+					"host": host,
+					"sapcontrol": map[string]interface{}{
+						"properties": map[string]interface{}{
+							"SAPSYSTEM": map[string]interface{}{
+								"Value": fmt.Sprintf("%02d", instanceNr),
+							},
+						},
+						"instances": map[string]interface{}{
+							"sapha1as": map[string]interface{}{
+								"instancenr": instanceNr,
+								"features":   features,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
 func TestSAPSystemsListHandler(t *testing.T) {
-	consulInst, catalog, _ := setupEnvironmentsTest()
+	nodes := []*consulApi.Node{
+		{
+			Node: "netweaver01",
+			Meta: map[string]string{
+				"trento-ha-cluster":    "banana",
+				"trento-ha-cluster-id": "e2f2eb50aef748e586a7baa85e0162cf",
+			},
+		},
+		{
+			Node: "netweaver02",
+			Meta: map[string]string{
+				"trento-ha-cluster":    "banana",
+				"trento-ha-cluster-id": "e2f2eb50aef748e586a7baa85e0162cf",
+			},
+		},
+		{
+			Node: "netweaver03",
+			Meta: map[string]string{
+				"trento-ha-cluster":    "banana",
+				"trento-ha-cluster-id": "e2f2eb50aef748e586a7baa85e0162cf",
+			},
+		},
+		{
+			Node: "netweaver04",
+			Meta: map[string]string{
+				"trento-ha-cluster":    "banana",
+				"trento-ha-cluster-id": "e2f2eb50aef748e586a7baa85e0162cf",
+			},
+		},
+	}
+
+	consulInst := new(mocks.Client)
+	catalog := new(mocks.Catalog)
+	kv := new(mocks.KV)
+
+	catalog.On("Nodes", mock.Anything).Return(nodes, nil, nil)
+	consulInst.On("Catalog").Return(catalog)
+
+	consulInst.On("WaitLock", mock.Anything).Return(nil)
+	p := fmt.Sprintf(consul.KvHostsSAPSystemPath, "netweaver01")
+	m := sapSystemsMap("ERS10", "netweaver01", 10, "ENQREP")
+	kv.On("ListMap", p, p).Return(m, nil)
+
+	p = fmt.Sprintf(consul.KvHostsSAPSystemPath, "netweaver02")
+	m = sapSystemsMap("ASCS00", "netweaver02", 0, "MESSAGESERVER|ENQUE")
+	kv.On("ListMap", p, p).Return(m, nil)
+
+	p = fmt.Sprintf(consul.KvHostsSAPSystemPath, "netweaver03")
+	m = sapSystemsMap("D01", "netweaver03", 1, "ABAP|GATEWAY|ICMAN|IGS")
+	kv.On("ListMap", p, p).Return(m, nil)
+
+	p = fmt.Sprintf(consul.KvHostsSAPSystemPath, "netweaver04")
+	m = sapSystemsMap("D02", "netweaver04", 2, "ABAP|GATEWAY|ICMAN|IGS")
+	kv.On("ListMap", p, p).Return(m, nil)
+
+	consulInst.On("KV").Return(kv)
 
 	deps := DefaultDependencies()
 	deps.consul = consulInst
@@ -234,9 +319,12 @@ func TestSAPSystemsListHandler(t *testing.T) {
 	responseBody := minifyHtml(resp.Body.String())
 
 	assert.Equal(t, 200, resp.Code)
-	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/sapsystems/PRD\\?environment=env1&landscape=land1'\".*<td>PRD</td><td>.*passing.*</td>"), responseBody)
-	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/sapsystems/HA2\\?environment=env1&landscape=land2'\".*<td>HA2</td><td>.*passing.*</td>"), responseBody)
-	assert.Regexp(t, regexp.MustCompile("<tr.*onclick=\"window.location='/sapsystems/HA3\\?environment=env2&landscape=land3'\".*<td>HA3</td><td>.*critical.*</td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<td><a href=\"/sapsystems/HA1.*>HA1</a></td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<td>HA1</td><td>ENQREP</td><td>10</td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>banana</a></td><td><a href=/hosts/netweaver01>netweaver01</a></td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<td>HA1</td><td>MESSAGESERVER|ENQUE</td><td>00</td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>banana</a></td><td><a href=/hosts/netweaver02>netweaver02</a></td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<td>HA1</td><td>ABAP|GATEWAY|ICMAN|IGS</td><td>01</td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>banana</a></td><td><a href=/hosts/netweaver03>netweaver03</a></td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<td>HA1</td><td>ABAP|GATEWAY|ICMAN|IGS</td><td>02</td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>banana</a></td><td><a href=/hosts/netweaver04>netweaver04</a></td>"), responseBody)
+
 }
 
 func TestLandscapeHandler(t *testing.T) {

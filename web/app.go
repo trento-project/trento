@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 
 	"github.com/trento-project/trento/internal/consul"
@@ -30,17 +32,19 @@ type App struct {
 type Dependencies struct {
 	consul        consul.Client
 	engine        *gin.Engine
+	store         cookie.Store
 	checksService services.ChecksService
 }
 
 func DefaultDependencies() Dependencies {
 	consulClient, _ := consul.DefaultClient()
 	engine := gin.Default()
+	store := cookie.NewStore([]byte("secret"))
 
 	araService := ara.NewAraService(araAddrDefault)
 	checksService := services.NewChecksService(araService)
 
-	return Dependencies{consulClient, engine, checksService}
+	return Dependencies{consulClient, engine, store, checksService}
 }
 
 func (d *Dependencies) SetAraAddr(araAddr string) {
@@ -63,6 +67,7 @@ func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
 	engine := deps.engine
 	engine.HTMLRender = NewLayoutRender(templatesFS, "templates/*.tmpl")
 	engine.Use(ErrorHandler)
+	engine.Use(sessions.Sessions("session", deps.store))
 	engine.StaticFS("/static", http.FS(assetsFS))
 	engine.GET("/", HomeHandler)
 	engine.GET("/hosts", NewHostListHandler(deps.consul))

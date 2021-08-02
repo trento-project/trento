@@ -1,6 +1,7 @@
 {{ define "additional_scripts" }}
 <script src="/static/frontend/assets/js/check_selection.js"></script>{{ end }}
 {{ define "content" }}
+    {{ template "alerts" .Alerts }}
     <h1>Cluster details <i class="eos-icons eos-24 cluster-settings" data-toggle="modal" data-target="#clusterModal">settings</i></h1>
     <div class="row">
         <div class="col">

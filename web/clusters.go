@@ -508,6 +508,7 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 			"ClusterType":      clusterType,
 			"HealthContainer":  hContainer,
 			"ChecksCatalog":    checksCatalog,
+			"Alerts":           GetAlerts(c),
 		})
 	}
 }
@@ -523,8 +524,24 @@ func NewPostClusterHandler(client consul.Client) gin.HandlerFunc {
 		var selectedChecks checkSelectionForm
 		c.ShouldBind(&selectedChecks)
 
-		cluster.StoreCheckSelection(
+		err := cluster.StoreCheckSelection(
 			client, clusterId, strings.Join(selectedChecks.Ids, ","))
+
+		var newAlert *Alert
+		if err == nil {
+			newAlert = &Alert{
+				Type:  "success",
+				Title: "Check selection saved",
+				Text:  "The cluster checks selection has been saved correctly.",
+			}
+		} else {
+			newAlert = &Alert{
+				Type:  "danger",
+				Title: "Error saving check selection",
+				Text:  "The cluster checks selection couldn't be saved.",
+			}
+		}
+		StoreAlert(c, newAlert)
 
 		c.Redirect(http.StatusFound, path.Join("/clusters", clusterId))
 	}

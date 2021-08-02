@@ -93,22 +93,27 @@
     - name: include 1.2.2
       import_role:
         name: '1.2.2'
+      when: "'1.2.2' in cluster_selected_checks"
 
     - name: include 1.3.1
       import_role:
         name: '1.3.1'
+      when: "'1.3.1' in cluster_selected_checks"
 
     - name: include 1.3.2
       import_role:
         name: '1.3.2'
+      when: "'1.3.2' in cluster_selected_checks"
 
     - name: include 1.3.3
       import_role:
         name: '1.3.3'
+      when: "'1.3.3' in cluster_selected_checks"
 
     - name: include 1.3.4
       import_role:
         name: '1.3.4'
+      when: "'1.3.4' in cluster_selected_checks"
 
     - name: include 1.3.5
       import_role:
@@ -118,10 +123,12 @@
     - name: include 1.3.6
       import_role:
         name: '1.3.6'
+      when: "'1.3.6' in cluster_selected_checks"
 
     - name: include 1.3.7
       import_role:
         name: '1.3.7'
+      when: "'1.3.7' in cluster_selected_checks"
 
     - name: Set Global Results
       set_fact:

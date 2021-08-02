@@ -18,62 +18,77 @@
     - name: include 1.1.1
       import_role:
         name: '1.1.1'
+      when: "'1.1.1' in cluster_selected_checks"
 
     - name: include 1.1.1.runtime
       import_role:
         name: '1.1.1.runtime'
+      when: "'1.1.1.runtime' in cluster_selected_checks"
 
     - name: include 1.1.2
       import_role:
         name: '1.1.2'
+      when: "'1.1.2' in cluster_selected_checks"
 
     - name: include 1.1.2.runtime
       import_role:
         name: '1.1.2.runtime'
+      when: "'1.1.2.runtime' in cluster_selected_checks"
 
     - name: include 1.1.3
       import_role:
         name: '1.1.3'
+      when: "'1.1.4' in cluster_selected_checks"
 
     - name: include 1.1.3.runtime
       import_role:
         name: '1.1.3.runtime'
+      when: "'1.1.3.runtime' in cluster_selected_checks"
 
     - name: include 1.1.4
       import_role:
         name: '1.1.4'
+      when: "'1.1.4' in cluster_selected_checks"
 
     - name: include 1.1.4.runtime
       import_role:
         name: '1.1.4.runtime'
+      when: "'1.1.4.runtime' in cluster_selected_checks"
 
     - name: include 1.1.5
       import_role:
         name: '1.1.5'
+      when: "'1.1.5' in cluster_selected_checks"
 
     - name: include 1.1.5.runtime
       import_role:
         name: '1.1.5.runtime'
+      when: "'1.1.5.runtime' in cluster_selected_checks"
 
     - name: include 1.1.6
       import_role:
         name: '1.1.6'
+      when: "'1.1.6' in cluster_selected_checks"
 
     - name: include 1.1.7
       import_role:
         name: '1.1.7'
+      when: "'1.1.7' in cluster_selected_checks"
 
     - name: include 1.1.8
       import_role:
         name: '1.1.8'
+      when: "'1.1.8' in cluster_selected_checks"
 
     - name: include 1.1.8.runtime
       import_role:
         name: '1.1.8.runtime'
+      when: "'1.1.8.runtime' in cluster_selected_checks"
 
     - name: include 1.2.1
       import_role:
         name: '1.2.1'
+      when: "'1.2.1' in cluster_selected_checks"
 
     - name: include 1.2.2
       import_role:
@@ -98,6 +113,7 @@
     - name: include 1.3.5
       import_role:
         name: '1.3.5'
+      when: "'1.3.5' in cluster_selected_checks"
 
     - name: include 1.3.6
       import_role:
@@ -109,7 +125,7 @@
 
     - name: Set Global Results
       set_fact:
-        global_results: "{{ (global_results |  default({})) | combine(hostvars[item]['tests']) }}"
+        global_results: "{{ (global_results |  default({})) | combine(hostvars[item]['tests']|default({})) }}"
       with_inventory_hostnames:
         - all
       run_once: yes

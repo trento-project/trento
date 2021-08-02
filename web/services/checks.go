@@ -53,11 +53,11 @@ func (c *checksService) GetChecksCatalogByGroup() (map[string]map[string]*models
 	}
 
 	for cId, c := range checkList {
-		normalizedGroup := c.NormalizeGroup()
-		if _, ok := groupedCheckList[normalizedGroup]; !ok {
-			groupedCheckList[normalizedGroup] = make(map[string]*models.Check)
+		extendedGroup := c.ExtendedGroupName()
+		if _, ok := groupedCheckList[extendedGroup]; !ok {
+			groupedCheckList[extendedGroup] = make(map[string]*models.Check)
 		}
-		groupedCheckList[normalizedGroup][cId] = c
+		groupedCheckList[extendedGroup][cId] = c
 	}
 
 	return groupedCheckList, nil

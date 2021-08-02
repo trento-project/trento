@@ -15,20 +15,12 @@ import (
 	"github.com/trento-project/trento/internal/consul"
 )
 
-var ansibleHostsTemplate = fmt.Sprintf(`{{- with node }}
-{{- $nodename := .Node.Node }}
-[all]
-{{- range nodes }}
-{{- if ne .Node $nodename }}
-{{ .Node }}
-{{- end }}
-{{- end }}
-{{- end }}
+var ansibleHostsTemplate = fmt.Sprintf(`
 {{- range $key, $pairs := tree "%[1]s" | byKey }}
-[{{ key (print "%[1]s" $key "/name") }}]
-{{- range tree (print "%[1]s" $key "/crmmon/Nodes") }}
+[{{ key (print "%[1]s" $key "/data/name") }}]
+{{- range tree (print "%[1]s" $key "/data/crmmon/Nodes") }}
 {{- if .Key | contains "/Name" }}
-{{ .Value }}
+{{ .Value }} cluster_selected_checks={{ key (print "%[1]s" $key "/checks") }}
 {{- end }}
 {{- end }}
 {{- end }}

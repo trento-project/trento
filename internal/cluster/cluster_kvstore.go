@@ -10,7 +10,7 @@ import (
 )
 
 func (c *Cluster) getKVPath() string {
-	return path.Join(consul.KvClustersPath, c.Id)
+	return path.Join(consul.KvClustersPath, c.Id, "data")
 }
 
 func (c *Cluster) Store(client consul.Client) error {
@@ -58,7 +58,8 @@ func Load(client consul.Client) (map[string]*Cluster, error) {
 
 	for entry, value := range entries {
 		cluster := &Cluster{}
-		mapstructure.Decode(value, &cluster)
+		data := value.(map[string]interface{})["data"]
+		mapstructure.Decode(data, &cluster)
 		clusters[entry] = cluster
 	}
 

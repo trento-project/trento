@@ -13,13 +13,14 @@ type Check struct {
 	Remediation    string `json:"remediation,omitempty" mapstructure:"remediation,omitempty"`
 	Implementation string `json:"implementation,omitempty" mapstructure:"implementation,omitempty"`
 	Labels         string `json:"labels,omitempty" mapstructure:"labels,omitempty"`
+	Selected       bool   `json:"selected,omitempty" mapstructure:"selected,omitempty"`
 }
 
 func (c *Check) NormalizeID() string {
 	return strings.Replace(c.ID, ".", "-", -1)
 }
 
-func (c *Check) NormalizeGroup() string {
+func (c *Check) ExtendedGroupName() string {
 	item := strings.Split(c.ID, ".")
 	return fmt.Sprintf("%s.%s - %s", item[0], item[1], c.Group)
 }

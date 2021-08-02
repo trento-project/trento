@@ -5,6 +5,10 @@
   delegate_to: localhost
   run_once: yes
 
+- name: set default value to cluster_selected_checks
+  set_fact:
+    cluster_selected_checks: "{{ cluster_selected_checks|default('') }}"
+
 - debug:
     var: expected
     verbosity: 1

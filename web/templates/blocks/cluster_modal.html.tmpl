@@ -43,8 +43,8 @@
                                               <tr>
                                                   <td class="row-status">
                                                       <div class='form-check'>
-                                                         <input class='parent-{{ $groupNumber }} form-check-input eos-checkbox' type='checkbox' name="ids[]" value="{{ .ID }}" id='{{ $groupNumber }}-{{ $index }}' {{ if .Selected }}checked="checked"{{ end }}>
-                                                         <label class='form-check-label' for='{{ $groupNumber }}-{{ $index }}'>{{ .ID }}</label>
+                                                         <input class='parent-{{ $groupNumber }} form-check-input eos-checkbox' type='checkbox' name="ids[]" value="{{ .ID }}" id='{{ $groupNumber }}-{{ .NormalizeID }}' {{ if .Selected }}checked="checked"{{ end }}>
+                                                         <label class='form-check-label' for='{{ $groupNumber }}-{{ .NormalizeID }}'>{{ .ID }}</label>
                                                      </div>
                                                   </td>
                                                   <td>{{ .ID }}</td>

@@ -9,8 +9,10 @@ import (
 	"github.com/trento-project/trento/internal/consul"
 )
 
+const discoveredDataPath string = "discovered_data"
+
 func (c *Cluster) getKVPath() string {
-	return path.Join(consul.KvClustersPath, c.Id, "data")
+	return path.Join(consul.KvClustersPath, c.Id, discoveredDataPath)
 }
 
 func (c *Cluster) Store(client consul.Client) error {
@@ -58,7 +60,7 @@ func Load(client consul.Client) (map[string]*Cluster, error) {
 
 	for entry, value := range entries {
 		cluster := &Cluster{}
-		data := value.(map[string]interface{})["data"]
+		data := value.(map[string]interface{})[discoveredDataPath]
 		mapstructure.Decode(data, &cluster)
 		clusters[entry] = cluster
 	}

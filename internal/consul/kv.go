@@ -31,6 +31,7 @@ const (
 	intFlag    uint64 = 4
 
 	KvClustersPath       string = "trento/v0/clusters/"
+	KvClustersChecksPath string = "trento/v0/clusters/%s/user_settings/checks"
 	KvHostsPath          string = "trento/v0/hosts/"
 	KvHostsMetadataPath  string = "trento/v0/hosts/%s/metadata/"
 	KvHostsClouddataPath string = "trento/v0/hosts/%s/cloud/"

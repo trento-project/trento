@@ -1,7 +1,7 @@
 package cluster
 
 import (
-	"path"
+	"fmt"
 
 	"github.com/pkg/errors"
 
@@ -14,14 +14,19 @@ func GetCheckSelection(client consul.Client, clusterId string) (string, error) {
 		return "", errors.Wrap(err, "error waiting for the lock for clusters")
 	}
 
-	kvPath := path.Join(consul.KvClustersPath, clusterId, "checks")
+	kvPath := fmt.Sprintf(consul.KvClustersChecksPath, clusterId)
 
 	pair, _, err := client.KV().Get(kvPath, nil)
 	if err != nil {
 		return "", errors.Wrap(err, "error getting the cluster checks selection")
 	}
 
-	return string(pair.Value), nil
+	var selectedChecks string
+	if pair != nil {
+		selectedChecks = string(pair.Value)
+	}
+
+	return selectedChecks, nil
 }
 
 func StoreCheckSelection(client consul.Client, clusterId, selected string) error {
@@ -32,7 +37,7 @@ func StoreCheckSelection(client consul.Client, clusterId, selected string) error
 	}
 	defer l.Unlock()
 
-	kvPath := path.Join(consul.KvClustersPath, clusterId, "checks")
+	kvPath := fmt.Sprintf(consul.KvClustersChecksPath, clusterId)
 
 	err = client.KV().PutTyped(kvPath, selected)
 	if err != nil {

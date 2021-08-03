@@ -1,6 +1,7 @@
 package cluster
 
 import (
+	"fmt"
 	"path"
 
 	"github.com/mitchellh/mapstructure"
@@ -9,10 +10,8 @@ import (
 	"github.com/trento-project/trento/internal/consul"
 )
 
-const discoveredDataPath string = "discovered_data"
-
 func (c *Cluster) getKVPath() string {
-	return path.Join(consul.KvClustersPath, c.Id, discoveredDataPath)
+	return fmt.Sprintf(consul.KvClustersDiscoveredPath, c.Id)
 }
 
 func (c *Cluster) Store(client consul.Client) error {
@@ -57,6 +56,8 @@ func Load(client consul.Client) (map[string]*Cluster, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "could not query Consul for cluster KV values")
 	}
+
+	_, discoveredDataPath := path.Split(consul.KvClustersDiscoveredPath)
 
 	for entry, value := range entries {
 		cluster := &Cluster{}

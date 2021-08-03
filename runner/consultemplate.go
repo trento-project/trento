@@ -11,20 +11,25 @@ import (
 	"github.com/hashicorp/consul-template/manager"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-
 	"github.com/trento-project/trento/internal/consul"
 )
 
+const clusterSelectedChecks string = "cluster_selected_checks"
+
 var ansibleHostsTemplate = fmt.Sprintf(`
-{{- range $key, $pairs := tree "%[1]s" | byKey }}
-[{{ key (print "%[1]s" $key "/data/name") }}]
-{{- range tree (print "%[1]s" $key "/data/crmmon/Nodes") }}
+{{- range $key, $pairs := tree "%[2]s" | byKey }}
+[{{ key (print (printf "%[3]s" $key) "/name") }}]
+{{- range tree (print (printf "%[3]s" $key) "/crmmon/Nodes") }}
 {{- if .Key | contains "/Name" }}
-{{ .Value }} cluster_selected_checks={{ key (print "%[1]s" $key "/checks") }}
+{{ .Value }} %[1]s={{ key (printf "%[4]s" $key) }}
 {{- end }}
 {{- end }}
 {{- end }}
-`, consul.KvClustersPath)
+`,
+	clusterSelectedChecks,
+	consul.KvClustersPath,
+	consul.KvClustersDiscoveredPath,
+	consul.KvClustersChecksPath)
 
 const ansibleHostFile = "ansible_hosts"
 

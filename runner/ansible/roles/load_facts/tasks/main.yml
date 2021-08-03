@@ -7,7 +7,7 @@
 
 - name: set default value to cluster_selected_checks
   set_fact:
-    cluster_selected_checks: "{{ cluster_selected_checks|default('') }}"
+    cluster_selected_checks: "{{ cluster_selected_checks|default('')|split(',') }}"
 
 - debug:
     var: expected

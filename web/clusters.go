@@ -445,7 +445,7 @@ func getChecksCatalog(clusterId string, client consul.Client, s services.ChecksS
 
 	for _, checkList := range checksCatalog {
 		for _, check := range checkList {
-			if strings.Contains(selectedChecks, check.ID) {
+			if internal.Contains(strings.Split(selectedChecks, ","), check.ID) {
 				check.Selected = true
 			}
 		}

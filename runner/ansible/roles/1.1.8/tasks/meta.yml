@@ -3,18 +3,18 @@
         name: post-metadata
         tasks_from: store
   vars:
-    id: 1.1.1.runtime
-    name: Corosync Token is set to {{ expected['1.1.1'] }} (runtime)
+    id: 1.1.8
+    name: Corosync two_node parameter is set to {{ expected[id] }}
     group: Corosync
     labels: generic
     description: |
-      Test if the configured corosync Token has the correct value during runtime: {{ expected['1.1.1'] }}
+      Test if the configured corosync two_node parameter has the correct value: {{ expected[id] }}
     remediation: |
       ## Abstract
-      The runtime value of the Corosync `token` timeout is not set as recommended.
+      The runtime value of the corosync `two_node` parameter is not set as recommended.
 
       ## Remediation
-      Adjust the corosync `token` timeout as recommended on the Azure best practices, and reload the corosync service
+      Adjust the corosync two_node parameter to `1` to make sure Pacemaker calculates the actions properly for a two-node cluster.
       
       ## References
       - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker

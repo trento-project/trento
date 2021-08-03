@@ -517,7 +517,7 @@ type checkSelectionForm struct {
 	Ids []string `form:"ids[]"`
 }
 
-func NewPostClusterHandler(client consul.Client) gin.HandlerFunc {
+func NewSaveChecksHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		clusterId := c.Param("id")
 

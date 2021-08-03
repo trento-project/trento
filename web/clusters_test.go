@@ -205,6 +205,15 @@ func checksCatalogByGroup() map[string]map[string]*models.Check {
 				Implementation: "implementation 1",
 				Labels:         "labels 1",
 			},
+			"1.1.1.runtime": &models.Check{
+				ID:             "1.1.1.runtime",
+				Name:           "check 1 (runtime)",
+				Group:          "group 1",
+				Description:    "description 1",
+				Remediation:    "remediation 1",
+				Implementation: "implementation 1",
+				Labels:         "labels 1",
+			},
 			"1.1.2": &models.Check{
 				ID:             "1.1.2",
 				Name:           "check 2",
@@ -378,6 +387,8 @@ func TestClusterHandlerHANA(t *testing.T) {
 	// Settings modal
 	assert.Regexp(t, regexp.MustCompile("id=0-1-1-1 checked>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td>1.1.1</td><td>description 1</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("id=0-1-1-1-runtime>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td>1.1.1.runtime</td><td>description 1</td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("id=0-1-1-2>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td>1.1.2</td><td>description 2</td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("id=1-1-2-3 checked>"), minified)
@@ -455,7 +466,7 @@ func TestClusterHandler404Error(t *testing.T) {
 	assert.Contains(t, resp.Body.String(), "Not Found")
 }
 
-func TestPostClusterHandler(t *testing.T) {
+func TestSaveChecksHandler(t *testing.T) {
 	var err error
 
 	kv := new(mocks.KV)
@@ -478,7 +489,7 @@ func TestPostClusterHandler(t *testing.T) {
 	data.Set("ids[]", "1.2.3")
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("POST", "/clusters/foobar", strings.NewReader(data.Encode()))
+	req, err := http.NewRequest("POST", "/clusters/foobar/checks", strings.NewReader(data.Encode()))
 	if err != nil {
 		t.Fatal(err)
 	}

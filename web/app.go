@@ -77,7 +77,7 @@ func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
 	engine.GET("/catalog", NewChecksCatalogHandler(deps.checksService))
 	engine.GET("/clusters", NewClusterListHandler(deps.consul))
 	engine.GET("/clusters/:id", NewClusterHandler(deps.consul, deps.checksService))
-	engine.POST("/clusters/:id", NewPostClusterHandler(deps.consul))
+	engine.POST("/clusters/:id/checks", NewSaveChecksHandler(deps.consul))
 	engine.GET("/environments", NewEnvironmentListHandler(deps.consul))
 	engine.GET("/environments/:env", NewEnvironmentHandler(deps.consul))
 	engine.GET("/landscapes", NewLandscapeListHandler(deps.consul))

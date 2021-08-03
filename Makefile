@@ -1,6 +1,14 @@
 VERSION ?= $(shell hack/get_version_from_git.sh)
-GO_BUILD = CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -X github.com/trento-project/trento/version.Version=$(VERSION)"
+LDFLAGS = -X github.com/trento-project/trento/version.Version="$(VERSION)"
 ARCHS ?= amd64 arm64 ppc64le s390x
+DEBUG ?= 0
+
+ifeq ($(DEBUG), 0)
+	LDFLAGS += -s -w
+	GO_BUILD = CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)" -trimpath
+else
+	GO_BUILD = CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)"
+endif
 
 default: clean mod-tidy fmt vet-check test build
 

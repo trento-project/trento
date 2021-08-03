@@ -135,3 +135,21 @@ td i.critical {
   font-size: 24px;
   font-weight: normal;
 }
+
+.cluster-settings {
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.card-check-selection {
+  background-color: white;
+  padding: 0 !important;
+}
+
+.card-header-check-selection {
+  padding: 0.40rem 0  0 1.25rem;
+}
+
+.header-check-selection {
+  padding-left: 0 !important;
+}

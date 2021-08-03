@@ -1,6 +1,7 @@
 package cluster
 
 import (
+	"fmt"
 	"path"
 
 	"github.com/mitchellh/mapstructure"
@@ -10,7 +11,7 @@ import (
 )
 
 func (c *Cluster) getKVPath() string {
-	return path.Join(consul.KvClustersPath, c.Id)
+	return fmt.Sprintf(consul.KvClustersDiscoveredPath, c.Id)
 }
 
 func (c *Cluster) Store(client consul.Client) error {
@@ -56,9 +57,12 @@ func Load(client consul.Client) (map[string]*Cluster, error) {
 		return nil, errors.Wrap(err, "could not query Consul for cluster KV values")
 	}
 
+	_, discoveredDataPath := path.Split(consul.KvClustersDiscoveredPath)
+
 	for entry, value := range entries {
 		cluster := &Cluster{}
-		mapstructure.Decode(value, &cluster)
+		data := value.(map[string]interface{})[discoveredDataPath]
+		mapstructure.Decode(data, &cluster)
 		clusters[entry] = cluster
 	}
 

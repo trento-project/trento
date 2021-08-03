@@ -29,7 +29,7 @@ func TestStore(t *testing.T) {
 
 	consulInst.On("KV").Return(kv)
 
-	kvPath := path.Join(consul.KvClustersPath, "47d1190ffb4f781974c8356d7f863b03")
+	kvPath := path.Join(consul.KvClustersPath, "47d1190ffb4f781974c8356d7f863b03", "discovered_data")
 
 	expectedPutMap := map[string]interface{}{
 		"cib": map[string]interface{}{
@@ -249,58 +249,60 @@ func TestLoad(t *testing.T) {
 
 	listMap := map[string]interface{}{
 		"test_cluster": map[string]interface{}{
-			"cib": map[string]interface{}{
-				"Configuration": map[string]interface{}{
-					"CrmConfig": map[string]interface{}{
-						"ClusterProperties": []interface{}{
-							map[string]interface{}{
-								"Id":    "cib-bootstrap-options-cluster-name",
-								"Value": "cluster_name",
+			"discovered_data": map[string]interface{}{
+				"cib": map[string]interface{}{
+					"Configuration": map[string]interface{}{
+						"CrmConfig": map[string]interface{}{
+							"ClusterProperties": []interface{}{
+								map[string]interface{}{
+									"Id":    "cib-bootstrap-options-cluster-name",
+									"Value": "cluster_name",
+								},
 							},
 						},
 					},
 				},
-			},
-			"crmmon": map[string]interface{}{
-				"Version": "1.2.3",
-				"Nodes": []interface{}{
-					map[string]interface{}{
-						"Name": "othernode",
-						"DC":   false,
-					},
-					map[string]interface{}{
-						"Name": host,
-						"DC":   true,
+				"crmmon": map[string]interface{}{
+					"Version": "1.2.3",
+					"Nodes": []interface{}{
+						map[string]interface{}{
+							"Name": "othernode",
+							"DC":   false,
+						},
+						map[string]interface{}{
+							"Name": host,
+							"DC":   true,
+						},
 					},
 				},
-			},
-			"sbd": map[string]interface{}{
-				"devices": []interface{}{
-					map[string]interface{}{
-						"device": "/dev/vdc",
-						"status": "healthy",
-						"dump": map[string]interface{}{
-							"header":          "header",
-							"uuid":            "uuid",
-							"slots":           1,
-							"sectorsize":      2,
-							"timeoutwatchdog": 3,
-							"timeoutallocate": 4,
-							"timeoutloop":     5,
-							"timeoutmsgwait":  6,
-						},
-						"list": []interface{}{
-							map[string]interface{}{
-								"id":     1234,
-								"name":   "node1",
-								"status": "clean",
+				"sbd": map[string]interface{}{
+					"devices": []interface{}{
+						map[string]interface{}{
+							"device": "/dev/vdc",
+							"status": "healthy",
+							"dump": map[string]interface{}{
+								"header":          "header",
+								"uuid":            "uuid",
+								"slots":           1,
+								"sectorsize":      2,
+								"timeoutwatchdog": 3,
+								"timeoutallocate": 4,
+								"timeoutloop":     5,
+								"timeoutmsgwait":  6,
+							},
+							"list": []interface{}{
+								map[string]interface{}{
+									"id":     1234,
+									"name":   "node1",
+									"status": "clean",
+								},
 							},
 						},
 					},
-				},
-				"config": map[string]interface{}{
-					"param1": "value1",
-					"param2": "value2",
+					"config": map[string]interface{}{
+						"param1": "value1",
+						"param2": "value2",
+					},
 				},
 			},
 		},

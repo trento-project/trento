@@ -1,0 +1,73 @@
+{{ define "cluster_modal" }}
+  <div class="modal fade" id="clusterModal" tabindex="-1" role="dialog" aria-labelledby="clusterModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+          <div class="modal-content">
+          <form action="/clusters/{{ .Cluster.Id }}/checks" method="POST">
+              <div class="modal-header">
+                  <h5 class="modal-title" id="clusterModalLabel">{{ .Cluster.Name }}</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                  </button>
+              </div>
+              <div class="modal-body">
+                  <h6>Checks selection</h6>
+                  <div id="checksAccordion">
+                      {{- $groupNumber := 0 }}
+                      {{- range $group, $data := .ChecksCatalog }}
+                      <div class="card">
+                          <div class="card-header card-header-check-selection" id="check-{{ $groupNumber }}">
+                              <div class='form-check float-left'>
+                                  <input class='parent form-check-input eos-checkbox' type='checkbox' id='{{ $groupNumber }}' {{ $found := .Selected }}{{- range $index, $check := $data }}{{ if and .Selected (not $found) }}checked="checked"{{ $found := true }}{{ end }}{{ end }}>
+                                  <label class='form-check-label' for='{{ $groupNumber }}'>{{ $group }}</label>
+                              </div>
+                              <div class='dropdown float-right'>
+                                  <div class='dropdown-toggle' data-toggle="collapse" data-target="#collapse-{{ $groupNumber }}" aria-expanded="true" aria-controls="collapse-{{ $groupNumber }}">
+                                      <i class="eos-icons eos-18">keyboard_arrow_down</i>
+                                  </div>
+                              </div>
+                          </div>
+
+                          <div id="collapse-{{ $groupNumber }}" class="collapse" aria-labelledby="check-{{ $groupNumber }}" data-parent="#checksAccordion">
+                              <div class="card-body card-check-selection">
+                                  <div class='table-responsive'>
+                                      <table class='table table-sm eos-table'>
+                                          <thead>
+                                              <tr>
+                                                  <th class='header-check-selection' scope='col'></th>
+                                                  <th class='header-check-selection' scope='col'>Test ID</th>
+                                                  <th class='header-check-selection' scope='col'>Description</th>
+                                              </tr>
+                                          </thead>
+                                          <tbody>
+                                              {{- range $index, $check := $data }}
+                                              <tr>
+                                                  <td class="row-status">
+                                                      <div class='form-check'>
+                                                         <input class='parent-{{ $groupNumber }} form-check-input eos-checkbox' type='checkbox' name="ids[]" value="{{ .ID }}" id='{{ $groupNumber }}-{{ .NormalizeID }}' {{ if .Selected }}checked="checked"{{ end }}>
+                                                         <label class='form-check-label' for='{{ $groupNumber }}-{{ .NormalizeID }}'>{{ .ID }}</label>
+                                                     </div>
+                                                  </td>
+                                                  <td>{{ .ID }}</td>
+                                                  <td>{{ .Description}}</td>
+                                              </tr>
+                                              {{- else }}
+                                                  {{ template "empty_table_body" 3 }}
+                                              {{- end }}
+                                          </tbody>
+                                      </table>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                      {{- $groupNumber = sum $groupNumber 1 }}
+                      {{- end }}
+                  </div>
+              </div>
+              <div class="modal-footer">
+                  <button type="submit" class="btn btn-primary">Save</button>
+              </div>
+          </form>
+          </div>
+      </div>
+  </div>
+{{ end }}

@@ -30,12 +30,14 @@ const (
 	sliceFlag  uint64 = 3
 	intFlag    uint64 = 4
 
-	KvClustersPath       string = "trento/v0/clusters/"
-	KvHostsPath          string = "trento/v0/hosts/"
-	KvHostsMetadataPath  string = "trento/v0/hosts/%s/metadata/"
-	KvHostsClouddataPath string = "trento/v0/hosts/%s/cloud/"
-	KvHostsSAPSystemPath string = "trento/v0/hosts/%s/sapsystems/"
-	KvEnvironmentsPath   string = "trento/v0/environments/"
+	KvClustersPath           string = "trento/v0/clusters/"
+	KvClustersDiscoveredPath string = "trento/v0/clusters/%s/discovered_data"
+	KvClustersChecksPath     string = "trento/v0/clusters/%s/user_settings/checks"
+	KvHostsPath              string = "trento/v0/hosts/"
+	KvHostsMetadataPath      string = "trento/v0/hosts/%s/metadata/"
+	KvHostsClouddataPath     string = "trento/v0/hosts/%s/cloud/"
+	KvHostsSAPSystemPath     string = "trento/v0/hosts/%s/sapsystems/"
+	KvEnvironmentsPath       string = "trento/v0/environments/"
 
 	KvDefaultGroup string = "default"
 )

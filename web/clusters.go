@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"net/http"
+	"path"
 	"strings"
 
 	"github.com/trento-project/trento/internal"
@@ -14,6 +15,8 @@ import (
 	"github.com/trento-project/trento/internal/cluster"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
+	"github.com/trento-project/trento/web/models"
+	"github.com/trento-project/trento/web/services"
 )
 
 type Node struct {
@@ -429,7 +432,29 @@ func NewClusterListHandler(client consul.Client) gin.HandlerFunc {
 	}
 }
 
-func NewClusterHandler(client consul.Client) gin.HandlerFunc {
+func getChecksCatalog(clusterId string, client consul.Client, s services.ChecksService) (map[string]map[string]*models.Check, error) {
+	checksCatalog, err := s.GetChecksCatalogByGroup()
+	if err != nil {
+		return checksCatalog, err
+	}
+
+	selectedChecks, err := cluster.GetCheckSelection(client, clusterId)
+	if err != nil {
+		return checksCatalog, err
+	}
+
+	for _, checkList := range checksCatalog {
+		for _, check := range checkList {
+			if internal.Contains(strings.Split(selectedChecks, ","), check.ID) {
+				check.Selected = true
+			}
+		}
+	}
+
+	return checksCatalog, nil
+}
+
+func NewClusterHandler(client consul.Client, s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		clusterId := c.Param("id")
 
@@ -439,7 +464,7 @@ func NewClusterHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		cluster, ok := clusters[clusterId]
+		clusterItem, ok := clusters[clusterId]
 		if !ok {
 			_ = c.Error(NotFoundError("could not find cluster"))
 			return
@@ -452,28 +477,72 @@ func NewClusterHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		clusterType := detectClusterType(cluster)
+		clusterType := detectClusterType(clusterItem)
 		if clusterType == ClusterTypeUnknown {
 			c.HTML(http.StatusOK, "cluster_generic.html.tmpl", gin.H{
-				"Cluster": cluster,
+				"Cluster": clusterItem,
 				"Hosts":   hosts,
 			})
 			return
 		}
 
-		nodes := NewNodes(cluster, hosts)
+		checksCatalog, err := getChecksCatalog(clusterId, client, s)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
+		nodes := NewNodes(clusterItem, hosts)
+
+		hContainer := &HealthContainer{
+			CriticalCount: nodes.CriticalCount(),
+			WarningCount:  nodes.WarningCount(),
+			PassingCount:  nodes.PassingCount(),
+			Layout:        "vertical",
+		}
 
 		c.HTML(http.StatusOK, "cluster_hana.html.tmpl", gin.H{
-			"Cluster":          cluster,
+			"Cluster":          clusterItem,
 			"Nodes":            nodes,
-			"StoppedResources": stoppedResources(cluster),
+			"StoppedResources": stoppedResources(clusterItem),
 			"ClusterType":      clusterType,
-			"HealthContainer": &HealthContainer{
-				CriticalCount: nodes.CriticalCount(),
-				WarningCount:  nodes.WarningCount(),
-				PassingCount:  nodes.PassingCount(),
-				Layout:        "vertical",
-			},
+			"HealthContainer":  hContainer,
+			"ChecksCatalog":    checksCatalog,
+			"Alerts":           GetAlerts(c),
 		})
+	}
+}
+
+type checkSelectionForm struct {
+	Ids []string `form:"ids[]"`
+}
+
+func NewSaveChecksHandler(client consul.Client) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		clusterId := c.Param("id")
+
+		var selectedChecks checkSelectionForm
+		c.ShouldBind(&selectedChecks)
+
+		err := cluster.StoreCheckSelection(
+			client, clusterId, strings.Join(selectedChecks.Ids, ","))
+
+		var newAlert *Alert
+		if err == nil {
+			newAlert = &Alert{
+				Type:  "success",
+				Title: "Check selection saved",
+				Text:  "The cluster checks selection has been saved correctly.",
+			}
+		} else {
+			newAlert = &Alert{
+				Type:  "danger",
+				Title: "Error saving check selection",
+				Text:  "The cluster checks selection couldn't be saved.",
+			}
+		}
+		StoreAlert(c, newAlert)
+
+		c.Redirect(http.StatusFound, path.Join("/clusters", clusterId))
 	}
 }

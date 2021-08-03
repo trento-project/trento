@@ -1,0 +1,12 @@
+{{ define "alerts" }}
+{{ range $Alert := . }}
+<div class="alert alert-section alert-{{ $Alert.Type }}">
+    <i class="eos-icons eos-18">{{ $Alert.GetIcon }}</i>
+    <div class="alert-body">
+        <div class="alert-title">{{ $Alert.Title }}</div>
+        {{ $Alert.Text }}
+    </div>
+    <a class="close" data-dismiss="alert"><i class="eos-icons eos-18">close</i></a>
+</div>
+{{ end }}
+{{ end }}

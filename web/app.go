@@ -64,6 +64,7 @@ func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
 		port:         port,
 	}
 
+	InitAlerts()
 	engine := deps.engine
 	engine.HTMLRender = NewLayoutRender(templatesFS, "templates/*.tmpl")
 	engine.Use(ErrorHandler)

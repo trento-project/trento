@@ -1,9 +1,7 @@
 package web
 
 import (
-	"fmt"
-	"strings"
-
+	"encoding/gob"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
@@ -14,10 +12,6 @@ type Alert struct {
 	Type  string
 	Title string
 	Text  string
-}
-
-func (a *Alert) String() string {
-	return fmt.Sprintf("%s::%s::%s", a.Type, a.Title, a.Text)
 }
 
 func (a *Alert) GetIcon() string {
@@ -33,22 +27,13 @@ func (a *Alert) GetIcon() string {
 	}
 }
 
-func alertStrToStruct(str string) (*Alert, error) {
-	items := strings.Split(str, "::")
-	if len(items) != 3 {
-		return nil, fmt.Errorf("Malformed string. The string must have the type, title and text elements splitted by ::")
-	}
-
-	return &Alert{
-		Type:  items[0],
-		Title: items[1],
-		Text:  items[2],
-	}, nil
+func InitAlerts() {
+	gob.Register(Alert{})
 }
 
 func StoreAlert(c *gin.Context, a *Alert) {
 	session := sessions.Default(c)
-	session.AddFlash(a.String(), AlertsKey)
+	session.AddFlash(a, AlertsKey)
 	session.Save()
 }
 
@@ -58,8 +43,8 @@ func GetAlerts(c *gin.Context) []*Alert {
 	var alerts []*Alert
 
 	for _, alertI := range f {
-		alert, _ := alertStrToStruct(alertI.(string))
-		alerts = append(alerts, alert)
+		alert, _ := alertI.(Alert)
+		alerts = append(alerts, &alert)
 	}
 	session.Save()
 

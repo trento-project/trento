@@ -6,19 +6,13 @@
 
 - name: "{{ test_id }}.check"
   shell: |
-    cf_status=$(crm_attribute -t crm_config -G -n concurrent-fencing --quiet)
-    if cibadmin -Q --xpath "//primitive[@type='fence_azure_arm']/@type" > /dev/null 2>&1; then
-        if [[ ${cf_status} = "true" ]]; then
-            echo "correct"
-        else
-           echo "${cf_status}"
-        fi
-    else
-        echo "fence_azure_arm not configured"
-    fi
+    cibadmin -Q --xpath "//primitive[@type='fence_azure_arm']/@type" > /dev/null 2>&1 || exit 0
+    [[ $(crm_attribute -t crm_config -G -n concurrent-fencing --quiet) = "{{ expected[test_id] }}" && exit 0
+    exit 1
   check_mode: no
   register: config_updated
-  changed_when: config_updated.stdout != expected[test_id]
+  changed_when: config_updated.rc != 0
+  failed_when:  config_updated.rc > 1
 
 - block:
     - import_role:

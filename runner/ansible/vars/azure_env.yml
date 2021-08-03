@@ -23,7 +23,4 @@ expected:
   "1.4.1.pcmk_monitor_retries": "4"
   "1.4.1.pcmk_reboot_timeout": "900"
   "1.4.1.power_timeout": "240"
-  "1.4.2": "correct OR fence_azure_arm not configured"
-  "1.5.1": "pass"
-  "1.5.2": "blocked"
-  "1.5.3": "passed"
+  "1.4.2": "true"

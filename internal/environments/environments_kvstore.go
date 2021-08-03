@@ -53,7 +53,7 @@ func loadHosts(client consul.Client, env *Environment) error {
 			query := hosts.CreateFilterMetaQuery(map[string][]string{
 				"trento-sap-environment": []string{env.Name},
 				"trento-sap-landscape":   []string{landKey},
-				"trento-sap-system":      []string{sysKey},
+				"trento-sap-systems":     []string{sysKey},
 			})
 			h, err := hosts.Load(client, query, []string{})
 			if err != nil {

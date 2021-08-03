@@ -13,6 +13,7 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           go-version: ^1.16
+
       - uses: actions/setup-node@v2
         with:
           node-version: "15"
@@ -30,6 +31,8 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
+      - name: get git tags
+        run: git fetch --prune --unshallow --tags
       - name: install-mockery
         run: go install github.com/vektra/mockery/v2
       - name: test

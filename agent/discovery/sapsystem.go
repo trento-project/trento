@@ -39,19 +39,19 @@ func (d SAPSystemsDiscovery) Discover() error {
 		if err != nil {
 			return err
 		}
+	}
 
-		// Store SAP System, Landscape and Environment names on hosts metadata
-		err = storeSAPSystemTags(d.discovery.client, s)
-		if err != nil {
-			return err
-		}
+	// Store SAP System, Landscape and Environment names on hosts metadata
+	err = storeSAPSystemTags(d.discovery.client, d.SAPSystems)
+	if err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func storeSAPSystemTags(client consul.Client, system *sapsystem.SAPSystem) error {
-	envName, landName, sysName, err := loadSAPSystemTags(client, system.SID)
+func storeSAPSystemTags(client consul.Client, systems sapsystem.SAPSystemsList) error {
+	envName, landName, err := loadSAPSystemTags(client, systems[0].SID)
 	if err != nil {
 		return err
 	}
@@ -59,7 +59,9 @@ func storeSAPSystemTags(client consul.Client, system *sapsystem.SAPSystem) error
 	// If we didn't find any environment, we create a new default one
 	if envName == "" {
 		land := environments.NewDefaultLandscape()
-		land.AddSystem(environments.NewSystem(sysName, system.Type))
+		for _, system := range systems {
+			land.AddSystem(environments.NewSystem(system.SID, system.Type))
+		}
 		env := environments.NewDefaultEnvironment()
 		env.AddLandscape(land)
 
@@ -71,11 +73,13 @@ func storeSAPSystemTags(client consul.Client, system *sapsystem.SAPSystem) error
 		landName = land.Name
 	}
 
+	sysNames := systems.GetSIDsString()
+
 	// Store host metadata
 	metadata := hosts.Metadata{
 		Environment: envName,
 		Landscape:   landName,
-		SAPSystem:   sysName,
+		SAPSystems:  sysNames,
 	}
 
 	err = metadata.Store(client)
@@ -88,13 +92,13 @@ func storeSAPSystemTags(client consul.Client, system *sapsystem.SAPSystem) error
 
 // These methods must go here. We cannot put them in the internal/sapsystem.go package
 // as this creates potential cyclical imports
-func loadSAPSystemTags(client consul.Client, sid string) (string, string, string, error) {
+func loadSAPSystemTags(client consul.Client, sid string) (string, string, error) {
 	var env, land string
 	sys := sid
 
 	envs, err := environments.Load(client)
 	if err != nil {
-		return env, land, sys, err
+		return env, land, err
 	}
 	for envKey, envValue := range envs {
 		for landKey, landValue := range envValue.Landscapes {
@@ -107,5 +111,5 @@ func loadSAPSystemTags(client consul.Client, sid string) (string, string, string
 			}
 		}
 	}
-	return env, land, sys, err
+	return env, land, err
 }

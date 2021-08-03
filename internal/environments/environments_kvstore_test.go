@@ -66,7 +66,7 @@ func TestEnvironmentLoad(t *testing.T) {
 			Meta: map[string]string{
 				"trento-sap-environment": "env1",
 				"trento-sap-landscape":   "land1",
-				"trento-sap-system":      "sys1",
+				"trento-sap-systems":     "sys1,sys3",
 			},
 		},
 		{
@@ -74,13 +74,13 @@ func TestEnvironmentLoad(t *testing.T) {
 			Meta: map[string]string{
 				"trento-sap-environment": "env2",
 				"trento-sap-landscape":   "land2",
-				"trento-sap-system":      "sys2",
+				"trento-sap-systems":     "sys2,sys4",
 			},
 		},
 	}
 
 	filter := &consulApi.QueryOptions{
-		Filter: "(Meta[\"trento-sap-environment\"] == \"env1\") and (Meta[\"trento-sap-landscape\"] == \"land1\") and (Meta[\"trento-sap-system\"] == \"sys1\")"}
+		Filter: "(Meta[\"trento-sap-environment\"] == \"env1\") and (Meta[\"trento-sap-landscape\"] == \"land1\") and (Meta[\"trento-sap-systems\"] contains \"sys1\")"}
 	catalog.On("Nodes", (filter)).Return(nodes, nil, nil)
 
 	returnedMap := map[string]interface{}{

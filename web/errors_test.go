@@ -31,6 +31,7 @@ func TestErrorHandlerContentNegotiation(t *testing.T) {
 	app.Use(ErrorHandler)
 	app.GET("/", func(c *gin.Context) {
 		c.Error(errors.New("error message"))
+		c.Error(errors.New("2nd error message"))
 	})
 
 	w := httptest.NewRecorder()
@@ -41,6 +42,8 @@ func TestErrorHandlerContentNegotiation(t *testing.T) {
 
 	assert.Equal(t, 500, w.Code)
 	assert.Contains(t, w.Body.String(), "Ooops")
+	assert.Contains(t, w.Body.String(), "error message</br>")
+	assert.Contains(t, w.Body.String(), "2nd error message</br>")
 }
 
 func TestErrorHandlerWithHttpError(t *testing.T) {

@@ -15,8 +15,8 @@ import (
 type ChecksService interface {
 	GetChecksCatalog() (map[string]*models.Check, error)
 	GetChecksCatalogByGroup() (map[string]map[string]*models.Check, error)
-	GetChecksResult() (models.ChecksResult, error)
-	GetChecksResultByCluster(clusterName string) (models.ChecksResultByCheck, error)
+	GetChecksResult() (map[string]*models.Results, error)
+	GetChecksResultByCluster(clusterName string) (*models.Results, error)
 }
 
 type checksService struct {
@@ -28,27 +28,27 @@ func NewChecksService(araService ara.AraService) ChecksService {
 }
 
 func (c *checksService) GetChecksCatalog() (map[string]*models.Check, error) {
-	checkList := make(map[string]*models.Check)
+	var checkData = models.CheckData{}
 
 	records, err := c.araService.GetRecordList("key=trento-metadata&order=-id")
 	if err != nil {
-		return checkList, err
+		return nil, err
 	}
 
 	if len(records.Results) == 0 {
-		return checkList, nil
+		return nil, nil
 	}
 
 	record, err := c.araService.GetRecord(records.Results[0].ID)
 	if err != nil {
-		return checkList, err
+		return nil, err
 	}
 
 	log.Debug(record.Value)
 
-	mapstructure.Decode(record.Value, &checkList)
+	mapstructure.Decode(record.Value, &checkData)
 
-	return checkList, nil
+	return checkData.Metadata.Checks, nil
 }
 
 func (c *checksService) GetChecksCatalogByGroup() (map[string]map[string]*models.Check, error) {
@@ -70,42 +70,38 @@ func (c *checksService) GetChecksCatalogByGroup() (map[string]map[string]*models
 	return groupedCheckList, nil
 }
 
-func (c *checksService) GetChecksResult() (models.ChecksResult, error) {
-	cResult := models.ChecksResult{}
+func (c *checksService) GetChecksResult() (map[string]*models.Results, error) {
+	var checkData = models.CheckData{}
 
 	records, err := c.araService.GetRecordList("key=trento-results&order=-id")
 	if err != nil {
-		return cResult, err
+		return nil, err
 	}
 
 	if len(records.Results) == 0 {
-		return cResult, nil
+		return nil, nil
 	}
 
 	record, err := c.araService.GetRecord(records.Results[0].ID)
 	if err != nil {
-		return cResult, err
+		return nil, err
 	}
 
-	log.Debug(record.Value)
+	mapstructure.Decode(record.Value, &checkData)
 
-	mapstructure.Decode(record.Value, &cResult)
-
-	return cResult, nil
+	return checkData.Groups, nil
 }
 
-func (c *checksService) GetChecksResultByCluster(clusterName string) (models.ChecksResultByCheck, error) {
-	var cResultByCheck = models.ChecksResultByCheck{}
-
+func (c *checksService) GetChecksResultByCluster(clusterName string) (*models.Results, error) {
 	cResult, err := c.GetChecksResult()
 	if err != nil {
-		return cResultByCheck, err
+		return nil, err
 	}
 
-	cResultByCheck, ok := cResult[clusterName]
+	cResultByHost, ok := cResult[clusterName]
 	if !ok {
 		return nil, fmt.Errorf("Cluster %s not found", clusterName)
 	}
 
-	return cResultByCheck, nil
+	return cResultByHost, nil
 }

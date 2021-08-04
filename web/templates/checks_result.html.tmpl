@@ -17,19 +17,19 @@
             <tr>
                 <th scope="col">Test ID</th>
                 <th scope="col">Description</th>
-                {{- range $i, $host := .CheckedHosts }}
+                {{- range $i, $host := .ChecksResult.GetHostNames }}
                 <th scope="col">{{ $host }}</th>
                 {{- end }}
             </tr>
             </thead>
             <tbody>
             {{- $checksMetadata := .ChecksMetadata}}
-            {{- range $testID, $checkList := .ChecksResult }}
+            {{- range $testID, $checkList := .ChecksResult.Checks }}
                 {{- $testData := index $checksMetadata $testID }}
                 <tr>
                     <td class="align-top">{{ $testID }}</td>
                     <td class="align-top">{{ if $testData }}{{ $testData.Description }}{{ else }}Test metadata not found{{ end }}</td>
-                    {{- range $host, $result := $checkList }}
+                    {{- range $host, $result := $checkList.Hosts }}
                     <td>{{- if $result.Result }}<i class="eos-icons eos-18 text-success">check_circle</i>{{ else }}<i class="eos-icons eos-18 text-danger">error</i>{{ end }}</td>
                     {{- end }}
                 </tr>

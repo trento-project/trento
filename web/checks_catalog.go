@@ -37,9 +37,8 @@ func NewChecksResultHandler(s services.ChecksService) gin.HandlerFunc {
 		}
 
 		c.HTML(http.StatusOK, "checks_result.html.tmpl", gin.H{
-			"ChecksResult": checkResultList,
+			"ChecksResult":   checkResultList,
 			"ChecksMetadata": checksMetadata,
-			"CheckedHosts": checkResultList.GetHostNames(),
 		})
 	}
 }

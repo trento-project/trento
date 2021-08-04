@@ -5,6 +5,24 @@ import (
 	"strings"
 )
 
+type CheckData struct {
+	Metadata Metadata            `json:"metadata,omitempty" mapstructure:"metadata,omitempty"`
+	Groups   map[string]*Results `json:"results,omitempty" mapstructure:"results,omitempty"`
+}
+
+type Metadata struct {
+	Checks map[string]*Check `json:"checks,omitempty" mapstructure:"checks,omitempty"`
+}
+
+type Results struct {
+	Checks map[string]*ChecksByHost `json:"checks,omitempty" mapstructure:"checks,omitempty"`
+}
+
+// The ChecksByHost struct stores the checks list, but the results are grouped by hosts
+type ChecksByHost struct {
+	Hosts map[string]*Check `json:"hosts,omitempty" mapstructure:"hosts,omitempty"`
+}
+
 type Check struct {
 	ID             string `json:"id,omitempty" mapstructure:"id,omitempty"`
 	Name           string `json:"name,omitempty" mapstructure:"name,omitempty"`
@@ -17,21 +35,14 @@ type Check struct {
 	Result         bool   `json:"result,omitempty" mapstructure:"result,omitempty"`
 }
 
-type ChecksResult map[string]ChecksResultByCheck
-
-type ChecksResultByCheck map[string]ChecksResultByHost
-
-type ChecksResultByHost map[string]*Check
-
-func (c *ChecksResultByCheck) GetHostNames() []string {
+func (c *Results) GetHostNames() []string {
 	var hostNames []string
-	for _, rByHost := range (*c) {
-		for h, _ := range rByHost {
-			hostNames = append(hostNames, h)
+	for _, cList := range c.Checks {
+		for host, _ := range cList.Hosts {
+			hostNames = append(hostNames, host)
 		}
 		break
 	}
-
 	return hostNames
 }
 

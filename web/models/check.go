@@ -16,6 +16,28 @@ type Check struct {
 	Selected       bool   `json:"selected,omitempty" mapstructure:"selected,omitempty"`
 }
 
+type ChecksResult map[string]ChecksResultByCheck
+
+type ChecksResultByCheck map[string]ChecksResultByHost
+
+type ChecksResultByHost map[string]*Result
+
+type Result struct {
+	Result bool `json:"result" mapstructure:"result"`
+}
+
+func (c *ChecksResultByCheck) GetHostNames() []string {
+	var hostNames []string
+	for _, rByHost := range (*c) {
+		for h, _ := range rByHost {
+			hostNames = append(hostNames, h)
+		}
+		break
+	}
+
+	return hostNames
+}
+
 func (c *Check) NormalizeID() string {
 	return strings.Replace(c.ID, ".", "-", -1)
 }

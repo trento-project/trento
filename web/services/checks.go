@@ -1,6 +1,7 @@
 package services
 
 import (
+	"encoding/json"
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/trento-project/trento/web/models"
@@ -12,6 +13,7 @@ import (
 type ChecksService interface {
 	GetChecksCatalog() (map[string]*models.Check, error)
 	GetChecksCatalogByGroup() (map[string]map[string]*models.Check, error)
+	GetChecksResult(clusterName string) (models.ChecksResultByCheck, error)
 }
 
 type checksService struct {
@@ -61,4 +63,33 @@ func (c *checksService) GetChecksCatalogByGroup() (map[string]map[string]*models
 	}
 
 	return groupedCheckList, nil
+}
+
+func (c *checksService) GetChecksResult(clusterName string) (models.ChecksResultByCheck, error) {
+	cResultByCheck := models.ChecksResultByCheck{}
+	cResult := models.ChecksResult{}
+
+	records, err := c.araService.GetRecordList("key=trento-results&order=-id")
+	if err != nil {
+		return cResultByCheck, err
+	}
+
+	if len(records.Results) == 0 {
+		return cResultByCheck, nil
+	}
+
+	record, err := c.araService.GetRecord(records.Results[0].ID)
+	if err != nil {
+		return cResultByCheck, err
+	}
+
+	err = json.Unmarshal([]byte(record.Value.(string)), &cResult)
+	if err != nil {
+		return cResultByCheck, err
+	}
+
+
+	cResultByCheck = cResult[clusterName]
+
+	return cResultByCheck, nil
 }

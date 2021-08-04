@@ -132,7 +132,7 @@
 
     - name: Set Global Results
       set_fact:
-        global_results: "{{ (global_results |  default({})) | combine(hostvars[item]['tests']|default({})) }}"
+        global_results: "{{ (global_results |  default({})) | combine(hostvars[item]['tests']|default({}), recursive=True) }}"
       with_inventory_hostnames:
         - all
       run_once: yes

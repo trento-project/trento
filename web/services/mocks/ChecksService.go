@@ -57,3 +57,26 @@ func (_m *ChecksService) GetChecksCatalogByGroup() (map[string]map[string]*model
 
 	return r0, r1
 }
+
+// GetChecksResult provides a mock function with given fields: clusterName
+func (_m *ChecksService) GetChecksResult(clusterName string) (models.ChecksResultByCheck, error) {
+	ret := _m.Called(clusterName)
+
+	var r0 models.ChecksResultByCheck
+	if rf, ok := ret.Get(0).(func(string) models.ChecksResultByCheck); ok {
+		r0 = rf(clusterName)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(models.ChecksResultByCheck)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(clusterName)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}

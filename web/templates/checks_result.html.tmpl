@@ -1,0 +1,42 @@
+{{ define "content" }}
+    <div class="row">
+        <div class="col">
+            <h1>Checks result</h1>
+        </div>
+        <div class="col text-right">
+            <i class="eos-icons eos-dark eos-18 ">schedule</i> Updated at:
+            <span id="last_update" class="text-nowrap text-muted">
+                    Not available
+                </span>
+        </div>
+    </div>
+    <hr class="margin-10px"/>
+    <div class="table-responsive">
+        <table class="table eos-table">
+            <thead>
+            <tr>
+                <th scope="col">Test ID</th>
+                <th scope="col">Description</th>
+                {{- range $i, $host := .CheckedHosts }}
+                <th scope="col">{{ $host }}</th>
+                {{- end }}
+            </tr>
+            </thead>
+            <tbody>
+            {{- $checksMetadata := .ChecksMetadata}}
+            {{- range $testID, $checkList := .ChecksResult }}
+                {{- $testData := index $checksMetadata $testID }}
+                <tr>
+                    <td class="align-top">{{ $testID }}</td>
+                    <td class="align-top">{{ if $testData }}{{ $testData.Description }}{{ else }}Test metadata not found{{ end }}</td>
+                    {{- range $host, $result := $checkList }}
+                    <td>{{- if $result.Result }}<i class="eos-icons eos-18 text-success">check_circle</i>{{ else }}<i class="eos-icons eos-18 text-danger">error</i>{{ end }}</td>
+                    {{- end }}
+                </tr>
+            {{- else }}
+                {{ template "empty_table_body" 4}}
+            {{- end }}
+            </tbody>
+        </table>
+    </div>
+{{ end }}

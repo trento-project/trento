@@ -16,13 +16,16 @@
                           <tr>
                               <th scope="col">Test ID</th>
                               <th scope="col">Description</th>
+                              {{- if .ChecksResult }}
                               {{- range $i, $host := .ChecksResult.GetHostNames }}
                               <th scope="col">{{ $host }}</th>
+                              {{- end }}
                               {{- end }}
                           </tr>
                           </thead>
                           <tbody>
                           {{- $checksMetadata := .ChecksCatalog }}
+                          {{- if .ChecksResult }}
                           {{- range $checkID, $checkList := .ChecksResult.Checks }}
                               {{- $checkMeta := index $checksMetadata $checkID }}
                               <tr>
@@ -34,6 +37,7 @@
                               </tr>
                           {{- else }}
                               {{ template "empty_table_body" 4}}
+                          {{- end }}
                           {{- end }}
                           </tbody>
                       </table>

@@ -475,6 +475,93 @@ func TestClusterHandlerHANA(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("<td.*>1.1.2</td><td.*>description 2</td><td>.*error.*error"), minified)
 }
 
+func TestClusterHandlerAlert(t *testing.T) {
+	nodes := []*consulApi.Node{
+		{
+			Node:    "test_node_1",
+			Address: "192.168.1.1",
+		},
+		{
+			Node:    "test_node_2",
+			Address: "192.168.1.2",
+		},
+	}
+
+	node1HealthChecks := consulApi.HealthChecks{
+		&consulApi.HealthCheck{
+			Status: consulApi.HealthPassing,
+		},
+	}
+
+	node2HealthChecks := consulApi.HealthChecks{
+		&consulApi.HealthCheck{
+			Status: consulApi.HealthCritical,
+		},
+	}
+
+	consulInst := new(mocks.Client)
+	checksMocks := new(serviceMocks.ChecksService)
+
+	kv := new(mocks.KV)
+	consulInst.On("KV").Return(kv)
+	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
+	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil).Times(1)
+
+	catalog := new(mocks.Catalog)
+	filter := &consulApi.QueryOptions{Filter: "Meta[\"trento-ha-cluster-id\"] == \"47d1190ffb4f781974c8356d7f863b03\""}
+	catalog.On("Nodes", filter).Return(nodes, nil, nil)
+	consulInst.On("Catalog").Return(catalog)
+
+	health := new(mocks.Health)
+	health.On("Node", "test_node_1", (*consulApi.QueryOptions)(nil)).Return(node1HealthChecks, nil, nil)
+	health.On("Node", "test_node_2", (*consulApi.QueryOptions)(nil)).Return(node2HealthChecks, nil, nil)
+	consulInst.On("Health").Return(health)
+
+	checksMocks.On("GetChecksCatalog").Return(nil, fmt.Errorf("catalog error"))
+	checksMocks.On("GetChecksCatalogByGroup").Return(nil, fmt.Errorf("catalog error"))
+	checksMocks.On("GetChecksResultByCluster", "sculpin").Return(nil, fmt.Errorf("catalog error"))
+
+	deps := DefaultDependencies()
+	deps.consul = consulInst
+	deps.checksService = checksMocks
+
+	app, err := NewAppWithDeps("", 80, deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/clusters/47d1190ffb4f781974c8356d7f863b03", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Accept", "text/html")
+
+	app.ServeHTTP(resp, req)
+
+	consulInst.AssertExpectations(t)
+	kv.AssertExpectations(t)
+	checksMocks.AssertExpectations(t)
+
+	m := minify.New()
+	m.AddFunc("text/html", html.Minify)
+	m.Add("text/html", &html.Minifier{
+		KeepDefaultAttrVals: true,
+		KeepEndTags:         true,
+	})
+	minified, err := m.String("text/html", resp.Body.String())
+	if err != nil {
+		panic(err)
+	}
+
+	assert.NoError(t, err)
+	assert.Equal(t, 200, resp.Code)
+	assert.Contains(t, resp.Body.String(), "Cluster details")
+
+	assert.Regexp(t, regexp.MustCompile("Error loading the checks catalog"), minified)
+	assert.Equal(t, 1, strings.Count(minified, "Error loading the checks catalog"))
+}
+
 func TestClusterHandlerGeneric(t *testing.T) {
 	consulInst := new(mocks.Client)
 

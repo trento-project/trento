@@ -14,17 +14,14 @@ type Check struct {
 	Implementation string `json:"implementation,omitempty" mapstructure:"implementation,omitempty"`
 	Labels         string `json:"labels,omitempty" mapstructure:"labels,omitempty"`
 	Selected       bool   `json:"selected,omitempty" mapstructure:"selected,omitempty"`
+	Result         bool   `json:"result,omitempty" mapstructure:"result,omitempty"`
 }
 
 type ChecksResult map[string]ChecksResultByCheck
 
 type ChecksResultByCheck map[string]ChecksResultByHost
 
-type ChecksResultByHost map[string]*Result
-
-type Result struct {
-	Result bool `json:"result" mapstructure:"result"`
-}
+type ChecksResultByHost map[string]*Check
 
 func (c *ChecksResultByCheck) GetHostNames() []string {
 	var hostNames []string

@@ -1,11 +1,13 @@
 package services
 
 import (
-	"encoding/json"
+	"fmt"
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services/ara"
+
+	log "github.com/sirupsen/logrus"
 )
 
 //go:generate mockery --name=ChecksService
@@ -13,7 +15,8 @@ import (
 type ChecksService interface {
 	GetChecksCatalog() (map[string]*models.Check, error)
 	GetChecksCatalogByGroup() (map[string]map[string]*models.Check, error)
-	GetChecksResult(clusterName string) (models.ChecksResultByCheck, error)
+	GetChecksResult() (models.ChecksResult, error)
+	GetChecksResultByCluster(clusterName string) (models.ChecksResultByCheck, error)
 }
 
 type checksService struct {
@@ -41,6 +44,8 @@ func (c *checksService) GetChecksCatalog() (map[string]*models.Check, error) {
 		return checkList, err
 	}
 
+	log.Debug(record.Value)
+
 	mapstructure.Decode(record.Value, &checkList)
 
 	return checkList, nil
@@ -65,31 +70,42 @@ func (c *checksService) GetChecksCatalogByGroup() (map[string]map[string]*models
 	return groupedCheckList, nil
 }
 
-func (c *checksService) GetChecksResult(clusterName string) (models.ChecksResultByCheck, error) {
-	cResultByCheck := models.ChecksResultByCheck{}
+func (c *checksService) GetChecksResult() (models.ChecksResult, error) {
 	cResult := models.ChecksResult{}
 
 	records, err := c.araService.GetRecordList("key=trento-results&order=-id")
 	if err != nil {
-		return cResultByCheck, err
+		return cResult, err
 	}
 
 	if len(records.Results) == 0 {
-		return cResultByCheck, nil
+		return cResult, nil
 	}
 
 	record, err := c.araService.GetRecord(records.Results[0].ID)
 	if err != nil {
-		return cResultByCheck, err
+		return cResult, err
 	}
 
-	err = json.Unmarshal([]byte(record.Value.(string)), &cResult)
+	log.Debug(record.Value)
+
+	mapstructure.Decode(record.Value, &cResult)
+
+	return cResult, nil
+}
+
+func (c *checksService) GetChecksResultByCluster(clusterName string) (models.ChecksResultByCheck, error) {
+	var cResultByCheck = models.ChecksResultByCheck{}
+
+	cResult, err := c.GetChecksResult()
 	if err != nil {
 		return cResultByCheck, err
 	}
 
-
-	cResultByCheck = cResult[clusterName]
+	cResultByCheck, ok := cResult[clusterName]
+	if !ok {
+		return nil, fmt.Errorf("Cluster %s not found", clusterName)
+	}
 
 	return cResultByCheck, nil
 }

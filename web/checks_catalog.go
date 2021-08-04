@@ -24,7 +24,7 @@ func NewChecksCatalogHandler(s services.ChecksService) gin.HandlerFunc {
 
 func NewChecksResultHandler(s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		checkResultList, err := s.GetChecksResult("hog")
+		checkResultList, err := s.GetChecksResultByCluster("hog")
 		if err != nil {
 			_ = c.Error(err)
 			return

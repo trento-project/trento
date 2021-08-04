@@ -141,7 +141,7 @@
     - name: Post Global Results To ARA
       ara_record:
         key: "trento-results"
-        value: "{{ global_results | to_nice_json  }}"
+        value: "{{ global_results }}"
         type: json
       run_once: yes
       delegate_to: localhost

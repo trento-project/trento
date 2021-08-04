@@ -6,29 +6,16 @@
 
 - name: "{{ test_id }}.check"
   shell: |
-    function attempt_login {
-      /usr/bin/expect << 'EOF'
-      set timeout 5
-      spawn ssh -o "StrictHostKeyChecking no" hacluster@127.0.0.1 :
-      expect "assword:"
-      send -- "linux\r"
-      expect {
-        "assword:" { exit 1}
-        eof { exit 0 }
-      }
-      foreach {pid spawnid os_error_flag value} [wait] break
-      exit $value
-    EOF
-    return $?
-    }
-    # The test fails if we could successfully log into hacluster
-    $(attempt_login) && exit 1
+    # if hacluster passwd is linux, fail 
+    salt=$(sudo getent shadow hacluster | cut -d$ -f3)
+    epassword=$(sudo getent shadow hacluster | cut -d: -f2)
+    match=$(python3 -c 'import crypt; print(crypt.crypt("linux", "$6$'${salt}'"))')
+    [[ ${match} == ${epassword} ]] && exit 1
     exit 0
   check_mode: no
   register: config_updated
   changed_when: config_updated.rc != 0
   failed_when: config_updated.rc > 1
-  
 
 - block:
     - import_role:

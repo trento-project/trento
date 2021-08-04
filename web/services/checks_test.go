@@ -488,3 +488,107 @@ func TestGetChecksResultRecordError(t *testing.T) {
 
 	mockAra.AssertExpectations(t)
 }
+
+func TestGetChecksResultByCluster(t *testing.T) {
+
+	mockAra := new(araMocks.AraService)
+
+	rList := &ara.RecordList{
+		Count: 3,
+		Results: []*ara.RecordListResult{
+			&ara.RecordListResult{
+				ID:       3,
+				Playbook: 1,
+				Key:      "results",
+				Type:     "json",
+			},
+			&ara.RecordListResult{
+				ID:       2,
+				Playbook: 1,
+				Key:      "results",
+				Type:     "json",
+			},
+			&ara.RecordListResult{
+				ID:       1,
+				Playbook: 1,
+				Key:      "results",
+				Type:     "json",
+			},
+		},
+	}
+
+	mockAra.On("GetRecordList", "key=trento-results&order=-id").Return(
+		rList, nil,
+	)
+
+	r := &ara.Record{
+		ID: 1,
+		Value: map[string]interface{}{
+			"results": map[string]interface{}{
+				"mycluster": map[string]interface{}{
+					"checks": map[string]interface{}{
+						"1.1.1": map[string]interface{}{
+							"hosts": map[string]interface{}{
+								"host1": map[string]interface{}{
+									"result": true,
+								},
+								"host2": map[string]interface{}{
+									"result": true,
+								},
+							},
+						},
+						"1.1.2": map[string]interface{}{
+							"hosts": map[string]interface{}{
+								"host1": map[string]interface{}{
+									"result": false,
+								},
+								"host2": map[string]interface{}{
+									"result": false,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		Key:  "results",
+		Type: "json",
+	}
+
+	mockAra.On("GetRecord", 3).Return(
+		r, nil,
+	)
+
+	checksService := NewChecksService(mockAra)
+	c, err := checksService.GetChecksResultByCluster("mycluster")
+
+	expectedResults := &models.Results{
+		Checks: map[string]*models.ChecksByHost{
+			"1.1.1": &models.ChecksByHost{
+				Hosts: map[string]*models.Check{
+					"host1": &models.Check{
+						Result: true,
+					},
+					"host2": &models.Check{
+						Result: true,
+					},
+				},
+			},
+			"1.1.2": &models.ChecksByHost{
+				Hosts: map[string]*models.Check{
+					"host1": &models.Check{
+						Result: false,
+					},
+					"host2": &models.Check{
+						Result: false,
+					},
+				},
+			},
+		},
+	}
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedResults, c)
+
+	mockAra.AssertExpectations(t)
+}

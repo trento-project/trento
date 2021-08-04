@@ -432,7 +432,7 @@ func NewClusterListHandler(client consul.Client) gin.HandlerFunc {
 	}
 }
 
-func getChecksCatalog(clusterId string, client consul.Client, s services.ChecksService) (map[string]map[string]*models.Check, error) {
+func getChecksCatalogModalData(clusterId string, client consul.Client, s services.ChecksService) (map[string]map[string]*models.Check, error) {
 	checksCatalog, err := s.GetChecksCatalogByGroup()
 	if err != nil {
 		return checksCatalog, err
@@ -486,10 +486,11 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 			return
 		}
 
-		checksCatalog, err := getChecksCatalog(clusterId, client, s)
-		if err != nil {
-			_ = c.Error(err)
-			return
+		checksCatalog, errCatalog := s.GetChecksCatalog()
+		checksCatalogModalData, errCatalogByGroup := getChecksCatalogModalData(clusterId, client, s)
+		checksRestult, errResult := s.GetChecksResultByCluster(clusterItem.Name)
+		if errCatalog != nil || errCatalogByGroup != nil || errResult != nil {
+			StoreAlert(c, AlertCatalogNotFound())
 		}
 
 		nodes := NewNodes(clusterItem, hosts)
@@ -502,13 +503,15 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 		}
 
 		c.HTML(http.StatusOK, "cluster_hana.html.tmpl", gin.H{
-			"Cluster":          clusterItem,
-			"Nodes":            nodes,
-			"StoppedResources": stoppedResources(clusterItem),
-			"ClusterType":      clusterType,
-			"HealthContainer":  hContainer,
-			"ChecksCatalog":    checksCatalog,
-			"Alerts":           GetAlerts(c),
+			"Cluster":            clusterItem,
+			"Nodes":              nodes,
+			"StoppedResources":   stoppedResources(clusterItem),
+			"ClusterType":        clusterType,
+			"HealthContainer":    hContainer,
+			"ChecksCatalog":      checksCatalog,
+			"ChecksCatalogModal": checksCatalogModalData,
+			"ChecksResult":       checksRestult,
+			"Alerts":             GetAlerts(c),
 		})
 	}
 }

@@ -192,6 +192,50 @@ func clustersListMap() map[string]interface{} {
 	return listMap
 }
 
+func checksCatalog() map[string]*models.Check {
+
+	checksByGroup := map[string]*models.Check{
+		"1.1.1": &models.Check{
+			ID:             "1.1.1",
+			Name:           "check 1",
+			Group:          "group 1",
+			Description:    "description 1",
+			Remediation:    "remediation 1",
+			Implementation: "implementation 1",
+			Labels:         "labels 1",
+		},
+		"1.1.1.runtime": &models.Check{
+			ID:             "1.1.1.runtime",
+			Name:           "check 1 (runtime)",
+			Group:          "group 1",
+			Description:    "description 1",
+			Remediation:    "remediation 1",
+			Implementation: "implementation 1",
+			Labels:         "labels 1",
+		},
+		"1.1.2": &models.Check{
+			ID:             "1.1.2",
+			Name:           "check 2",
+			Group:          "group 1",
+			Description:    "description 2",
+			Remediation:    "remediation 2",
+			Implementation: "implementation 2",
+			Labels:         "labels 2",
+		},
+		"1.2.3": &models.Check{
+			ID:             "1.2.3",
+			Name:           "check 3",
+			Group:          "group 2",
+			Description:    "description 3",
+			Remediation:    "remediation 3",
+			Implementation: "implementation 3",
+			Labels:         "labels 3",
+		},
+	}
+
+	return checksByGroup
+}
+
 func checksCatalogByGroup() map[string]map[string]*models.Check {
 
 	checksByGroup := map[string]map[string]*models.Check{
@@ -238,6 +282,36 @@ func checksCatalogByGroup() map[string]map[string]*models.Check {
 	}
 
 	return checksByGroup
+}
+
+func checksResult() *models.Results {
+
+	checksResult := &models.Results{
+		Checks: map[string]*models.ChecksByHost{
+			"1.1.1": &models.ChecksByHost{
+				Hosts: map[string]*models.Check{
+					"host1": &models.Check{
+						Result: true,
+					},
+					"host2": &models.Check{
+						Result: true,
+					},
+				},
+			},
+			"1.1.2": &models.ChecksByHost{
+				Hosts: map[string]*models.Check{
+					"host1": &models.Check{
+						Result: false,
+					},
+					"host2": &models.Check{
+						Result: false,
+					},
+				},
+			},
+		},
+	}
+
+	return checksResult
 }
 
 func TestClustersListHandler(t *testing.T) {
@@ -331,7 +405,9 @@ func TestClusterHandlerHANA(t *testing.T) {
 	selectedChecksValue := &consulApi.KVPair{Value: []byte("1.1.1,1.2.3")}
 	kv.On("Get", selectedChecksPath, (*consulApi.QueryOptions)(nil)).Return(selectedChecksValue, nil, nil)
 
+	checksMocks.On("GetChecksCatalog").Return(checksCatalog(), nil)
 	checksMocks.On("GetChecksCatalogByGroup").Return(checksCatalogByGroup(), nil)
+	checksMocks.On("GetChecksResultByCluster", "sculpin").Return(checksResult(), nil)
 
 	deps := DefaultDependencies()
 	deps.consul = consulInst
@@ -393,6 +469,10 @@ func TestClusterHandlerHANA(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("<td>1.1.2</td><td>description 2</td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("id=1-1-2-3 checked>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td>1.2.3</td><td>description 3</td>"), minified)
+	// Checks result modal
+	assert.Regexp(t, regexp.MustCompile("<th.*>host1.*<th.*>host2"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*>1.1.1</td><td.*>description 1</td><td>.*check_circle.*check_circle"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*>1.1.2</td><td.*>description 2</td><td>.*error.*error"), minified)
 }
 
 func TestClusterHandlerGeneric(t *testing.T) {

@@ -1,0 +1,45 @@
+{{ define "cluster_checks_result_modal" }}
+    <div class="modal left fade" id="checks-result-modal" tabindex="" role="dialog" aria-labelledby="checks-result-modal-label"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg" style="max-width:1250px;" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">Checks result</h2>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                  <div class="table-responsive">
+                      <table class="table eos-table">
+                          <thead>
+                          <tr>
+                              <th scope="col">Test ID</th>
+                              <th scope="col">Description</th>
+                              {{- range $i, $host := .ChecksResult.GetHostNames }}
+                              <th scope="col">{{ $host }}</th>
+                              {{- end }}
+                          </tr>
+                          </thead>
+                          <tbody>
+                          {{- $checksMetadata := .ChecksCatalog }}
+                          {{- range $checkID, $checkList := .ChecksResult.Checks }}
+                              {{- $checkMeta := index $checksMetadata $checkID }}
+                              <tr>
+                                  <td class="align-top">{{ $checkID }}</td>
+                                  <td class="align-top">{{ if $checkMeta }}{{ $checkMeta.Description }}{{ else }}Test metadata not found{{ end }}</td>
+                                  {{- range $host, $result := $checkList.Hosts }}
+                                  <td>{{- if $result.Result }}<i class="eos-icons eos-18 text-success">check_circle</i>{{ else }}<i class="eos-icons eos-18 text-danger">error</i>{{ end }}</td>
+                                  {{- end }}
+                              </tr>
+                          {{- else }}
+                              {{ template "empty_table_body" 4}}
+                          {{- end }}
+                          </tbody>
+                      </table>
+                  </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{{ end }}

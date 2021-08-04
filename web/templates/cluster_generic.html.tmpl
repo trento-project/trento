@@ -41,7 +41,7 @@
         <hr/>
         <p class='clearfix'></p>
         <h2>Hosts</h2>
-        {{ template "hosts_table" . }}
+        {{ template "hosts_table" .Hosts }}
         <hr/>
         <p class='clearfix'></p>
         {{- if .Cluster.IsFencingSBD }}

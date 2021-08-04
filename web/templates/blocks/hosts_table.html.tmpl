@@ -9,13 +9,11 @@
                 <th scope='col'>Cloud provider</th>
                 <th scope='col'>Cluster</th>
                 <th scope='col'>System</th>
-                <th scope='col'>Landscape</th>
-                <th scope='col'>Environment</th>
             </tr>
             </thead>
             <tbody>
-            {{- range .Hosts }}
-            {{ $TrentoMeta := .TrentoMeta }}
+            {{- range . }}
+                {{ $TrentoMeta := .TrentoMeta }}
                 <tr>
                     <td class="row-status">
                         {{ template "health_icon" .Health }}
@@ -34,20 +32,10 @@
                     </td>
                     <td>
                         {{- range $i, $v := split (index $TrentoMeta "trento-sap-systems") "," }}{{- if $i }},{{- end }}
-                            <a href='/sapsystems/{{ $v }}?environment={{ index $TrentoMeta "trento-sap-environment" }}&landscape={{ index $TrentoMeta "trento-sap-landscape" }}'>
-                                {{ $v }}
-                            </a>
+                        <a href="/sapsystems/{{ $v }}">
+                            {{ $v }}
+                        </a>
                         {{- end }}
-                    </td>
-                    <td>
-                        <a href='/landscapes/{{ index .TrentoMeta "trento-sap-landscape" }}?environment={{ index .TrentoMeta "trento-sap-environment" }}'>
-                            {{ index .TrentoMeta "trento-sap-landscape" }}
-                        </a>
-                    </td>
-                    <td>
-                        <a href='/environments/{{ index .TrentoMeta "trento-sap-environment" }}'>
-                            {{ index .TrentoMeta "trento-sap-environment" }}
-                        </a>
                     </td>
                 </tr>
             {{- else }}

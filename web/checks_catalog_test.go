@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"regexp"
@@ -82,4 +83,45 @@ func TestChecksCatalogHandler(t *testing.T) {
 	assert.Equal(t, 5, strings.Count(responseBody, "<tr>"))
 
 	checksMocks.AssertExpectations(t)
+}
+
+func TestChecksCatalogHandlerError(t *testing.T) {
+
+	checksMocks := new(mocks.ChecksService)
+
+	deps := DefaultDependencies()
+	deps.checksService = checksMocks
+
+	checksMocks.On("GetChecksCatalogByGroup").Return(
+		nil, fmt.Errorf("Error during GetChecksCatalogByGroup"),
+	)
+
+	var err error
+	app, err := NewAppWithDeps("", 80, deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/catalog", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Accept", "text/html")
+
+	app.ServeHTTP(resp, req)
+
+	responseBody := minifyHtml(resp.Body.String())
+
+	assert.Equal(t, 500, resp.Code)
+	assert.NoError(t, err)
+	assert.Contains(t, responseBody, "<h1>Ooops</h1>")
+
+	tipMsg := "Checks catalog couldn't be retrieved. Check if the ARA service is running" +
+		" and the --ara-addr flag is pointing corretly to the service"
+	assert.Regexp(t, regexp.MustCompile("Error during GetChecksCatalogByGroup</br>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile(fmt.Sprintf("%s</br>", tipMsg)), responseBody)
+
+	checksMocks.AssertExpectations(t)
+
 }

@@ -170,12 +170,42 @@ To start the trento agent:
 > recommendations on cluster settings and state for many HA components. New rules
 > can be created and tuned to adjust to different requirements.
 
+## Trento Runner
+
+Trento Runner is responsible for running the health checks. It is based on [Ansible](https://docs.ansible.com/ansible/latest/index.html) and [ARA](https://ara.recordsansible.org/).
+This component can be executed in the same machine as the Web UI, but it is not mandatory, it can be executed in any other machine that has network access to the agents.
+
+In order to start it, some packages must be installed and started. Here a quick go through:
+```shell
+# Install ansible. Tested with version 2.11.2
+pip install ansible
+# Install ARA
+pip install --user ansible "ara[server]"
+# Setup ARA database
+ara-manage migrate
+# Start ARA server. This process can be started in background or in other shell terminal
+ara-manage runserver ip:port
+
+# Enable the SSH connections to the agents machines
+# Update the /etc/hosts file to identify the agents hosts
+# Authorize SSH connection for all the agents hosts
+ssh-copy-id agent1
+ssh-copy-id agent2
+
+# Start the Trento runner
+./trento runner start --ara-server http://araIP:port --consul-add consulIP:port -i 5
+# Find additional help with the -h flag
+./trento runner start -h
+```
+
 ## Trento Web UI
 
 At this point, we can start the web application as follows:
 
 ```shell
 ./trento web serve
+# If ARA server is not running in the same machine set the ara-addr flag
+./trento web serve --ara-addr araIP:port
 ```
 
 Please consult the `help` CLI command for more insights on the various options.

@@ -70,6 +70,10 @@
         name: '1.1.6'
       when: "'1.1.6' in cluster_selected_checks"
 
+    - name: include 1.1.6.runtime
+      import_role:
+        name: '1.1.6.runtime'
+
     - name: include 1.1.7
       import_role:
         name: '1.1.7'
@@ -129,6 +133,22 @@
       import_role:
         name: '1.3.7'
       when: "'1.3.7' in cluster_selected_checks"
+
+    - name: include 1.4.1
+      import_role:
+        name: '1.4.1'
+
+    - name: include 1.4.2
+      import_role:
+        name: '1.4.2'
+
+    - name: include 1.5.1
+      import_role:
+        name: '1.5.1'
+
+    - name: include 1.5.2
+      import_role:
+        name: '1.5.2'
 
     - name: Set Global Results
       set_fact:

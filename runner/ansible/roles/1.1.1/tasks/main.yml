@@ -9,7 +9,7 @@
   lineinfile:
     path: /etc/corosync/corosync.conf
     regexp: '^(\s+){{ key_name }}:'
-    line: '	{{ key_name }}: {{ expected[test_id] }}'
+    line: "\t{{ key_name }}: {{ expected[test_id] }}"
     insertafter: 'totem {'
   register: config_updated
   when:

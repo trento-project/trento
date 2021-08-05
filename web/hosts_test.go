@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/tdewolff/minify/v2"
 	"github.com/tdewolff/minify/v2/html"
-	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/consul/mocks"
 	"github.com/trento-project/trento/internal/hosts"
 )
@@ -74,10 +73,8 @@ func TestHostsListHandler(t *testing.T) {
 			Datacenter: "dc1",
 			Address:    "192.168.1.1",
 			Meta: map[string]string{
-				"trento-sap-environment": "env1",
-				"trento-sap-landscape":   "land1",
-				"trento-sap-systems":     "sys1",
-				"trento-cloud-provider":  "azure",
+				"trento-sap-systems":    "sys1",
+				"trento-cloud-provider": "azure",
 			},
 		},
 		{
@@ -85,10 +82,8 @@ func TestHostsListHandler(t *testing.T) {
 			Datacenter: "dc",
 			Address:    "192.168.1.2",
 			Meta: map[string]string{
-				"trento-sap-environment": "env2",
-				"trento-sap-landscape":   "land2",
-				"trento-sap-systems":     "sys2",
-				"trento-cloud-provider":  "aws",
+				"trento-sap-systems":    "sys2",
+				"trento-cloud-provider": "aws",
 			},
 		},
 		{
@@ -96,10 +91,8 @@ func TestHostsListHandler(t *testing.T) {
 			Datacenter: "dc",
 			Address:    "192.168.1.3",
 			Meta: map[string]string{
-				"trento-sap-environment": "env2",
-				"trento-sap-landscape":   "land2",
-				"trento-sap-systems":     "sys3",
-				"trento-cloud-provider":  "gcp",
+				"trento-sap-systems":    "sys3",
+				"trento-cloud-provider": "gcp",
 			},
 		},
 	}
@@ -122,68 +115,15 @@ func TestHostsListHandler(t *testing.T) {
 		},
 	}
 
-	filters := map[string]interface{}{
-		"env1": map[string]interface{}{
-			"name": "env1",
-			"landscapes": map[string]interface{}{
-				"land1": map[string]interface{}{
-					"name": "land1",
-					"sapsystems": map[string]interface{}{
-						"sys1": map[string]interface{}{
-							"name": "sys1",
-						},
-					},
-				},
-				"land2": map[string]interface{}{
-					"name": "land2",
-					"sapsystems": map[string]interface{}{
-						"sys2": map[string]interface{}{
-							"name": "sys2",
-						},
-					},
-				},
-			},
-		},
-		"env2": map[string]interface{}{
-			"name": "env2",
-			"landscapes": map[string]interface{}{
-				"land3": map[string]interface{}{
-					"name": "land3",
-					"sapsystems": map[string]interface{}{
-						"sys3": map[string]interface{}{
-							"name": "sys3",
-						},
-					},
-				},
-			},
-		},
-	}
-
 	consulInst := new(mocks.Client)
 	catalog := new(mocks.Catalog)
 	health := new(mocks.Health)
-	kv := new(mocks.KV)
 
 	consulInst.On("Catalog").Return(catalog)
 	consulInst.On("Health").Return(health)
-	consulInst.On("KV").Return(kv)
-
-	kv.On("ListMap", consul.KvEnvironmentsPath, consul.KvEnvironmentsPath).Return(filters, nil)
 
 	query := &consulApi.QueryOptions{Filter: ""}
 	catalog.On("Nodes", (*consulApi.QueryOptions)(query)).Return(nodes, nil, nil)
-
-	filterSys1 := &consulApi.QueryOptions{
-		Filter: "(Meta[\"trento-sap-environment\"] == \"env1\") and (Meta[\"trento-sap-landscape\"] == \"land1\") and (Meta[\"trento-sap-systems\"] contains \"sys1\")"}
-	catalog.On("Nodes", (filterSys1)).Return(nodes, nil, nil)
-
-	filterSys2 := &consulApi.QueryOptions{
-		Filter: "(Meta[\"trento-sap-environment\"] == \"env1\") and (Meta[\"trento-sap-landscape\"] == \"land2\") and (Meta[\"trento-sap-systems\"] contains \"sys2\")"}
-	catalog.On("Nodes", (filterSys2)).Return(nodes, nil, nil)
-
-	filterSys3 := &consulApi.QueryOptions{
-		Filter: "(Meta[\"trento-sap-environment\"] == \"env2\") and (Meta[\"trento-sap-landscape\"] == \"land3\") and (Meta[\"trento-sap-systems\"] contains \"sys3\")"}
-	catalog.On("Nodes", (filterSys3)).Return(nodes, nil, nil)
 
 	health.On("Node", "foo", (*consulApi.QueryOptions)(nil)).Return(fooHealthChecks, nil, nil)
 	health.On("Node", "bar", (*consulApi.QueryOptions)(nil)).Return(barHealthChecks, nil, nil)
@@ -226,14 +166,12 @@ func TestHostsListHandler(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("<div.*alert-success.*<i.*check_circle.*</i>.*Passing.*1"), minified)
 	assert.Regexp(t, regexp.MustCompile("<div.*alert-warning.*<i.*warning.*</i>.*Warning.*1"), minified)
 	assert.Regexp(t, regexp.MustCompile("<div.*alert-danger.*<i.*error.*</i>.*Critical.*1"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*<i.*success.*check_circle.*</i></td><td>.*foo.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*sys1.*</td><td>.*land1.*</td><td>.*env1.*</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*<i.*success.*check_circle.*</i></td><td>.*foo.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*sys1.*</td><td>.*land1.*</td><td>.*env1.*</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<select name=trento-sap-environment.*>.*env1.*env2.*</select>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<select name=trento-sap-landscape.*>.*land1.*land2.*land3.*</select>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*<i.*success.*check_circle.*</i></td><td>.*foo.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*sys1.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*<i.*success.*check_circle.*</i></td><td>.*foo.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*sys1.*</td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<select name=trento-sap-systems.*>.*sys1.*sys2.*sys3.*</select>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*<i.*success.*check_circle.*</i></td><td>.*foo.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*sys1.*</td><td>.*land1.*</td><td>.*env1.*</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*<i.*danger.*error.*</i></td><td>.*bar.*</td><td>192.168.1.2</td><td>.*aws.*</td><td>.*sys2.*</td><td>.*land2.*</td><td>.*env2.*</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*<i.*warning.*warning.*</i></td><td>.*buzz.*</td><td>192.168.1.3</td><td>.*gcp.*</td><td>.*sys3.*</td><td>.*land2.*</td><td>.*env2.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*<i.*success.*check_circle.*</i></td><td>.*foo.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*sys1.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*<i.*danger.*error.*</i></td><td>.*bar.*</td><td>192.168.1.2</td><td>.*aws.*</td><td>.*sys2.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*<i.*warning.*warning.*</i></td><td>.*buzz.*</td><td>192.168.1.3</td><td>.*gcp.*</td><td>.*sys3.*</td>"), minified)
 }
 
 func TestHostHandler(t *testing.T) {
@@ -251,9 +189,7 @@ func TestHostHandler(t *testing.T) {
 		Datacenter: "dc1",
 		Address:    "192.168.1.1",
 		Meta: map[string]string{
-			"trento-sap-environment": "env1",
-			"trento-sap-systems":     "sys1",
-			"trento-sap-landscape":   "land1",
+			"trento-sap-systems": "sys1",
 		},
 	}
 
@@ -360,8 +296,6 @@ func TestHostHandler(t *testing.T) {
 	assert.Contains(t, minified, "Host details")
 
 	assert.Regexp(t, regexp.MustCompile("<dd.*>test_host</dd>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<a.*environments.*>env1</a>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<a.*landscapes.*>land1</a>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<a.*sapsystems.*>sys1</a>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<span.*>passing</span>"), minified)
 	// SAP Instance
@@ -390,9 +324,7 @@ func TestHostHandlerAzure(t *testing.T) {
 		Datacenter: "dc1",
 		Address:    "192.168.1.1",
 		Meta: map[string]string{
-			"trento-sap-environment": "env1",
-			"trento-sap-systems":     "sys1",
-			"trento-sap-landscape":   "land1",
+			"trento-sap-systems": "sys1",
 		},
 	}
 

@@ -5,16 +5,10 @@
         <dl class="inline">
             <dt class="inline">Name</dt>
             <dd class="inline">{{ .Host.Name }}</dd>
-            {{ $Env := index .Host.TrentoMeta "trento-sap-environment" }}
-            {{ $Land := index .Host.TrentoMeta "trento-sap-landscape" }}
-            <dt class="inline">Environment</dt>
-            <dd class="inline"><a href="/environments/{{ $Env }}">{{ $Env }}</a></dd>
-            <dt class="inline">Landscape</dt>
-            <dd class="inline"><a href="/landscapes/{{ $Land }}?environment={{ $Env }}">{{ $Land }}</a></dd>
             <dt class="inline">SAP System</dt>
             <dd class="inline">
-                {{- range $i, $v := split (index .Host.TrentoMeta "trento-sap-systems") "," }}{{- if $i }},{{- end }} <a
-                        href="/sapsystems/{{ $v }}?environment={{ $Env }}&landscape={{ $Land }}">{{ $v }}</a>{{- end }}
+                {{- range $i, $v := split (index .Host.TrentoMeta "trento-sap-systems") "," }}{{- if $i }},{{- end }}
+                <a href="/sapsystems/{{ $v }}">{{ $v }}</a>{{- end }}
             </dd>
 
             <dt class="inline">Cluster</dt>

@@ -57,12 +57,8 @@ func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
 	engine.GET("/hosts/:name/ha-checks", NewHAChecksHandler(deps.consul))
 	engine.GET("/clusters", NewClusterListHandler(deps.consul))
 	engine.GET("/clusters/:id", NewClusterHandler(deps.consul))
-	engine.GET("/environments", NewEnvironmentListHandler(deps.consul))
-	engine.GET("/environments/:env", NewEnvironmentHandler(deps.consul))
-	engine.GET("/landscapes", NewLandscapeListHandler(deps.consul))
-	engine.GET("/landscapes/:land", NewLandscapeHandler(deps.consul))
 	engine.GET("/sapsystems", NewSAPSystemListHandler(deps.consul))
-	engine.GET("/sapsystems/:sys", NewSAPSystemHandler(deps.consul))
+	engine.GET("/sapsystems/:sid", NewSAPSystemHandler(deps.consul))
 
 	apiGroup := engine.Group("/api")
 	{

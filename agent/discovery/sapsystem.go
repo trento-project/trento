@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/trento-project/trento/internal/consul"
-	"github.com/trento-project/trento/internal/environments"
 	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/internal/sapsystem"
 )
@@ -43,7 +42,7 @@ func (d SAPSystemsDiscovery) Discover() (string, error) {
 		}
 	}
 
-	// Store SAP System, Landscape and Environment names on hosts metadata
+	// Store SAP System on hosts metadata
 	err = storeSAPSystemTags(d.discovery.client, d.SAPSystems)
 	if err != nil {
 		return "", err
@@ -58,65 +57,16 @@ func (d SAPSystemsDiscovery) Discover() (string, error) {
 }
 
 func storeSAPSystemTags(client consul.Client, systems sapsystem.SAPSystemsList) error {
-	envName, landName, err := loadSAPSystemTags(client, systems[0].SID)
-	if err != nil {
-		return err
-	}
-
-	// If we didn't find any environment, we create a new default one
-	if envName == "" {
-		land := environments.NewDefaultLandscape()
-		for _, system := range systems {
-			land.AddSystem(environments.NewSystem(system.SID, system.Type))
-		}
-		env := environments.NewDefaultEnvironment()
-		env.AddLandscape(land)
-
-		err := env.Store(client)
-		if err != nil {
-			return err
-		}
-		envName = env.Name
-		landName = land.Name
-	}
-
 	sysNames := systems.GetSIDsString()
 
 	// Store host metadata
 	metadata := hosts.Metadata{
-		Environment: envName,
-		Landscape:   landName,
-		SAPSystems:  sysNames,
+		SAPSystems: sysNames,
 	}
 
-	err = metadata.Store(client)
-	if err != nil {
+	if err := metadata.Store(client); err != nil {
 		return err
 	}
 
 	return nil
-}
-
-// These methods must go here. We cannot put them in the internal/sapsystem.go package
-// as this creates potential cyclical imports
-func loadSAPSystemTags(client consul.Client, sid string) (string, string, error) {
-	var env, land string
-	sys := sid
-
-	envs, err := environments.Load(client)
-	if err != nil {
-		return env, land, err
-	}
-	for envKey, envValue := range envs {
-		for landKey, landValue := range envValue.Landscapes {
-			for sysKey := range landValue.SAPSystems {
-				if sysKey == sys {
-					env = envKey
-					land = landKey
-					break
-				}
-			}
-		}
-	}
-	return env, land, err
 }

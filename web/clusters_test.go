@@ -402,7 +402,7 @@ func TestClusterHandlerHANA(t *testing.T) {
 	consulInst.On("Health").Return(health)
 
 	selectedChecksPath := fmt.Sprintf(consul.KvClustersChecksPath, "47d1190ffb4f781974c8356d7f863b03")
-	selectedChecksValue := &consulApi.KVPair{Value: []byte("1.1.1,1.2.3")}
+	selectedChecksValue := &consulApi.KVPair{Value: []byte("1.1.1,1.1.2")}
 	kv.On("Get", selectedChecksPath, (*consulApi.QueryOptions)(nil)).Return(selectedChecksValue, nil, nil)
 
 	checksMocks.On("GetChecksCatalog").Return(checksCatalog(), nil)
@@ -465,9 +465,9 @@ func TestClusterHandlerHANA(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("<td>1.1.1</td><td>description 1</td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("id=0-1-1-1-runtime>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td>1.1.1.runtime</td><td>description 1</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("id=0-1-1-2>"), minified)
+	assert.Regexp(t, regexp.MustCompile("id=0-1-1-2 checked>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td>1.1.2</td><td>description 2</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("id=1-1-2-3 checked>"), minified)
+	assert.Regexp(t, regexp.MustCompile("id=1-1-2-3>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td>1.2.3</td><td>description 3</td>"), minified)
 	// Checks result modal
 	assert.Regexp(t, regexp.MustCompile("<th.*>host1.*<th.*>host2"), minified)
@@ -505,7 +505,7 @@ func TestClusterHandlerAlert(t *testing.T) {
 	kv := new(mocks.KV)
 	consulInst.On("KV").Return(kv)
 	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
-	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil).Times(1)
+	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil).Times(2)
 
 	catalog := new(mocks.Catalog)
 	filter := &consulApi.QueryOptions{Filter: "Meta[\"trento-ha-cluster-id\"] == \"47d1190ffb4f781974c8356d7f863b03\""}
@@ -516,6 +516,10 @@ func TestClusterHandlerAlert(t *testing.T) {
 	health.On("Node", "test_node_1", (*consulApi.QueryOptions)(nil)).Return(node1HealthChecks, nil, nil)
 	health.On("Node", "test_node_2", (*consulApi.QueryOptions)(nil)).Return(node2HealthChecks, nil, nil)
 	consulInst.On("Health").Return(health)
+
+	selectedChecksPath := fmt.Sprintf(consul.KvClustersChecksPath, "47d1190ffb4f781974c8356d7f863b03")
+	selectedChecksValue := &consulApi.KVPair{Value: []byte("1.1.1,1.2.3")}
+	kv.On("Get", selectedChecksPath, (*consulApi.QueryOptions)(nil)).Return(selectedChecksValue, nil, nil)
 
 	checksMocks.On("GetChecksCatalog").Return(nil, fmt.Errorf("catalog error"))
 	checksMocks.On("GetChecksCatalogByGroup").Return(nil, fmt.Errorf("catalog error"))

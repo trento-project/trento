@@ -432,13 +432,8 @@ func NewClusterListHandler(client consul.Client) gin.HandlerFunc {
 	}
 }
 
-func getChecksCatalogModalData(clusterId string, client consul.Client, s services.ChecksService) (map[string]map[string]*models.Check, error) {
+func getChecksCatalogModalData(s services.ChecksService, clusterId, selectedChecks string) (map[string]map[string]*models.Check, error) {
 	checksCatalog, err := s.GetChecksCatalogByGroup()
-	if err != nil {
-		return checksCatalog, err
-	}
-
-	selectedChecks, err := cluster.GetCheckSelection(client, clusterId)
 	if err != nil {
 		return checksCatalog, err
 	}
@@ -486,11 +481,24 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 			return
 		}
 
+		selectedChecks, err := cluster.GetCheckSelection(client, clusterId)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
 		checksCatalog, errCatalog := s.GetChecksCatalog()
-		checksCatalogModalData, errCatalogByGroup := getChecksCatalogModalData(clusterId, client, s)
+		checksCatalogModalData, errCatalogByGroup := getChecksCatalogModalData(s, clusterId, selectedChecks)
 		checksRestult, errResult := s.GetChecksResultByCluster(clusterItem.Name)
 		if errCatalog != nil || errCatalogByGroup != nil || errResult != nil {
 			StoreAlert(c, AlertCatalogNotFound())
+		} else if selectedChecks == "" {
+			a := Alert{
+				Type:  "info",
+				Title: "There is not any check selected",
+				Text:  "Select the desired checks in the settings modal in order to validate the cluster configuration",
+			}
+			StoreAlert(c, a)
 		}
 
 		nodes := NewNodes(clusterItem, hosts)

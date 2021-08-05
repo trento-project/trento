@@ -1,7 +1,23 @@
+- name: Initialize global results
+  set_fact:
+    global_results: |
+      {{
+        {
+          'results': {
+            item: {
+              'checks': {}
+            }
+          }
+        }
+      }}
+  run_once: yes
+  delegate_to: localhost
+  with_items: "{{ group_names }}"
+
 - name: Set Global Results
   set_fact:
     global_results: |
-      {{ (global_results | default({})) | combine(
+      {{ global_results | combine(
         hostvars[item]['results']|default({}), recursive=True)
       }}
   with_inventory_hostnames:

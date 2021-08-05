@@ -36,7 +36,7 @@ func (c *checksService) GetChecksCatalog() (map[string]*models.Check, error) {
 	}
 
 	if len(records.Results) == 0 {
-		return nil, nil
+		return nil, fmt.Errorf("Couldn't find any check catalog record. Check if the runner component is running")
 	}
 
 	record, err := c.araService.GetRecord(records.Results[0].ID)
@@ -79,7 +79,7 @@ func (c *checksService) GetChecksResult() (map[string]*models.Results, error) {
 	}
 
 	if len(records.Results) == 0 {
-		return nil, nil
+		return nil, fmt.Errorf("Couldn't find any check result record. Check if the runner component is running")
 	}
 
 	record, err := c.araService.GetRecord(records.Results[0].ID)

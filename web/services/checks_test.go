@@ -122,7 +122,7 @@ func TestGetChecksCatalogEmpty(t *testing.T) {
 
 	expectedChecks := map[string]*models.Check(nil)
 
-	assert.NoError(t, err)
+	assert.EqualError(t, err, "Couldn't find any check catalog record. Check if the runner component is running")
 	assert.Equal(t, expectedChecks, c)
 
 	mockAra.AssertExpectations(t)
@@ -425,7 +425,7 @@ func TestGetChecksResultEmpty(t *testing.T) {
 
 	expectedResults := map[string]*models.Results(nil)
 
-	assert.NoError(t, err)
+	assert.EqualError(t, err, "Couldn't find any check result record. Check if the runner component is running")
 	assert.Equal(t, expectedResults, c)
 
 	mockAra.AssertExpectations(t)

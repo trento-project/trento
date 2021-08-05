@@ -36,8 +36,10 @@
                                   {{- end }}
                               </tr>
                           {{- else }}
-                              {{ template "empty_table_body" 4}}
+                              {{ template "empty_table_body" (sum 2 (len .ChecksResult.GetHostNames )) }}
                           {{- end }}
+                          {{- else }}
+                              {{ template "empty_table_body" 2 }}
                           {{- end }}
                           </tbody>
                       </table>

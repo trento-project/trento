@@ -7,7 +7,7 @@
 - name: "{{ test_id }}.check"
   shell: |
     cibadmin -Q --xpath "//primitive[@type='fence_azure_arm']/@type" > /dev/null 2>&1 || exit 0
-    [[ $(crm_attribute -t crm_config -G -n concurrent-fencing --quiet) = "{{ expected[test_id] }}" && exit 0
+    [[ $(crm_attribute -t crm_config -G -n concurrent-fencing --quiet) = "{{ expected[test_id] }}" ]] && exit 0
     exit 1
   check_mode: no
   register: config_updated

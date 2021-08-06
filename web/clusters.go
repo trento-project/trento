@@ -292,20 +292,28 @@ type ClustersRow struct {
 
 type ClustersTable []*ClustersRow
 
-func NewClustersTable(clusters map[string]*cluster.Cluster) ClustersTable {
+func NewClustersTable(clusters map[string]*cluster.Cluster, hostList hosts.HostList) ClustersTable {
 	var clusterTable ClustersTable
 
 	for id, c := range clusters {
-		var health string
+		var clusterHostList hosts.HostList
 		// TODO: Cost-optimized has multiple SIDs
 		var sids []string
 
 		sids = append(sids, getHanaSID(c))
 
+		for _, n := range c.Crmmon.NodeAttributes.Nodes {
+			for _, h := range hostList {
+				if h.Name() == n.Name {
+					clusterHostList = append(clusterHostList, h)
+				}
+			}
+		}
+
 		clustersRow := &ClustersRow{
 			Id:              id,
 			Name:            c.Name,
-			Health:          health,
+			Health:          clusterHostList.Health(),
 			SIDs:            sids,
 			Type:            detectClusterType(c),
 			ResourcesNumber: c.Crmmon.Summary.Resources.Number,
@@ -409,7 +417,13 @@ func NewClusterListHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		clustersTable := NewClustersTable(clusters)
+		hostList, err := hosts.Load(client, "", nil)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
+		clustersTable := NewClustersTable(clusters, hostList)
 		clustersTable = clustersTable.Filter(nameFilter, healthFilter, sidFilter, clusterTypeFilter)
 
 		healthContainer := NewClustersHealthContainer(clustersTable)

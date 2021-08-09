@@ -34,6 +34,21 @@ var clustersListMap map[string]interface{} = map[string]interface{}{
 							},
 						},
 					},
+					"Groups": []interface{}{
+						map[string]interface{}{
+							"Primitives": []interface{}{
+								map[string]interface{}{
+									"Id": "ip",
+									"InstanceAttributes": []interface{}{
+										map[string]interface{}{
+											"Name":  "ip",
+											"Value": "10.123.123.123",
+										},
+									},
+								},
+							},
+						},
+					},
 				},
 				"CrmConfig": map[string]interface{}{
 					"ClusterProperties": []interface{}{
@@ -130,6 +145,15 @@ var clustersListMap map[string]interface{} = map[string]interface{}{
 				},
 			},
 			"Resources": []interface{}{
+				map[string]interface{}{
+					"Id":     "ip",
+					"Agent":  "ocf::heartbeat:IPaddr2",
+					"Role":   "Started",
+					"Active": true,
+					"Node": map[string]interface{}{
+						"Name": "test_node_1",
+					},
+				},
 				map[string]interface{}{
 					"Id":     "sbd",
 					"Agent":  "stonith:external/sbd",
@@ -363,7 +387,7 @@ func TestClusterHandlerHANA(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("<strong>CIB last written:</strong><br><span.*>Wed Jun 30 18:11:37 2021</span>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<strong>HANA secondary sync state:</strong><br><span.*>SFAIL</span>"), minified)
 	// Nodes
-	assert.Regexp(t, regexp.MustCompile("<td><a.*href=/hosts/test_node_1.*>test_node_1</a></td><td>192.168.1.1</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td><a.*href=/hosts/test_node_1.*>test_node_1</a></td><td>192.168.1.1</td><td>10.123.123.123</td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td><a.*href=/hosts/test_node_2.*>test_node_2</a></td><td>192.168.1.2</td>"), minified)
 	// Resources
 	assert.Regexp(t, regexp.MustCompile("<td>sbd</td><td>stonith:external/sbd</td><td>Started</td><td>active</td><td>0</td>"), minified)

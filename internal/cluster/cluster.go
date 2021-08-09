@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	// Reusing the Prometheus Ha Exporter cibadmin xml parser here
-	"github.com/ClusterLabs/ha_cluster_exporter/collector/pacemaker/cib"
 	"github.com/ClusterLabs/ha_cluster_exporter/collector/pacemaker/crmmon"
 	"github.com/trento-project/trento/internal"
+	"github.com/trento-project/trento/internal/cluster/cib"
 )
 
 const (

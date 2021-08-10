@@ -9,186 +9,215 @@ import (
 	consulApi "github.com/hashicorp/consul/api"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/tdewolff/minify/v2"
 	"github.com/tdewolff/minify/v2/html"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/consul/mocks"
 )
 
-func clustersListMap() map[string]interface{} {
-	listMap := map[string]interface{}{
-		"47d1190ffb4f781974c8356d7f863b03": map[string]interface{}{
-			"cib": map[string]interface{}{
-				"Configuration": map[string]interface{}{
-					"Resources": map[string]interface{}{
-						"Clones": []interface{}{
-							map[string]interface{}{
-								"Primitive": map[string]interface{}{
-									"Type": "SAPHanaTopology",
-									"InstanceAttributes": []interface{}{
-										map[string]interface{}{
-											"Name":  "SID",
-											"Value": "PRD",
-										},
+var clustersListMap map[string]interface{} = map[string]interface{}{
+	"47d1190ffb4f781974c8356d7f863b03": map[string]interface{}{
+		"cib": map[string]interface{}{
+			"Configuration": map[string]interface{}{
+				"Resources": map[string]interface{}{
+					"Clones": []interface{}{
+						map[string]interface{}{
+							"Primitive": map[string]interface{}{
+								"Type": "SAPHanaTopology",
+								"InstanceAttributes": []interface{}{
+									map[string]interface{}{
+										"Name":  "SID",
+										"Value": "PRD",
 									},
 								},
 							},
 						},
 					},
-					"CrmConfig": map[string]interface{}{
-						"ClusterProperties": []interface{}{
-							map[string]interface{}{
-								"Id":    "cib-bootstrap-options-cluster-name",
-								"Value": "test_cluster",
-							},
+				},
+				"CrmConfig": map[string]interface{}{
+					"ClusterProperties": []interface{}{
+						map[string]interface{}{
+							"Id":    "cib-bootstrap-options-cluster-name",
+							"Value": "test_cluster",
 						},
 					},
 				},
 			},
-			"crmmon": map[string]interface{}{
-				"Clones": []interface{}{
-					map[string]interface{}{
-						"Resources": []interface{}{
-							map[string]interface{}{
-								"Agent": "ocf::suse:SAPHana",
-								"Node": map[string]interface{}{
-									"Name": "test_node_1",
-								},
-							},
-							map[string]interface{}{
-								"Agent": "ocf::suse:SAPHanaTopology",
-								"Node": map[string]interface{}{
-									"Name": "test_node_1",
-								},
-							},
-						},
-					},
-				},
-				"NodeAttributes": map[string]interface{}{
-					"Nodes": []interface{}{
+		},
+		"crmmon": map[string]interface{}{
+			"Clones": []interface{}{
+				map[string]interface{}{
+					"Resources": []interface{}{
 						map[string]interface{}{
-							"Name": "test_node_1",
-							"Attributes": []interface{}{
-								map[string]interface{}{
-									"Name":  "hana_prd_srmode",
-									"Value": "sync",
-								},
-								map[string]interface{}{
-									"Name":  "hana_prd_op_mode",
-									"Value": "logreplay",
-								},
-								map[string]interface{}{
-									"Name":  "hana_prd_roles",
-									"Value": "4:P:master1:master:worker:master",
-								},
-								map[string]interface{}{
-									"Name":  "hana_prd_sync_state",
-									"Value": "PRIM",
-								},
-								map[string]interface{}{
-									"Name":  "hana_prd_site",
-									"Value": "site1",
-								},
+							"Agent": "ocf::suse:SAPHana",
+							"Node": map[string]interface{}{
+								"Name": "test_node_1",
 							},
 						},
 						map[string]interface{}{
-							"Name": "test_node_2",
-							"Attributes": []interface{}{
-								map[string]interface{}{
-									"Name":  "hana_prd_srmode",
-									"Value": "sync",
-								},
-								map[string]interface{}{
-									"Name":  "hana_prd_op_mode",
-									"Value": "logreplay",
-								},
-								map[string]interface{}{
-									"Name":  "hana_prd_roles",
-									"Value": "4:S:master1:master:worker:master",
-								},
-								map[string]interface{}{
-									"Name":  "hana_prd_sync_state",
-									"Value": "SFAIL",
-								},
-								map[string]interface{}{
-									"Name":  "hana_prd_site",
-									"Value": "site2",
-								},
+							"Agent": "ocf::suse:SAPHanaTopology",
+							"Node": map[string]interface{}{
+								"Name": "test_node_1",
 							},
 						},
 					},
 				},
-				"Summary": map[string]interface{}{
-					"Nodes": map[string]interface{}{
-						"Number": 3,
-					},
-					"LastChange": map[string]interface{}{
-						"Time": "Wed Jun 30 18:11:37 2021",
-					},
-					"Resources": map[string]interface{}{
-						"Number": 5,
-					},
-				},
-				"Resources": []interface{}{
-					map[string]interface{}{
-						"Id":     "sbd",
-						"Agent":  "stonith:external/sbd",
-						"Role":   "Started",
-						"Active": true,
-						"Node": map[string]interface{}{
-							"Name": "test_node_1",
-						},
-					},
-					map[string]interface{}{
-						"Id":     "dummy_failed",
-						"Agent":  "dummy",
-						"Role":   "Started",
-						"Failed": true,
-						"Node": map[string]interface{}{
-							"Name": "test_node_1",
-						},
-					},
-				},
 			},
-			"name": "sculpin",
-		},
-		"e2f2eb50aef748e586a7baa85e0162cf": map[string]interface{}{
-			"cib": map[string]interface{}{
-				"Configuration": map[string]interface{}{
-					"CrmConfig": map[string]interface{}{
-						"ClusterProperties": []interface{}{
+			"NodeAttributes": map[string]interface{}{
+				"Nodes": []interface{}{
+					map[string]interface{}{
+						"Name": "test_node_1",
+						"Attributes": []interface{}{
 							map[string]interface{}{
-								"Id":    "cib-bootstrap-options-cluster-name",
-								"Value": "2nd_cluster",
+								"Name":  "hana_prd_srmode",
+								"Value": "sync",
+							},
+							map[string]interface{}{
+								"Name":  "hana_prd_op_mode",
+								"Value": "logreplay",
+							},
+							map[string]interface{}{
+								"Name":  "hana_prd_roles",
+								"Value": "4:P:master1:master:worker:master",
+							},
+							map[string]interface{}{
+								"Name":  "hana_prd_sync_state",
+								"Value": "PRIM",
+							},
+							map[string]interface{}{
+								"Name":  "hana_prd_site",
+								"Value": "site1",
+							},
+						},
+					},
+					map[string]interface{}{
+						"Name": "test_node_2",
+						"Attributes": []interface{}{
+							map[string]interface{}{
+								"Name":  "hana_prd_srmode",
+								"Value": "sync",
+							},
+							map[string]interface{}{
+								"Name":  "hana_prd_op_mode",
+								"Value": "logreplay",
+							},
+							map[string]interface{}{
+								"Name":  "hana_prd_roles",
+								"Value": "4:S:master1:master:worker:master",
+							},
+							map[string]interface{}{
+								"Name":  "hana_prd_sync_state",
+								"Value": "SFAIL",
+							},
+							map[string]interface{}{
+								"Name":  "hana_prd_site",
+								"Value": "site2",
 							},
 						},
 					},
 				},
 			},
-			"crmmon": map[string]interface{}{
-				"Summary": map[string]interface{}{
-					"Nodes": map[string]interface{}{
-						"Number": 2,
+			"Summary": map[string]interface{}{
+				"Nodes": map[string]interface{}{
+					"Number": 3,
+				},
+				"LastChange": map[string]interface{}{
+					"Time": "Wed Jun 30 18:11:37 2021",
+				},
+				"Resources": map[string]interface{}{
+					"Number": 5,
+				},
+			},
+			"Resources": []interface{}{
+				map[string]interface{}{
+					"Id":     "sbd",
+					"Agent":  "stonith:external/sbd",
+					"Role":   "Started",
+					"Active": true,
+					"Node": map[string]interface{}{
+						"Name": "test_node_1",
 					},
-					"Resources": map[string]interface{}{
-						"Number": 10,
+				},
+				map[string]interface{}{
+					"Id":     "dummy_failed",
+					"Agent":  "dummy",
+					"Role":   "Started",
+					"Failed": true,
+					"Node": map[string]interface{}{
+						"Name": "test_node_1",
 					},
 				},
 			},
-			"name": "panther",
 		},
-	}
-
-	return listMap
+		"name": "sculpin",
+	},
+	"e2f2eb50aef748e586a7baa85e0162cf": map[string]interface{}{
+		"cib": map[string]interface{}{
+			"Configuration": map[string]interface{}{
+				"CrmConfig": map[string]interface{}{
+					"ClusterProperties": []interface{}{
+						map[string]interface{}{
+							"Id":    "cib-bootstrap-options-cluster-name",
+							"Value": "2nd_cluster",
+						},
+					},
+				},
+			},
+		},
+		"crmmon": map[string]interface{}{
+			"Summary": map[string]interface{}{
+				"Nodes": map[string]interface{}{
+					"Number": 2,
+				},
+				"Resources": map[string]interface{}{
+					"Number": 10,
+				},
+			},
+		},
+		"name": "panther",
+	},
 }
 
 func TestClustersListHandler(t *testing.T) {
+	nodes := []*consulApi.Node{
+		{
+			Node:    "test_node_1",
+			Address: "192.168.1.1",
+		},
+		{
+			Node:    "test_node_2",
+			Address: "192.168.1.2",
+		},
+	}
+
+	node1HealthChecks := consulApi.HealthChecks{
+		&consulApi.HealthCheck{
+			Status: consulApi.HealthPassing,
+		},
+	}
+
+	node2HealthChecks := consulApi.HealthChecks{
+		&consulApi.HealthCheck{
+			Status: consulApi.HealthCritical,
+		},
+	}
+
 	consulInst := new(mocks.Client)
 
 	kv := new(mocks.KV)
 	consulInst.On("KV").Return(kv)
-	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
+	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap, nil)
 	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil)
+
+	catalog := new(mocks.Catalog)
+	catalog.On("Nodes", mock.Anything).Return(nodes, nil, nil)
+	consulInst.On("Catalog").Return(catalog)
+
+	health := new(mocks.Health)
+	health.On("Node", "test_node_1", (*consulApi.QueryOptions)(nil)).Return(node1HealthChecks, nil, nil)
+	health.On("Node", "test_node_2", (*consulApi.QueryOptions)(nil)).Return(node2HealthChecks, nil, nil)
+	consulInst.On("Health").Return(health)
 
 	deps := DefaultDependencies()
 	deps.consul = consulInst
@@ -223,8 +252,8 @@ func TestClustersListHandler(t *testing.T) {
 
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, minified, "Clusters")
-	assert.Regexp(t, regexp.MustCompile("<td>PRD</td><td>sculpin</td><td>47d1190ffb4f781974c8356d7f863b03</td><td>HANA scale-up</td><td>3</td><td>5</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td></td><td>panther</td><td>e2f2eb50aef748e586a7baa85e0162cf</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td .*>.*error.*</td><td>PRD</td><td>sculpin</td><td>47d1190ffb4f781974c8356d7f863b03</td><td>HANA scale-up</td><td>3</td><td>5</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td .*>.*fiber_manual_record.*</td><td></td><td>panther</td><td>e2f2eb50aef748e586a7baa85e0162cf</td>"), minified)
 }
 
 func TestClusterHandlerHANA(t *testing.T) {
@@ -255,7 +284,7 @@ func TestClusterHandlerHANA(t *testing.T) {
 
 	kv := new(mocks.KV)
 	consulInst.On("KV").Return(kv)
-	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
+	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap, nil)
 	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil)
 
 	catalog := new(mocks.Catalog)
@@ -322,7 +351,7 @@ func TestClusterHandlerGeneric(t *testing.T) {
 	kv := new(mocks.KV)
 	consulInst.On("KV").Return(kv)
 
-	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
+	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap, nil)
 	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil)
 
 	catalog := new(mocks.Catalog)
@@ -359,7 +388,7 @@ func TestClusterHandler404Error(t *testing.T) {
 	var err error
 
 	kv := new(mocks.KV)
-	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
+	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap, nil)
 
 	consulInst := new(mocks.Client)
 	consulInst.On("KV").Return(kv)

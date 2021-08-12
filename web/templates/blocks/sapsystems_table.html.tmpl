@@ -18,7 +18,15 @@
                                           data-toggle="collapse" data-target="#inner_{{ $index }}"></a></td>
                 <td><a href="/sapsystems/{{ .SID }}">{{ .SID }}</a></td>
                 <td></td>
-                <td></td>
+                <td>
+                    <select class="tags-input form-control" multiple data-url="/api/sapsystems/{{ .SID }}/tags"
+                            autocomplete="off">
+                        {{- range .Tags }}
+                            {{ . }}
+                            <option value="{{ . }}" selected="selected">{{ . }}</option>
+                        {{- end }}
+                    </select>
+                </td>
                 {{- if ne (len .InstancesTable) 0 }}
                     <tr id="inner_{{ $index }}" class="collapse">
                         <td colspan="2"></td>

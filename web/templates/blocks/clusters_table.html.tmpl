@@ -17,8 +17,8 @@
             {{- range . }}
                 <tr>
                     <td class="row-status">{{ template "health_icon" .Health }}</td>
-                    <td><a href="/clusters/{{ .Id }}">
-                        {{- if .HasDuplicatedName }}<i class="eos-icons eos-18 text-warning" data-toggle="tooltip" data-original-title="This cluster has a duplicated name">warning</i>{{- end }}{{ .Name }}
+                    <td>
+                        {{- if .HasDuplicatedName }}<i class="eos-icons eos-18 text-warning" data-toggle="tooltip" data-original-title="This cluster has a duplicated name">warning</i>{{- end }}<a href="/clusters/{{ .Id }}">{{ .Name }}</a>
                     </td>
                     <td><a href="/clusters/{{ .Id }}">{{ .Id }}</a></td>
                     <td>{{ .Type }}</td>

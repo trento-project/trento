@@ -27,7 +27,7 @@ type JSONTag struct {
 // @Param Body body JSONTag true "The tag to create"
 // @Success 201 {object} JSONTag
 // @Failure 404 {object} map[string]string
-// @Failure 422 {object} map[string]string
+// @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/clusters/{id}/tags [post]
 func ApiClusterCreateTagHandler(client consul.Client) gin.HandlerFunc {
@@ -107,7 +107,7 @@ func ApiClusterDeleteTagHandler(client consul.Client) gin.HandlerFunc {
 // @Param Body body JSONTag true "The tag to create"
 // @Success 201 {object} JSONTag
 // @Failure 404 {object} map[string]string
-// @Failure 422 {object} map[string]string
+// @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/sapsystems/{id}/tags [post]
 func ApiSAPSystemCreateTagHandler(client consul.Client) gin.HandlerFunc {

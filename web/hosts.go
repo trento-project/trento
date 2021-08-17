@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/trento-project/trento/internal/tags"
+
 	"github.com/gin-gonic/gin"
 	consulApi "github.com/hashicorp/consul/api"
 	"github.com/pkg/errors"
@@ -34,11 +36,24 @@ func NewHostListHandler(client consul.Client) gin.HandlerFunc {
 		query := c.Request.URL.Query()
 		queryFilter := hosts.CreateFilterMetaQuery(query)
 		healthFilter := query["health"]
+		tagsFilter := query["tags"]
 
-		hostList, err := hosts.Load(client, queryFilter, healthFilter)
+		hostList, err := hosts.Load(client, queryFilter, healthFilter, tagsFilter)
 		if err != nil {
 			_ = c.Error(err)
 			return
+		}
+
+		hostsTags := make(map[string][]string)
+		for _, h := range hostList {
+			t := tags.NewTags(client, "hosts", h.Name())
+
+			ht, err := t.GetAll()
+			if err != nil {
+				_ = c.Error(err)
+				return
+			}
+			hostsTags[h.Name()] = ht
 		}
 
 		hContainer := NewHostsHealthContainer(hostList)
@@ -52,9 +67,11 @@ func NewHostListHandler(client consul.Client) gin.HandlerFunc {
 		c.HTML(http.StatusOK, "hosts.html.tmpl", gin.H{
 			"Hosts":           hostList[firstElem:lastElem],
 			"SIDs":            getAllSIDs(hostList),
+			"Tags":            getAllTags(hostsTags),
 			"AppliedFilters":  query,
 			"HealthContainer": hContainer,
 			"Pagination":      pagination,
+			"HostsTags":       hostsTags,
 		})
 	}
 }
@@ -78,6 +95,23 @@ func getAllSIDs(hostList hosts.HostList) []string {
 	}
 
 	return sids
+}
+
+func getAllTags(hostsTags map[string][]string) []string {
+	var tags []string
+	set := make(map[string]struct{})
+
+	for _, ht := range hostsTags {
+		for _, t := range ht {
+			_, ok := set[t]
+			if !ok {
+				tags = append(tags, t)
+				set[t] = struct{}{}
+			}
+		}
+	}
+
+	return tags
 }
 
 func loadHealthChecks(client consul.Client, node string) ([]*consulApi.HealthCheck, error) {

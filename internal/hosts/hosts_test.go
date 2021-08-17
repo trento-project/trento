@@ -68,7 +68,7 @@ func TestLoad(t *testing.T) {
 		&host1,
 	}
 
-	h, _ := Load(consulInst, "query", []string{"passing"})
+	h, _ := Load(consulInst, "query", []string{"passing"}, nil)
 
 	assert.Equal(t, expectedHosts, h)
 }

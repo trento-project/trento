@@ -492,7 +492,7 @@ func NewClusterListHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		hostList, err := hosts.Load(client, "", nil)
+		hostList, err := hosts.Load(client, "", nil, nil)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -539,7 +539,7 @@ func NewClusterHandler(client consul.Client) gin.HandlerFunc {
 		}
 
 		filterQuery := fmt.Sprintf("Meta[\"trento-ha-cluster-id\"] == \"%s\"", clusterId)
-		hosts, err := hosts.Load(client, filterQuery, nil)
+		hosts, err := hosts.Load(client, filterQuery, nil, nil)
 		if err != nil {
 			_ = c.Error(err)
 			return

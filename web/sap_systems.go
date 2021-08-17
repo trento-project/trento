@@ -167,7 +167,7 @@ func NewSAPSystemListHandler(client consul.Client) gin.HandlerFunc {
 		sidFilter := query["sid"]
 		tagsFilter := query["tags"]
 
-		hostList, err := hosts.Load(client, "", nil)
+		hostList, err := hosts.Load(client, "", nil, nil)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -206,7 +206,7 @@ func NewSAPSystemHandler(client consul.Client) gin.HandlerFunc {
 
 		sid := c.Param("sid")
 
-		hostList, err := hosts.Load(client, "", nil)
+		hostList, err := hosts.Load(client, "", nil, nil)
 		if err != nil {
 			_ = c.Error(err)
 			return

@@ -148,6 +148,7 @@ func TestSAPSystemHandler(t *testing.T) {
 				"trento-ha-cluster-id":  "e2f2eb50aef748e586a7baa85e0162cf",
 				"trento-cloud-provider": "azure",
 				"trento-sap-systems":    "HA1",
+				"trento-agent-version":  "0",
 			},
 		},
 	}
@@ -198,7 +199,7 @@ func TestSAPSystemHandler(t *testing.T) {
 	// Layout/
 	assert.Regexp(t, regexp.MustCompile("<tr><td>test_host</td><td>10</td><td>ENQREP</td><td>50013</td><td>50014</td><td>0.5</td><td><span.*primary.*>SAPControl-GREEN</span></td></tr>"), responseBody)
 	// Host
-	assert.Regexp(t, regexp.MustCompile("<tr><td>.*check_circle.*</td><td><a href=/hosts/test_host>test_host</a></td><td>192.168.10.10</td><td>azure</td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>banana</a></td><td><a href=/sapsystems/HA1>HA1</a></td></tr>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<tr><td>.*check_circle.*</td><td><a href=/hosts/test_host>test_host</a></td><td>192.168.10.10</td><td>azure</td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>banana</a></td><td><a href=/sapsystems/HA1>HA1</a></td><td>v0</td></tr>"), responseBody)
 }
 
 func TestSAPSystemHandler404Error(t *testing.T) {

@@ -9,6 +9,7 @@
                 <th scope='col'>Cloud provider</th>
                 <th scope='col'>Cluster</th>
                 <th scope='col'>System</th>
+                <th scope='col'>Agent version</th>
             </tr>
             </thead>
             <tbody>
@@ -36,6 +37,9 @@
                             {{ $v }}
                         </a>
                         {{- end }}
+                    </td>
+                    <td>
+                        {{ .GetAgentVersionString }}
                     </td>
                 </tr>
             {{- else }}

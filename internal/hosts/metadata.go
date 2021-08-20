@@ -5,4 +5,5 @@ type Metadata struct {
 	ClusterId     string `mapstructure:"ha-cluster-id,omitempty"`
 	SAPSystems    string `mapstructure:"sap-systems,omitempty"`
 	CloudProvider string `mapstructure:"cloud-provider,omitempty"`
+	AgentVersion  string `mapstructure:"agent-version,omitempty"`
 }

@@ -14,6 +14,8 @@ import (
 
 	"github.com/trento-project/trento/agent/discovery"
 	"github.com/trento-project/trento/internal/consul"
+	"github.com/trento-project/trento/internal/hosts"
+	"github.com/trento-project/trento/version"
 )
 
 const haConfigCheckerId = "ha_config_checker"
@@ -161,6 +163,8 @@ func (a *Agent) Start() error {
 		log.Println("consul-template loop stopped.")
 	}(&wg)
 
+	storeAgentMetadata(a.consul, version.Version)
+
 	wg.Wait()
 
 	return nil
@@ -307,4 +311,17 @@ func repeat(tick func(), interval time.Duration, ctx context.Context) {
 			return
 		}
 	}
+}
+
+func storeAgentMetadata(client consul.Client, version string) error {
+	metadata := hosts.Metadata{
+		AgentVersion: version,
+	}
+
+	err := metadata.Store(client)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

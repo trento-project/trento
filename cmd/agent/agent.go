@@ -67,7 +67,7 @@ func runOnce(cmd *cobra.Command, args []string) {
 func start(cmd *cobra.Command, args []string) {
 	var err error
 
-	signals := make(chan os.Signal)
+	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
 
 	cfg, err := agent.DefaultConfig()

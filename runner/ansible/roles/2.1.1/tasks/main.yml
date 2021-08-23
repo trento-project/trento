@@ -1,0 +1,24 @@
+---
+
+- name: Set Test ID
+  set_fact:
+    test_id: '2.1.1'
+
+- name: "{{ test_id }}.check"
+  shell: |
+    # Check that following match expected, exit with error if any do not
+    [[ $(crm_attribute -t rsc_defaults -G -n resource-stickiness --quiet) != "{{ expected[test_id + '.resource_stickiness'] }}" ]] && exit 1
+    [[ $(crm_attribute -t rsc_defaults -G -n migration-threshold --quiet) != "{{ expected[test_id + '.migration_threshold'] }}" ]] && exit 1
+    exit 0 
+  check_mode: no
+  register: config_updated
+  changed_when: config_updated.rc != 0
+  failed_when: config_updated.rc > 1
+
+- block:
+    - import_role:
+        name: post-results
+  when:
+    - ansible_check_mode
+  vars:
+    status: "{{ config_updated is not changed }}"

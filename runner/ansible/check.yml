@@ -18,137 +18,278 @@
     - name: include 1.1.1
       import_role:
         name: '1.1.1'
-      when: "'1.1.1' in cluster_selected_checks"
+      when: ('1.1.1' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
 
     - name: include 1.1.1.runtime
       import_role:
         name: '1.1.1.runtime'
-      when: "'1.1.1.runtime' in cluster_selected_checks"
+      when: ('1.1.1.runtime' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
 
     - name: include 1.1.2
       import_role:
         name: '1.1.2'
-      when: "'1.1.2' in cluster_selected_checks"
+      when: ('1.1.2' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
 
     - name: include 1.1.2.runtime
       import_role:
         name: '1.1.2.runtime'
-      when: "'1.1.2.runtime' in cluster_selected_checks"
+      when: ('1.1.2.runtime' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
 
     - name: include 1.1.3
       import_role:
         name: '1.1.3'
-      when: "'1.1.4' in cluster_selected_checks"
+      when: ('1.1.4' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
 
     - name: include 1.1.3.runtime
       import_role:
         name: '1.1.3.runtime'
-      when: "'1.1.3.runtime' in cluster_selected_checks"
+      when: ('1.1.3.runtime' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
 
     - name: include 1.1.4
       import_role:
         name: '1.1.4'
-      when: "'1.1.4' in cluster_selected_checks"
+      when: ('1.1.4' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
 
     - name: include 1.1.4.runtime
       import_role:
         name: '1.1.4.runtime'
-      when: "'1.1.4.runtime' in cluster_selected_checks"
+      when: ('1.1.4.runtime' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
 
     - name: include 1.1.5
       import_role:
         name: '1.1.5'
-      when: "'1.1.5' in cluster_selected_checks"
+      when: ('1.1.5' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
 
     - name: include 1.1.5.runtime
       import_role:
         name: '1.1.5.runtime'
-      when: "'1.1.5.runtime' in cluster_selected_checks"
+      when: ('1.1.5.runtime' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
 
     - name: include 1.1.6
       import_role:
         name: '1.1.6'
-      when: "'1.1.6' in cluster_selected_checks"
+      when: ('1.1.6' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
 
     - name: include 1.1.6.runtime
       import_role:
         name: '1.1.6.runtime'
+      when: ('1.1.6.runtime' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
 
     - name: include 1.1.7
       import_role:
         name: '1.1.7'
-      when: "'1.1.7' in cluster_selected_checks"
+      when: ('1.1.7' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
 
     - name: include 1.1.8
       import_role:
         name: '1.1.8'
-      when: "'1.1.8' in cluster_selected_checks"
+      when: ('1.1.8' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
 
     - name: include 1.1.8.runtime
       import_role:
         name: '1.1.8.runtime'
-      when: "'1.1.8.runtime' in cluster_selected_checks"
+      when: ('1.1.8.runtime' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
 
     - name: include 1.2.1
       import_role:
         name: '1.2.1'
-      when: "'1.2.1' in cluster_selected_checks"
+      when: ('1.2.1' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
 
     - name: include 1.2.2
       import_role:
         name: '1.2.2'
-      when: "'1.2.2' in cluster_selected_checks"
+      when: ('1.2.2' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
 
     - name: include 1.3.1
       import_role:
         name: '1.3.1'
-      when: "'1.3.1' in cluster_selected_checks"
+      when: ('1.3.1' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
 
     - name: include 1.3.2
       import_role:
         name: '1.3.2'
-      when: "'1.3.2' in cluster_selected_checks"
+      when: ('1.3.2' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
 
     - name: include 1.3.3
       import_role:
         name: '1.3.3'
-      when: "'1.3.3' in cluster_selected_checks"
+      when: ('1.3.3' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
 
     - name: include 1.3.4
       import_role:
         name: '1.3.4'
-      when: "'1.3.4' in cluster_selected_checks"
+      when: ('1.3.4' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
 
     - name: include 1.3.5
       import_role:
         name: '1.3.5'
-      when: "'1.3.5' in cluster_selected_checks"
+      when: ('1.3.5' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
 
     - name: include 1.3.6
       import_role:
         name: '1.3.6'
-      when: "'1.3.6' in cluster_selected_checks"
+      when: ('1.3.6' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
 
     - name: include 1.3.7
       import_role:
         name: '1.3.7'
-      when: "'1.3.7' in cluster_selected_checks"
+      when: ('1.3.7' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
 
     - name: include 1.4.1
       import_role:
         name: '1.4.1'
+      when: ('1.4.1' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
 
     - name: include 1.4.2
       import_role:
         name: '1.4.2'
+      when: ('1.4.2' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
 
     - name: include 1.5.1
       import_role:
         name: '1.5.1'
+      when: ('1.5.1' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
 
     - name: include 1.5.2
       import_role:
         name: '1.5.2'
+      when: ('1.5.2' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
+
+    - name: include 2.1.1
+      import_role:
+        name: '2.1.1'
+      when: ('2.1.1' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
+
+    - name: include 2.1.2
+      import_role:
+        name: '2.1.2'
+      when: ('2.1.2' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
+
+    - name: include 2.1.3
+      import_role:
+        name: '2.1.3'
+      when: ('2.1.3' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
+
+    - name: include 2.1.4
+      import_role:
+        name: '2.1.4'
+      when: ('2.1.4' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
+
+    - name: include 2.1.5
+      import_role:
+        name: '2.1.5'
+      when: ('2.1.5' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
+
+    - name: include 2.1.6
+      import_role:
+        name: '2.1.6'
+      when: ('2.1.6' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
+
+    - name: include 2.1.7
+      import_role:
+        name: '2.1.7'
+      when: ('2.1.7' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
+
+    - name: include 2.1.8
+      import_role:
+        name: '2.1.8'
+      when: ('2.1.8' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
+
+    - name: include 2.2.1
+      import_role:
+        name: '2.2.1'
+      when: ('2.2.1' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
+
+    - name: include 2.2.2
+      import_role:
+        name: '2.2.2'
+      when: ('2.2.2' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
+
+    - name: include 2.2.3
+      import_role:
+        name: '2.2.3'
+      when: ('2.2.3' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
+
+    - name: include 2.2.3.exclude
+      import_role:
+        name: '2.2.3.exclude'
+      when: ('2.2.3.exclude' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
+
+    - name: include 2.2.4
+      import_role:
+        name: '2.2.4'
+      when: ('2.2.4' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
+
+    - name: include 2.2.5
+      import_role:
+        name: '2.2.5'
+      when: ('2.2.5' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
+
+    - name: include 2.2.5.exclude
+      import_role:
+        name: '2.2.5.exclude'
+      when: ('2.2.5.exclude' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
+
+    - name: include 2.2.6
+      import_role:
+        name: '2.2.6'
+      when: ('2.2.6' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
+
+    - name: include 2.2.7
+      import_role:
+        name: '2.2.7'
+      when: ('2.2.7' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
+
+    - name: include 2.2.8
+      import_role:
+        name: '2.2.8'
+      when: ('2.2.8' in cluster_selected_checks) or
+            (cluster_selected_checks | lower == "all")
 
     - name: Set Global Results
       set_fact:

@@ -1,0 +1,24 @@
+---
+
+- name: Set Test ID
+  set_fact:
+    test_id: '2.2.7'
+
+- name: "{{ test_id }}.check"
+  shell: |
+    #  Check python version
+    VERSION=$(python3 --version)
+    [[ "{{ expected[test_id] }}" =~ $VERSION ]] && exit 0
+    exit 1
+  check_mode: no
+  register: config_updated
+  changed_when: config_updated.rc != 0
+  failed_when: config_updated.rc > 1
+
+- block:
+    - import_role:
+        name: post-results
+  when:
+    - ansible_check_mode
+  vars:
+    status: "{{ config_updated is not changed }}"

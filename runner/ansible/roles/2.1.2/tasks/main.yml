@@ -1,0 +1,32 @@
+---
+
+- name: Set Test ID
+  set_fact:
+    test_id: '2.1.2'
+
+- name: "{{ test_id }}.check"
+  shell: |
+    # SAPHanaTopology is not configured, then pass
+    cibadmin -Q --xpath "//primitive[@type='SAPHanaTopology']/@type" || exit 0
+    # if configured and not clone, then fail
+    cibadmin -Q --xpath "//clone/primitive[@type='SAPHanaTopology']/@type" || exit 1
+    # check the following values, if any do not match expected fail.
+    [[ $(cibadmin -Q --xpath "//primitive[@type='SAPHanaTopology']/operations/op [@name='monitor']" | grep -oP 'interval="\K[^"]+') != "{{ expected[test_id + '.monitor_interval'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "//primitive[@type='SAPHanaTopology']/operations/op [@name='monitor']" | grep -oP 'timeout="\K[^"]+') != "{{ expected[test_id + '.monitor_timeout'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "//primitive[@type='SAPHanaTopology']/operations/op [@name='start']" | grep -oP 'interval="\K[^"]+') != "{{ expected[test_id + '.start_interval'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "//primitive[@type='SAPHanaTopology']/operations/op [@name='start']" | grep -oP 'timeout="\K[^"]+') != "{{ expected[test_id + '.start_timeout'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "//primitive[@type='SAPHanaTopology']/operations/op [@name='stop']" | grep -oP 'interval="\K[^"]+') != "{{ expected[test_id + '.stop_interval'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "//primitive[@type='SAPHanaTopology']/operations/op [@name='stop']" | grep -oP 'timeout="\K[^"]+') != "{{ expected[test_id + '.stop_timeout'] }}" ]] && exit 1
+    exit 0 
+  check_mode: no
+  register: config_updated
+  changed_when: config_updated.rc != 0
+  failed_when: config_updated.rc > 1
+
+- block:
+    - import_role:
+        name: post-results
+  when:
+    - ansible_check_mode
+  vars:
+    status: "{{ config_updated is not changed }}"

@@ -1,7 +1,6 @@
 package cluster
 
 import (
-	"math/rand"
 	"os"
 	"strconv"
 	"strings"
@@ -9,7 +8,6 @@ import (
 	// Reusing the Prometheus Ha Exporter cibadmin xml parser here
 	"github.com/ClusterLabs/ha_cluster_exporter/collector/pacemaker/cib"
 	"github.com/ClusterLabs/ha_cluster_exporter/collector/pacemaker/crmmon"
-	petname "github.com/dustinkirkland/golang-petname"
 	"github.com/trento-project/trento/internal"
 )
 
@@ -60,10 +58,7 @@ func NewCluster() (Cluster, error) {
 		return cluster, err
 	}
 
-	cluster.Name, err = getName(cluster.Id)
-	if err != nil {
-		return cluster, err
-	}
+	cluster.Name = getName(cluster)
 
 	if cluster.IsFencingSBD() {
 		sbdData, err := NewSBD(cluster.Id, SBDPath, SBDConfigPath)
@@ -82,12 +77,15 @@ func getCorosyncAuthkeyMd5(corosyncKeyPath string) (string, error) {
 	return kp, err
 }
 
-// Use a CRC32 hash of the cluster ID as seed for the RNG
-func getName(clusterId string) (string, error) {
-	intVar := internal.CRC32hash([]byte(clusterId))
-	rand.Seed(int64(intVar))
+func getName(c Cluster) string {
+	// Handle not named clusters
+	for _, prop := range c.Cib.Configuration.CrmConfig.ClusterProperties {
+		if prop.Id == clusterNameProperty {
+			return prop.Value
+		}
+	}
 
-	return petname.Generate(clusterNameWordCount, "-"), nil
+	return ""
 }
 
 func (c *Cluster) IsDc() bool {

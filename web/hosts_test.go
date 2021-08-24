@@ -75,6 +75,7 @@ func TestHostsListHandler(t *testing.T) {
 			Meta: map[string]string{
 				"trento-sap-systems":    "sys1",
 				"trento-cloud-provider": "azure",
+				"trento-agent-version":  "1",
 			},
 		},
 		{
@@ -84,6 +85,7 @@ func TestHostsListHandler(t *testing.T) {
 			Meta: map[string]string{
 				"trento-sap-systems":    "sys2",
 				"trento-cloud-provider": "aws",
+				"trento-agent-version":  "1",
 			},
 		},
 		{
@@ -93,6 +95,7 @@ func TestHostsListHandler(t *testing.T) {
 			Meta: map[string]string{
 				"trento-sap-systems":    "sys3",
 				"trento-cloud-provider": "gcp",
+				"trento-agent-version":  "1",
 			},
 		},
 	}
@@ -166,12 +169,12 @@ func TestHostsListHandler(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("<div.*alert-success.*<i.*check_circle.*</i>.*Passing.*1"), minified)
 	assert.Regexp(t, regexp.MustCompile("<div.*alert-warning.*<i.*warning.*</i>.*Warning.*1"), minified)
 	assert.Regexp(t, regexp.MustCompile("<div.*alert-danger.*<i.*error.*</i>.*Critical.*1"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*<i.*success.*check_circle.*</i></td><td>.*foo.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*sys1.*</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*<i.*success.*check_circle.*</i></td><td>.*foo.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*sys1.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*<i.*success.*check_circle.*</i></td><td>.*foo.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*sys1.*</td><td>v1</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*<i.*success.*check_circle.*</i></td><td>.*foo.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*sys1.*</td><td>v1</td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<select name=trento-sap-systems.*>.*sys1.*sys2.*sys3.*</select>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*<i.*success.*check_circle.*</i></td><td>.*foo.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*sys1.*</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*<i.*danger.*error.*</i></td><td>.*bar.*</td><td>192.168.1.2</td><td>.*aws.*</td><td>.*sys2.*</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*<i.*warning.*warning.*</i></td><td>.*buzz.*</td><td>192.168.1.3</td><td>.*gcp.*</td><td>.*sys3.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*<i.*success.*check_circle.*</i></td><td>.*foo.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*sys1.*</td><td>v1</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*<i.*danger.*error.*</i></td><td>.*bar.*</td><td>192.168.1.2</td><td>.*aws.*</td><td>.*sys2.*</td><td>v1</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*<i.*warning.*warning.*</i></td><td>.*buzz.*</td><td>192.168.1.3</td><td>.*gcp.*</td><td>.*sys3.*</td><td>v1</td>"), minified)
 }
 
 func TestHostHandler(t *testing.T) {
@@ -189,7 +192,8 @@ func TestHostHandler(t *testing.T) {
 		Datacenter: "dc1",
 		Address:    "192.168.1.1",
 		Meta: map[string]string{
-			"trento-sap-systems": "sys1",
+			"trento-sap-systems":   "sys1",
+			"trento-agent-version": "1",
 		},
 	}
 
@@ -297,6 +301,7 @@ func TestHostHandler(t *testing.T) {
 
 	assert.Regexp(t, regexp.MustCompile("<dd.*>test_host</dd>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<a.*sapsystems.*>sys1</a>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<dd.*>v1</dd>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<span.*>passing</span>"), minified)
 	// SAP Instance
 	assert.Regexp(t, regexp.MustCompile("<dt.*>Name</dt><dd.*>HDB00</dd>"), minified)

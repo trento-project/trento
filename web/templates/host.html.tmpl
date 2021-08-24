@@ -15,6 +15,10 @@
             <dd class="inline"><a
                         href='/clusters/{{ index .Host.TrentoMeta "trento-ha-cluster-id" }}'>{{ index .Host.TrentoMeta "trento-ha-cluster" }}</a>
             </dd>
+            <dt class="inline">Agent version</dt>
+            <dd class="inline">
+                {{ .Host.GetAgentVersionString }}
+            </dd>
         </dl>
         <hr/>
         {{- if eq .CloudData.Provider "azure" }}

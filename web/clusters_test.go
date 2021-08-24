@@ -39,7 +39,7 @@ var clustersListMap map[string]interface{} = map[string]interface{}{
 					"ClusterProperties": []interface{}{
 						map[string]interface{}{
 							"Id":    "cib-bootstrap-options-cluster-name",
-							"Value": "test_cluster",
+							"Value": "hana_cluster",
 						},
 					},
 				},
@@ -150,7 +150,7 @@ var clustersListMap map[string]interface{} = map[string]interface{}{
 				},
 			},
 		},
-		"name": "sculpin",
+		"name": "hana_cluster",
 	},
 	"e2f2eb50aef748e586a7baa85e0162cf": map[string]interface{}{
 		"cib": map[string]interface{}{
@@ -159,7 +159,7 @@ var clustersListMap map[string]interface{} = map[string]interface{}{
 					"ClusterProperties": []interface{}{
 						map[string]interface{}{
 							"Id":    "cib-bootstrap-options-cluster-name",
-							"Value": "2nd_cluster",
+							"Value": "netweaver_cluster",
 						},
 					},
 				},
@@ -175,7 +175,32 @@ var clustersListMap map[string]interface{} = map[string]interface{}{
 				},
 			},
 		},
-		"name": "panther",
+		"name": "netweaver_cluster",
+	},
+	"e27d313a674375b2066777a89ee346b9": map[string]interface{}{
+		"cib": map[string]interface{}{
+			"Configuration": map[string]interface{}{
+				"CrmConfig": map[string]interface{}{
+					"ClusterProperties": []interface{}{
+						map[string]interface{}{
+							"Id":    "cib-bootstrap-options-cluster-name",
+							"Value": "netweaver_cluster",
+						},
+					},
+				},
+			},
+		},
+		"crmmon": map[string]interface{}{
+			"Summary": map[string]interface{}{
+				"Nodes": map[string]interface{}{
+					"Number": 2,
+				},
+				"Resources": map[string]interface{}{
+					"Number": 10,
+				},
+			},
+		},
+		"name": "netweaver_cluster",
 	},
 }
 
@@ -252,8 +277,9 @@ func TestClustersListHandler(t *testing.T) {
 
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, minified, "Clusters")
-	assert.Regexp(t, regexp.MustCompile("<td .*>.*error.*</td><td>PRD</td><td>sculpin</td><td>47d1190ffb4f781974c8356d7f863b03</td><td>HANA scale-up</td><td>3</td><td>5</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td .*>.*fiber_manual_record.*</td><td></td><td>panther</td><td>e2f2eb50aef748e586a7baa85e0162cf</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td .*>.*error.*</td><td>PRD</td><td>hana_cluster</td><td>47d1190ffb4f781974c8356d7f863b03</td><td>HANA scale-up</td><td>3</td><td>5</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td .*>.*fiber_manual_record.*</td><td></td><td>.*duplicated.*netweaver_cluster</td><td>e2f2eb50aef748e586a7baa85e0162cf</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td .*>.*fiber_manual_record.*</td><td></td><td>.*duplicated.*netweaver_cluster</td><td>e27d313a674375b2066777a89ee346b9</td>"), minified)
 }
 
 func TestClusterHandlerHANA(t *testing.T) {
@@ -329,7 +355,7 @@ func TestClusterHandlerHANA(t *testing.T) {
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, resp.Body.String(), "Cluster details")
 	// Summary
-	assert.Regexp(t, regexp.MustCompile("<strong>Cluster name:</strong><br><span.*>sculpin</span>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<strong>Cluster name:</strong><br><span.*>hana_cluster</span>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<strong>Cluster type:</strong><br><span.*>HANA scale-up</span>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<strong>HANA system replication mode:</strong><br><span.*>sync</span>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<strong>Stonith type:</strong><br><span.*>external/sbd</span>"), minified)
@@ -379,7 +405,7 @@ func TestClusterHandlerGeneric(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, resp.Body.String(), "Cluster details")
-	assert.Contains(t, resp.Body.String(), "panther")
+	assert.Contains(t, resp.Body.String(), "netweaver_cluster")
 	assert.NotContains(t, resp.Body.String(), "HANA scale-out")
 	assert.NotContains(t, resp.Body.String(), "HANA scale-up")
 }

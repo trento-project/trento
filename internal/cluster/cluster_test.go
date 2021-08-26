@@ -24,20 +24,6 @@ func TestClusterId(t *testing.T) {
 	assert.Equal(t, c.Id, authkey)
 }
 
-func TestClusterAlias(t *testing.T) {
-	root := new(cib.Root)
-
-	c := Cluster{
-		Cib:  *root,
-		Name: "sculpin",
-		Id:   "47d1190ffb4f781974c8356d7f863b03",
-	}
-
-	name, _ := getName(c.Id)
-
-	assert.Equal(t, c.Name, name)
-}
-
 func TestClusterName(t *testing.T) {
 	root := new(cib.Root)
 

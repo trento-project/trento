@@ -281,19 +281,21 @@ func (nodes Nodes) PassingCount() int {
 }
 
 type ClustersRow struct {
-	Id              string
-	Name            string
-	Health          string
-	SIDs            []string
-	Type            string
-	ResourcesNumber int
-	HostsNumber     int
+	Id                string
+	Name              string
+	Health            string
+	SIDs              []string
+	Type              string
+	ResourcesNumber   int
+	HostsNumber       int
+	HasDuplicatedName bool
 }
 
 type ClustersTable []*ClustersRow
 
 func NewClustersTable(clusters map[string]*cluster.Cluster, hostList hosts.HostList) ClustersTable {
 	var clusterTable ClustersTable
+	names := make(map[string]int)
 
 	for id, c := range clusters {
 		var clusterHostList hosts.HostList
@@ -310,6 +312,8 @@ func NewClustersTable(clusters map[string]*cluster.Cluster, hostList hosts.HostL
 			}
 		}
 
+		names[c.Name] += 1
+
 		clustersRow := &ClustersRow{
 			Id:              id,
 			Name:            c.Name,
@@ -319,7 +323,14 @@ func NewClustersTable(clusters map[string]*cluster.Cluster, hostList hosts.HostL
 			ResourcesNumber: c.Crmmon.Summary.Resources.Number,
 			HostsNumber:     c.Crmmon.Summary.Nodes.Number,
 		}
+
 		clusterTable = append(clusterTable, clustersRow)
+	}
+
+	for _, c := range clusterTable {
+		if names[c.Name] > 1 {
+			c.HasDuplicatedName = true
+		}
 	}
 
 	return clusterTable

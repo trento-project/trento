@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: trento-runner-privatekey
+data:
+  privatekey: |- 
+    {{ .Values.privateKey | b64enc  }}

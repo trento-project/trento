@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "trento-runner.fullname" . }}-test-connection"
+  labels:
+    {{- include "trento-runner.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ include "trento-runner.fullname" . }}:{{ .Values.service.port }}']
+  restartPolicy: Never

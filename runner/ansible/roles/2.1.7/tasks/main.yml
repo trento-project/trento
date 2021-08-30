@@ -20,7 +20,7 @@
     [[ ${ha_dr_provider_SAPHanaSR} != "{{ expected[test_id + '.ha_dr_saphanasr'] }}" ]] && exit 1
     # if hook not found, exit with fail
     share_path=$(cat /hana/shared/PRD/global/hdb/custom/config/global.ini | grep "path =" | sed "s/.*= //")
-    [[ -s "$path/SAPHanaSR.py" ]] || exit 1
+    [[ -s "$share_path/SAPHanaSR.py" ]] || exit 1
     exit 0 
   check_mode: no
   register: config_updated

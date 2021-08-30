@@ -3,12 +3,14 @@
 - name: Set Test ID
   set_fact:
     test_id: '1.1.5'
+    key_name: 'token_retransmits_before_loss_const'
 
 - name: "{{ test_id }}.check"
-  replace:
+  lineinfile:
     path: /etc/corosync/corosync.conf
-    regexp: '(\s+)token_retransmits_before_loss_const:(\s)[0-9]+?$'
-    replace: '\1token_retransmits_before_loss_const: {{ expected[test_id] }}'
+    regexp: '^(\s+){{ key_name }}:'
+    line: "\t{{ key_name }}: {{ expected[test_id] }}"
+    insertafter: 'totem {'
   register: config_updated
   when: ansible_check_mode
 

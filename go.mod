@@ -3,7 +3,6 @@ module github.com/trento-project/trento
 go 1.16
 
 require (
-	github.com/ClusterLabs/ha_cluster_exporter v0.0.0-20210420075709-eb4566acab09
 	github.com/aquasecurity/bench-common v0.4.4
 	github.com/gin-gonic/gin v1.7.0
 	github.com/gomarkdown/markdown v0.0.0-20210514010506-3b9f47219fe7

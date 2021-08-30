@@ -5,11 +5,10 @@ import (
 	"path"
 	"testing"
 
-	"github.com/ClusterLabs/ha_cluster_exporter/collector/pacemaker/crmmon"
-
 	consulApi "github.com/hashicorp/consul/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/trento-project/trento/internal/cluster/cib"
+	"github.com/trento-project/trento/internal/cluster/crmmon"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/consul/mocks"
 )

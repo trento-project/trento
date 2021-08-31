@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/trento-project/trento/internal/cluster"
+	"github.com/trento-project/trento/internal/cluster/cib"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
 )
@@ -184,8 +185,15 @@ func NewNodes(c *cluster.Cluster, hl hosts.HostList) Nodes {
 					resource.Status = "orphaned"
 				}
 
+				var primitives []cib.Primitive
+				primitives = append(primitives, c.Cib.Configuration.Resources.Primitives...)
+
+				for _, g := range c.Cib.Configuration.Resources.Groups {
+					primitives = append(primitives, g.Primitives...)
+				}
+
 				if r.Agent == "ocf::heartbeat:IPaddr2" {
-					for _, p := range c.Cib.Configuration.Resources.Primitives {
+					for _, p := range primitives {
 						if r.Id == p.Id {
 							node.VirtualIps = append(node.VirtualIps, p.InstanceAttributes[0].Value)
 							break

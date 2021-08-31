@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ClusterLabs/ha_cluster_exporter/collector/pacemaker/cib"
-	"github.com/ClusterLabs/ha_cluster_exporter/collector/pacemaker/crmmon"
+	"github.com/trento-project/trento/internal/cluster/cib"
+	"github.com/trento-project/trento/internal/cluster/crmmon"
 
 	"github.com/stretchr/testify/assert"
 )

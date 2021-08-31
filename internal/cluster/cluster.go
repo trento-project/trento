@@ -5,10 +5,12 @@ import (
 	"strconv"
 	"strings"
 
-	// Reusing the Prometheus Ha Exporter cibadmin xml parser here
-	"github.com/ClusterLabs/ha_cluster_exporter/collector/pacemaker/cib"
-	"github.com/ClusterLabs/ha_cluster_exporter/collector/pacemaker/crmmon"
 	"github.com/trento-project/trento/internal"
+
+	// These packages were originally imported from github.com/ClusterLabs/ha_cluster_exporter/collector/pacemaker
+	// Now we mantain our own fork
+	"github.com/trento-project/trento/internal/cluster/cib"
+	"github.com/trento-project/trento/internal/cluster/crmmon"
 )
 
 const (

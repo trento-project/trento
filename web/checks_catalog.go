@@ -12,7 +12,9 @@ func NewChecksCatalogHandler(s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		checkList, err := s.GetChecksCatalogByGroup()
 		if err != nil {
-			_ = c.Error(err)
+			tipMsg := AlertCatalogNotFound().Text
+			_ = c.Error(InternalServerError(err.Error()))
+			_ = c.Error(InternalServerError(tipMsg))
 			return
 		}
 

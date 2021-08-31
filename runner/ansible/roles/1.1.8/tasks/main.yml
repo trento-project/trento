@@ -3,12 +3,14 @@
 - name: Set Test ID
   set_fact:
     test_id: '1.1.8'
+    key_name: 'two_node'
 
 - name: "{{ test_id }}.check"
-  replace:
+  lineinfile:
     path: /etc/corosync/corosync.conf
-    regexp: '(\s+)two_node:(\s)[0-9]+?$'
-    replace: '\1two_node: {{ expected[test_id] }}'
+    regexp: '^(\s+){{ key_name }}:'
+    line: "\t{{ key_name }}: {{ expected[test_id] }}"
+    insertafter: 'quorum {'
   register: config_updated
   when: ansible_check_mode
 

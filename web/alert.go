@@ -8,6 +8,16 @@ import (
 
 const AlertsKey string = "alerts"
 
+// Here some generic alerts
+var AlertCatalogNotFound = func() Alert {
+	return Alert{
+		Type:  "danger",
+		Title: "Error loading the checks catalog",
+		Text: "Checks catalog couldn't be retrieved. Check if the ARA service is running" +
+			" and the --ara-addr flag is pointing corretly to the service",
+	}
+}
+
 type Alert struct {
 	Type  string
 	Title string
@@ -31,20 +41,20 @@ func InitAlerts() {
 	gob.Register(Alert{})
 }
 
-func StoreAlert(c *gin.Context, a *Alert) {
+func StoreAlert(c *gin.Context, a Alert) {
 	session := sessions.Default(c)
 	session.AddFlash(a, AlertsKey)
 	session.Save()
 }
 
-func GetAlerts(c *gin.Context) []*Alert {
+func GetAlerts(c *gin.Context) []Alert {
 	session := sessions.Default(c)
 	f := session.Flashes(AlertsKey)
-	var alerts []*Alert
+	var alerts []Alert
 
 	for _, alertI := range f {
 		alert, _ := alertI.(Alert)
-		alerts = append(alerts, &alert)
+		alerts = append(alerts, alert)
 	}
 	session.Save()
 

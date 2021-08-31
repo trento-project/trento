@@ -483,8 +483,7 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 
 		selectedChecks, err := cluster.GetCheckSelection(client, clusterId)
 		if err != nil {
-			_ = c.Error(err)
-			return
+			StoreAlert(c, AlertCatalogNotFound())
 		}
 
 		checksCatalog, errCatalog := s.GetChecksCatalog()
@@ -538,15 +537,15 @@ func NewSaveChecksHandler(client consul.Client) gin.HandlerFunc {
 		err := cluster.StoreCheckSelection(
 			client, clusterId, strings.Join(selectedChecks.Ids, ","))
 
-		var newAlert *Alert
+		var newAlert Alert
 		if err == nil {
-			newAlert = &Alert{
+			newAlert = Alert{
 				Type:  "success",
 				Title: "Check selection saved",
 				Text:  "The cluster checks selection has been saved correctly.",
 			}
 		} else {
-			newAlert = &Alert{
+			newAlert = Alert{
 				Type:  "danger",
 				Title: "Error saving check selection",
 				Text:  "The cluster checks selection couldn't be saved.",

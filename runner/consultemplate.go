@@ -21,7 +21,7 @@ var ansibleHostsTemplate = fmt.Sprintf(`
 [{{ key (print (printf "%[3]s" $key) "/name") }}]
 {{- range tree (print (printf "%[3]s" $key) "/crmmon/Nodes") }}
 {{- if .Key | contains "/Name" }}
-{{ .Value }} %[1]s={{ key (printf "%[4]s" $key) }}
+{{ .Value }} %[1]s={{ key (printf "%[4]s" $key) }} ansible_host={{ with node .Value }}{{ .Node.Address }}{{ end }}
 {{- end }}
 {{- end }}
 {{- end }}

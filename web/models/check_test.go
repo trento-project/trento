@@ -34,6 +34,6 @@ func TestGetHostNames(t *testing.T) {
 
 	expectedHost := []string{"host1", "host2"}
 
-	assert.Equal(t, expectedHost, cR.GetHostNames())
+	assert.ElementsMatch(t, expectedHost, cR.GetHostNames())
 
 }

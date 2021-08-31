@@ -12,7 +12,7 @@ endif
 
 default: clean mod-tidy fmt vet-check test build
 
-.PHONY: build clean clean-binary clean-frontend cross-compiled default fmt fmt-check generate mod-tidy test vet-check web-assets
+.PHONY: build clean clean-binary clean-frontend cross-compiled default fmt fmt-check generate swag mod-tidy test vet-check web-assets
 
 build: trento
 trento: web-assets
@@ -45,6 +45,12 @@ ifeq (, $(shell command -v mockery 2> /dev/null))
 	$(error "'mockery' command not found. You can install it locally with 'go install github.com/vektra/mockery/v2'.")
 endif
 	go generate ./...
+
+swag:
+ifeq (, $(shell command -v swag 2> /dev/null))
+	$(error "'swag' command not found. You can install it locally with 'go install github.com/swaggo/swag/cmd/swag'.")
+endif
+	swag init
 
 mod-tidy:
 	go mod tidy

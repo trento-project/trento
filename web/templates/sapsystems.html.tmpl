@@ -1,4 +1,5 @@
 {{ define "additional_scripts" }}
+    <script src="/static/frontend/assets/js/tags.js"></script>
     <script src="/static/frontend/assets/js/tables.js"></script>
 {{ end }}
 {{ define "content" }}
@@ -17,14 +18,14 @@
     <h5>Filters</h5>
     <div class="horizontal-container">
         <script>
-            $(document).ready(function () {
-                {{- range $Key, $Value := .AppliedFilters }}
-                $("#{{ $Key }}").selectpicker("val", {{ $Value }});
-                {{- end }}
-                $('#clean').click(function () {
-                    $('.selectpicker').selectpicker("deselectAll")
-                });
+          $(document).ready(function () {
+              {{- range $Key, $Value := .AppliedFilters }}
+            $("#{{ $Key }}").selectpicker("val", {{ $Value }});
+              {{- end }}
+            $('#clean').click(function () {
+              $('.selectpicker').selectpicker("deselectAll")
             });
+          });
         </script>
         {{/* {{ template "health_filter" }} */}}
         <select name="sid" id="sid" class="selectpicker" multiple
@@ -32,6 +33,13 @@
             {{- range .SAPSystemsTable.GetAllSIDs }}
                 <option value="{{ . }}">{{ . }}</option>
             {{- end }}
+        </select>
+        <select name="tags" id="tags_filter" class="selectpicker" multiple
+                data-selected-text-format="count > 3" data-actions-box="true" data-live-search="true"
+                title="Tags">
+            {{- range .SAPSystemsTable.GetAllTags }}
+                <option value="{{ . }}">{{ . }}</option>
+            {{- end}}
         </select>
     </div>
     {{ template "sapsystems_table" .SAPSystemsTable }}

@@ -16,8 +16,9 @@ import (
 	"github.com/trento-project/trento/internal/consul/mocks"
 )
 
-var clustersListMap map[string]interface{} = map[string]interface{}{
+var clustersListMap = map[string]interface{}{
 	"47d1190ffb4f781974c8356d7f863b03": map[string]interface{}{
+		"id": "47d1190ffb4f781974c8356d7f863b03",
 		"cib": map[string]interface{}{
 			"Configuration": map[string]interface{}{
 				"Resources": map[string]interface{}{
@@ -177,6 +178,7 @@ var clustersListMap map[string]interface{} = map[string]interface{}{
 		"name": "hana_cluster",
 	},
 	"e2f2eb50aef748e586a7baa85e0162cf": map[string]interface{}{
+		"id": "e2f2eb50aef748e586a7baa85e0162cf",
 		"cib": map[string]interface{}{
 			"Configuration": map[string]interface{}{
 				"CrmConfig": map[string]interface{}{
@@ -202,6 +204,7 @@ var clustersListMap map[string]interface{} = map[string]interface{}{
 		"name": "netweaver_cluster",
 	},
 	"e27d313a674375b2066777a89ee346b9": map[string]interface{}{
+		"id": "e27d313a674375b2066777a89ee346b9",
 		"cib": map[string]interface{}{
 			"Configuration": map[string]interface{}{
 				"CrmConfig": map[string]interface{}{
@@ -268,6 +271,17 @@ func TestClustersListHandler(t *testing.T) {
 	health.On("Node", "test_node_2", (*consulApi.QueryOptions)(nil)).Return(node2HealthChecks, nil, nil)
 	consulInst.On("Health").Return(health)
 
+	tags := map[string]interface{}{
+		"tag1": struct{}{},
+	}
+
+	tagsPath := "trento/v0/tags/clusters/47d1190ffb4f781974c8356d7f863b03/"
+	kv.On("ListMap", tagsPath, tagsPath).Return(tags, nil)
+	tagsPath = "trento/v0/tags/clusters/e2f2eb50aef748e586a7baa85e0162cf/"
+	kv.On("ListMap", tagsPath, tagsPath).Return(tags, nil)
+	tagsPath = "trento/v0/tags/clusters/e27d313a674375b2066777a89ee346b9/"
+	kv.On("ListMap", tagsPath, tagsPath).Return(nil, nil)
+
 	deps := DefaultDependencies()
 	deps.consul = consulInst
 
@@ -301,9 +315,9 @@ func TestClustersListHandler(t *testing.T) {
 
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, minified, "Clusters")
-	assert.Regexp(t, regexp.MustCompile("<td .*>.*error.*</td><td>PRD</td><td>hana_cluster</td><td>47d1190ffb4f781974c8356d7f863b03</td><td>HANA scale-up</td><td>3</td><td>5</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td .*>.*fiber_manual_record.*</td><td></td><td>.*duplicated.*netweaver_cluster</td><td>e2f2eb50aef748e586a7baa85e0162cf</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td .*>.*fiber_manual_record.*</td><td></td><td>.*duplicated.*netweaver_cluster</td><td>e27d313a674375b2066777a89ee346b9</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td .*>.*error.*</td><td>.*hana_cluster.*</td><td>.*47d1190ffb4f781974c8356d7f863b03.*</td><td>HANA scale-up</td><td>PRD</td><td>3</td><td>5</td><td>.*<option.*>tag1</option>.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td .*>.*fiber_manual_record.*</td><td>.*duplicated.*netweaver_cluster.*</td><td>.*e2f2eb50aef748e586a7baa85e0162cf.*</td><td>Unknown</td><td></td><td>.*<option.*>tag1</option>.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td .*>.*fiber_manual_record.*</td><td>.*duplicated.*netweaver_cluster.*</td><td>.*e27d313a674375b2066777a89ee346b9.*</td><td>Unknown</td><td></td>"), minified)
 }
 
 func TestClusterHandlerHANA(t *testing.T) {

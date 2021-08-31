@@ -1,5 +1,6 @@
 {{ define "additional_scripts" }}
     <script src="/static/frontend/assets/js/tables.js"></script>
+    <script src="/static/frontend/assets/js/tags.js"></script>
 {{ end }}
 {{ define "content" }}
     <div class="row">
@@ -18,23 +19,17 @@
     <h5>Filters</h5>
     <div class="horizontal-container">
         <script>
-            $(document).ready(function () {
-                {{- range $Key, $Value := .AppliedFilters }}
-                $("#{{ $Key }}").selectpicker("val", {{ $Value }});
-                {{- end }}
-                $('#clean').click(function () {
-                    $('.selectpicker').selectpicker("deselectAll")
-                });
+          $(document).ready(function () {
+              {{- range $Key, $Value := .AppliedFilters }}
+            $("#{{ $Key }}").selectpicker("val", {{ $Value }});
+              {{- end }}
+            $('#clean').click(function () {
+              $('.selectpicker').selectpicker("deselectAll")
             });
+          });
         </script>
         {{ template "health_filter" }}
-        <select name="sid" id="sid" class="selectpicker" multiple
-                data-selected-text-format="count > 3" data-actions-box="true" data-live-search="true" title="SID">
-            {{- range .ClustersTable.GetAllSIDs }}
-                <option value="{{ . }}">{{ . }}</option>
-            {{- end }}
-        </select>
-        <select name="name" id="name" class="selectpicker" multiple
+        <select name="name" id="name_filter" class="selectpicker" multiple
                 data-selected-text-format="count > 3" data-actions-box="true" data-live-search="true"
                 title="Cluster name">
             {{- range .ClustersTable }}
@@ -43,10 +38,23 @@
                 {{- end }}
             {{- end}}
         </select>
-        <select name="cluster_type" id="cluster_type" class="selectpicker" multiple
+        <select name="sid" id="sid_filter" class="selectpicker" multiple
+                data-selected-text-format="count > 3" data-actions-box="true" data-live-search="true" title="SID">
+            {{- range .ClustersTable.GetAllSIDs }}
+                <option value="{{ . }}">{{ . }}</option>
+            {{- end }}
+        </select>
+        <select name="cluster_type" id="cluster_type_filter" class="selectpicker" multiple
                 data-selected-text-format="count > 3" data-actions-box="true" data-live-search="true"
                 title="Cluster type">
             {{- range .ClustersTable.GetAllClusterTypes }}
+                <option value="{{ . }}">{{ . }}</option>
+            {{- end}}
+        </select>
+        <select name="tags" id="tags_filter" class="selectpicker" multiple
+                data-selected-text-format="count > 3" data-actions-box="true" data-live-search="true"
+                title="Tags">
+            {{- range .ClustersTable.GetAllTags }}
                 <option value="{{ . }}">{{ . }}</option>
             {{- end}}
         </select>

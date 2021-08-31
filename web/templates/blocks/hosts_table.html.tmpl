@@ -1,4 +1,5 @@
 {{ define "hosts_table" }}
+    {{ $hostsTags := .HostsTags }}
     <div class='table-responsive'>
         <table class='table eos-table'>
             <thead>
@@ -10,10 +11,13 @@
                 <th scope='col'>Cluster</th>
                 <th scope='col'>System</th>
                 <th scope='col'>Agent version</th>
+                {{- if $hostsTags }}
+                    <th scope='col'>Tags</th>
+                {{- end }}
             </tr>
             </thead>
             <tbody>
-            {{- range . }}
+            {{- range .Hosts }}
                 {{ $TrentoMeta := .TrentoMeta }}
                 <tr>
                     <td class="row-status">
@@ -41,9 +45,20 @@
                     <td>
                         {{ .GetAgentVersionString }}
                     </td>
+                    {{- if $hostsTags}}
+                        <td>
+                            <select class="tags-input form-control" multiple data-url="/api/hosts/{{ .Name }}/tags"
+                                    autocomplete="off">
+                                {{- range (index $hostsTags .Name) }}
+                                    {{ . }}
+                                    <option value="{{ . }}" selected="selected">{{ . }}</option>
+                                {{- end }}
+                            </select>
+                        </td>
+                    {{- end }}
                 </tr>
             {{- else }}
-                {{ template "empty_table_body" 5}}
+                {{ template "empty_table_body" 6 }}
             {{- end }}
             </tbody>
         </table>

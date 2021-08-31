@@ -8,6 +8,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/trento-project/trento/internal/tags"
+
 	"github.com/aquasecurity/bench-common/check"
 	consulApi "github.com/hashicorp/consul/api"
 	"github.com/pkg/errors"
@@ -141,20 +143,42 @@ func CreateFilterMetaQuery(query map[string][]string) string {
 	return strings.Join(filters, " and ")
 }
 
-func Load(client consul.Client, query_filter string, health_filter []string) (HostList, error) {
+func Load(client consul.Client, queryFilter string, healthFilter []string, tagsFilter []string) (HostList, error) {
 	var hosts = HostList{}
 
-	query := &consulApi.QueryOptions{Filter: query_filter}
-	consul_nodes, _, err := client.Catalog().Nodes(query)
+	query := &consulApi.QueryOptions{Filter: queryFilter}
+	consulNodes, _, err := client.Catalog().Nodes(query)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not query Consul for nodes")
 	}
-	for _, node := range consul_nodes {
-		populated_host := &Host{*node, client}
+	for _, node := range consulNodes {
+		populatedHost := &Host{*node, client}
 		// This check could be done in the frontend maybe
-		if len(health_filter) == 0 || internal.Contains(health_filter, populated_host.Health()) {
-			hosts = append(hosts, populated_host)
+		if len(healthFilter) > 0 && !internal.Contains(healthFilter, populatedHost.Health()) {
+			continue
 		}
+
+		if len(tagsFilter) > 0 {
+			tagFound := false
+			t := tags.NewTags(client, "hosts", node.Node)
+			hostTags, err := t.GetAll()
+			if err != nil {
+				return nil, errors.Wrap(err, "could not query Tags for node")
+			}
+
+			for _, t := range tagsFilter {
+				if internal.Contains(hostTags, t) {
+					tagFound = true
+					break
+				}
+			}
+
+			if !tagFound {
+				continue
+			}
+		}
+
+		hosts = append(hosts, populatedHost)
 	}
 
 	return hosts, nil

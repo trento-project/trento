@@ -121,9 +121,11 @@ func TestHostsListHandler(t *testing.T) {
 	consulInst := new(mocks.Client)
 	catalog := new(mocks.Catalog)
 	health := new(mocks.Health)
+	kv := new(mocks.KV)
 
 	consulInst.On("Catalog").Return(catalog)
 	consulInst.On("Health").Return(health)
+	consulInst.On("KV").Return(kv)
 
 	query := &consulApi.QueryOptions{Filter: ""}
 	catalog.On("Nodes", (*consulApi.QueryOptions)(query)).Return(nodes, nil, nil)
@@ -131,6 +133,12 @@ func TestHostsListHandler(t *testing.T) {
 	health.On("Node", "foo", (*consulApi.QueryOptions)(nil)).Return(fooHealthChecks, nil, nil)
 	health.On("Node", "bar", (*consulApi.QueryOptions)(nil)).Return(barHealthChecks, nil, nil)
 	health.On("Node", "buzz", (*consulApi.QueryOptions)(nil)).Return(buzzHealthChecks, nil, nil)
+
+	kv.On("ListMap", "trento/v0/tags/hosts/foo/", "trento/v0/tags/hosts/foo/").Return(map[string]interface{}{
+		"tag1": struct{}{},
+	}, nil)
+	kv.On("ListMap", "trento/v0/tags/hosts/bar/", "trento/v0/tags/hosts/bar/").Return(nil, nil)
+	kv.On("ListMap", "trento/v0/tags/hosts/buzz/", "trento/v0/tags/hosts/buzz/").Return(nil, nil)
 
 	deps := DefaultDependencies()
 	deps.consul = consulInst
@@ -169,8 +177,7 @@ func TestHostsListHandler(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("<div.*alert-success.*<i.*check_circle.*</i>.*Passing.*1"), minified)
 	assert.Regexp(t, regexp.MustCompile("<div.*alert-warning.*<i.*warning.*</i>.*Warning.*1"), minified)
 	assert.Regexp(t, regexp.MustCompile("<div.*alert-danger.*<i.*error.*</i>.*Critical.*1"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*<i.*success.*check_circle.*</i></td><td>.*foo.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*sys1.*</td><td>v1</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*<i.*success.*check_circle.*</i></td><td>.*foo.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*sys1.*</td><td>v1</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*<i.*success.*check_circle.*</i></td><td>.*foo.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*sys1.*</td><td>v1</td><td>.*<option.*>tag1</option>.*</td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<select name=trento-sap-systems.*>.*sys1.*sys2.*sys3.*</select>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td.*<i.*success.*check_circle.*</i></td><td>.*foo.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*sys1.*</td><td>v1</td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td.*<i.*danger.*error.*</i></td><td>.*bar.*</td><td>192.168.1.2</td><td>.*aws.*</td><td>.*sys2.*</td><td>v1</td>"), minified)

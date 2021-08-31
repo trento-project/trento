@@ -158,6 +158,7 @@ func clustersListMap() map[string]interface{} {
 					},
 				},
 				"name": "sculpin",
+				"id":   "47d1190ffb4f781974c8356d7f863b03",
 			},
 		},
 		"e2f2eb50aef748e586a7baa85e0162cf": map[string]interface{}{
@@ -185,6 +186,7 @@ func clustersListMap() map[string]interface{} {
 					},
 				},
 				"name": "panther",
+				"id":   "e2f2eb50aef748e586a7baa85e0162cf",
 			},
 		},
 	}
@@ -407,7 +409,7 @@ func TestClusterHandlerHANA(t *testing.T) {
 
 	checksMocks.On("GetChecksCatalog").Return(checksCatalog(), nil)
 	checksMocks.On("GetChecksCatalogByGroup").Return(checksCatalogByGroup(), nil)
-	checksMocks.On("GetChecksResultByCluster", "sculpin").Return(checksResult(), nil)
+	checksMocks.On("GetChecksResultByCluster", "47d1190ffb4f781974c8356d7f863b03").Return(checksResult(), nil)
 
 	deps := DefaultDependencies()
 	deps.consul = consulInst
@@ -523,7 +525,7 @@ func TestClusterHandlerAlert(t *testing.T) {
 
 	checksMocks.On("GetChecksCatalog").Return(nil, fmt.Errorf("catalog error"))
 	checksMocks.On("GetChecksCatalogByGroup").Return(nil, fmt.Errorf("catalog error"))
-	checksMocks.On("GetChecksResultByCluster", "sculpin").Return(nil, fmt.Errorf("catalog error"))
+	checksMocks.On("GetChecksResultByCluster", "47d1190ffb4f781974c8356d7f863b03").Return(nil, fmt.Errorf("catalog error"))
 
 	deps := DefaultDependencies()
 	deps.consul = consulInst

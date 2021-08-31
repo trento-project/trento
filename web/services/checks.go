@@ -92,15 +92,15 @@ func (c *checksService) GetChecksResult() (map[string]*models.Results, error) {
 	return checkData.Groups, nil
 }
 
-func (c *checksService) GetChecksResultByCluster(clusterName string) (*models.Results, error) {
+func (c *checksService) GetChecksResultByCluster(clusterId string) (*models.Results, error) {
 	cResult, err := c.GetChecksResult()
 	if err != nil {
 		return nil, err
 	}
 
-	cResultByHost, ok := cResult[clusterName]
+	cResultByHost, ok := cResult[clusterId]
 	if !ok {
-		return nil, fmt.Errorf("Cluster %s not found", clusterName)
+		return nil, fmt.Errorf("Cluster %s not found", clusterId)
 	}
 
 	return cResultByHost, nil

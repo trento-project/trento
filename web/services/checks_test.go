@@ -525,7 +525,7 @@ func TestGetChecksResultByCluster(t *testing.T) {
 		ID: 1,
 		Value: map[string]interface{}{
 			"results": map[string]interface{}{
-				"mycluster": map[string]interface{}{
+				"myClusterId": map[string]interface{}{
 					"checks": map[string]interface{}{
 						"1.1.1": map[string]interface{}{
 							"hosts": map[string]interface{}{
@@ -560,7 +560,7 @@ func TestGetChecksResultByCluster(t *testing.T) {
 	)
 
 	checksService := NewChecksService(mockAra)
-	c, err := checksService.GetChecksResultByCluster("mycluster")
+	c, err := checksService.GetChecksResultByCluster("myClusterId")
 
 	expectedResults := &models.Results{
 		Checks: map[string]*models.ChecksByHost{

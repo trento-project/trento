@@ -489,7 +489,7 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 
 		checksCatalog, errCatalog := s.GetChecksCatalog()
 		checksCatalogModalData, errCatalogByGroup := getChecksCatalogModalData(s, clusterId, selectedChecks)
-		checksRestult, errResult := s.GetChecksResultByCluster(clusterItem.Name)
+		checksResult, errResult := s.GetChecksResultByCluster(clusterItem.Id)
 		if errCatalog != nil || errCatalogByGroup != nil || errResult != nil {
 			StoreAlert(c, AlertCatalogNotFound())
 		} else if selectedChecks == "" {
@@ -518,7 +518,7 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 			"HealthContainer":    hContainer,
 			"ChecksCatalog":      checksCatalog,
 			"ChecksCatalogModal": checksCatalogModalData,
-			"ChecksResult":       checksRestult,
+			"ChecksResult":       checksResult,
 			"Alerts":             GetAlerts(c),
 		})
 	}

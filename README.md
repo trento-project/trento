@@ -27,6 +27,7 @@ of existing clusters, rather than deploying new one.
 - [Running Trento](#running-trento)
   - [Consul](#consul)
   - [Trento Agents](#trento-agents)
+  - [Trento Runner](#trento-runner)
   - [Trento Web UI](#trento-web-ui)
 - [Usage](#usage)
   - [Grouping and filtering in the Web UI](#grouping-and-filtering-in-the-web-ui)
@@ -172,25 +173,34 @@ To start the trento agent:
 
 ## Trento Runner
 
-Trento Runner is responsible for running the health checks. It is based on [Ansible](https://docs.ansible.com/ansible/latest/index.html) and [ARA](https://ara.recordsansible.org/).
-This component can be executed in the same machine as the Web UI, but it is not mandatory, it can be executed in any other machine that has network access to the agents.
+The Trento Runner is responsible for running the health checks. It is based on [Ansible](https://docs.ansible.com/ansible/latest/index.html) and [ARA](https://ara.recordsansible.org/).
+These 2 components (the Runner and ARA) can be executed in the same machine as the Web UI, but it is not mandatory, they can be executed in any other machine that has network access to the agents (the Runner and ARA can be even executed in different machines too, as long as the network connection is available between them).
 
-In order to start it, some packages must be installed and started. Here a quick go through:
+In order to start them, some packages must be installed and started. Here a quick go through:
+
+### ARA server
+
 ```shell
-# Install ansible. Tested with version 2.11.2
-pip install ansible
-# Install ARA
-pip install --user ansible "ara[server]"
+# Install ARA with server dependencies
+pip install --user "ara[server]"
 # Setup ARA database
 ara-manage migrate
 # Start ARA server. This process can be started in background or in other shell terminal
 ara-manage runserver ip:port
+```
+
+### Runner
+
+```shell
+# Install ansible and ARA. Tested with version 2.11.2
+pip install --user ansible ara
 
 # Enable the SSH connections to the agents machines
-# Update the /etc/hosts file to identify the agents hosts
 # Authorize SSH connection for all the agents hosts
 ssh-copy-id agent1
 ssh-copy-id agent2
+# Or using the IP address
+ssh-copy-id 192.168.100.1
 
 # Start the Trento runner
 ./trento runner start --ara-server http://araIP:port --consul-add consulIP:port -i 5

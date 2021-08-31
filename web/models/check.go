@@ -46,6 +46,17 @@ func (c *Results) GetHostNames() []string {
 	return hostNames
 }
 
+func (c *Results) HostResultPresent(host string) bool {
+	hostList := c.GetHostNames()
+	for _, v := range hostList {
+		if v == host {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (c *Check) NormalizeID() string {
 	return strings.Replace(c.ID, ".", "-", -1)
 }

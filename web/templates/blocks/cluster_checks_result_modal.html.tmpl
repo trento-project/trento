@@ -11,32 +11,45 @@
                 </div>
                 <div class="modal-body">
                   <div class="table-responsive">
+                      {{- $nodes := .Nodes }}
+                      {{- $checksResult := .ChecksResult }}
                       <table class="table eos-table">
                           <thead>
                           <tr>
                               <th scope="col">Test ID</th>
                               <th scope="col">Description</th>
-                              {{- if .ChecksResult }}
-                              {{- range $i, $host := .ChecksResult.GetHostNames }}
-                              <th scope="col">{{ $host }}</th>
+                              {{- if $checksResult }}
+                              {{- range $node := $nodes }}
+                              <th scope="col">
+                                  {{- $result := $checksResult.HostResultPresent $node.Name }}
+                                  {{- if not $result }}
+                                  <i class="eos-icons eos-18 text-warning" data-toggle="tooltip" title="Node is unreacheable">warning</i>
+                                  {{- end }}
+                                  {{- $node.Name }}
+                              </th>
                               {{- end }}
                               {{- end }}
                           </tr>
                           </thead>
                           <tbody>
                           {{- $checksMetadata := .ChecksCatalog }}
-                          {{- if .ChecksResult }}
-                          {{- range $checkID, $checkList := .ChecksResult.Checks }}
+                          {{- if $checksResult }}
+                          {{- range $checkID, $checkList := $checksResult.Checks }}
                               {{- $checkMeta := index $checksMetadata $checkID }}
                               <tr>
-                                  <td class="align-top">{{ $checkID }}</td>
-                                  <td class="align-top">{{ if $checkMeta }}{{ $checkMeta.Description }}{{ else }}Test metadata not found{{ end }}</td>
-                                  {{- range $host, $result := $checkList.Hosts }}
-                                  <td>{{- if $result.Result }}<i class="eos-icons eos-18 text-success">check_circle</i>{{ else }}<i class="eos-icons eos-18 text-danger">error</i>{{ end }}</td>
+                                  <td>{{ $checkID }}</td>
+                                  <td>{{ if $checkMeta }}{{ $checkMeta.Description }}{{ else }}Test metadata not found{{ end }}</td>
+                                  {{- range $node := $nodes }}
+                                  {{- $result := index $checkList.Hosts $node.Name }}
+                                  {{- if $result }}
+                                  <td class="align-center">{{- if $result.Result }}<i class="eos-icons eos-18 text-success">check_circle</i>{{ else }}<i class="eos-icons eos-18 text-danger">error</i>{{ end }}</td>
+                                  {{- else }}
+                                  <td class="align-center"><i class="eos-icons eos-18 text-muted">sync_problem</i></td>
+                                  {{- end }}
                                   {{- end }}
                               </tr>
                           {{- else }}
-                              {{ template "empty_table_body" (sum 2 (len .ChecksResult.GetHostNames )) }}
+                              {{ template "empty_table_body" (sum 2 (len $nodes )) }}
                           {{- end }}
                           {{- else }}
                               {{ template "empty_table_body" 2 }}

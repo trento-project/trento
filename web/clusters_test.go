@@ -292,20 +292,44 @@ func checksResult() *models.Results {
 		Checks: map[string]*models.ChecksByHost{
 			"1.1.1": &models.ChecksByHost{
 				Hosts: map[string]*models.Check{
-					"host1": &models.Check{
+					"test_node_1": &models.Check{
 						Result: true,
 					},
-					"host2": &models.Check{
+					"test_node_2": &models.Check{
 						Result: true,
 					},
 				},
 			},
 			"1.1.2": &models.ChecksByHost{
 				Hosts: map[string]*models.Check{
-					"host1": &models.Check{
+					"test_node_1": &models.Check{
 						Result: false,
 					},
-					"host2": &models.Check{
+					"test_node_2": &models.Check{
+						Result: false,
+					},
+				},
+			},
+		},
+	}
+
+	return checksResult
+}
+
+func checksResultUnreachable() *models.Results {
+
+	checksResult := &models.Results{
+		Checks: map[string]*models.ChecksByHost{
+			"1.1.1": &models.ChecksByHost{
+				Hosts: map[string]*models.Check{
+					"test_node_1": &models.Check{
+						Result: true,
+					},
+				},
+			},
+			"1.1.2": &models.ChecksByHost{
+				Hosts: map[string]*models.Check{
+					"test_node_1": &models.Check{
 						Result: false,
 					},
 				},
@@ -472,9 +496,100 @@ func TestClusterHandlerHANA(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("id=1-1-2-3>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td>1.2.3</td><td>description 3</td>"), minified)
 	// Checks result modal
-	assert.Regexp(t, regexp.MustCompile("<th.*>host1.*<th.*>host2"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*>1.1.1</td><td.*>description 1</td><td>.*check_circle.*check_circle"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*>1.1.2</td><td.*>description 2</td><td>.*error.*error"), minified)
+	assert.Regexp(t, regexp.MustCompile("<th.*>test_node_1.*<th.*>test_node_2"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*>1.1.1</td><td.*>description 1</td><td.*>.*check_circle.*check_circle"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*>1.1.2</td><td.*>description 2</td><td.*>.*error.*error"), minified)
+}
+
+func TestClusterHandlerUnreachableNodes(t *testing.T) {
+	nodes := []*consulApi.Node{
+		{
+			Node:    "test_node_1",
+			Address: "192.168.1.1",
+		},
+		{
+			Node:    "test_node_2",
+			Address: "192.168.1.2",
+		},
+	}
+
+	node1HealthChecks := consulApi.HealthChecks{
+		&consulApi.HealthCheck{
+			Status: consulApi.HealthPassing,
+		},
+	}
+
+	node2HealthChecks := consulApi.HealthChecks{
+		&consulApi.HealthCheck{
+			Status: consulApi.HealthCritical,
+		},
+	}
+
+	consulInst := new(mocks.Client)
+	checksMocks := new(serviceMocks.ChecksService)
+
+	kv := new(mocks.KV)
+	consulInst.On("KV").Return(kv)
+	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
+	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil).Times(2)
+
+	catalog := new(mocks.Catalog)
+	filter := &consulApi.QueryOptions{Filter: "Meta[\"trento-ha-cluster-id\"] == \"47d1190ffb4f781974c8356d7f863b03\""}
+	catalog.On("Nodes", filter).Return(nodes, nil, nil)
+	consulInst.On("Catalog").Return(catalog)
+
+	health := new(mocks.Health)
+	health.On("Node", "test_node_1", (*consulApi.QueryOptions)(nil)).Return(node1HealthChecks, nil, nil)
+	health.On("Node", "test_node_2", (*consulApi.QueryOptions)(nil)).Return(node2HealthChecks, nil, nil)
+	consulInst.On("Health").Return(health)
+
+	selectedChecksPath := fmt.Sprintf(consul.KvClustersChecksPath, "47d1190ffb4f781974c8356d7f863b03")
+	selectedChecksValue := &consulApi.KVPair{Value: []byte("1.1.1,1.1.2")}
+	kv.On("Get", selectedChecksPath, (*consulApi.QueryOptions)(nil)).Return(selectedChecksValue, nil, nil)
+
+	checksMocks.On("GetChecksCatalog").Return(checksCatalog(), nil)
+	checksMocks.On("GetChecksCatalogByGroup").Return(checksCatalogByGroup(), nil)
+	checksMocks.On("GetChecksResultByCluster", "47d1190ffb4f781974c8356d7f863b03").Return(checksResultUnreachable(), nil)
+
+	deps := DefaultDependencies()
+	deps.consul = consulInst
+	deps.checksService = checksMocks
+
+	app, err := NewAppWithDeps("", 80, deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/clusters/47d1190ffb4f781974c8356d7f863b03", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Accept", "text/html")
+
+	app.ServeHTTP(resp, req)
+
+	consulInst.AssertExpectations(t)
+	kv.AssertExpectations(t)
+	checksMocks.AssertExpectations(t)
+
+	m := minify.New()
+	m.AddFunc("text/html", html.Minify)
+	m.Add("text/html", &html.Minifier{
+		KeepDefaultAttrVals: true,
+		KeepEndTags:         true,
+	})
+	minified, err := m.String("text/html", resp.Body.String())
+	if err != nil {
+		panic(err)
+	}
+
+	assert.NoError(t, err)
+	assert.Equal(t, 200, resp.Code)
+	// Checks result modal
+	assert.Regexp(t, regexp.MustCompile("<th.*>test_node_1.*<th.*>.*warning.*test_node_2"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*>1.1.1</td><td.*>description 1</td><td.*>.*check_circle.*sync_problem"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*>1.1.2</td><td.*>description 2</td><td.*>.*error.*sync_problem"), minified)
 }
 
 func TestClusterHandlerAlert(t *testing.T) {

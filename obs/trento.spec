@@ -10,7 +10,7 @@
 # license for the pristine package is not an Open Source License, in which
 # case the license is the MIT License). An "Open Source License" is a
 # license that conforms to the Open Source Definition (Version 1.9)
-# published by the Open Source Initiative.
+# published by the Open Source Initiative .
 
 # Please submit bugfixes or comments via https://bugs.opensuse.org/
 #

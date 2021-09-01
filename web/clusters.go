@@ -295,15 +295,17 @@ type ClustersRow struct {
 
 type ClustersTable []*ClustersRow
 
-func NewClustersTable(clusters map[string]*cluster.Cluster) ClustersTable {
+func NewClustersTable(s services.ChecksService, clusters map[string]*cluster.Cluster) ClustersTable {
 	var clusterTable ClustersTable
 
 	for id, c := range clusters {
-		var health string
 		// TODO: Cost-optimized has multiple SIDs
 		var sids []string
 
 		sids = append(sids, getHanaSID(c))
+
+		// Using empty string in case of error
+		health, _ := s.GetAggregatedChecksResultByCluster(id)
 
 		clustersRow := &ClustersRow{
 			Id:              id,
@@ -386,18 +388,16 @@ func NewClustersHealthContainer(t ClustersTable) *HealthContainer {
 	h := &HealthContainer{}
 	for _, r := range t {
 		switch r.Health {
-		case consulApi.HealthPassing:
+		case services.CheckPassing:
 			h.PassingCount += 1
-		case consulApi.HealthWarning:
-			h.WarningCount += 1
-		case consulApi.HealthCritical:
+		case services.CheckFailing:
 			h.CriticalCount += 1
 		}
 	}
 	return h
 }
 
-func NewClusterListHandler(client consul.Client) gin.HandlerFunc {
+func NewClusterListHandler(client consul.Client, s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		query := c.Request.URL.Query()
 
@@ -412,7 +412,7 @@ func NewClusterListHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		clustersTable := NewClustersTable(clusters)
+		clustersTable := NewClustersTable(s, clusters)
 		clustersTable = clustersTable.Filter(nameFilter, healthFilter, sidFilter, clusterTypeFilter)
 
 		healthContainer := NewClustersHealthContainer(clustersTable)

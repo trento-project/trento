@@ -12,11 +12,17 @@ import (
 
 //go:generate mockery --name=ChecksService
 
+const (
+	CheckPassing = "passing"
+	CheckFailing = "critical"
+)
+
 type ChecksService interface {
 	GetChecksCatalog() (map[string]*models.Check, error)
 	GetChecksCatalogByGroup() (map[string]map[string]*models.Check, error)
 	GetChecksResult() (map[string]*models.Results, error)
-	GetChecksResultByCluster(clusterName string) (*models.Results, error)
+	GetChecksResultByCluster(clusterId string) (*models.Results, error)
+	GetAggregatedChecksResultByCluster(clusterId string) (string, error)
 }
 
 type checksService struct {
@@ -98,10 +104,28 @@ func (c *checksService) GetChecksResultByCluster(clusterId string) (*models.Resu
 		return nil, err
 	}
 
-	cResultByHost, ok := cResult[clusterId]
+	cResultByCluster, ok := cResult[clusterId]
 	if !ok {
 		return nil, fmt.Errorf("Cluster %s not found", clusterId)
 	}
 
-	return cResultByHost, nil
+	return cResultByCluster, nil
+}
+
+func (c *checksService) GetAggregatedChecksResultByCluster(clusterId string) (string, error) {
+	cResultByCluster, err := c.GetChecksResultByCluster(clusterId)
+	if err != nil {
+		return "", err
+	}
+
+	for _, check := range cResultByCluster.Checks {
+		for _, host := range check.Hosts {
+			if !host.Result {
+				log.Info(CheckFailing)
+				return CheckFailing, nil
+			}
+		}
+	}
+	log.Info(CheckPassing)
+	return CheckPassing, nil
 }

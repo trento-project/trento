@@ -8,8 +8,6 @@ import (
 
 	"github.com/trento-project/trento/internal"
 
-	consulApi "github.com/hashicorp/consul/api"
-
 	"github.com/gin-gonic/gin"
 
 	"github.com/trento-project/trento/internal/cluster"
@@ -143,7 +141,7 @@ func (node *Node) HANAStatus() string {
 	return "-"
 }
 
-func NewNodes(c *cluster.Cluster, hl hosts.HostList) Nodes {
+func NewNodes(s services.ChecksService, c *cluster.Cluster, hl hosts.HostList) Nodes {
 	// TODO: this factory is HANA specific,
 	// eventually we will need to have different factory methods depending on the cluster type
 
@@ -214,7 +212,10 @@ func NewNodes(c *cluster.Cluster, hl hosts.HostList) Nodes {
 		for _, h := range hl {
 			if h.Name() == node.Name {
 				node.Ip = h.Address
-				node.Health = h.Health()
+				cData, _ := s.GetAggregatedChecksResultByHost(c.Id)
+				if _, ok := cData[node.Name]; ok {
+					node.Health = cData[node.Name].String()
+				}
 			}
 		}
 
@@ -247,42 +248,6 @@ func (nodes Nodes) GroupBySite() map[string]Nodes {
 	return nodesBySite
 }
 
-func (nodes Nodes) CriticalCount() int {
-	var critical int
-
-	for _, n := range nodes {
-		if n.Health == consulApi.HealthCritical {
-			critical += 1
-		}
-	}
-
-	return critical
-}
-
-func (nodes Nodes) WarningCount() int {
-	var warning int
-
-	for _, n := range nodes {
-		if n.Health == consulApi.HealthWarning {
-			warning += 1
-		}
-	}
-
-	return warning
-}
-
-func (nodes Nodes) PassingCount() int {
-	var warning int
-
-	for _, n := range nodes {
-		if n.Health == consulApi.HealthPassing {
-			warning += 1
-		}
-	}
-
-	return warning
-}
-
 type ClustersRow struct {
 	Id              string
 	Name            string
@@ -305,12 +270,12 @@ func NewClustersTable(s services.ChecksService, clusters map[string]*cluster.Clu
 		sids = append(sids, getHanaSID(c))
 
 		// Using empty string in case of error
-		health, _ := s.GetAggregatedChecksResultByCluster(id)
+		aCheckData, _ := s.GetAggregatedChecksResultByCluster(id)
 
 		clustersRow := &ClustersRow{
 			Id:              id,
 			Name:            c.Name,
-			Health:          health,
+			Health:          aCheckData.String(),
 			SIDs:            sids,
 			Type:            detectClusterType(c),
 			ResourcesNumber: c.Crmmon.Summary.Resources.Number,
@@ -500,12 +465,13 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 			StoreAlert(c, a)
 		}
 
-		nodes := NewNodes(clusterItem, hosts)
+		nodes := NewNodes(s, clusterItem, hosts)
+		aCheckData, _ := s.GetAggregatedChecksResultByCluster(clusterId)
 
 		hContainer := &HealthContainer{
-			CriticalCount: nodes.CriticalCount(),
-			WarningCount:  nodes.WarningCount(),
-			PassingCount:  nodes.PassingCount(),
+			CriticalCount: aCheckData.CriticalCount,
+			WarningCount:  aCheckData.WarningCount,
+			PassingCount:  aCheckData.PassingCount,
 			Layout:        "vertical",
 		}
 

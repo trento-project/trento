@@ -79,6 +79,7 @@
     - name: include 1.1.6.runtime
       import_role:
         name: '1.1.6.runtime'
+      when: "'1.1.6.runtime' in cluster_selected_checks"
 
     - name: include 1.1.7
       import_role:

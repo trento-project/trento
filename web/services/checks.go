@@ -14,15 +14,33 @@ import (
 
 const (
 	CheckPassing = "passing"
+	CheckWarning = "warning"
 	CheckFailing = "critical"
 )
+
+type AggregatedCheckData struct {
+	PassingCount int
+	WarningCount int
+	CriticalCount int
+}
+
+func (a *AggregatedCheckData) String() string {
+	if a.CriticalCount > 0 {
+		return CheckFailing
+	} else if a.PassingCount > 0 {
+		return CheckPassing
+	}
+
+	return ""
+}
 
 type ChecksService interface {
 	GetChecksCatalog() (map[string]*models.Check, error)
 	GetChecksCatalogByGroup() (map[string]map[string]*models.Check, error)
 	GetChecksResult() (map[string]*models.Results, error)
 	GetChecksResultByCluster(clusterId string) (*models.Results, error)
-	GetAggregatedChecksResultByCluster(clusterId string) (string, error)
+	GetAggregatedChecksResultByHost(clusterId string) (map[string]*AggregatedCheckData, error)
+	GetAggregatedChecksResultByCluster(clusterId string) (*AggregatedCheckData, error)
 }
 
 type checksService struct {
@@ -112,20 +130,43 @@ func (c *checksService) GetChecksResultByCluster(clusterId string) (*models.Resu
 	return cResultByCluster, nil
 }
 
-func (c *checksService) GetAggregatedChecksResultByCluster(clusterId string) (string, error) {
+func (c *checksService) GetAggregatedChecksResultByHost(clusterId string) (map[string]*AggregatedCheckData, error) {
 	cResultByCluster, err := c.GetChecksResultByCluster(clusterId)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
+	aCheckDataByHost := make(map[string]*AggregatedCheckData)
+
 	for _, check := range cResultByCluster.Checks {
-		for _, host := range check.Hosts {
+		for hostName, host := range check.Hosts {
+			if _, ok := aCheckDataByHost[hostName]; !ok {
+				aCheckDataByHost[hostName] = &AggregatedCheckData{}
+			}
 			if !host.Result {
-				log.Info(CheckFailing)
-				return CheckFailing, nil
+				aCheckDataByHost[hostName].CriticalCount += 1
+			} else {
+				aCheckDataByHost[hostName].PassingCount += 1
 			}
 		}
 	}
-	log.Info(CheckPassing)
-	return CheckPassing, nil
+
+	return aCheckDataByHost, nil
+}
+
+func (c *checksService) GetAggregatedChecksResultByCluster(clusterId string) (*AggregatedCheckData, error) {
+	aCheckDataByHost, err := c.GetAggregatedChecksResultByHost(clusterId)
+	if err != nil {
+		return nil, err
+	}
+
+	aCheckData := &AggregatedCheckData{}
+
+	for _, aData := range aCheckDataByHost {
+		aCheckData.CriticalCount += aData.CriticalCount
+		aCheckData.WarningCount += aData.WarningCount
+		aCheckData.PassingCount += aData.PassingCount
+	}
+
+	return aCheckData, nil
 }

@@ -432,13 +432,8 @@ func NewClusterListHandler(client consul.Client) gin.HandlerFunc {
 	}
 }
 
-func getChecksCatalog(clusterId string, client consul.Client, s services.ChecksService) (map[string]map[string]*models.Check, error) {
+func getChecksCatalogModalData(s services.ChecksService, clusterId, selectedChecks string) (map[string]map[string]*models.Check, error) {
 	checksCatalog, err := s.GetChecksCatalogByGroup()
-	if err != nil {
-		return checksCatalog, err
-	}
-
-	selectedChecks, err := cluster.GetCheckSelection(client, clusterId)
 	if err != nil {
 		return checksCatalog, err
 	}
@@ -486,9 +481,23 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 			return
 		}
 
-		checksCatalog, err := getChecksCatalog(clusterId, client, s)
+		selectedChecks, err := cluster.GetCheckSelection(client, clusterId)
 		if err != nil {
 			StoreAlert(c, AlertCatalogNotFound())
+		}
+
+		checksCatalog, errCatalog := s.GetChecksCatalog()
+		checksCatalogModalData, errCatalogByGroup := getChecksCatalogModalData(s, clusterId, selectedChecks)
+		checksResult, errResult := s.GetChecksResultByCluster(clusterItem.Id)
+		if errCatalog != nil || errCatalogByGroup != nil || errResult != nil {
+			StoreAlert(c, AlertCatalogNotFound())
+		} else if selectedChecks == "" {
+			a := Alert{
+				Type:  "info",
+				Title: "There is not any check selected",
+				Text:  "Select the desired checks in the settings modal in order to validate the cluster configuration",
+			}
+			StoreAlert(c, a)
 		}
 
 		nodes := NewNodes(clusterItem, hosts)
@@ -501,13 +510,15 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 		}
 
 		c.HTML(http.StatusOK, "cluster_hana.html.tmpl", gin.H{
-			"Cluster":          clusterItem,
-			"Nodes":            nodes,
-			"StoppedResources": stoppedResources(clusterItem),
-			"ClusterType":      clusterType,
-			"HealthContainer":  hContainer,
-			"ChecksCatalog":    checksCatalog,
-			"Alerts":           GetAlerts(c),
+			"Cluster":            clusterItem,
+			"Nodes":              nodes,
+			"StoppedResources":   stoppedResources(clusterItem),
+			"ClusterType":        clusterType,
+			"HealthContainer":    hContainer,
+			"ChecksCatalog":      checksCatalog,
+			"ChecksCatalogModal": checksCatalogModalData,
+			"ChecksResult":       checksResult,
+			"Alerts":             GetAlerts(c),
 		})
 	}
 }

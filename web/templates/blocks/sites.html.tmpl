@@ -34,7 +34,6 @@
                                 {{- range $i, $v := .VirtualIps }}{{- if $i }} ,{{- end }}{{ . }}{{- end }}
                             </td>
                             <td>
-                                <span class="badge badge-pill badge-info">HANA {{ .HANARole }}</span>
                                 <span class="badge badge-pill badge-info">HANA {{ .HANAStatus }}</span>
                             </td>
 

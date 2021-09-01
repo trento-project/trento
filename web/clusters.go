@@ -99,17 +99,6 @@ func getHanaSID(c *cluster.Cluster) string {
 	return ""
 }
 
-// HANARole parses the hana_prd_roles string and returns the HANA Role
-// Possible values: master, slave
-// e.g. 4:P:master1:master:worker:master returns master (last element)
-func (node *Node) HANARole() string {
-	if r, ok := node.Attributes["hana_prd_roles"]; ok {
-		role := r[strings.LastIndex(r, ":")+1:]
-		return strings.Title(role)
-	}
-	return "-"
-}
-
 // HANAHealthState parses the hana_prd_roles string and returns the SAPHanaSR Health state
 // Possible values: 0-4
 // 4 - SAP HANA database is up and OK. The cluster does interpret this as a correctly running database.

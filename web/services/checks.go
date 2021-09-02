@@ -19,8 +19,8 @@ const (
 )
 
 type AggregatedCheckData struct {
-	PassingCount int
-	WarningCount int
+	PassingCount  int
+	WarningCount  int
 	CriticalCount int
 }
 
@@ -155,12 +155,12 @@ func (c *checksService) GetAggregatedChecksResultByHost(clusterId string) (map[s
 }
 
 func (c *checksService) GetAggregatedChecksResultByCluster(clusterId string) (*AggregatedCheckData, error) {
+	aCheckData := &AggregatedCheckData{}
+
 	aCheckDataByHost, err := c.GetAggregatedChecksResultByHost(clusterId)
 	if err != nil {
-		return nil, err
+		return aCheckData, err
 	}
-
-	aCheckData := &AggregatedCheckData{}
 
 	for _, aData := range aCheckDataByHost {
 		aCheckData.CriticalCount += aData.CriticalCount

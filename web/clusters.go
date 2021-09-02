@@ -264,18 +264,21 @@ func NewClustersTable(s services.ChecksService, clusters map[string]*cluster.Clu
 	var clusterTable ClustersTable
 
 	for id, c := range clusters {
+		var health string
 		// TODO: Cost-optimized has multiple SIDs
 		var sids []string
 
 		sids = append(sids, getHanaSID(c))
 
 		// Using empty string in case of error
-		aCheckData, _ := s.GetAggregatedChecksResultByCluster(id)
+		if aCheckData, err := s.GetAggregatedChecksResultByCluster(id); err == nil {
+			health = aCheckData.String()
+		}
 
 		clustersRow := &ClustersRow{
 			Id:              id,
 			Name:            c.Name,
-			Health:          aCheckData.String(),
+			Health:          health,
 			SIDs:            sids,
 			Type:            detectClusterType(c),
 			ResourcesNumber: c.Crmmon.Summary.Resources.Number,
@@ -454,8 +457,10 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 		checksCatalog, errCatalog := s.GetChecksCatalog()
 		checksCatalogModalData, errCatalogByGroup := getChecksCatalogModalData(s, clusterId, selectedChecks)
 		checksResult, errResult := s.GetChecksResultByCluster(clusterItem.Id)
-		if errCatalog != nil || errCatalogByGroup != nil || errResult != nil {
+		if errCatalog != nil || errCatalogByGroup != nil {
 			StoreAlert(c, AlertCatalogNotFound())
+		} else if errResult != nil {
+			StoreAlert(c, CheckResultsNotFound())
 		} else if selectedChecks == "" {
 			a := Alert{
 				Type:  "info",
@@ -466,6 +471,7 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 		}
 
 		nodes := NewNodes(s, clusterItem, hosts)
+		// It returns an empty aggretaged data in case of error
 		aCheckData, _ := s.GetAggregatedChecksResultByCluster(clusterId)
 
 		hContainer := &HealthContainer{

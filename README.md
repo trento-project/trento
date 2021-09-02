@@ -182,31 +182,40 @@ In order to start them, some packages must be installed and started. Here a quic
 
 ```shell
 # Install ARA with server dependencies
-pip install --user "ara[server]"
+pip install "ara[server]"
 # Setup ARA database
 ara-manage migrate
 # Start ARA server. This process can be started in background or in other shell terminal
 ara-manage runserver ip:port
 ```
 
+If the requests to ARA server fail with a message like the next one, it means that the server address must be allowed:
+
+```
+2021-09-02 07:13:48,715 ERROR django.security.DisallowedHost: Invalid HTTP_HOST header: '10.74.1.5:8000'. You may need to add '10.74.1.5' to ALLOWED_HOSTS.
+2021-09-02 07:13:48,732 WARNING django.request: Bad Request: /api/
+```
+
+To fix it run:
+
+```
+export ARA_ALLOWED_HOSTS="['10.74.1.5']"
+```
+
 ### Runner
 
 ```shell
 # Install ansible and ARA. Tested with version 2.11.2
-pip install --user ansible ara
-
-# Enable the SSH connections to the agents machines
-# Authorize SSH connection for all the agents hosts
-ssh-copy-id agent1
-ssh-copy-id agent2
-# Or using the IP address
-ssh-copy-id 192.168.100.1
+pip install ansible ara
 
 # Start the Trento runner
-./trento runner start --ara-server http://araIP:port --consul-add consulIP:port -i 5
+./trento runner start --ara-server http://araIP:port --consul-addr consulIP:port -i 5
 # Find additional help with the -h flag
 ./trento runner start -h
 ```
+
+**In order to use the runner component, the machine running it must have ssh authorization to all the
+agents with a passwordless ssh key pair. Otherwise, the checks result is set as unreachable.**
 
 ## Trento Web UI
 

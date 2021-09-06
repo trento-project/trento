@@ -1,5 +1,6 @@
 - hosts: all
   gather_facts: false
+  ignore_errors: yes
   become: yes
 
   vars:
@@ -13,14 +14,28 @@
       when:
         - not ansible_check_mode
 
-    - name: Post initial empty results to ARA
-      import_role:
-        name: post-results
-        tasks_from: post
+    - block:
+        - name: include load_facts
+          import_role:
+            name: load_facts
+          register: result
 
-    - name: include load_facts
-      import_role:
-        name: load_facts
+        - name: count unreachable hosts number
+          set_fact:
+            unreachable_count: |
+              {{ unreachable_count|default(0)|int + 1 }}
+          with_inventory_hostnames:
+            - all
+          when: facts_result is unreachable
+          delegate_to: localhost
+
+        - name: Post initial empty results to ARA if all hosts are unreachable
+          import_role:
+            name: post-results
+            tasks_from: post
+          when: unreachable_count|int == hostvars|length
+
+      ignore_unreachable: yes
 
     - name: include 1.1.1
       import_role:
@@ -162,6 +177,7 @@
         name: '1.5.2'
       when: "'1.5.2' in cluster_selected_checks"
 
+  post_tasks:
     - name: Post results
       import_role:
         name: post-results

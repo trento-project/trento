@@ -2,6 +2,7 @@
 
 - name: gather facts
   ansible.builtin.setup:
+  register: facts_result
 
 - name: load environment variables
   include_vars: "{{ env | default('azure') }}_env.yml"

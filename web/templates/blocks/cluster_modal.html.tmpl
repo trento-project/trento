@@ -2,7 +2,7 @@
   <div class="modal fade" id="clusterModal" tabindex="-1" role="dialog" aria-labelledby="clusterModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
           <div class="modal-content">
-          <form action="/clusters/{{ .Cluster.Id }}/checks" method="POST">
+          <form action="/clusters/{{ .Cluster.Id }}/settings" method="POST">
               <div class="modal-header">
                   <h5 class="modal-title" id="clusterModalLabel">{{ .Cluster.Name }}</h5>
                   <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -10,8 +10,48 @@
                   </button>
               </div>
               <div class="modal-body">
-                  <h6>Checks selection</h6>
+                  <div id="connection">
+                      <h6>Connection settings</h6>
+                      <p><b>**The provided connection user must have the SSH connection enabled**</b><p>
+                      <div class="card">
+                          <div class="card-header card-header-check-selection" id="connection-settings">
+                              <div class='form-check float-left'>Host connection settings</div>
+                              <div class='dropdown float-right'>
+                                  <div class='dropdown-toggle' data-toggle="collapse" data-target="#collapse-connection-settings" aria-expanded="true" aria-controls="collapse-connection-settings">
+                                      <i class="eos-icons eos-18">keyboard_arrow_down</i>
+                                  </div>
+                              </div>
+                          </div>
+
+                          <div id="collapse-connection-settings" class="collapse" aria-labelledby="connection-settings" data-parent="#connection">
+                              <div class="card-body card-check-selection">
+                                  <div class='table-responsive'>
+                                      <table class='table table-sm eos-table'>
+                                          <thead>
+                                              <tr>
+                                                  <th scope='col'>Host</th>
+                                                  <th scope='col'>Connection user</th>
+                                              </tr>
+                                          </thead>
+                                          <tbody>
+                                              {{- range .Nodes }}
+                                              <tr>
+                                                  <td>{{ .Name }}</td>
+                                                  <td><input id='username-{{ .Name }}' name='username[]' type='text'></td>
+                                              </tr>
+                                              {{- else }}
+                                                  {{ template "empty_table_body" 2 }}
+                                              {{- end }}
+                                          </tbody>
+                                      </table>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+                  </br>
                   <div id="checksAccordion">
+                      <h6>Checks selection</h6>
                       {{- $groupNumber := 0 }}
                       {{- range $group, $data := .ChecksCatalogModal }}
                       <div class="card">
@@ -43,7 +83,7 @@
                                               <tr>
                                                   <td class="row-status">
                                                       <div class='form-check'>
-                                                         <input class='parent-{{ $groupNumber }} form-check-input eos-checkbox' type='checkbox' name="ids[]" value="{{ .ID }}" id='{{ $groupNumber }}-{{ .NormalizeID }}' {{ if .Selected }}checked="checked"{{ end }}>
+                                                         <input class='parent-{{ $groupNumber }} form-check-input eos-checkbox' type='checkbox' name="check_ids[]" value="{{ .ID }}" id='{{ $groupNumber }}-{{ .NormalizeID }}' {{ if .Selected }}checked="checked"{{ end }}>
                                                          <label class='form-check-label' for='{{ $groupNumber }}-{{ .NormalizeID }}'>{{ .ID }}</label>
                                                      </div>
                                                   </td>

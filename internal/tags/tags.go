@@ -7,27 +7,29 @@ import (
 	"github.com/trento-project/trento/internal/consul"
 )
 
+const (
+	HostResourceType      = "hosts"
+	ClusterResourceType   = "clusters"
+	SAPSystemResourceType = "sapsystems"
+)
+
 type Tags struct {
-	client   consul.Client
-	resource string
-	id       string
+	client consul.Client
 }
 
-func NewTags(client consul.Client, resource string, id string) *Tags {
+func NewTags(client consul.Client) *Tags {
 	return &Tags{
-		client:   client,
-		resource: resource,
-		id:       id,
+		client: client,
 	}
 }
 
-func (t *Tags) getKvTagsPath() string {
-	return fmt.Sprintf(consul.KvTagsPath, t.resource, t.id)
+func (t *Tags) getKvResourceTagsPath(resourceType string, resourceId string) string {
+	return fmt.Sprintf(consul.KvResourceTagsPath, resourceType, resourceId)
 }
 
-// GetAll returns all the tags
-func (t *Tags) GetAll() ([]string, error) {
-	path := t.getKvTagsPath()
+// GetAllByResource returns all the tags for a given resource
+func (t *Tags) GetAllByResource(resourceType string, resourceId string) ([]string, error) {
+	path := t.getKvResourceTagsPath(resourceType, resourceId)
 
 	tagsMap, err := t.client.KV().ListMap(path, path)
 	if err != nil {
@@ -42,12 +44,12 @@ func (t *Tags) GetAll() ([]string, error) {
 	return tags, nil
 }
 
-// Creeate creates a new tag
+// Create creates a new tag for a given resource
 // The tag is the key of the KV pair to indicate that the tag is present
 // The value of the KV pair empty since it is not used
 // This simplifies the access to the tags, avoiding the need of loops
-func (t *Tags) Create(tag string) error {
-	path := fmt.Sprintf("%s%s/", t.getKvTagsPath(), tag)
+func (t *Tags) Create(tag string, resourceType string, resourceId string) error {
+	path := fmt.Sprintf("%s%s/", t.getKvResourceTagsPath(resourceType, resourceId), tag)
 
 	if err := t.client.KV().PutMap(path, nil); err != nil {
 		return errors.Wrap(err, "Error storing a tag")
@@ -56,9 +58,9 @@ func (t *Tags) Create(tag string) error {
 	return nil
 }
 
-// Delete deletes a tag
-func (t *Tags) Delete(tag string) error {
-	path := fmt.Sprintf("%s%s/", t.getKvTagsPath(), tag)
+// Delete deletes a tag for a given resource
+func (t *Tags) Delete(tag string, resourceType string, resourceId string) error {
+	path := fmt.Sprintf("%s%s/", t.getKvResourceTagsPath(resourceType, resourceId), tag)
 
 	_, err := t.client.KV().DeleteTree(path, nil)
 	if err != nil {

@@ -314,8 +314,8 @@ func NewClustersTable(clusters map[string]*cluster.Cluster, hostList hosts.HostL
 		var sids []string
 		sids = append(sids, getHanaSID(c))
 
-		t := tags.NewTags(client, "clusters", c.Id)
-		clusterTags, err := t.GetAll()
+		t := tags.NewTags(client)
+		clusterTags, err := t.GetAllByResource(tags.ClusterResourceType, c.Id)
 		if err != nil {
 			return nil, err
 		}

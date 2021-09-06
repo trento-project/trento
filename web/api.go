@@ -53,8 +53,8 @@ func ApiHostCreateTagHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		t := tags.NewTags(client, "hosts", name)
-		err = t.Create(r.Tag)
+		t := tags.NewTags(client)
+		err = t.Create(r.Tag, tags.HostResourceType, name)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -88,8 +88,8 @@ func ApiHostDeleteTagHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		t := tags.NewTags(client, "hosts", name)
-		err = t.Delete(tag)
+		t := tags.NewTags(client)
+		err = t.Delete(tag, tags.HostResourceType, name)
 
 		if err != nil {
 			_ = c.Error(err)
@@ -134,8 +134,8 @@ func ApiClusterCreateTagHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		t := tags.NewTags(client, "clusters", id)
-		err = t.Create(r.Tag)
+		t := tags.NewTags(client)
+		err = t.Create(r.Tag, tags.ClusterResourceType, id)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -169,8 +169,8 @@ func ApiClusterDeleteTagHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		t := tags.NewTags(client, "clusters", id)
-		err = t.Delete(tag)
+		t := tags.NewTags(client)
+		err = t.Delete(tag, tags.ClusterResourceType, id)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -231,8 +231,8 @@ func ApiSAPSystemCreateTagHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		t := tags.NewTags(client, "sapsystems", sid)
-		err = t.Create(r.Tag)
+		t := tags.NewTags(client)
+		err = t.Create(r.Tag, tags.SAPSystemResourceType, sid)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -283,8 +283,8 @@ func ApiSAPSystemDeleteTagHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		t := tags.NewTags(client, "sapsystems", sid)
-		err = t.Delete(tag)
+		t := tags.NewTags(client)
+		err = t.Delete(tag, tags.SAPSystemResourceType, sid)
 		if err != nil {
 			_ = c.Error(err)
 			return

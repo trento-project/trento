@@ -16,15 +16,15 @@ func TestGetAll(t *testing.T) {
 	kv := new(mocks.KV)
 	consulInst.On("KV").Return(kv)
 
-	tags := NewTags(consulInst, "res", "id")
+	tags := NewTags(consulInst)
 
 	listMap := map[string]interface{}{
 		"tag1": struct{}{},
 		"tag2": struct{}{},
 	}
-	kv.On("ListMap", tags.getKvTagsPath(), tags.getKvTagsPath()).Return(listMap, nil)
+	kv.On("ListMap", tags.getKvResourceTagsPath("res", "id"), tags.getKvResourceTagsPath("res", "id")).Return(listMap, nil)
 
-	resTags, _ := tags.GetAll()
+	resTags, _ := tags.GetAllByResource("res", "id")
 	sort.Strings(resTags)
 
 	assert.Equal(t, []string{"tag1", "tag2"}, resTags)
@@ -35,11 +35,11 @@ func TestCreate(t *testing.T) {
 	kv := new(mocks.KV)
 	consulInst.On("KV").Return(kv)
 
-	tags := NewTags(consulInst, "res", "id")
+	tags := NewTags(consulInst)
 
-	kv.On("PutMap", tags.getKvTagsPath()+"createme/", map[string]interface{}(nil)).Return(nil, nil)
+	kv.On("PutMap", tags.getKvResourceTagsPath("res", "id")+"createme/", map[string]interface{}(nil)).Return(nil, nil)
 
-	err := tags.Create("createme")
+	err := tags.Create("createme", "res", "id")
 
 	assert.NoError(t, err)
 	kv.AssertExpectations(t)
@@ -50,11 +50,11 @@ func TestDelete(t *testing.T) {
 	kv := new(mocks.KV)
 	consulInst.On("KV").Return(kv)
 
-	tags := NewTags(consulInst, "res", "id")
+	tags := NewTags(consulInst)
 
-	kv.On("DeleteTree", tags.getKvTagsPath()+"deleteme/", (*consulApi.WriteOptions)(nil)).Return(nil, nil)
+	kv.On("DeleteTree", tags.getKvResourceTagsPath("res", "id")+"deleteme/", (*consulApi.WriteOptions)(nil)).Return(nil, nil)
 
-	err := tags.Delete("deleteme")
+	err := tags.Delete("deleteme", "res", "id")
 
 	assert.NoError(t, err)
 	kv.AssertExpectations(t)

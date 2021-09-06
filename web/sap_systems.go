@@ -41,8 +41,8 @@ func NewSAPSystemsTable(sapSystemsList sapsystem.SAPSystemsList, hostList hosts.
 
 		sapSystem, ok := rowsBySID[s.SID]
 		if !ok {
-			t := tags.NewTags(client, "sapsystems", s.SID)
-			sapsystemTags, err := t.GetAll()
+			t := tags.NewTags(client)
+			sapsystemTags, err := t.GetAllByResource(tags.SAPSystemResourceType, s.SID)
 			if err != nil {
 				return nil, err
 			}

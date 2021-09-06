@@ -10,8 +10,10 @@ import (
 	"github.com/trento-project/trento/internal"
 
 	"github.com/gin-gonic/gin"
+	"github.com/mitchellh/mapstructure"
 
 	"github.com/trento-project/trento/internal/cluster"
+	"github.com/trento-project/trento/internal/cloud"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/web/models"
@@ -418,6 +420,23 @@ func getChecksCatalogModalData(s services.ChecksService, clusterId, selectedChec
 	return checksCatalog, nil
 }
 
+func getDefaultConnectionSettings(client consul.Client, c *cluster.Cluster) (map[string]string, error) {
+	connData := make(map[string]string)
+	for _, n := range c.Crmmon.Nodes {
+		data, err := cloud.Load(client, n.Name)
+		if err != nil {
+			return connData, err
+		}
+		if data.Provider == cloud.Azure {
+			azureMetadata := &cloud.AzureMetadata{}
+			mapstructure.Decode(data.Metadata, &azureMetadata)
+			connData[n.Name] = azureMetadata.Compute.OsProfile.AdminUserName
+		}
+	}
+
+	return connData, nil
+}
+
 func NewClusterHandler(client consul.Client, s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		clusterId := c.Param("id")
@@ -451,9 +470,14 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 		}
 
 		selectedChecks, getCheckErr := cluster.GetCheckSelection(client, clusterId)
-		connectionData, getConnErr := cluster.GetConnectionSettings(client, clusterId)
-		if getCheckErr != nil || getConnErr != nil {
+		if getCheckErr != nil {
 			StoreAlert(c, AlertCatalogNotFound())
+		}
+
+		connectionData, getConnErr := cluster.GetConnectionSettings(client, clusterId)
+		defaultConnectionData, getDefConnErr := getDefaultConnectionSettings(client, clusterItem)
+		if getConnErr != nil || getDefConnErr != nil {
+			StoreAlert(c, AlertConnectionDataNotFound())
 		}
 
 		checksCatalog, errCatalog := s.GetChecksCatalog()
@@ -493,6 +517,7 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 			"ChecksCatalog":      checksCatalog,
 			"ChecksCatalogModal": checksCatalogModalData,
 			"ConnectionData":     connectionData,
+			"DefaultConnectionData": defaultConnectionData,
 			"ChecksResult":       checksResult,
 			"Alerts":             GetAlerts(c),
 		})

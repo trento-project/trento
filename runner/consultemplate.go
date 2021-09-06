@@ -17,13 +17,25 @@ import (
 const clusterSelectedChecks string = "cluster_selected_checks"
 
 var ansibleHostsTemplate = fmt.Sprintf(`
+{{- /* Loop through the discovered clusters */}}
 {{- range $clusterId, $pairs := tree "%[2]s" | byKey }}
 [{{ key (print (printf "%[3]s" $clusterId) "/id") }}]
 {{- range tree (print (printf "%[3]s" $clusterId) "/crmmon/Nodes") }}
 {{- if .Key | contains "/Name" }}
 {{- $nodename := .Value }}
-{{- $user := keyOrDefault (print (printf "%[5]s" $clusterId) "/" $nodename) "root" }}
-{{ $nodename }} %[1]s={{ keyOrDefault  (printf "%[4]s" $clusterId) "" }} ansible_host={{ range nodes }}{{ if eq .Node $nodename }}{{ .Address }}{{ end }}{{ end }} ansible_user={{ $user }}
+{{- /* Get the node host address */}}
+{{- $host := "" }}
+{{- range nodes }}{{ if eq .Node $nodename }}{{ $host = .Address }}{{ end }}{{ end }}
+{{- /* Get SSH connection username */}}
+{{- $user := keyOrDefault (print (printf "%[5]s" $clusterId) "/" $nodename) "" }}
+{{- if eq $user "" }}
+{{- $cloudata := printf "%[6]s" $nodename }}
+{{- if eq (keyOrDefault (print $cloudata "provider") "") "azure" }}
+{{- $user = keyOrDefault (print $cloudata "metadata/compute/ofprofile/adminusername") "root" }}
+{{- end }}
+{{- end }}
+{{- /* Render the node entry */}}
+{{ $nodename }} %[1]s={{ keyOrDefault  (printf "%[4]s" $clusterId) "" }} ansible_host={{ $host }} ansible_user={{ $user }}
 {{- end }}
 {{- end }}
 {{- end }}
@@ -32,7 +44,9 @@ var ansibleHostsTemplate = fmt.Sprintf(`
 	consul.KvClustersPath,
 	consul.KvClustersDiscoveredPath,
 	consul.KvClustersChecksPath,
-	consul.KvClustersConnectionPath)
+	consul.KvClustersConnectionPath,
+	consul.KvHostsClouddataPath,
+)
 
 const ansibleHostFile = "ansible_hosts"
 

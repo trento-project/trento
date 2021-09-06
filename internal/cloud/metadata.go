@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	azure = "azure"
+	Azure = "azure"
 )
 
 type CloudInstance struct {
@@ -32,8 +32,8 @@ func IdentifyCloudProvider() (string, error) {
 
 	switch string(provider) {
 	case "Microsoft Corporation":
-		log.Infof("VM is running on %s", azure)
-		return azure, nil
+		log.Infof("VM is running on %s", Azure)
+		return Azure, nil
 	default:
 		log.Info("VM is not running in any recognized cloud provider")
 		return "", nil
@@ -55,7 +55,7 @@ func NewCloudInstance() (*CloudInstance, error) {
 	}
 
 	switch provider {
-	case azure:
+	case Azure:
 		cloudMetadata, err = NewAzureMetadata()
 		if err != nil {
 			return nil, err

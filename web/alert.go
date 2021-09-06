@@ -18,6 +18,14 @@ var AlertCatalogNotFound = func() Alert {
 	}
 }
 
+var AlertConnectionDataNotFound = func() Alert {
+	return Alert{
+		Type:  "danger",
+		Title: "Error loading the connection data",
+		Text: "Connection data couldn't be retrieved.",
+	}
+}
+
 var CheckResultsNotFound = func() Alert {
 	return Alert{
 		Type:  "danger",

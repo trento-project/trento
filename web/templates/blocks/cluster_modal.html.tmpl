@@ -13,6 +13,7 @@
                   <div id="connection">
                       <h6>Connection settings</h6>
                       <p><b>**The provided connection user must have the SSH connection enabled**</b><p>
+                      <p><b>**Default user is used when Connection user is empty**</b><p>
                       <div class="card">
                           <div class="card-header card-header-check-selection" id="connection-settings">
                               <div class='form-check float-left'>Host connection settings</div>
@@ -31,17 +32,20 @@
                                               <tr>
                                                   <th scope='col'>Host</th>
                                                   <th scope='col'>Connection user</th>
+                                                  <th scope='col'>Default user</th>
                                               </tr>
                                           </thead>
                                           <tbody>
                                               {{- $connectionData := .ConnectionData }}
+                                              {{- $defConnectionData := .DefaultConnectionData }}
                                               {{- range .Nodes }}
                                               <tr>
                                                   <td>{{ .Name }}</td>
                                                   <td><input id='username-{{ .Name }}' name='username-{{ .Name }}' type='text' value='{{ index $connectionData .Name }}'></td>
+                                                  <td>{{ index $defConnectionData .Name }}</td>
                                               </tr>
                                               {{- else }}
-                                                  {{ template "empty_table_body" 2 }}
+                                                  {{ template "empty_table_body" 3 }}
                                               {{- end }}
                                           </tbody>
                                       </table>

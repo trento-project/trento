@@ -11,6 +11,41 @@ import (
 	"github.com/trento-project/trento/web/services/ara"
 )
 
+func TestAggregatedCheckDataString(t *testing.T) {
+	aCritical := &AggregatedCheckData{
+		PassingCount:  2,
+		WarningCount:  1,
+		CriticalCount: 1,
+	}
+
+	assert.Equal(t, aCritical.String(), "critical")
+
+	aWarning := &AggregatedCheckData{
+		PassingCount:  2,
+		WarningCount:  1,
+		CriticalCount: 0,
+	}
+
+	assert.Equal(t, aWarning.String(), "warning")
+
+	aPassing := &AggregatedCheckData{
+		PassingCount:  2,
+		WarningCount:  0,
+		CriticalCount: 0,
+	}
+
+	assert.Equal(t, aPassing.String(), "passing")
+
+	aUndefined := &AggregatedCheckData{
+		PassingCount:  0,
+		WarningCount:  0,
+		CriticalCount: 0,
+	}
+
+	assert.Equal(t, aUndefined.String(), "undefined")
+
+}
+
 func araResultRecord() *ara.Record {
 	return &ara.Record{
 		ID: 1,

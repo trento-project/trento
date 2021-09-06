@@ -358,7 +358,7 @@ func NewClustersHealthContainer(t ClustersTable) *HealthContainer {
 		switch r.Health {
 		case services.CheckPassing:
 			h.PassingCount += 1
-		case services.CheckFailing:
+		case services.CheckCritical:
 			h.CriticalCount += 1
 		}
 	}

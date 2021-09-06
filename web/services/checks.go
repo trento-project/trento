@@ -13,9 +13,10 @@ import (
 //go:generate mockery --name=ChecksService
 
 const (
-	CheckPassing = "passing"
-	CheckWarning = "warning"
-	CheckFailing = "critical"
+	CheckPassing   = "passing"
+	CheckWarning   = "warning"
+	CheckCritical  = "critical"
+	CheckUndefined = "undefined"
 )
 
 type AggregatedCheckData struct {
@@ -26,12 +27,14 @@ type AggregatedCheckData struct {
 
 func (a *AggregatedCheckData) String() string {
 	if a.CriticalCount > 0 {
-		return CheckFailing
+		return CheckCritical
+	} else if a.WarningCount > 0 {
+		return CheckWarning
 	} else if a.PassingCount > 0 {
 		return CheckPassing
 	}
 
-	return ""
+	return CheckUndefined
 }
 
 type ChecksService interface {

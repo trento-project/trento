@@ -31,7 +31,7 @@ var ansibleHostsTemplate = fmt.Sprintf(`
 {{- if eq $user "" }}
 {{- $cloudata := printf "%[6]s" $nodename }}
 {{- if eq (keyOrDefault (print $cloudata "provider") "") "azure" }}
-{{- $user = keyOrDefault (print $cloudata "metadata/compute/ofprofile/adminusername") "root" }}
+{{- $user = keyOrDefault (print $cloudata "metadata/compute/osprofile/adminusername") "root" }}
 {{- end }}
 {{- end }}
 {{- /* Render the node entry */}}

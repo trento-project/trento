@@ -12,8 +12,6 @@
               <div class="modal-body">
                   <div id="connection">
                       <h6>Connection settings</h6>
-                      <p><b>**The provided connection user must have the SSH connection enabled**</b><p>
-                      <p><b>**Default user is used when Connection user is empty**</b><p>
                       <div class="card">
                           <div class="card-header card-header-check-selection" id="connection-settings">
                               <div class='form-check float-left'>Host connection settings</div>
@@ -49,6 +47,10 @@
                                               {{- end }}
                                           </tbody>
                                       </table>
+                                  </div>
+                                  <div>
+                                      <b>**The provided connection user must have the SSH connection enabled**</b></br>
+                                      <b>**Default user is used when Connection user is empty**</b>
                                   </div>
                               </div>
                           </div>

@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"path"
 	"strings"
 
@@ -449,13 +450,15 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 			return
 		}
 
-		selectedChecks, err := cluster.GetCheckSelection(client, clusterId)
-		if err != nil {
+		selectedChecks, getCheckErr := cluster.GetCheckSelection(client, clusterId)
+		connectionData, getConnErr := cluster.GetConnectionSettings(client, clusterId)
+		if getCheckErr != nil || getConnErr != nil {
 			StoreAlert(c, AlertCatalogNotFound())
 		}
 
 		checksCatalog, errCatalog := s.GetChecksCatalog()
-		checksCatalogModalData, errCatalogByGroup := getChecksCatalogModalData(s, clusterId, selectedChecks)
+		checksCatalogModalData, errCatalogByGroup := getChecksCatalogModalData(
+			s, clusterId, selectedChecks)
 		checksResult, errResult := s.GetChecksResultByCluster(clusterItem.Id)
 		if errCatalog != nil || errCatalogByGroup != nil {
 			StoreAlert(c, AlertCatalogNotFound())
@@ -489,6 +492,7 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 			"HealthContainer":    hContainer,
 			"ChecksCatalog":      checksCatalog,
 			"ChecksCatalogModal": checksCatalogModalData,
+			"ConnectionData":     connectionData,
 			"ChecksResult":       checksResult,
 			"Alerts":             GetAlerts(c),
 		})
@@ -496,31 +500,47 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 }
 
 type checkSelectionForm struct {
-	Ids []string `form:"ids[]"`
+	Ids []string `form:"check_ids[]"`
 }
 
-func NewSaveChecksHandler(client consul.Client) gin.HandlerFunc {
+func getConnectionMap(form url.Values) map[string]interface{} {
+	usernames := make(map[string]interface{})
+	for key, value := range form {
+		if strings.HasPrefix(key, "username") {
+			usernames[strings.Split(key, "username-")[1]] = value[0]
+		}
+	}
+
+	return usernames
+}
+
+func NewSaveClusterSettingsHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		clusterId := c.Param("id")
 
 		var selectedChecks checkSelectionForm
 		c.ShouldBind(&selectedChecks)
 
+		usernames := getConnectionMap(c.Request.PostForm)
+
 		err := cluster.StoreCheckSelection(
 			client, clusterId, strings.Join(selectedChecks.Ids, ","))
+
+		err = cluster.StoreConnectionSettings(
+			client, clusterId, usernames)
 
 		var newAlert Alert
 		if err == nil {
 			newAlert = Alert{
 				Type:  "success",
-				Title: "Check selection saved",
-				Text:  "The cluster checks selection has been saved correctly.",
+				Title: "Cluster settings saved",
+				Text:  "The cluster settings has been saved correctly.",
 			}
 		} else {
 			newAlert = Alert{
 				Type:  "danger",
-				Title: "Error saving check selection",
-				Text:  "The cluster checks selection couldn't be saved.",
+				Title: "Error saving cluster settings",
+				Text:  "The cluster settings couldn't be saved.",
 			}
 		}
 		StoreAlert(c, newAlert)

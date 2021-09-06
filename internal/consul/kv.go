@@ -33,6 +33,7 @@ const (
 	KvClustersPath           string = "trento/v0/clusters/"
 	KvClustersDiscoveredPath string = "trento/v0/clusters/%s/discovered_data"
 	KvClustersChecksPath     string = "trento/v0/clusters/%s/user_settings/checks"
+	KvClustersConnectionPath string = "trento/v0/clusters/%s/user_settings/connection"
 	KvHostsPath              string = "trento/v0/hosts/"
 	KvHostsMetadataPath      string = "trento/v0/hosts/%s/metadata/"
 	KvHostsClouddataPath     string = "trento/v0/hosts/%s/cloud/"

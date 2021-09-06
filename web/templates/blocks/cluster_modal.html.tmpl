@@ -34,10 +34,11 @@
                                               </tr>
                                           </thead>
                                           <tbody>
+                                              {{- $connectionData := .ConnectionData }}
                                               {{- range .Nodes }}
                                               <tr>
                                                   <td>{{ .Name }}</td>
-                                                  <td><input id='username-{{ .Name }}' name='username[]' type='text'></td>
+                                                  <td><input id='username-{{ .Name }}' name='username-{{ .Name }}' type='text' value='{{ index $connectionData .Name }}'></td>
                                               </tr>
                                               {{- else }}
                                                   {{ template "empty_table_body" 2 }}

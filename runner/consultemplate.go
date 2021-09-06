@@ -17,12 +17,13 @@ import (
 const clusterSelectedChecks string = "cluster_selected_checks"
 
 var ansibleHostsTemplate = fmt.Sprintf(`
-{{- range $key, $pairs := tree "%[2]s" | byKey }}
-[{{ key (print (printf "%[3]s" $key) "/id") }}]
-{{- range tree (print (printf "%[3]s" $key) "/crmmon/Nodes") }}
+{{- range $clusterId, $pairs := tree "%[2]s" | byKey }}
+[{{ key (print (printf "%[3]s" $clusterId) "/id") }}]
+{{- range tree (print (printf "%[3]s" $clusterId) "/crmmon/Nodes") }}
 {{- if .Key | contains "/Name" }}
 {{- $nodename := .Value }}
-{{ $nodename }} %[1]s={{ key (printf "%[4]s" $key) }} ansible_host={{ range nodes }}{{ if eq .Node $nodename }}{{ .Address }}{{ end }}{{ end }}
+{{- $user := keyOrDefault (print (printf "%[5]s" $clusterId) "/" $nodename) "root" }}
+{{ $nodename }} %[1]s={{ keyOrDefault  (printf "%[4]s" $clusterId) "" }} ansible_host={{ range nodes }}{{ if eq .Node $nodename }}{{ .Address }}{{ end }}{{ end }} ansible_user={{ $user }}
 {{- end }}
 {{- end }}
 {{- end }}
@@ -30,7 +31,8 @@ var ansibleHostsTemplate = fmt.Sprintf(`
 	clusterSelectedChecks,
 	consul.KvClustersPath,
 	consul.KvClustersDiscoveredPath,
-	consul.KvClustersChecksPath)
+	consul.KvClustersChecksPath,
+	consul.KvClustersConnectionPath)
 
 const ansibleHostFile = "ansible_hosts"
 

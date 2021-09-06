@@ -11,6 +11,77 @@ import (
 	"github.com/trento-project/trento/web/services/ara"
 )
 
+func TestAggregatedCheckDataString(t *testing.T) {
+	aCritical := &AggregatedCheckData{
+		PassingCount:  2,
+		WarningCount:  1,
+		CriticalCount: 1,
+	}
+
+	assert.Equal(t, aCritical.String(), "critical")
+
+	aWarning := &AggregatedCheckData{
+		PassingCount:  2,
+		WarningCount:  1,
+		CriticalCount: 0,
+	}
+
+	assert.Equal(t, aWarning.String(), "warning")
+
+	aPassing := &AggregatedCheckData{
+		PassingCount:  2,
+		WarningCount:  0,
+		CriticalCount: 0,
+	}
+
+	assert.Equal(t, aPassing.String(), "passing")
+
+	aUndefined := &AggregatedCheckData{
+		PassingCount:  0,
+		WarningCount:  0,
+		CriticalCount: 0,
+	}
+
+	assert.Equal(t, aUndefined.String(), "undefined")
+
+}
+
+func araResultRecord() *ara.Record {
+	return &ara.Record{
+		ID: 1,
+		Value: map[string]interface{}{
+			"results": map[string]interface{}{
+				"myClusterId": map[string]interface{}{
+					"checks": map[string]interface{}{
+						"1.1.1": map[string]interface{}{
+							"hosts": map[string]interface{}{
+								"host1": map[string]interface{}{
+									"result": true,
+								},
+								"host2": map[string]interface{}{
+									"result": true,
+								},
+							},
+						},
+						"1.1.2": map[string]interface{}{
+							"hosts": map[string]interface{}{
+								"host1": map[string]interface{}{
+									"result": false,
+								},
+								"host2": map[string]interface{}{
+									"result": false,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		Key:  "results",
+		Type: "json",
+	}
+}
+
 func TestGetChecksCatalog(t *testing.T) {
 
 	mockAra := new(araMocks.AraService)
@@ -336,49 +407,15 @@ func TestGetChecksResult(t *testing.T) {
 		rList, nil,
 	)
 
-	r := &ara.Record{
-		ID: 1,
-		Value: map[string]interface{}{
-			"results": map[string]interface{}{
-				"mycluster": map[string]interface{}{
-					"checks": map[string]interface{}{
-						"1.1.1": map[string]interface{}{
-							"hosts": map[string]interface{}{
-								"host1": map[string]interface{}{
-									"result": true,
-								},
-								"host2": map[string]interface{}{
-									"result": true,
-								},
-							},
-						},
-						"1.1.2": map[string]interface{}{
-							"hosts": map[string]interface{}{
-								"host1": map[string]interface{}{
-									"result": false,
-								},
-								"host2": map[string]interface{}{
-									"result": false,
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		Key:  "results",
-		Type: "json",
-	}
-
 	mockAra.On("GetRecord", 3).Return(
-		r, nil,
+		araResultRecord(), nil,
 	)
 
 	checksService := NewChecksService(mockAra)
 	c, err := checksService.GetChecksResult()
 
 	expectedResults := map[string]*models.Results{
-		"mycluster": &models.Results{
+		"myClusterId": &models.Results{
 			Checks: map[string]*models.ChecksByHost{
 				"1.1.1": &models.ChecksByHost{
 					Hosts: map[string]*models.Check{
@@ -521,42 +558,8 @@ func TestGetChecksResultByCluster(t *testing.T) {
 		rList, nil,
 	)
 
-	r := &ara.Record{
-		ID: 1,
-		Value: map[string]interface{}{
-			"results": map[string]interface{}{
-				"myClusterId": map[string]interface{}{
-					"checks": map[string]interface{}{
-						"1.1.1": map[string]interface{}{
-							"hosts": map[string]interface{}{
-								"host1": map[string]interface{}{
-									"result": true,
-								},
-								"host2": map[string]interface{}{
-									"result": true,
-								},
-							},
-						},
-						"1.1.2": map[string]interface{}{
-							"hosts": map[string]interface{}{
-								"host1": map[string]interface{}{
-									"result": false,
-								},
-								"host2": map[string]interface{}{
-									"result": false,
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		Key:  "results",
-		Type: "json",
-	}
-
 	mockAra.On("GetRecord", 3).Return(
-		r, nil,
+		araResultRecord(), nil,
 	)
 
 	checksService := NewChecksService(mockAra)
@@ -585,6 +588,115 @@ func TestGetChecksResultByCluster(t *testing.T) {
 				},
 			},
 		},
+	}
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedResults, c)
+
+	mockAra.AssertExpectations(t)
+}
+
+func TestGetAggregatedChecksResultByHost(t *testing.T) {
+
+	mockAra := new(araMocks.AraService)
+
+	rList := &ara.RecordList{
+		Count: 3,
+		Results: []*ara.RecordListResult{
+			&ara.RecordListResult{
+				ID:       3,
+				Playbook: 1,
+				Key:      "results",
+				Type:     "json",
+			},
+			&ara.RecordListResult{
+				ID:       2,
+				Playbook: 1,
+				Key:      "results",
+				Type:     "json",
+			},
+			&ara.RecordListResult{
+				ID:       1,
+				Playbook: 1,
+				Key:      "results",
+				Type:     "json",
+			},
+		},
+	}
+
+	mockAra.On("GetRecordList", "key=trento-results&order=-id").Return(
+		rList, nil,
+	)
+
+	mockAra.On("GetRecord", 3).Return(
+		araResultRecord(), nil,
+	)
+
+	checksService := NewChecksService(mockAra)
+	c, err := checksService.GetAggregatedChecksResultByHost("myClusterId")
+
+	expectedResults := map[string]*AggregatedCheckData{
+		"host1": &AggregatedCheckData{
+			PassingCount:  1,
+			WarningCount:  0,
+			CriticalCount: 1,
+		},
+		"host2": &AggregatedCheckData{
+			PassingCount:  1,
+			WarningCount:  0,
+			CriticalCount: 1,
+		},
+	}
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedResults, c)
+
+	mockAra.AssertExpectations(t)
+}
+
+func TestGetAggregatedChecksResultByCluster(t *testing.T) {
+
+	mockAra := new(araMocks.AraService)
+
+	rList := &ara.RecordList{
+		Count: 3,
+		Results: []*ara.RecordListResult{
+			&ara.RecordListResult{
+				ID:       3,
+				Playbook: 1,
+				Key:      "results",
+				Type:     "json",
+			},
+			&ara.RecordListResult{
+				ID:       2,
+				Playbook: 1,
+				Key:      "results",
+				Type:     "json",
+			},
+			&ara.RecordListResult{
+				ID:       1,
+				Playbook: 1,
+				Key:      "results",
+				Type:     "json",
+			},
+		},
+	}
+
+	mockAra.On("GetRecordList", "key=trento-results&order=-id").Return(
+		rList, nil,
+	)
+
+	mockAra.On("GetRecord", 3).Return(
+		araResultRecord(), nil,
+	)
+
+	checksService := NewChecksService(mockAra)
+	c, err := checksService.GetAggregatedChecksResultByCluster("myClusterId")
+
+	expectedResults := &AggregatedCheckData{
+		PassingCount:  2,
+		WarningCount:  0,
+		CriticalCount: 2,
 	}
 
 	assert.NoError(t, err)

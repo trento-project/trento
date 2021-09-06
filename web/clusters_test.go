@@ -18,6 +18,7 @@ import (
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/consul/mocks"
 	"github.com/trento-project/trento/web/models"
+	"github.com/trento-project/trento/web/services"
 	serviceMocks "github.com/trento-project/trento/web/services/mocks"
 )
 
@@ -340,16 +341,54 @@ func checksResultUnreachable() *models.Results {
 	return checksResult
 }
 
+func aggregatedByCluster() *services.AggregatedCheckData {
+	return &services.AggregatedCheckData{
+		PassingCount:  2,
+		WarningCount:  0,
+		CriticalCount: 0,
+	}
+}
+
+func aggregatedByClusterCritical() *services.AggregatedCheckData {
+	return &services.AggregatedCheckData{
+		PassingCount:  2,
+		WarningCount:  0,
+		CriticalCount: 1,
+	}
+}
+
+func checksResultByHost() map[string]*services.AggregatedCheckData {
+	return map[string]*services.AggregatedCheckData{
+		"test_node_1": &services.AggregatedCheckData{
+			PassingCount:  2,
+			WarningCount:  0,
+			CriticalCount: 0,
+		},
+		"test_node_2": &services.AggregatedCheckData{
+			PassingCount:  2,
+			WarningCount:  0,
+			CriticalCount: 1,
+		},
+	}
+}
+
 func TestClustersListHandler(t *testing.T) {
 	consulInst := new(mocks.Client)
+	checksMocks := new(serviceMocks.ChecksService)
 
 	kv := new(mocks.KV)
 	consulInst.On("KV").Return(kv)
 	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
 	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil)
 
+	checksMocks.On("GetAggregatedChecksResultByCluster", "47d1190ffb4f781974c8356d7f863b03").Return(
+		aggregatedByCluster(), nil)
+	checksMocks.On("GetAggregatedChecksResultByCluster", "e2f2eb50aef748e586a7baa85e0162cf").Return(
+		aggregatedByClusterCritical(), nil)
+
 	deps := DefaultDependencies()
 	deps.consul = consulInst
+	deps.checksService = checksMocks
 
 	var err error
 	app, err := NewAppWithDeps("", 80, deps)
@@ -366,6 +405,7 @@ func TestClustersListHandler(t *testing.T) {
 	app.ServeHTTP(resp, req)
 
 	consulInst.AssertExpectations(t)
+	checksMocks.AssertExpectations(t)
 	kv.AssertExpectations(t)
 
 	m := minify.New()
@@ -381,8 +421,8 @@ func TestClustersListHandler(t *testing.T) {
 
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, minified, "Clusters")
-	assert.Regexp(t, regexp.MustCompile("<td>PRD</td><td>sculpin</td><td>47d1190ffb4f781974c8356d7f863b03</td><td>HANA scale-up</td><td>3</td><td>5</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td></td><td>panther</td><td>e2f2eb50aef748e586a7baa85e0162cf</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*check_circle.*<td>PRD</td><td>sculpin</td><td>47d1190ffb4f781974c8356d7f863b03</td><td>HANA scale-up</td><td>3</td><td>5</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*error.*<td></td><td>panther</td><td>e2f2eb50aef748e586a7baa85e0162cf</td>"), minified)
 }
 
 func TestClusterHandlerHANA(t *testing.T) {
@@ -394,18 +434,6 @@ func TestClusterHandlerHANA(t *testing.T) {
 		{
 			Node:    "test_node_2",
 			Address: "192.168.1.2",
-		},
-	}
-
-	node1HealthChecks := consulApi.HealthChecks{
-		&consulApi.HealthCheck{
-			Status: consulApi.HealthPassing,
-		},
-	}
-
-	node2HealthChecks := consulApi.HealthChecks{
-		&consulApi.HealthCheck{
-			Status: consulApi.HealthCritical,
 		},
 	}
 
@@ -422,18 +450,18 @@ func TestClusterHandlerHANA(t *testing.T) {
 	catalog.On("Nodes", filter).Return(nodes, nil, nil)
 	consulInst.On("Catalog").Return(catalog)
 
-	health := new(mocks.Health)
-	health.On("Node", "test_node_1", (*consulApi.QueryOptions)(nil)).Return(node1HealthChecks, nil, nil)
-	health.On("Node", "test_node_2", (*consulApi.QueryOptions)(nil)).Return(node2HealthChecks, nil, nil)
-	consulInst.On("Health").Return(health)
-
 	selectedChecksPath := fmt.Sprintf(consul.KvClustersChecksPath, "47d1190ffb4f781974c8356d7f863b03")
 	selectedChecksValue := &consulApi.KVPair{Value: []byte("1.1.1,1.1.2")}
 	kv.On("Get", selectedChecksPath, (*consulApi.QueryOptions)(nil)).Return(selectedChecksValue, nil, nil)
 
 	checksMocks.On("GetChecksCatalog").Return(checksCatalog(), nil)
 	checksMocks.On("GetChecksCatalogByGroup").Return(checksCatalogByGroup(), nil)
-	checksMocks.On("GetChecksResultByCluster", "47d1190ffb4f781974c8356d7f863b03").Return(checksResult(), nil)
+	checksMocks.On("GetChecksResultByCluster", "47d1190ffb4f781974c8356d7f863b03").Return(
+		checksResult(), nil)
+	checksMocks.On("GetAggregatedChecksResultByCluster", "47d1190ffb4f781974c8356d7f863b03").Return(
+		aggregatedByClusterCritical(), nil)
+	checksMocks.On("GetAggregatedChecksResultByHost", "47d1190ffb4f781974c8356d7f863b03").Return(
+		checksResultByHost(), nil)
 
 	deps := DefaultDependencies()
 	deps.consul = consulInst
@@ -479,9 +507,13 @@ func TestClusterHandlerHANA(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("<strong>HANA system replication operation mode:</strong><br><span.*>logreplay</span>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<strong>CIB last written:</strong><br><span.*>Wed Jun 30 18:11:37 2021</span>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<strong>HANA secondary sync state:</strong><br><span.*>SFAIL</span>"), minified)
+	// Health
+	assert.Regexp(t, regexp.MustCompile(".*check_circle.*alert-body.*Passing.*2"), minified)
+	assert.Regexp(t, regexp.MustCompile(".*error.*alert-body.*Critical.*1"), minified)
+
 	// Nodes
-	assert.Regexp(t, regexp.MustCompile("<td>test_node_1</td><td>192.168.1.1</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td>test_node_2</td><td>192.168.1.2</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*check_circle.*<td>test_node_1</td><td>192.168.1.1</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*error.*<td>test_node_2</td><td>192.168.1.2</td>"), minified)
 	// Resources
 	assert.Regexp(t, regexp.MustCompile("<td>sbd</td><td>stonith:external/sbd</td><td>Started</td><td>active</td><td>0</td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td>dummy_failed</td><td>dummy</td><td>Started</td><td>failed</td><td>0</td>"), minified)
@@ -513,18 +545,6 @@ func TestClusterHandlerUnreachableNodes(t *testing.T) {
 		},
 	}
 
-	node1HealthChecks := consulApi.HealthChecks{
-		&consulApi.HealthCheck{
-			Status: consulApi.HealthPassing,
-		},
-	}
-
-	node2HealthChecks := consulApi.HealthChecks{
-		&consulApi.HealthCheck{
-			Status: consulApi.HealthCritical,
-		},
-	}
-
 	consulInst := new(mocks.Client)
 	checksMocks := new(serviceMocks.ChecksService)
 
@@ -538,11 +558,6 @@ func TestClusterHandlerUnreachableNodes(t *testing.T) {
 	catalog.On("Nodes", filter).Return(nodes, nil, nil)
 	consulInst.On("Catalog").Return(catalog)
 
-	health := new(mocks.Health)
-	health.On("Node", "test_node_1", (*consulApi.QueryOptions)(nil)).Return(node1HealthChecks, nil, nil)
-	health.On("Node", "test_node_2", (*consulApi.QueryOptions)(nil)).Return(node2HealthChecks, nil, nil)
-	consulInst.On("Health").Return(health)
-
 	selectedChecksPath := fmt.Sprintf(consul.KvClustersChecksPath, "47d1190ffb4f781974c8356d7f863b03")
 	selectedChecksValue := &consulApi.KVPair{Value: []byte("1.1.1,1.1.2")}
 	kv.On("Get", selectedChecksPath, (*consulApi.QueryOptions)(nil)).Return(selectedChecksValue, nil, nil)
@@ -550,6 +565,10 @@ func TestClusterHandlerUnreachableNodes(t *testing.T) {
 	checksMocks.On("GetChecksCatalog").Return(checksCatalog(), nil)
 	checksMocks.On("GetChecksCatalogByGroup").Return(checksCatalogByGroup(), nil)
 	checksMocks.On("GetChecksResultByCluster", "47d1190ffb4f781974c8356d7f863b03").Return(checksResultUnreachable(), nil)
+	checksMocks.On("GetAggregatedChecksResultByCluster", "47d1190ffb4f781974c8356d7f863b03").Return(
+		aggregatedByClusterCritical(), nil)
+	checksMocks.On("GetAggregatedChecksResultByHost", "47d1190ffb4f781974c8356d7f863b03").Return(
+		checksResultByHost(), nil)
 
 	deps := DefaultDependencies()
 	deps.consul = consulInst
@@ -604,18 +623,6 @@ func TestClusterHandlerAlert(t *testing.T) {
 		},
 	}
 
-	node1HealthChecks := consulApi.HealthChecks{
-		&consulApi.HealthCheck{
-			Status: consulApi.HealthPassing,
-		},
-	}
-
-	node2HealthChecks := consulApi.HealthChecks{
-		&consulApi.HealthCheck{
-			Status: consulApi.HealthCritical,
-		},
-	}
-
 	consulInst := new(mocks.Client)
 	checksMocks := new(serviceMocks.ChecksService)
 
@@ -629,11 +636,6 @@ func TestClusterHandlerAlert(t *testing.T) {
 	catalog.On("Nodes", filter).Return(nodes, nil, nil)
 	consulInst.On("Catalog").Return(catalog)
 
-	health := new(mocks.Health)
-	health.On("Node", "test_node_1", (*consulApi.QueryOptions)(nil)).Return(node1HealthChecks, nil, nil)
-	health.On("Node", "test_node_2", (*consulApi.QueryOptions)(nil)).Return(node2HealthChecks, nil, nil)
-	consulInst.On("Health").Return(health)
-
 	selectedChecksPath := fmt.Sprintf(consul.KvClustersChecksPath, "47d1190ffb4f781974c8356d7f863b03")
 	selectedChecksValue := &consulApi.KVPair{Value: []byte("1.1.1,1.2.3")}
 	kv.On("Get", selectedChecksPath, (*consulApi.QueryOptions)(nil)).Return(selectedChecksValue, nil, nil)
@@ -641,6 +643,10 @@ func TestClusterHandlerAlert(t *testing.T) {
 	checksMocks.On("GetChecksCatalog").Return(nil, fmt.Errorf("catalog error"))
 	checksMocks.On("GetChecksCatalogByGroup").Return(nil, fmt.Errorf("catalog error"))
 	checksMocks.On("GetChecksResultByCluster", "47d1190ffb4f781974c8356d7f863b03").Return(nil, fmt.Errorf("catalog error"))
+	checksMocks.On("GetAggregatedChecksResultByCluster", "47d1190ffb4f781974c8356d7f863b03").Return(
+		aggregatedByClusterCritical(), nil)
+	checksMocks.On("GetAggregatedChecksResultByHost", "47d1190ffb4f781974c8356d7f863b03").Return(
+		checksResultByHost(), nil)
 
 	deps := DefaultDependencies()
 	deps.consul = consulInst

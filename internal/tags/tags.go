@@ -2,8 +2,11 @@ package tags
 
 import (
 	"fmt"
+	"sort"
 
+	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
+	"github.com/trento-project/trento/internal"
 	"github.com/trento-project/trento/internal/consul"
 )
 
@@ -27,6 +30,46 @@ func (t *Tags) getKvResourceTagsPath(resourceType string, resourceId string) str
 	return fmt.Sprintf(consul.KvResourceTagsPath, resourceType, resourceId)
 }
 
+// GetAll retrieves and returns a set with all the tags in Trento
+// resourceTypeFilter can be used to filter the results by resources type
+func (t *Tags) GetAll(resourceTypeFilter ...string) ([]string, error) {
+	listMap, err := t.client.KV().ListMap(consul.KvTagsPath, consul.KvTagsPath)
+	if err != nil {
+		return nil, errors.Wrap(err, "error retrieving tags")
+	}
+
+	// Parse the tags kv tree inside a map
+	// The first level is the resource type map
+	// The second level is the resource id map
+	// The third level is the tag map
+	tagsMap := make(map[string]map[string]map[string]struct{})
+	err = mapstructure.Decode(listMap, &tagsMap)
+	if err != nil {
+		return nil, errors.Wrap(err, "error while decoding the tags kv store")
+	}
+
+	var tags []string
+	set := make(map[string]struct{})
+
+	for resourceType, resourcesMap := range tagsMap {
+		if len(resourceTypeFilter) > 0 && !internal.Contains(resourceTypeFilter, resourceType) {
+			continue
+		}
+
+		for _, resource := range resourcesMap {
+			for tag := range resource {
+				if _, ok := set[tag]; !ok {
+					tags = append(tags, tag)
+					set[tag] = struct{}{}
+				}
+			}
+		}
+	}
+	sort.Strings(tags)
+
+	return tags, nil
+}
+
 // GetAllByResource returns all the tags for a given resource
 func (t *Tags) GetAllByResource(resourceType string, resourceId string) ([]string, error) {
 	path := t.getKvResourceTagsPath(resourceType, resourceId)
@@ -40,6 +83,7 @@ func (t *Tags) GetAllByResource(resourceType string, resourceId string) ([]strin
 	for tag := range tagsMap {
 		tags = append(tags, tag)
 	}
+	sort.Strings(tags)
 
 	return tags, nil
 }

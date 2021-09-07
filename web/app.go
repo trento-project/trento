@@ -83,12 +83,11 @@ func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
 	{
 		apiGroup.GET("/ping", ApiPingHandler)
 
+		apiGroup.GET("/tags", ApiListTag(deps.consul))
 		apiGroup.POST("/hosts/:name/tags", ApiHostCreateTagHandler(deps.consul))
 		apiGroup.DELETE("/hosts/:name/tags/:tag", ApiHostDeleteTagHandler(deps.consul))
-
 		apiGroup.POST("/clusters/:id/tags", ApiClusterCreateTagHandler(deps.consul))
 		apiGroup.DELETE("/clusters/:id/tags/:tag", ApiClusterDeleteTagHandler(deps.consul))
-
 		apiGroup.POST("/sapsystems/:sid/tags", ApiSAPSystemCreateTagHandler(deps.consul))
 		apiGroup.DELETE("/sapsystems/:sid/tags/:tag", ApiSAPSystemDeleteTagHandler(deps.consul))
 	}

@@ -207,4 +207,29 @@ paths:
             additionalProperties: true
             type: object
       summary: Delete a specific tag that belongs to a SAPSystem
+  /api/tags:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Filter by resource type
+        in: query
+        name: resourceType
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List all the tags in the system
 swagger: "2.0"

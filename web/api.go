@@ -19,6 +19,36 @@ type JSONTag struct {
 	Tag string `json:"tag" binding:"required"`
 }
 
+// ApiListTag godoc
+// @Summary List all the tags in the system
+// @Accept json
+// @Produce json
+// @Param resourceType query string false "Filter by resource type"
+// @Success 200 {object} []string
+// @Failure 500 {object} map[string]string
+// @Router /api/tags [get]
+func ApiListTag(client consul.Client) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		query := c.Request.URL.Query()
+		resourceTypeFilter := query["resource_type"]
+
+		t := tags.NewTags(client)
+
+		tags, err := t.GetAll(resourceTypeFilter...)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
+		if tags == nil {
+			c.JSON(http.StatusOK, []string{})
+			return
+		}
+
+		c.JSON(http.StatusOK, tags)
+	}
+}
+
 // ApiHostCreateTagHandler godoc
 // @Summary Add tag to host
 // @Accept json

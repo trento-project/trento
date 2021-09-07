@@ -1,4 +1,7 @@
 - hosts: all
+  gather_facts: false
+  ignore_errors: yes
+  become: yes
 
   vars:
     ara_playbook_labels:
@@ -11,9 +14,28 @@
       when:
         - not ansible_check_mode
 
-    - name: include load_facts
-      import_role:
-        name: load_facts
+    - block:
+        - name: include load_facts
+          import_role:
+            name: load_facts
+          register: result
+
+        - name: count unreachable hosts number
+          set_fact:
+            unreachable_count: |
+              {{ unreachable_count|default(0)|int + 1 }}
+          with_inventory_hostnames:
+            - all
+          when: facts_result is unreachable
+          delegate_to: localhost
+
+        - name: Post initial empty results to ARA if all hosts are unreachable
+          import_role:
+            name: post-results
+            tasks_from: post
+          when: unreachable_count|int == hostvars|length
+
+      ignore_unreachable: yes
 
     - name: include 1.1.1
       import_role:
@@ -245,19 +267,8 @@
         name: '2.2.8'
       when: '2.2.8' in cluster_selected_checks
 
-    - name: Set Global Results
-      set_fact:
-        global_results: "{{ (global_results |  default({})) | combine(hostvars[item]['tests']|default({})) }}"
-      with_inventory_hostnames:
-        - all
-      run_once: yes
-      delegate_to: localhost
-
-    - name: Post Global Results To ARA
-      ara_record:
-        key: "trento-results"
-        value: "{{ global_results | to_nice_json  }}"
-        type: json
-      run_once: yes
-      delegate_to: localhost
-      changed_when: false
+  post_tasks:
+    - name: Post results
+      import_role:
+        name: post-results
+        tasks_from: post

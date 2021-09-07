@@ -18,6 +18,14 @@ var AlertCatalogNotFound = func() Alert {
 	}
 }
 
+var CheckResultsNotFound = func() Alert {
+	return Alert{
+		Type:  "danger",
+		Title: "Error loading the checks result",
+		Text:  "Checks result couldn't be retrieved. Check if the Trento runner is running",
+	}
+}
+
 type Alert struct {
 	Type  string
 	Title string

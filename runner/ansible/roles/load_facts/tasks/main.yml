@@ -1,6 +1,10 @@
 ---
 
-- name: load_facts
+- name: gather facts
+  ansible.builtin.setup:
+  register: facts_result
+
+- name: load environment variables
   include_vars: "{{ env | default('azure') }}_env.yml"
   delegate_to: localhost
   run_once: yes

@@ -8,8 +8,6 @@ import (
 
 	"github.com/trento-project/trento/internal"
 
-	consulApi "github.com/hashicorp/consul/api"
-
 	"github.com/gin-gonic/gin"
 
 	"github.com/trento-project/trento/internal/cluster"
@@ -143,7 +141,7 @@ func (node *Node) HANAStatus() string {
 	return "-"
 }
 
-func NewNodes(c *cluster.Cluster, hl hosts.HostList) Nodes {
+func NewNodes(s services.ChecksService, c *cluster.Cluster, hl hosts.HostList) Nodes {
 	// TODO: this factory is HANA specific,
 	// eventually we will need to have different factory methods depending on the cluster type
 
@@ -214,7 +212,10 @@ func NewNodes(c *cluster.Cluster, hl hosts.HostList) Nodes {
 		for _, h := range hl {
 			if h.Name() == node.Name {
 				node.Ip = h.Address
-				node.Health = h.Health()
+				cData, _ := s.GetAggregatedChecksResultByHost(c.Id)
+				if _, ok := cData[node.Name]; ok {
+					node.Health = cData[node.Name].String()
+				}
 			}
 		}
 
@@ -247,42 +248,6 @@ func (nodes Nodes) GroupBySite() map[string]Nodes {
 	return nodesBySite
 }
 
-func (nodes Nodes) CriticalCount() int {
-	var critical int
-
-	for _, n := range nodes {
-		if n.Health == consulApi.HealthCritical {
-			critical += 1
-		}
-	}
-
-	return critical
-}
-
-func (nodes Nodes) WarningCount() int {
-	var warning int
-
-	for _, n := range nodes {
-		if n.Health == consulApi.HealthWarning {
-			warning += 1
-		}
-	}
-
-	return warning
-}
-
-func (nodes Nodes) PassingCount() int {
-	var warning int
-
-	for _, n := range nodes {
-		if n.Health == consulApi.HealthPassing {
-			warning += 1
-		}
-	}
-
-	return warning
-}
-
 type ClustersRow struct {
 	Id              string
 	Name            string
@@ -295,7 +260,7 @@ type ClustersRow struct {
 
 type ClustersTable []*ClustersRow
 
-func NewClustersTable(clusters map[string]*cluster.Cluster) ClustersTable {
+func NewClustersTable(s services.ChecksService, clusters map[string]*cluster.Cluster) ClustersTable {
 	var clusterTable ClustersTable
 
 	for id, c := range clusters {
@@ -304,6 +269,11 @@ func NewClustersTable(clusters map[string]*cluster.Cluster) ClustersTable {
 		var sids []string
 
 		sids = append(sids, getHanaSID(c))
+
+		// Using empty string in case of error
+		if aCheckData, err := s.GetAggregatedChecksResultByCluster(id); err == nil {
+			health = aCheckData.String()
+		}
 
 		clustersRow := &ClustersRow{
 			Id:              id,
@@ -386,18 +356,16 @@ func NewClustersHealthContainer(t ClustersTable) *HealthContainer {
 	h := &HealthContainer{}
 	for _, r := range t {
 		switch r.Health {
-		case consulApi.HealthPassing:
+		case services.CheckPassing:
 			h.PassingCount += 1
-		case consulApi.HealthWarning:
-			h.WarningCount += 1
-		case consulApi.HealthCritical:
+		case services.CheckCritical:
 			h.CriticalCount += 1
 		}
 	}
 	return h
 }
 
-func NewClusterListHandler(client consul.Client) gin.HandlerFunc {
+func NewClusterListHandler(client consul.Client, s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		query := c.Request.URL.Query()
 
@@ -412,7 +380,7 @@ func NewClusterListHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		clustersTable := NewClustersTable(clusters)
+		clustersTable := NewClustersTable(s, clusters)
 		clustersTable = clustersTable.Filter(nameFilter, healthFilter, sidFilter, clusterTypeFilter)
 
 		healthContainer := NewClustersHealthContainer(clustersTable)
@@ -432,13 +400,8 @@ func NewClusterListHandler(client consul.Client) gin.HandlerFunc {
 	}
 }
 
-func getChecksCatalog(clusterId string, client consul.Client, s services.ChecksService) (map[string]map[string]*models.Check, error) {
+func getChecksCatalogModalData(s services.ChecksService, clusterId, selectedChecks string) (map[string]map[string]*models.Check, error) {
 	checksCatalog, err := s.GetChecksCatalogByGroup()
-	if err != nil {
-		return checksCatalog, err
-	}
-
-	selectedChecks, err := cluster.GetCheckSelection(client, clusterId)
 	if err != nil {
 		return checksCatalog, err
 	}
@@ -486,28 +449,48 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 			return
 		}
 
-		checksCatalog, err := getChecksCatalog(clusterId, client, s)
+		selectedChecks, err := cluster.GetCheckSelection(client, clusterId)
 		if err != nil {
 			StoreAlert(c, AlertCatalogNotFound())
 		}
 
-		nodes := NewNodes(clusterItem, hosts)
+		checksCatalog, errCatalog := s.GetChecksCatalog()
+		checksCatalogModalData, errCatalogByGroup := getChecksCatalogModalData(s, clusterId, selectedChecks)
+		checksResult, errResult := s.GetChecksResultByCluster(clusterItem.Id)
+		if errCatalog != nil || errCatalogByGroup != nil {
+			StoreAlert(c, AlertCatalogNotFound())
+		} else if errResult != nil {
+			StoreAlert(c, CheckResultsNotFound())
+		} else if selectedChecks == "" {
+			a := Alert{
+				Type:  "info",
+				Title: "There is not any check selected",
+				Text:  "Select the desired checks in the settings modal in order to validate the cluster configuration",
+			}
+			StoreAlert(c, a)
+		}
+
+		nodes := NewNodes(s, clusterItem, hosts)
+		// It returns an empty aggretaged data in case of error
+		aCheckData, _ := s.GetAggregatedChecksResultByCluster(clusterId)
 
 		hContainer := &HealthContainer{
-			CriticalCount: nodes.CriticalCount(),
-			WarningCount:  nodes.WarningCount(),
-			PassingCount:  nodes.PassingCount(),
+			CriticalCount: aCheckData.CriticalCount,
+			WarningCount:  aCheckData.WarningCount,
+			PassingCount:  aCheckData.PassingCount,
 			Layout:        "vertical",
 		}
 
 		c.HTML(http.StatusOK, "cluster_hana.html.tmpl", gin.H{
-			"Cluster":          clusterItem,
-			"Nodes":            nodes,
-			"StoppedResources": stoppedResources(clusterItem),
-			"ClusterType":      clusterType,
-			"HealthContainer":  hContainer,
-			"ChecksCatalog":    checksCatalog,
-			"Alerts":           GetAlerts(c),
+			"Cluster":            clusterItem,
+			"Nodes":              nodes,
+			"StoppedResources":   stoppedResources(clusterItem),
+			"ClusterType":        clusterType,
+			"HealthContainer":    hContainer,
+			"ChecksCatalog":      checksCatalog,
+			"ChecksCatalogModal": checksCatalogModalData,
+			"ChecksResult":       checksResult,
+			"Alerts":             GetAlerts(c),
 		})
 	}
 }

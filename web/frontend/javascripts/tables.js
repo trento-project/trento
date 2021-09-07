@@ -10,7 +10,7 @@ function reloadTable(path) {
     if (health != undefined) {
       $('.health-container').replaceWith(health);
     }
-    $(window).trigger('table:reloaded');
+    window.dispatchEvent(new Event('table:reloaded'));
   });
 }
 

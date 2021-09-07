@@ -26,13 +26,12 @@
                     <td>{{ .HostsNumber }}</td>
                     <td>{{ .ResourcesNumber }}</td>
                     <td>
-                        <select class="tags-input form-control" multiple data-url="/api/clusters/{{ .Id }}/tags"
-                                autocomplete="off">
-                            {{- range .Tags }}
-                                {{ . }}
-                                <option value="{{ . }}" selected="selected">{{ . }}</option>
-                            {{- end }}
-                        </select>
+                        <input class="tags-input" 
+                            value="{{- range .Tags }}{{ . }},{{- end }}" 
+                            data-resource-type="clusters" 
+                            data-resource-id="{{ .Id }}"
+                            autocomplete="off">
+                        </input>
                     </td>
                 </tr>
             {{- else }}

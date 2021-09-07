@@ -32,13 +32,15 @@
             </script>
             {{ template "health_filter" }}
             <select name="trento-sap-systems" id="trento-sap-systems" class="selectpicker" multiple
-                    data-selected-text-format="count > 3" data-actions-box="true" title="SAP system...">
+                    data-selected-text-format="count > 3" data-actions-box="true" data-live-search="true" 
+                    title="SAP system...">
                 {{- range .SIDs }}
                     <option value="{{ . }}">{{ . }}</option>
                 {{- end }}
             </select>
             <select name="tags" id="tags_filter" class="selectpicker" multiple
-                    data-selected-text-format="count > 3" data-actions-box="true" title="Tags...">
+                    data-selected-text-format="count > 3" data-actions-box="true" data-live-search="true"
+                    title="Tags...">
                 {{- range .Tags }}
                     <option value="{{ . }}">{{ . }}</option>
                 {{- end }}

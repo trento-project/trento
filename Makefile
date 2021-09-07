@@ -77,7 +77,13 @@ web/frontend/assets: web/frontend/assets/js web/frontend/assets/stylesheets web/
 web/frontend/assets/js: web/frontend/node_modules
 	mkdir -p web/frontend/assets/js/eos-ds
 	cp web/frontend/javascripts/*.js web/frontend/assets/js/
+	cp web/frontend/node_modules/jquery/dist/jquery.min.js web/frontend/assets/js/
+	cp web/frontend/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js web/frontend/assets/js/
 	cp web/frontend/node_modules/eos-ds/dist/js/index.js web/frontend/assets/js/eos-ds/index.js
+	cp web/frontend/node_modules/eos-ds/dist/js/index.js web/frontend/assets/js/eos-ds/index.js
+	cp web/frontend/node_modules/bootstrap-select/dist/js/bootstrap-select.min.js web/frontend/assets/js/
+	cp web/frontend/node_modules/@yaireo/tagify/dist/tagify.min.js web/frontend/assets/js/
+	cp web/frontend/node_modules/@yaireo/tagify/dist/tagify.polyfills.min.js web/frontend/assets/js/
 
 web/frontend/assets/stylesheets: web/frontend/node_modules
 	mkdir -p web/frontend/assets/stylesheets/eos-icons
@@ -87,6 +93,10 @@ web/frontend/assets/stylesheets: web/frontend/node_modules
 	cp -R web/frontend/node_modules/eos-ds/dist/vendors/eos-icons/fonts web/frontend/assets/stylesheets/
 	web/frontend/node_modules/.bin/sass \
 		web/frontend/stylesheets/override.scss:web/frontend/assets/stylesheets/override.css
+	cp web/frontend/node_modules/bootstrap/dist/css/bootstrap.min.css web/frontend/assets/stylesheets/
+	cp web/frontend/node_modules/bootstrap/dist/css/bootstrap.min.css.map web/frontend/assets/stylesheets/
+	cp web/frontend/node_modules/bootstrap-select/dist/css/bootstrap-select.min.css web/frontend/assets/stylesheets/
+	cp web/frontend/node_modules/@yaireo/tagify/dist/tagify.css web/frontend/assets/stylesheets/
 
 web/frontend/assets/images:
 	mkdir -p web/frontend/assets/images

@@ -155,20 +155,15 @@ Since the client Consul Agent will most likely run on a machine with multiple IP
 
 ## Trento Agents
 
-Trento Agents are responsible for discovering HA clusters and reporting their
-status to Consul. These Agents need to run in the same systems hosting the HA
+Trento Agents are responsible for discovering HA clusters. These Agents need to run in the same systems hosting the HA
 Cluster services, so running them in isolated environments (e.g. serverless,
 containers, etc.) makes little sense, as they won't be able as the discovery mechanisms will not be able to report any host information.
 
 To start the trento agent:
 
 ```shell
-./trento agent start examples/azure-rules.yaml
+./trento agent start
 ```
-
-> Note that we are using `azure-rules.yaml` in this example which collect azure
-> recommendations on cluster settings and state for many HA components. New rules
-> can be created and tuned to adjust to different requirements.
 
 ## Trento Web UI
 

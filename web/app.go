@@ -73,7 +73,6 @@ func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
 	engine.GET("/", HomeHandler)
 	engine.GET("/hosts", NewHostListHandler(deps.consul))
 	engine.GET("/hosts/:name", NewHostHandler(deps.consul))
-	engine.GET("/hosts/:name/ha-checks", NewHAChecksHandler(deps.consul))
 	engine.GET("/catalog", NewChecksCatalogHandler(deps.checksService))
 	engine.GET("/clusters", NewClusterListHandler(deps.consul, deps.checksService))
 	engine.GET("/clusters/:id", NewClusterHandler(deps.consul, deps.checksService))

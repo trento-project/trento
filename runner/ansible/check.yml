@@ -33,13 +33,15 @@
           import_role:
             name: post-results
             tasks_from: post
-          when: unreachable_count|int == hostvars|length
+          when:
+            - facts_result is unreachable
+            - unreachable_count|int == hostvars|length
 
       ignore_unreachable: yes
 
     - name: include 1.1.1
       import_role:
-        name: '1.1.1' 
+        name: '1.1.1'
       when: "'1.1.1' in cluster_selected_checks"
 
     - name: include 1.1.1.runtime

@@ -39,7 +39,7 @@
 
     - name: include 1.1.1
       import_role:
-        name: '1.1.1'in 
+        name: '1.1.1' 
       when: "'1.1.1' in cluster_selected_checks"
 
     - name: include 1.1.1.runtime

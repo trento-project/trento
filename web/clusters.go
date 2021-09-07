@@ -12,8 +12,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/mitchellh/mapstructure"
 
-	"github.com/trento-project/trento/internal/cluster"
 	"github.com/trento-project/trento/internal/cloud"
+	"github.com/trento-project/trento/internal/cluster"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/web/models"
@@ -509,17 +509,17 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 		}
 
 		c.HTML(http.StatusOK, "cluster_hana.html.tmpl", gin.H{
-			"Cluster":            clusterItem,
-			"Nodes":              nodes,
-			"StoppedResources":   stoppedResources(clusterItem),
-			"ClusterType":        clusterType,
-			"HealthContainer":    hContainer,
-			"ChecksCatalog":      checksCatalog,
-			"ChecksCatalogModal": checksCatalogModalData,
-			"ConnectionData":     connectionData,
+			"Cluster":               clusterItem,
+			"Nodes":                 nodes,
+			"StoppedResources":      stoppedResources(clusterItem),
+			"ClusterType":           clusterType,
+			"HealthContainer":       hContainer,
+			"ChecksCatalog":         checksCatalog,
+			"ChecksCatalogModal":    checksCatalogModalData,
+			"ConnectionData":        connectionData,
 			"DefaultConnectionData": defaultConnectionData,
-			"ChecksResult":       checksResult,
-			"Alerts":             GetAlerts(c),
+			"ChecksResult":          checksResult,
+			"Alerts":                GetAlerts(c),
 		})
 	}
 }
@@ -548,14 +548,14 @@ func NewSaveClusterSettingsHandler(client consul.Client) gin.HandlerFunc {
 
 		usernames := getConnectionMap(c.Request.PostForm)
 
-		err := cluster.StoreCheckSelection(
+		checkErr := cluster.StoreCheckSelection(
 			client, clusterId, strings.Join(selectedChecks.Ids, ","))
 
-		err = cluster.StoreConnectionSettings(
+		connErr := cluster.StoreConnectionSettings(
 			client, clusterId, usernames)
 
 		var newAlert Alert
-		if err == nil {
+		if checkErr == nil && connErr == nil {
 			newAlert = Alert{
 				Type:  "success",
 				Title: "Cluster settings saved",

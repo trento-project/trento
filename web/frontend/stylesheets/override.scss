@@ -55,3 +55,8 @@ footer.footer-side-menu ul.footer-list {
   border-radius: 0;
   border: none;
 }
+
+// Set the same padding as info and warning
+.alert-danger {
+  padding-right: 8px;
+}

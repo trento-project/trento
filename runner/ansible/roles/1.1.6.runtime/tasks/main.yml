@@ -2,13 +2,13 @@
 
 - name: Set Test ID
   set_fact:
-    test_id: '1.2.1'
+    test_id: '1.1.6.runtime'
 
 - name: "{{ test_id }}.check"
-  shell: 'crm_attribute -t crm_config -G -n stonith-enabled --quiet'
+  shell: 'corosync-cmapctl | grep "totem.transport (str) = " | sed "s/.*= //"'
   check_mode: no
   register: config_updated
-  changed_when: config_updated.stdout != expected[test_id]
+  changed_when: config_updated.stdout != expected['1.1.6']
 
 - block:
     - import_role:

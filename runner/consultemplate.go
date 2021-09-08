@@ -18,10 +18,11 @@ const clusterSelectedChecks string = "cluster_selected_checks"
 
 var ansibleHostsTemplate = fmt.Sprintf(`
 {{- range $key, $pairs := tree "%[2]s" | byKey }}
-[{{ key (print (printf "%[3]s" $key) "/name") }}]
+[{{ key (print (printf "%[3]s" $key) "/id") }}]
 {{- range tree (print (printf "%[3]s" $key) "/crmmon/Nodes") }}
 {{- if .Key | contains "/Name" }}
-{{ .Value }} %[1]s={{ key (printf "%[4]s" $key) }}
+{{- $nodename := .Value }}
+{{ $nodename }} %[1]s={{ key (printf "%[4]s" $key) }} ansible_host={{ range nodes }}{{ if eq .Node $nodename }}{{ .Address }}{{ end }}{{ end }}
 {{- end }}
 {{- end }}
 {{- end }}

@@ -17,9 +17,9 @@
     [[ $(cibadmin -Q --xpath "//constraints/rsc_colocation" | grep -oP 'rsc-role="\K[^"]+') != "{{ expected[test_id + '.rsc_colocation_rsc_role'] }}" ]] && exit 1
     [[ $(cibadmin -Q --xpath "//constraints/rsc_colocation" | grep -oP 'with-rsc="\K[^"]+' | grep -o msl_SAPHana) != "{{ expected[test_id + '.rsc_colocation_with_rsc'] }}" ]] && exit 1
     [[ $(cibadmin -Q --xpath "//constraints/rsc_colocation" | grep -oP 'with-rsc-role="\K[^"]+') != "{{ expected[test_id + '.rsc_colocation_with_rsc_role'] }}" ]] && exit 1
-    [[ $( cibadmin -Q --xpath "//constraints/rsc_order" | grep -oP 'kind="\K[^"]+') != "{{ expected[test_id + '.rsc_order_kind'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "//constraints/rsc_order" | grep -oP 'kind="\K[^"]+') != "{{ expected[test_id + '.rsc_order_kind'] }}" ]] && exit 1
     [[ $(cibadmin -Q --xpath "//constraints/rsc_order" | grep -oP 'first="\K[^"]+' | grep -o cln_SAPHanaTopology) != "{{ expected[test_id + '.rsc_order_first'] }}" ]] && exit 1
-    [[ $( cibadmin -Q --xpath "//constraints/rsc_order" | grep -oP 'then="\K[^"]+' | grep -o msl_SAPHana) != "{{ expected[test_id + '.rsc_order_then'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "//constraints/rsc_order" | grep -oP 'then="\K[^"]+' | grep -o msl_SAPHana) != "{{ expected[test_id + '.rsc_order_then'] }}" ]] && exit 1
     exit 0 
   check_mode: no
   register: config_updated

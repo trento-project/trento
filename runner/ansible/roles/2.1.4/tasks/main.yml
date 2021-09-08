@@ -11,8 +11,9 @@
     # if not grouped, exit with fail
     cibadmin -Q --xpath "//group/primitive[@type='IPaddr2']/@type" || exit 1
     # Check that following match expected, exit with error if any do not
-    [[ $(cibadmin -Q --xpath "//primitive[@type='IPaddr2']/operations/op [@name='monitor']" | grep -oP 'interval="\K[^"]+') != "{{ expected[test_id + '.monitor_interval'] }}" ]] && exit 1
-    [[ $(cibadmin -Q --xpath "//primitive[@type='IPaddr2']/operations/op [@name='monitor']" | grep -oP 'timeout="\K[^"]+') != "{{ expected[test_id + '.monitor_timeout'] }}" ]] && exit 1
+    XPATH=""//primitive[@type='IPaddr2']/operations/op"
+    [[ $(cibadmin -Q --xpath "${XPATH} [@name='monitor']" | grep -oP 'interval="\K[^"]+') != "{{ expected[test_id + '.monitor_interval'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "${XPATH} [@name='monitor']" | grep -oP 'timeout="\K[^"]+') != "{{ expected[test_id + '.monitor_timeout'] }}" ]] && exit 1
     exit 0 
   check_mode: no
   register: config_updated

@@ -26,6 +26,7 @@ type Node struct {
 	Ip         string
 	Health     string
 	VirtualIps []string
+	SID        string
 }
 
 type Resource struct {
@@ -99,7 +100,14 @@ func getHanaSID(c *cluster.Cluster) string {
 	return ""
 }
 
-// HANAHealthState parses the hana_prd_roles string and returns the SAPHanaSR Health state
+func (node *Node) GetHanaAttribute(attributeName string) (string, bool) {
+	hanaAttributeName := fmt.Sprintf("hana_%s_%s", strings.ToLower(node.SID), attributeName)
+	value, ok := node.Attributes[hanaAttributeName]
+
+	return value, ok
+}
+
+// HANAHealthState parses the hana_<SID>_roles string and returns the SAPHanaSR Health state
 // Possible values: 0-4
 // 4 - SAP HANA database is up and OK. The cluster does interpret this as a correctly running database.
 // 3 - SAP HANA database is up and in status info. The cluster does interpret this as a correctly running database.
@@ -108,18 +116,18 @@ func getHanaSID(c *cluster.Cluster) string {
 // 0 - Internal Script Error – to be ignored.
 // e.g. 4:P:master1:master:worker:master returns 4 (first element)
 func (node *Node) HANAHealthState() string {
-	if r, ok := node.Attributes["hana_prd_roles"]; ok {
+	if r, ok := node.GetHanaAttribute("roles"); ok {
 		healthState := strings.SplitN(r, ":", 2)[0]
 		return healthState
 	}
 	return "-"
 }
 
-// HANAStatus parses the hana_prd_roles string and returns the SAPHanaSR Health state
+// HANAStatus parses the hana_<SID>_roles string and returns the SAPHanaSR Health state
 // Possible values: Primary, Secondary
 // e.g. 4:P:master1:master:worker:master returns Primary (second element)
 func (node *Node) HANAStatus() string {
-	if r, ok := node.Attributes["hana_prd_roles"]; ok {
+	if r, ok := node.GetHanaAttribute("roles"); ok {
 		status := strings.SplitN(r, ":", 3)[1]
 
 		switch status {
@@ -137,6 +145,7 @@ func NewNodes(c *cluster.Cluster, hl hosts.HostList) Nodes {
 	// eventually we will need to have different factory methods depending on the cluster type
 
 	var nodes Nodes
+	sid := getHanaSID(c)
 
 	// TODO: remove plain resources grouping as in the future we'll need to distinguish between Cloned and Groups
 	resources := c.Crmmon.Resources
@@ -149,7 +158,11 @@ func NewNodes(c *cluster.Cluster, hl hosts.HostList) Nodes {
 	}
 
 	for _, n := range c.Crmmon.NodeAttributes.Nodes {
-		node := &Node{Name: n.Name, Attributes: make(map[string]string)}
+		node := &Node{
+			Name:       n.Name,
+			Attributes: make(map[string]string),
+			SID:        sid,
+		}
 
 		for _, a := range n.Attributes {
 			node.Attributes[a.Name] = a.Value
@@ -223,9 +236,27 @@ func NewNodes(c *cluster.Cluster, hl hosts.HostList) Nodes {
 func (nodes Nodes) HANASecondarySyncState() string {
 	for _, n := range nodes {
 		if n.HANAStatus() == "Secondary" {
-			if s, ok := n.Attributes["hana_prd_sync_state"]; ok {
+			if s, ok := n.GetHanaAttribute("sync_state"); ok {
 				return s
 			}
+		}
+	}
+	return "-"
+}
+
+func (nodes Nodes) HANASystemReplicationMode() string {
+	if len(nodes) > 0 {
+		if srmode, ok := nodes[0].GetHanaAttribute("srmode"); ok {
+			return srmode
+		}
+	}
+	return "-"
+}
+
+func (nodes Nodes) HANASystemReplicationOperationMode() string {
+	if len(nodes) > 0 {
+		if srmode, ok := nodes[0].GetHanaAttribute("op_mode"); ok {
+			return srmode
 		}
 	}
 	return "-"
@@ -235,7 +266,7 @@ func (nodes Nodes) GroupBySite() map[string]Nodes {
 	nodesBySite := make(map[string]Nodes)
 
 	for _, n := range nodes {
-		if site, ok := n.Attributes["hana_prd_site"]; ok {
+		if site, ok := n.GetHanaAttribute("site"); ok {
 			nodesBySite[site] = append(nodesBySite[site], n)
 		}
 	}

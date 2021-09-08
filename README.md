@@ -200,6 +200,8 @@ To fix it run:
 
 ```
 export ARA_ALLOWED_HOSTS="['10.74.1.5']"
+# Or allow all the addresses with
+export ARA_ALLOWED_HOSTS=['*']
 ```
 
 ### Runner

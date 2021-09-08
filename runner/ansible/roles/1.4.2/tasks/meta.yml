@@ -1,0 +1,24 @@
+- block:
+    - import_role:
+        name: post-metadata
+        tasks_from: store
+  vars:
+    id: 1.4.2
+    name: Concurrent fencing should be enabled if Azure Fence is configured
+    group: Azure Fence Agent
+    labels: generic
+    description: |
+      Test if the concurrent fencing option is enabled
+    remediation: |
+      ## Abstract
+      Concurrent fencing must be enabled in order to use Azure Fence agent combined with SBD fencing.
+
+      ## Remediation
+      To enable it, run:
+      ```
+      crm configure property concurrent-fencing=true
+      ```
+
+      ## References
+      - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#1-create-the-stonith-devices
+    implementation: "{{ lookup('file', 'roles/'+id+'/tasks/main.yml') }}"

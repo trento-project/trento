@@ -46,9 +46,9 @@ func NewHostListHandler(client consul.Client) gin.HandlerFunc {
 
 		hostsTags := make(map[string][]string)
 		for _, h := range hostList {
-			t := tags.NewTags(client, "hosts", h.Name())
+			t := tags.NewTags(client)
 
-			ht, err := t.GetAll()
+			ht, err := t.GetAllByResource(tags.HostResourceType, h.Name())
 			if err != nil {
 				_ = c.Error(err)
 				return

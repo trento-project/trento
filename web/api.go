@@ -19,6 +19,36 @@ type JSONTag struct {
 	Tag string `json:"tag" binding:"required"`
 }
 
+// ApiListTag godoc
+// @Summary List all the tags in the system
+// @Accept json
+// @Produce json
+// @Param resourceType query string false "Filter by resource type"
+// @Success 200 {object} []string
+// @Failure 500 {object} map[string]string
+// @Router /api/tags [get]
+func ApiListTag(client consul.Client) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		query := c.Request.URL.Query()
+		resourceTypeFilter := query["resource_type"]
+
+		t := tags.NewTags(client)
+
+		tags, err := t.GetAll(resourceTypeFilter...)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
+		if tags == nil {
+			c.JSON(http.StatusOK, []string{})
+			return
+		}
+
+		c.JSON(http.StatusOK, tags)
+	}
+}
+
 // ApiHostCreateTagHandler godoc
 // @Summary Add tag to host
 // @Accept json
@@ -53,8 +83,8 @@ func ApiHostCreateTagHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		t := tags.NewTags(client, "hosts", name)
-		err = t.Create(r.Tag)
+		t := tags.NewTags(client)
+		err = t.Create(r.Tag, tags.HostResourceType, name)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -88,8 +118,8 @@ func ApiHostDeleteTagHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		t := tags.NewTags(client, "hosts", name)
-		err = t.Delete(tag)
+		t := tags.NewTags(client)
+		err = t.Delete(tag, tags.HostResourceType, name)
 
 		if err != nil {
 			_ = c.Error(err)
@@ -134,8 +164,8 @@ func ApiClusterCreateTagHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		t := tags.NewTags(client, "clusters", id)
-		err = t.Create(r.Tag)
+		t := tags.NewTags(client)
+		err = t.Create(r.Tag, tags.ClusterResourceType, id)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -169,8 +199,8 @@ func ApiClusterDeleteTagHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		t := tags.NewTags(client, "clusters", id)
-		err = t.Delete(tag)
+		t := tags.NewTags(client)
+		err = t.Delete(tag, tags.ClusterResourceType, id)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -231,8 +261,8 @@ func ApiSAPSystemCreateTagHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		t := tags.NewTags(client, "sapsystems", sid)
-		err = t.Create(r.Tag)
+		t := tags.NewTags(client)
+		err = t.Create(r.Tag, tags.SAPSystemResourceType, sid)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -283,8 +313,8 @@ func ApiSAPSystemDeleteTagHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		t := tags.NewTags(client, "sapsystems", sid)
-		err = t.Delete(tag)
+		t := tags.NewTags(client)
+		err = t.Delete(tag, tags.SAPSystemResourceType, sid)
 		if err != nil {
 			_ = c.Error(err)
 			return

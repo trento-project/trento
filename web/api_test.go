@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/trento-project/trento/internal/consul"
+	"github.com/trento-project/trento/internal/tags"
 
 	"github.com/stretchr/testify/mock"
 
@@ -21,6 +22,73 @@ import (
 	consulApi "github.com/hashicorp/consul/api"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestApiListTag(t *testing.T) {
+	tagsMap := map[string]interface{}{
+		tags.HostResourceType: map[string]interface{}{
+			"hostname2": map[string]interface{}{
+				"tag4": struct{}{},
+				"tag5": struct{}{},
+				"tag6": struct{}{},
+			},
+		},
+		tags.ClusterResourceType: map[string]interface{}{
+			"cluster_id": map[string]interface{}{
+				"tag1": struct{}{},
+				"tag2": struct{}{},
+				"tag3": struct{}{},
+			},
+		},
+	}
+
+	consulInst := new(mocks.Client)
+	kv := new(mocks.KV)
+	kv.On("ListMap", "trento/v0/tags/", "trento/v0/tags/").Return(tagsMap, nil)
+	consulInst.On("KV").Return(kv)
+
+	deps := DefaultDependencies()
+	deps.consul = consulInst
+
+	app, err := NewAppWithDeps("", 80, deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/api/tags", nil)
+	app.ServeHTTP(resp, req)
+
+	expectedBody, _ := json.Marshal([]string{
+		"tag1",
+		"tag2",
+		"tag3",
+		"tag4",
+		"tag5",
+		"tag6",
+	})
+	assert.Equal(t, 200, resp.Code)
+	assert.Equal(t, expectedBody, resp.Body.Bytes())
+
+	resp = httptest.NewRecorder()
+	req, _ = http.NewRequest("GET", "/api/tags?resource_type=hosts", nil)
+	app.ServeHTTP(resp, req)
+
+	expectedBody, _ = json.Marshal([]string{
+		"tag4",
+		"tag5",
+		"tag6",
+	})
+	assert.Equal(t, 200, resp.Code)
+	assert.Equal(t, expectedBody, resp.Body.Bytes())
+
+	resp = httptest.NewRecorder()
+	req, _ = http.NewRequest("GET", "/api/tags?resource_type=sapsystems", nil)
+	app.ServeHTTP(resp, req)
+
+	expectedBody, _ = json.Marshal([]string{})
+	assert.Equal(t, 200, resp.Code)
+	assert.Equal(t, expectedBody, resp.Body.Bytes())
+}
 
 func setupTestApiHostTag() Dependencies {
 	node := &consulApi.Node{
@@ -478,9 +546,9 @@ func TestApiSAPSystemCreateTagHandler400(t *testing.T) {
 
 func TestApiSAPSystemCreateTagHandler500(t *testing.T) {
 	consulInst := new(mocks.Client)
-	kv := new(mocks.KV)
-	consulInst.On("KV").Return(kv)
-	consulInst.On("WaitLock", mock.Anything).Return(fmt.Errorf("kaboom"))
+	catalog := new(mocks.Catalog)
+	catalog.On("Nodes", mock.Anything).Return(nil, nil, fmt.Errorf("kaboom"))
+	consulInst.On("Catalog").Return(catalog)
 
 	deps := DefaultDependencies()
 	deps.consul = consulInst

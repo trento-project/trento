@@ -160,8 +160,8 @@ func Load(client consul.Client, queryFilter string, healthFilter []string, tagsF
 
 		if len(tagsFilter) > 0 {
 			tagFound := false
-			t := tags.NewTags(client, "hosts", node.Node)
-			hostTags, err := t.GetAll()
+			t := tags.NewTags(client)
+			hostTags, err := t.GetAllByResource(tags.HostResourceType, node.Node)
 			if err != nil {
 				return nil, errors.Wrap(err, "could not query Tags for node")
 			}

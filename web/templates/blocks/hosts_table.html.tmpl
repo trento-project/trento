@@ -47,13 +47,12 @@
                     </td>
                     {{- if $hostsTags}}
                         <td>
-                            <select class="tags-input form-control" multiple data-url="/api/hosts/{{ .Name }}/tags"
-                                    autocomplete="off">
-                                {{- range (index $hostsTags .Name) }}
-                                    {{ . }}
-                                    <option value="{{ . }}" selected="selected">{{ . }}</option>
-                                {{- end }}
-                            </select>
+                            <input class="tags-input" 
+                                value="{{- range (index $hostsTags .Name) }}{{ . }},{{- end }}" 
+                                data-resource-type="hosts" 
+                                data-resource-id="{{ .Name }}"
+                                autocomplete="off">
+                            </input>
                         </td>
                     {{- end }}
                 </tr>

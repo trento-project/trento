@@ -136,7 +136,7 @@ func TestSAPSystemsListHandler(t *testing.T) {
 	responseBody := minifyHtml(resp.Body.String())
 
 	assert.Equal(t, 200, resp.Code)
-	assert.Regexp(t, regexp.MustCompile("<td><a href=/sapsystems/HA1>HA1</a></td><td></td><td>.*<option.*>tag1</option>.*</td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<td><a href=/sapsystems/HA1>HA1</a></td><td></td><td>.*<input.*value=tag1.*>.*</td>"), responseBody)
 	assert.Regexp(t, regexp.MustCompile("<td>HA1</td><td>ENQREP</td><td>10</td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>banana</a></td><td><a href=/hosts/netweaver01>netweaver01</a></td>"), responseBody)
 	assert.Regexp(t, regexp.MustCompile("<td>HA1</td><td>MESSAGESERVER|ENQUE</td><td>00</td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>banana</a></td><td><a href=/hosts/netweaver02>netweaver02</a></td>"), responseBody)
 	assert.Regexp(t, regexp.MustCompile("<td>HA1</td><td>ABAP|GATEWAY|ICMAN|IGS</td><td>01</td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>banana</a></td><td><a href=/hosts/netweaver03>netweaver03</a></td>"), responseBody)

@@ -35,7 +35,8 @@ const (
 	KvHostsMetadataPath  string = "trento/v0/hosts/%s/metadata/"
 	KvHostsClouddataPath string = "trento/v0/hosts/%s/cloud/"
 	KvHostsSAPSystemPath string = "trento/v0/hosts/%s/sapsystems/"
-	KvTagsPath           string = "trento/v0/tags/%s/%s/"
+	KvTagsPath           string = "trento/v0/tags/"
+	KvResourceTagsPath   string = "trento/v0/tags/%s/%s/"
 
 	KvDefaultGroup string = "default"
 )

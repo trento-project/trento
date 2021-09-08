@@ -14,9 +14,12 @@ The machines that we are deploying to require to have `rsync` as well as a runni
 
 ### Usage
 
-`./deploy.sh [username@]<target-server-ip> <consul-ip> [deploy-agent*|deploy-web]`
+`./deploy.sh <target-public-server-ip> [username@]<target-private-ip> <consul-ip> [deploy-agent*|deploy-web]`
 
-- `[username]@<target-server-ip>`
+- `<target-public-server-ip`
+  The IP address used to access the machine where trento is installed
+
+- `[username]@<target-private-ip>`
   The IP address of the host where we are deploying `trento` and `consul` on.
 
 - `<consul-ip>`

@@ -9,7 +9,7 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 function print_help() {
-    cat << END
+    cat <<END
 This is a trento-agent installer. Trento is a web-based graphical user interface
 that can help you deploy, provision and operate infrastructure for SAP Applications
 
@@ -19,7 +19,7 @@ Usage:
 
 Arguments:
   --agent-bind-ip   The private address to which the trento-agent should be bound for internal communications.
-                    This is an IP address that should be reachable by the other nodes, including the trento server.
+                    This is an IP address that should be reachable by the other hosts, including the trento server.
   --server-ip       The trento server ip.
   --help            Print this help.
 END
@@ -65,16 +65,6 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-if [ -z "$AGENT_BIND_IP" ]; then
-    read -rp "Please provide a bind IP for the agent: " AGENT_BIND_IP < /dev/tty
-fi
-if [ -z "$SERVER_IP" ]; then
-    read -rp "Please provide the server IP: " SERVER_IP < /dev/tty
-fi
-if [ -z "$NODE_NAME" ]; then
-    NODE_NAME="$HOSTNAME"
-fi
-
 TRENTO_REPO_KEY=${TRENTO_REPO_KEY:-"https://download.opensuse.org/repositories/devel:/sap:/trento/15.3/repodata/repomd.xml.key"}
 TRENTO_REPO=${TRENTO_REPO:-"https://download.opensuse.org/repositories/devel:/sap:/trento/15.3/devel:sap:trento.repo"}
 
@@ -118,32 +108,39 @@ fi
 
 echo "Installing trento-agent..."
 
-function install_deps() {
-    echo "* Installing dependencies... "
-    if ! which unzip > /dev/null 2>&1; then
-        echo "* Installing unzip"
-        zypper in -y unzip > /dev/null
+function check_installer_deps() {
+    if ! which unzip >/dev/null 2>&1; then
+        echo "unzip is required by this script. Please install it with: zypper in -y unzip"
+        exit 1
     fi
-    if ! which curl > /dev/null 2>&1; then
-        echo "* Installing curl"
-        zypper in -y curl > /dev/null
+    if ! which curl >/dev/null 2>&1; then
+        echo "curl is required by this script. Please install it with: zypper in -y curl"
+        exit 1
+    fi
+}
+
+function configure_installation() {
+    if [ -z "$AGENT_BIND_IP" ]; then
+        read -rp "Please provide a bind IP for the agent: " AGENT_BIND_IP </dev/tty
+    fi
+    if [ -z "$SERVER_IP" ]; then
+        read -rp "Please provide the server IP: " SERVER_IP </dev/tty
     fi
 }
 
 function install_consul() {
     mkdir -p $CONFIG_PATH
-    pushd -- "$CONSUL_PATH" > /dev/null
-    curl -f -sS -O -L "https://releases.hashicorp.com/consul/$CONSUL_VERSION/consul_${CONSUL_VERSION}_linux_amd64.zip" > /dev/null
-    unzip -o "consul_${CONSUL_VERSION}_linux_amd64".zip > /dev/null
+    pushd -- "$CONSUL_PATH" >/dev/null
+    curl -f -sS -O -L "https://releases.hashicorp.com/consul/$CONSUL_VERSION/consul_${CONSUL_VERSION}_linux_amd64.zip" >/dev/null
+    unzip -o "consul_${CONSUL_VERSION}_linux_amd64".zip >/dev/null
     rm "consul_${CONSUL_VERSION}_linux_amd64".zip
-    popd > /dev/null
+    popd >/dev/null
 }
 
 function setup_consul() {
     echo "$CONSUL_HCL_TEMPLATE" |
         sed "s|@JOIN_ADDR@|${SERVER_IP}|g" |
-        sed "s|@BIND_ADDR@|${AGENT_BIND_IP}|g" |
-        sed "s|@NODE_NAME@|${NODE_NAME}|g" \
+        sed "s|@BIND_ADDR@|${AGENT_BIND_IP}|g" \
             >${CONFIG_PATH}/consul.hcl
 
     if [ -f "/usr/lib/systemd/system/$CONSUL_SERVICE_NAME" ]; then
@@ -157,26 +154,30 @@ function setup_consul() {
 }
 
 function install_trento() {
-    rpm --import "${TRENTO_REPO_KEY}" > /dev/null
+    rpm --import "${TRENTO_REPO_KEY}" >/dev/null
     path=${TRENTO_REPO%/*}/
-    if zypper lr --details | cut -d'|' -f9 | grep "$path" > /dev/null 2>&1; then
+    if zypper lr --details | cut -d'|' -f9 | grep "$path" >/dev/null 2>&1; then
         echo "* $path repository already exists. Skipping."
     else
-        zypper ar "$TRENTO_REPO" > /dev/null
+        echo "* Adding Trento repository: $path."
+        zypper ar "$TRENTO_REPO" >/dev/null
     fi
-    zypper ref > /dev/null
-    if which trento > /dev/null 2>&1; then
+    zypper ref >/dev/null
+    if which trento >/dev/null 2>&1; then
         echo "* Trento is already installed. Updating trento"
-        zypper up -y trento > /dev/null
+        zypper up -y trento >/dev/null
     else
         echo "* Installing trento"
-        zypper in -y trento > /dev/null
+        zypper in -y trento >/dev/null
     fi
 }
 
+check_installer_deps
+configure_installation
 install_consul
 setup_consul
 install_trento
 
 echo -e "\e[92mDone.\e[97m"
-echo -e "You can now start trento-agent with: \033[1msystemctl start trento-agent\033[0m"
+echo -e "Now you can start trento-agent with: \033[1msystemctl start trento-agent\033[0m"
+echo -e "Please make sure the \033[1mserver\033[0m is running before starting the agent."

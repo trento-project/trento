@@ -24,8 +24,6 @@
           set_fact:
             unreachable_count: |
               {{ unreachable_count|default(0)|int + 1 }}
-          with_inventory_hostnames:
-            - all
           when: facts_result is unreachable
           delegate_to: localhost
 
@@ -33,7 +31,7 @@
           import_role:
             name: post-results
             tasks_from: post
-          when: unreachable_count|int == hostvars|length
+          when: unreachable_count|default(0)|int == hostvars|length
 
       ignore_unreachable: yes
 

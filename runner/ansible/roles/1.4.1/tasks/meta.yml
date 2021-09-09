@@ -1,0 +1,32 @@
+- block:
+    - import_role:
+        name: post-metadata
+        tasks_from: store
+  vars:
+    id: 1.4.1
+    name: Azure Fence Agent retries and timeout parameters check
+    group: Azure Fence Agent
+    labels: generic
+    description: |
+      Test if the Azure Fence agent configuration parameters are correct
+    remediation: |
+      ## Abstract
+      The Azure SAP Clustering best practices determines specific timing and retries parameter values for proper functioning of the Azure Fence agent.
+
+      ## Remediation
+      Please, make sure to set the following values for the fence-agent parameter:
+      ```
+      pcmk_monitor_retries=4
+      pcmk_action_limit=3
+      power_timeout=240
+      pcmk_reboot_timeout=900
+      ```
+      and the following monitor operation configuration:
+      ```
+      interval=3600
+      timeout=120
+      ```
+
+      ## References
+      -  https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#1-create-the-stonith-devices
+    implementation: "{{ lookup('file', 'roles/'+id+'/tasks/main.yml') }}"

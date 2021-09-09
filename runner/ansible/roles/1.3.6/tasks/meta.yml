@@ -8,11 +8,11 @@
     group: SBD
     labels: generic
     description: |
-      Test if the msgwait timeout value is two times the watchdog timeout
+      Test if the SBD msgwait timeout value is two times the watchdog timeout
     remediation: |
       ## Remediation
       Make sure you configure your the SBD msgwait to 2 * (SBD Watchdog Timeout) as recommended on the best practices.
-      
+
       ## References
       -  https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#set-up-sbd-device
     implementation: "{{ lookup('file', 'roles/'+id+'/tasks/main.yml') }}"

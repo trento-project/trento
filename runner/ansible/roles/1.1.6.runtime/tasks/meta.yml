@@ -8,7 +8,7 @@
     group: Corosync
     labels: generic
     description: |
-      Test if the configured corosync transport parameter has the correct value during runtime: {{ expected['1.1.5'] }}
+      Test if the configured corosync transport parameter has the correct value during runtime: {{ expected['1.1.6'] }}
     remediation: |
       ## Remediation
       It will be difficult to change the corosync MCAST transport to UCAST

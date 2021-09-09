@@ -1,0 +1,18 @@
+- block:
+    - import_role:
+        name: post-metadata
+        tasks_from: store
+  vars:
+    id: 1.1.9.runtime
+    name: Corosync has at least 2 configured rings (runtime)
+    group: Corosync
+    labels: generic
+    description: |
+      Test if corosync has at least 2 rings configured during runtime
+    remediation: |
+      ## Abstract
+      It is strongly recommended to add a second ring to the corosync communication.
+
+      ## References
+      - section 9.1 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
+    implementation: "{{ lookup('file', 'roles/'+id+'/tasks/main.yml') }}"

@@ -110,6 +110,16 @@
         name: '1.1.8.runtime'
       when: "'1.1.8.runtime' in cluster_selected_checks"
 
+    - name: include 1.1.9
+      import_role:
+        name: '1.1.9'
+      when: "'1.1.9' in cluster_selected_checks"
+
+    - name: include 1.1.9.runtime
+      import_role:
+        name: '1.1.9.runtime'
+      when: "'1.1.9.runtime' in cluster_selected_checks"
+
     - name: include 1.2.1
       import_role:
         name: '1.2.1'

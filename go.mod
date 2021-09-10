@@ -4,7 +4,6 @@ go 1.16
 
 require (
 	github.com/ClusterLabs/ha_cluster_exporter v0.0.0-20210420075709-eb4566acab09
-	github.com/aquasecurity/bench-common v0.4.4
 	github.com/dustinkirkland/golang-petname v0.0.0-20191129215211-8e5a1ed0cff0
 	github.com/gin-contrib/sessions v0.0.3
 	github.com/gin-gonic/gin v1.6.3

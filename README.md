@@ -27,6 +27,7 @@ of existing clusters, rather than deploying new one.
 - [Running Trento](#running-trento)
   - [Consul](#consul)
   - [Trento Agents](#trento-agents)
+  - [Trento Runner](#trento-runner)
   - [Trento Web UI](#trento-web-ui)
 - [Usage](#usage)
   - [Grouping and filtering in the Web UI](#grouping-and-filtering-in-the-web-ui)
@@ -155,20 +156,63 @@ Since the client Consul Agent will most likely run on a machine with multiple IP
 
 ## Trento Agents
 
-Trento Agents are responsible for discovering HA clusters and reporting their
-status to Consul. These Agents need to run in the same systems hosting the HA
+Trento Agents are responsible for discovering SAP systems, HA clusters and some additional data. These Agents need to run in the same systems hosting the HA
 Cluster services, so running them in isolated environments (e.g. serverless,
 containers, etc.) makes little sense, as they won't be able as the discovery mechanisms will not be able to report any host information.
 
 To start the trento agent:
 
 ```shell
-./trento agent start examples/azure-rules.yaml
+./trento agent start
 ```
 
-> Note that we are using `azure-rules.yaml` in this example which collect azure
-> recommendations on cluster settings and state for many HA components. New rules
-> can be created and tuned to adjust to different requirements.
+## Trento Runner
+
+The Trento Runner is responsible for running the health checks. It is based on [Ansible](https://docs.ansible.com/ansible/latest/index.html) and [ARA](https://ara.recordsansible.org/).
+These 2 components (the Runner and ARA) can be executed in the same machine as the Web UI, but it is not mandatory, they can be executed in any other machine that has network access to the agents (the Runner and ARA can be even executed in different machines too, as long as the network connection is available between them).
+
+In order to start them, some packages must be installed and started. Here a quick go through:
+
+### ARA server
+
+```shell
+# Install ARA with server dependencies
+pip install "ara[server]"
+# Setup ARA database
+ara-manage migrate
+# Start ARA server. This process can be started in background or in other shell terminal
+ara-manage runserver ip:port
+```
+
+If the requests to ARA server fail with a message like the next one, it means that the server address must be allowed:
+
+```
+2021-09-02 07:13:48,715 ERROR django.security.DisallowedHost: Invalid HTTP_HOST header: '10.74.1.5:8000'. You may need to add '10.74.1.5' to ALLOWED_HOSTS.
+2021-09-02 07:13:48,732 WARNING django.request: Bad Request: /api/
+```
+
+To fix it run:
+
+```
+export ARA_ALLOWED_HOSTS="['10.74.1.5']"
+# Or allow all the addresses with
+export ARA_ALLOWED_HOSTS=['*']
+```
+
+### Runner
+
+```shell
+# Install ansible and ARA. Tested with version 2.11.2
+pip install ansible ara
+
+# Start the Trento runner
+./trento runner start --ara-server http://araIP:port --consul-addr consulIP:port -i 5
+# Find additional help with the -h flag
+./trento runner start -h
+```
+
+**In order to use the runner component, the machine running it must have ssh authorization to all the
+agents with a passwordless ssh key pair. Otherwise, the checks result is set as unreachable.**
 
 ## Trento Web UI
 
@@ -176,6 +220,8 @@ At this point, we can start the web application as follows:
 
 ```shell
 ./trento web serve
+# If ARA server is not running in the same machine set the ara-addr flag
+./trento web serve --ara-addr araIP:port
 ```
 
 Please consult the `help` CLI command for more insights on the various options.

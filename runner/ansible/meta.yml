@@ -65,6 +65,11 @@
         name: '1.1.6'
         tasks_from: meta
 
+    - name: include 1.1.6.runtime meta
+      import_role:
+        name: '1.1.6.runtime'
+        tasks_from: meta
+
     - name: include 1.1.7 meta
       import_role:
         name: '1.1.7'
@@ -85,9 +90,64 @@
         name: '1.2.1'
         tasks_from: meta
 
+    - name: include 1.2.2 meta
+      import_role:
+        name: '1.2.2'
+        tasks_from: meta
+
+    - name: include 1.3.1 meta
+      import_role:
+        name: '1.3.1'
+        tasks_from: meta
+
+    - name: include 1.3.2 meta
+      import_role:
+        name: '1.3.2'
+        tasks_from: meta
+
+    - name: include 1.3.3 meta
+      import_role:
+        name: '1.3.3'
+        tasks_from: meta
+
+    - name: include 1.3.4 meta
+      import_role:
+        name: '1.3.4'
+        tasks_from: meta
+
     - name: include 1.3.5 meta
       import_role:
         name: '1.3.5'
+        tasks_from: meta
+
+    - name: include 1.3.6 meta
+      import_role:
+        name: '1.3.6'
+        tasks_from: meta
+
+    - name: include 1.3.7 meta
+      import_role:
+        name: '1.3.7'
+        tasks_from: meta
+
+    - name: include 1.4.1 meta
+      import_role:
+        name: '1.4.1'
+        tasks_from: meta
+
+    - name: include 1.4.2 meta
+      import_role:
+        name: '1.4.2'
+        tasks_from: meta
+
+    - name: include 1.5.1 meta
+      import_role:
+        name: '1.5.1'
+        tasks_from: meta
+
+    - name: include 1.5.2 meta
+      import_role:
+        name: '1.5.2'
         tasks_from: meta
 
     - name: Post metadata

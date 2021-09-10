@@ -72,8 +72,7 @@
                 <tbody>
                 {{- $HostName := .Host.Name }}
                 {{- range .HealthChecks }}
-                    <tr {{ if eq .CheckID "ha_config_checker" }}class='clickable'
-                        onclick="window.location='/hosts/{{ $HostName }}/ha-checks'"{{ end }}>
+                    <tr>
                         <td>{{ .Name }}</td>
                         <td>{{ .CheckID }}</td>
                         <td>{{ .Notes }}</td>

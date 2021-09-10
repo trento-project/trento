@@ -1,17 +1,12 @@
 package hosts
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"sort"
 	"strings"
 
-	"github.com/aquasecurity/bench-common/check"
 	consulApi "github.com/hashicorp/consul/api"
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 	"github.com/trento-project/trento/internal"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/sapsystem"
@@ -61,32 +56,6 @@ func (n *Host) TrentoMeta() map[string]string {
 		}
 	}
 	return filtered_meta
-}
-
-// todo: this method was rushed, needs to be completely rewritten to have the checker webservice decoupled in a dedicated HTTP client
-func (n *Host) HAChecks() *check.Controls {
-	checks := &check.Controls{}
-
-	var err error
-	resp, err := http.Get(fmt.Sprintf("http://%s:%d", n.Address, 8700)) // todo: use a Consul service instead of directly addressing the node IP and port
-	if err != nil {
-		log.Print(err)
-		return nil
-	}
-
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Print(err)
-		return nil
-	}
-
-	err = json.Unmarshal(body, checks)
-	if err != nil {
-		log.Print(err)
-		return nil
-	}
-	return checks
 }
 
 func (n *Host) GetSAPSystems() (map[string]*sapsystem.SAPSystem, error) {

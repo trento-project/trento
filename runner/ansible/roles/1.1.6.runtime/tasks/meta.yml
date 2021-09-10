@@ -1,0 +1,23 @@
+- block:
+    - import_role:
+        name: post-metadata
+        tasks_from: store
+  vars:
+    id: 1.1.6.runtime
+    name: Corosync transport parameter is set to {{ expected['1.1.6'] }} (runtime)
+    group: Corosync
+    labels: generic
+    description: |
+      Test if the configured corosync transport parameter has the correct value during runtime: {{ expected['1.1.6'] }}
+    remediation: |
+      ## Remediation
+      It will be difficult to change the corosync MCAST transport to UCAST
+      on an existing cluster. Besides adding the 'transport: udpu' parameter one
+      would have to configure each node separatelly. The easiest way to
+      make the cluster UCAST it to bootstrap it. When creating the cluster
+      you would have to add the key -u, for example
+      $ crm cluster init -u ...
+
+      ## References
+      - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker
+    implementation: "{{ lookup('file', 'roles/'+id+'/tasks/main.yml') }}"

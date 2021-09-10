@@ -6,8 +6,8 @@
 
 - name: "{{ test_id }}.check"
   shell: |
-    # SAPHanaTopology is not configured, then pass
-    cibadmin -Q --xpath "//primitive[@type='SAPHanaTopology']/@type" || exit 0
+    # SAPHanaTopology is not configured, then fail
+    cibadmin -Q --xpath "//primitive[@type='SAPHanaTopology']/@type" || exit 1
     # if configured and not clone, then fail
     cibadmin -Q --xpath "//clone/primitive[@type='SAPHanaTopology']/@type" || exit 1
     # check the following values, if any do not match expected fail.

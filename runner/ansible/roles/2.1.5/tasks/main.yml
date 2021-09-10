@@ -9,7 +9,7 @@
     #  if azure-lb RA is not configured, then fail
     cibadmin -Q --xpath "//primitive[@type='azure-lb']/@type" || exit 1
     # if not grouped, exit with fail
-    [[ $(cibadmin -Q --xpath "//group/primitive[@type='azure-lb']/@type") != "0" ]] && exit 1
+    cibadmin -Q --xpath "//group/primitive[@type='azure-lb']/@type" || exit 1
     # Check that following match expected, exit with error if any do not
     [[ $(cibadmin -Q --xpath "//primitive[@type='azure-lb']/meta_attributes/nvpair [@name='resource-stickiness']" | grep -oP 'value="\K[^"]+') != "{{ expected[test_id + '.nvpair_resource_stickiness'] }}" ]] && exit 1
     exit 0 

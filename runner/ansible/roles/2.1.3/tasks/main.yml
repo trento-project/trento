@@ -6,8 +6,8 @@
 
 - name: "{{ test_id }}.check"
   shell: |
-    # SAP HANA Resource Agent is not configured, then pass
-    cibadmin -Q --xpath "//primitive[@type='SAPHana']/@type" || exit 0
+    # SAP HANA Resource Agent is not configured, then fail
+    cibadmin -Q --xpath "//primitive[@type='SAPHana']/@type" || exit 1
     # if configured and not msl, then fail
     cibadmin -Q --xpath "//master/primitive[@type='SAPHana']/@type" || exit 1
     # check the following values, if any do not match expected fail.
@@ -22,6 +22,7 @@
     [[ $(cibadmin -Q --xpath "${XPATH} [@name='stop']" | grep -oP 'timeout="\K[^"]+') != "{{ expected[test_id + '.stop_timeout'] }}" ]] && exit 1
     [[ $(cibadmin -Q --xpath "${XPATH} [@name='promote']" | grep -oP 'interval="\K[^"]+') != "{{ expected[test_id + '.promote_interval'] }}" ]] && exit 1
     [[ $(cibadmin -Q --xpath "${XPATH} [@name='promote']" | grep -oP 'timeout="\K[^"]+') != "{{ expected[test_id + '.promote_timeout'] }}" ]] && exit 1
+
     XPATH="//primitive[@type='SAPHana']/instance_attributes/nvpair"
     [[ $(cibadmin -Q --xpath "${XPATH} [@name='PREFER_SITE_TAKEOVER']" | grep -oP 'value="\K[^"]+' | tr '[:upper:]' '[:lower:]') != "{{ expected[test_id + '.nvpair_PREFER_SITE_TAKEOVER'] }}" ]] && exit 1
     [[ $(cibadmin -Q --xpath "${XPATH} [@name='AUTOMATED_REGISTER']" | grep -oP 'value="\K[^"]+' | tr '[:upper:]' '[:lower:]') != "{{ expected[test_id + '.nvpair_AUTOMATED_REGISTER'] }}" ]] && exit 1

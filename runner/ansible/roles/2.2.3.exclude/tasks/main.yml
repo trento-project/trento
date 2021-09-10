@@ -7,7 +7,8 @@
 - name: "{{ test_id }}.check"
   shell: |
     # Check the pacemaker version IS NOT
-    VERSION_ID=$(rpm -q --qf "%{VERSION}\n" pacemaker)
+    # If not installed, exit with error
+    VERSION_ID=$(rpm -q --qf "%{VERSION}\n" pacemaker) || exit 2
     [[ "$VERSION_ID" != "{{ expected[test_id] }}" ]] && exit 0
     exit 1
   check_mode: no

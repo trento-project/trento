@@ -6,8 +6,9 @@
 
 - name: "{{ test_id }}.check"
   shell: |
-    # Check the pacemaker version IS
-    PACKAGE=$(rpm -qv corosync)
+    # Check the corosync version IS
+    # If not installed, exit with error
+    PACKAGE=$(rpm -qv corosync) || exit 2
     [[ "$PACKAGE" == "{{ expected[test_id] }}" ]] && exit 0
     exit 1
   check_mode: no

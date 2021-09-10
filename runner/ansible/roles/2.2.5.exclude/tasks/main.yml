@@ -7,7 +7,8 @@
 - name: "{{ test_id }}.check"
   shell: |
     # Check the sbd version IS
-    VERSION_ID=$(rpm -q --qf "%{VERSION}\n" sbd)
+    # If not installed, exit with error
+    VERSION_ID=$(rpm -q --qf "%{VERSION}\n" sbd) || exit 2
     [[ "$VERION_ID" != "{{ expected[test_id] }}" ]] && exit 0
     exit 1
   check_mode: no

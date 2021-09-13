@@ -21,7 +21,7 @@ func TestIdentifyCloudProviderErr(t *testing.T) {
 
 	customExecCommand = mockCommand.Execute
 
-	mockCommand.On("Execute", "dmidecode", "-s", "bios-vendor").Return(
+	mockCommand.On("Execute", "dmidecode", "-s", "chassis-asset-tag").Return(
 		mockDmidecodeErr(),
 	)
 
@@ -32,7 +32,7 @@ func TestIdentifyCloudProviderErr(t *testing.T) {
 }
 
 func mockDmidecodeAzure() *exec.Cmd {
-	return exec.Command("echo", "Microsoft Corporation")
+	return exec.Command("echo", "7783-7084-3265-9085-8269-3286-77")
 }
 
 func TestIdentifyCloudProviderAzure(t *testing.T) {
@@ -40,7 +40,7 @@ func TestIdentifyCloudProviderAzure(t *testing.T) {
 
 	customExecCommand = mockCommand.Execute
 
-	mockCommand.On("Execute", "dmidecode", "-s", "bios-vendor").Return(
+	mockCommand.On("Execute", "dmidecode", "-s", "chassis-asset-tag").Return(
 		mockDmidecodeAzure(),
 	)
 
@@ -59,7 +59,7 @@ func TestIdentifyCloudProviderNoCloud(t *testing.T) {
 
 	customExecCommand = mockCommand.Execute
 
-	mockCommand.On("Execute", "dmidecode", "-s", "bios-vendor").Return(
+	mockCommand.On("Execute", "dmidecode", "-s", "chassis-asset-tag").Return(
 		mockDmidecodeNoCloud(),
 	)
 
@@ -74,7 +74,7 @@ func TestNewCloudInstanceAzure(t *testing.T) {
 
 	customExecCommand = mockCommand.Execute
 
-	mockCommand.On("Execute", "dmidecode", "-s", "bios-vendor").Return(
+	mockCommand.On("Execute", "dmidecode", "-s", "chassis-asset-tag").Return(
 		mockDmidecodeAzure(),
 	)
 
@@ -106,7 +106,7 @@ func TestNewCloudInstanceNoCloud(t *testing.T) {
 
 	customExecCommand = mockCommand.Execute
 
-	mockCommand.On("Execute", "dmidecode", "-s", "bios-vendor").Return(
+	mockCommand.On("Execute", "dmidecode", "-s", "chassis-asset-tag").Return(
 		mockDmidecodeNoCloud(),
 	)
 

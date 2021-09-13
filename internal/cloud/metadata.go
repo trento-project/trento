@@ -8,7 +8,8 @@ import (
 )
 
 const (
-	azure = "azure"
+	azure       = "azure"
+	azureDmiTag = "7783-7084-3265-9085-8269-3286-77"
 )
 
 type CloudInstance struct {
@@ -22,7 +23,7 @@ var customExecCommand CustomCommand = exec.Command
 
 func IdentifyCloudProvider() (string, error) {
 	log.Info("Identifying if the VM is running in a cloud environment...")
-	output, err := customExecCommand("dmidecode", "-s", "bios-vendor").Output()
+	output, err := customExecCommand("dmidecode", "-s", "chassis-asset-tag").Output()
 	if err != nil {
 		return "", err
 	}
@@ -31,7 +32,7 @@ func IdentifyCloudProvider() (string, error) {
 	log.Debugf("dmidecode output: %s", provider)
 
 	switch string(provider) {
-	case "Microsoft Corporation":
+	case azureDmiTag:
 		log.Infof("VM is running on %s", azure)
 		return azure, nil
 	default:

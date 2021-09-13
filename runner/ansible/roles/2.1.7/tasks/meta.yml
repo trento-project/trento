@@ -1,0 +1,18 @@
+- block:
+    - import_role:
+        name: post-metadata
+        tasks_from: store
+  vars:
+    id: 2.1.7
+    name: SAPHanaSR global.ini configuration
+    group: SAP HANA System Replication Resource Agent
+    labels: hana
+    description: |
+      Test if the SAPHanaSR global.ini file configuration is properly done
+    remediation: |
+      ## Remediation
+      Set the recommended values in global.ini.
+
+      ## References
+      - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability#implement-the-python-system-replication-hook-saphanasr
+    implementation: "{{ lookup('file', 'roles/'+id+'/tasks/main.yml') }}"

@@ -1,0 +1,26 @@
+- block:
+    - import_role:
+        name: post-metadata
+        tasks_from: store
+  vars:
+    id: 2.1.6
+    name: Colocation and Order Constraints properly configured
+    group: SAP HANA System Replication Resource Agent
+    labels: hana
+    description: |
+      Test if the cluster colocation and order constraints are properly configured
+    remediation: |
+      ## Abstract
+      A constraint enforcing the group of resources containing the vIP and azurel-lb resources to
+      stay always together with the SAP HANA resource is needed to guarantee that the SAP HANA database will still be accessible in case of failover.
+
+      ## Remediation
+      Make sure that the constraint score is set to 4000 to guarantee proper actions calculations related with the defaults set for resource-stickiness=1000.
+      An order constraint is also needed to guarantee that SAPHanaTopology resource starts before the SAPHana resource, avoiding miscalculations regarding the cluster status.
+
+      **IMPORTANT**: This check is based on the resource prefix names recommended on the documentation (e.g. "g_ip_*", "msl_SAPHana_*", "cln_SAPHanaTopology_*").
+      Please, check the naming convention in case the resource configuration is done correctly.
+
+      ## References
+      - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability#create-sap-hana-cluster-resources
+    implementation: "{{ lookup('file', 'roles/'+id+'/tasks/main.yml') }}"

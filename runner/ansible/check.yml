@@ -185,6 +185,16 @@
         name: '1.5.2'
       when: "'1.5.2' in cluster_selected_checks"
 
+    - name: include 2.2.9
+      import_role:
+        name: '2.2.9'
+      when: "'2.2.9' in cluster_selected_checks"
+
+    - name: include 2.2.10
+      import_role:
+        name: '2.2.10'
+      when: "'2.2.10' in cluster_selected_checks"
+
   post_tasks:
     - name: Post results
       import_role:

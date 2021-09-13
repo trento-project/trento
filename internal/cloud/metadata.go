@@ -8,7 +8,9 @@ import (
 )
 
 const (
-	azure       = "azure"
+	azure = "azure"
+	// DMI chassis asset tag for Azure machines, needed to identify wether or not we are running on Azure
+	// This is actually ASCII-encoded, the decoding into a string results in "MSFT AZURE VM"
 	azureDmiTag = "7783-7084-3265-9085-8269-3286-77"
 )
 

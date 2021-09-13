@@ -371,6 +371,9 @@ func NewClustersTable(clusters map[string]*cluster.Cluster, hostList hosts.HostL
 	}
 
 	sort.Slice(clusterTable, func(i, j int) bool {
+		if clusterTable[i].Name == clusterTable[j].Name {
+			return clusterTable[i].Id < clusterTable[j].Id
+		}
 		return clusterTable[i].Name < clusterTable[j].Name
 	})
 

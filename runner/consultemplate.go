@@ -14,15 +14,35 @@ import (
 	"github.com/trento-project/trento/internal/consul"
 )
 
-const clusterSelectedChecks string = "cluster_selected_checks"
+const (
+	DefaultUser           string = "root"
+	clusterSelectedChecks string = "cluster_selected_checks"
+)
 
 var ansibleHostsTemplate = fmt.Sprintf(`
-{{- range $key, $pairs := tree "%[2]s" | byKey }}
-[{{ key (print (printf "%[3]s" $key) "/id") }}]
-{{- range tree (print (printf "%[3]s" $key) "/crmmon/Nodes") }}
+{{- /* Loop through the discovered clusters */}}
+{{- range $clusterId, $pairs := tree "%[2]s" | byKey }}
+[{{ key (print (printf "%[3]s" $clusterId) "/id") }}]
+{{- range tree (print (printf "%[3]s" $clusterId) "/crmmon/Nodes") }}
 {{- if .Key | contains "/Name" }}
 {{- $nodename := .Value }}
-{{ $nodename }} %[1]s={{ key (printf "%[4]s" $key) }} ansible_host={{ range nodes }}{{ if eq .Node $nodename }}{{ .Address }}{{ end }}{{ end }}
+{{- /* Get the node host address */}}
+{{- $host := "" }}
+{{- range nodes }}{{ if eq .Node $nodename }}{{ $host = .Address }}{{ end }}{{ end }}
+{{- /* Get SSH connection username */}}
+{{- $user := keyOrDefault (print (printf "%[5]s" $clusterId) "/" $nodename) "" }}
+{{- /* If the user is not set, fallback to default values */}}
+{{- if eq $user "" }}
+{{- $cloudata := printf "%[6]s" $nodename }}
+{{- $provider := keyOrDefault (print $cloudata "provider") "" }}
+{{- if eq $provider "azure" }}
+{{- $user = keyOrDefault (print $cloudata "metadata/compute/osprofile/adminusername") (printf "%[7]s") }}
+{{- else }}
+{{- $user = printf "%[7]s" }}
+{{- end }}
+{{- end }}
+{{- /* Render the node entry */}}
+{{ $nodename }} %[1]s={{ keyOrDefault  (printf "%[4]s" $clusterId) "" }} ansible_host={{ $host }} ansible_user={{ $user }}
 {{- end }}
 {{- end }}
 {{- end }}
@@ -30,7 +50,11 @@ var ansibleHostsTemplate = fmt.Sprintf(`
 	clusterSelectedChecks,
 	consul.KvClustersPath,
 	consul.KvClustersDiscoveredPath,
-	consul.KvClustersChecksPath)
+	consul.KvClustersChecksPath,
+	consul.KvClustersConnectionPath,
+	consul.KvHostsClouddataPath,
+	DefaultUser,
+)
 
 const ansibleHostFile = "ansible_hosts"
 

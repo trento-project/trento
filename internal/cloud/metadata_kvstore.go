@@ -62,7 +62,7 @@ func Load(client consul.Client, host string) (*CloudInstance, error) {
 	mapstructure.Decode(data, &cloudData)
 
 	switch cloudData.Provider {
-	case azure:
+	case Azure:
 		azureMetadata := &AzureMetadata{}
 		mapstructure.Decode(cloudData.Metadata, &azureMetadata)
 		cloudData.Metadata = azureMetadata

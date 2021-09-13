@@ -3,16 +3,20 @@ package web
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"path"
 	"strings"
 
 	"github.com/trento-project/trento/internal"
 
 	"github.com/gin-gonic/gin"
+	"github.com/mitchellh/mapstructure"
 
+	"github.com/trento-project/trento/internal/cloud"
 	"github.com/trento-project/trento/internal/cluster"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
+	"github.com/trento-project/trento/runner"
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
 )
@@ -417,6 +421,25 @@ func getChecksCatalogModalData(s services.ChecksService, clusterId, selectedChec
 	return checksCatalog, nil
 }
 
+func getDefaultConnectionSettings(client consul.Client, c *cluster.Cluster) (map[string]string, error) {
+	connData := make(map[string]string)
+	for _, n := range c.Crmmon.Nodes {
+		data, err := cloud.Load(client, n.Name)
+		if err != nil {
+			return connData, err
+		}
+		if data.Provider == cloud.Azure {
+			azureMetadata := &cloud.AzureMetadata{}
+			mapstructure.Decode(data.Metadata, &azureMetadata)
+			connData[n.Name] = azureMetadata.Compute.OsProfile.AdminUserName
+		} else {
+			connData[n.Name] = runner.DefaultUser
+		}
+	}
+
+	return connData, nil
+}
+
 func NewClusterHandler(client consul.Client, s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		clusterId := c.Param("id")
@@ -449,13 +472,20 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 			return
 		}
 
-		selectedChecks, err := cluster.GetCheckSelection(client, clusterId)
-		if err != nil {
+		selectedChecks, getCheckErr := cluster.GetCheckSelection(client, clusterId)
+		if getCheckErr != nil {
 			StoreAlert(c, AlertCatalogNotFound())
 		}
 
+		connectionData, getConnErr := cluster.GetConnectionSettings(client, clusterId)
+		defaultConnectionData, getDefConnErr := getDefaultConnectionSettings(client, clusterItem)
+		if getConnErr != nil || getDefConnErr != nil {
+			StoreAlert(c, AlertConnectionDataNotFound())
+		}
+
 		checksCatalog, errCatalog := s.GetChecksCatalog()
-		checksCatalogModalData, errCatalogByGroup := getChecksCatalogModalData(s, clusterId, selectedChecks)
+		checksCatalogModalData, errCatalogByGroup := getChecksCatalogModalData(
+			s, clusterId, selectedChecks)
 		checksResult, errResult := s.GetChecksResultByCluster(clusterItem.Id)
 		if errCatalog != nil || errCatalogByGroup != nil {
 			StoreAlert(c, AlertCatalogNotFound())
@@ -482,45 +512,63 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 		}
 
 		c.HTML(http.StatusOK, "cluster_hana.html.tmpl", gin.H{
-			"Cluster":            clusterItem,
-			"Nodes":              nodes,
-			"StoppedResources":   stoppedResources(clusterItem),
-			"ClusterType":        clusterType,
-			"HealthContainer":    hContainer,
-			"ChecksCatalog":      checksCatalog,
-			"ChecksCatalogModal": checksCatalogModalData,
-			"ChecksResult":       checksResult,
-			"Alerts":             GetAlerts(c),
+			"Cluster":               clusterItem,
+			"Nodes":                 nodes,
+			"StoppedResources":      stoppedResources(clusterItem),
+			"ClusterType":           clusterType,
+			"HealthContainer":       hContainer,
+			"ChecksCatalog":         checksCatalog,
+			"ChecksCatalogModal":    checksCatalogModalData,
+			"ConnectionData":        connectionData,
+			"DefaultConnectionData": defaultConnectionData,
+			"ChecksResult":          checksResult,
+			"Alerts":                GetAlerts(c),
 		})
 	}
 }
 
 type checkSelectionForm struct {
-	Ids []string `form:"ids[]"`
+	Ids []string `form:"check_ids[]"`
 }
 
-func NewSaveChecksHandler(client consul.Client) gin.HandlerFunc {
+func getConnectionMap(form url.Values) map[string]interface{} {
+	usernames := make(map[string]interface{})
+	for key, value := range form {
+		if strings.HasPrefix(key, "username") {
+			usernames[strings.Split(key, "username-")[1]] = value[0]
+		}
+	}
+
+	return usernames
+}
+
+func NewSaveClusterSettingsHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		clusterId := c.Param("id")
 
 		var selectedChecks checkSelectionForm
 		c.ShouldBind(&selectedChecks)
 
-		err := cluster.StoreCheckSelection(
+		usernames := getConnectionMap(c.Request.PostForm)
+
+		checkErr := cluster.StoreCheckSelection(
 			client, clusterId, strings.Join(selectedChecks.Ids, ","))
 
+		connErr := cluster.StoreConnectionSettings(
+			client, clusterId, usernames)
+
 		var newAlert Alert
-		if err == nil {
+		if checkErr == nil && connErr == nil {
 			newAlert = Alert{
 				Type:  "success",
-				Title: "Check selection saved",
-				Text:  "The cluster checks selection has been saved correctly.",
+				Title: "Cluster settings saved",
+				Text:  "The cluster settings has been saved correctly.",
 			}
 		} else {
 			newAlert = Alert{
 				Type:  "danger",
-				Title: "Error saving check selection",
-				Text:  "The cluster checks selection couldn't be saved.",
+				Title: "Error saving cluster settings",
+				Text:  "The cluster settings couldn't be saved.",
 			}
 		}
 		StoreAlert(c, newAlert)

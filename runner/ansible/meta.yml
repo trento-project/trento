@@ -85,6 +85,16 @@
         name: '1.1.8.runtime'
         tasks_from: meta
 
+    - name: include 1.1.9 meta
+      import_role:
+        name: '1.1.9'
+        tasks_from: meta
+
+    - name: include 1.1.9.runtime meta
+      import_role:
+        name: '1.1.9.runtime'
+        tasks_from: meta
+
     - name: include 1.2.1 meta
       import_role:
         name: '1.2.1'

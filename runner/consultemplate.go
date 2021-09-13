@@ -14,7 +14,10 @@ import (
 	"github.com/trento-project/trento/internal/consul"
 )
 
-const clusterSelectedChecks string = "cluster_selected_checks"
+const (
+	DefaultUser           string = "root"
+	clusterSelectedChecks string = "cluster_selected_checks"
+)
 
 var ansibleHostsTemplate = fmt.Sprintf(`
 {{- /* Loop through the discovered clusters */}}
@@ -28,10 +31,14 @@ var ansibleHostsTemplate = fmt.Sprintf(`
 {{- range nodes }}{{ if eq .Node $nodename }}{{ $host = .Address }}{{ end }}{{ end }}
 {{- /* Get SSH connection username */}}
 {{- $user := keyOrDefault (print (printf "%[5]s" $clusterId) "/" $nodename) "" }}
+{{- /* If the user is not set, fallback to default values */}}
 {{- if eq $user "" }}
 {{- $cloudata := printf "%[6]s" $nodename }}
-{{- if eq (keyOrDefault (print $cloudata "provider") "") "azure" }}
-{{- $user = keyOrDefault (print $cloudata "metadata/compute/osprofile/adminusername") "root" }}
+{{- $provider := keyOrDefault (print $cloudata "provider") "" }}
+{{- if eq $provider "azure" }}
+{{- $user = keyOrDefault (print $cloudata "metadata/compute/osprofile/adminusername") (printf "%[7]s") }}
+{{- else }}
+{{- $user = printf "%[7]s" }}
 {{- end }}
 {{- end }}
 {{- /* Render the node entry */}}
@@ -46,6 +53,7 @@ var ansibleHostsTemplate = fmt.Sprintf(`
 	consul.KvClustersChecksPath,
 	consul.KvClustersConnectionPath,
 	consul.KvHostsClouddataPath,
+	DefaultUser,
 )
 
 const ansibleHostFile = "ansible_hosts"

@@ -5,6 +5,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/trento-project/trento/internal/tags"
+
 	consulApi "github.com/hashicorp/consul/api"
 	"github.com/pkg/errors"
 	"github.com/trento-project/trento/internal"
@@ -58,7 +60,17 @@ func (n *Host) TrentoMeta() map[string]string {
 	return filtered_meta
 }
 
-func (n *Host) GetSAPSystems() (map[string]*sapsystem.SAPSystem, error) {
+func (n *Host) GetAgentVersionString() string {
+	version, ok := n.TrentoMeta()["trento-agent-version"]
+
+	if !ok {
+		return "Not running"
+	}
+
+	return "v" + version
+}
+
+func (n *Host) GetSAPSystems() (sapsystem.SAPSystemsMap, error) {
 	systems, err := sapsystem.Load(n.client, n.Name())
 	if err != nil {
 		return nil, err
@@ -70,17 +82,25 @@ func (n *Host) GetSAPSystems() (map[string]*sapsystem.SAPSystem, error) {
 // https://github.com/hashicorp/consul/blob/master/agent/consul/catalog_endpoint.go#L298
 func CreateFilterMetaQuery(query map[string][]string) string {
 	var filters []string
+	var operator string
 	// Need to sort the keys to have stable output. Mostly for unit testing
 	sortedQuery := sortKeys(query)
 
 	if len(query) != 0 {
 		var filter string
 		for _, key := range sortedQuery {
+			switch key {
+			case "trento-sap-systems":
+				operator = "contains"
+			default:
+				operator = "=="
+			}
 			if strings.HasPrefix(key, TrentoPrefix) {
 				filter = ""
 				values := query[key]
 				for _, value := range values {
-					filter = fmt.Sprintf("%sMeta[\"%s\"] == \"%s\"", filter, key, value)
+					filter = fmt.Sprintf("%sMeta[\"%s\"] %s \"%s\"", filter, key, operator, value)
+
 					if values[len(values)-1] != value {
 						filter = fmt.Sprintf("%s or ", filter)
 					}
@@ -92,20 +112,42 @@ func CreateFilterMetaQuery(query map[string][]string) string {
 	return strings.Join(filters, " and ")
 }
 
-func Load(client consul.Client, query_filter string, health_filter []string) (HostList, error) {
+func Load(client consul.Client, queryFilter string, healthFilter []string, tagsFilter []string) (HostList, error) {
 	var hosts = HostList{}
 
-	query := &consulApi.QueryOptions{Filter: query_filter}
-	consul_nodes, _, err := client.Catalog().Nodes(query)
+	query := &consulApi.QueryOptions{Filter: queryFilter}
+	consulNodes, _, err := client.Catalog().Nodes(query)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not query Consul for nodes")
 	}
-	for _, node := range consul_nodes {
-		populated_host := &Host{*node, client}
+	for _, node := range consulNodes {
+		populatedHost := &Host{*node, client}
 		// This check could be done in the frontend maybe
-		if len(health_filter) == 0 || internal.Contains(health_filter, populated_host.Health()) {
-			hosts = append(hosts, populated_host)
+		if len(healthFilter) > 0 && !internal.Contains(healthFilter, populatedHost.Health()) {
+			continue
 		}
+
+		if len(tagsFilter) > 0 {
+			tagFound := false
+			t := tags.NewTags(client)
+			hostTags, err := t.GetAllByResource(tags.HostResourceType, node.Node)
+			if err != nil {
+				return nil, errors.Wrap(err, "could not query Tags for node")
+			}
+
+			for _, t := range tagsFilter {
+				if internal.Contains(hostTags, t) {
+					tagFound = true
+					break
+				}
+			}
+
+			if !tagFound {
+				continue
+			}
+		}
+
+		hosts = append(hosts, populatedHost)
 	}
 
 	return hosts, nil

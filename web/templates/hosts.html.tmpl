@@ -1,5 +1,7 @@
 {{ define "additional_scripts" }}
-<script src="/static/frontend/assets/js/tables.js"></script>{{ end }}
+    <script src="/static/frontend/assets/js/tables.js"></script>
+    <script src="/static/frontend/assets/js/tags.js"></script>
+{{ end }}
 {{ define "content" }}
     <div class="col">
         <div class="row">
@@ -16,38 +18,33 @@
         <hr class="margin-10px"/>
         {{ template "health_container" .HealthContainer }}
         <h5>Filters</h5>
+
         <div class="horizontal-container">
             <script>
-                $(document).ready(function () {
-                    {{- range $Key, $Value := .AppliedFilters }}
-                    $("#{{ $Key }}").selectpicker("val", {{ $Value }});
-                    {{- end }}
-                    $('#clean').click(function () {
-                        $('.selectpicker').selectpicker("deselectAll")
-                    });
+              $(document).ready(function () {
+                  {{- range $Key, $Value := .AppliedFilters }}
+                $("#{{ $Key }}").selectpicker("val", {{ $Value }});
+                  {{- end }}
+                $('#clean').click(function () {
+                  $('.selectpicker').selectpicker("deselectAll")
                 });
+              });
             </script>
-            <select name="trento-sap-environment" id="trento-sap-environment" class="selectpicker" multiple
-                    data-selected-text-format="count > 3" data-actions-box="true" title="SAP environment...">
-                {{- range index .Filters "environments" }}
-                    <option value="{{ . }}">{{ . }}</option>
-                {{- end }}
-            </select>
-            <select name="trento-sap-landscape" id="trento-sap-landscape" class="selectpicker" multiple
-                    data-selected-text-format="count > 3" data-actions-box="true" title="SAP landscape...">
-                {{- range index .Filters "landscapes" }}
-                    <option value="{{ . }}">{{ . }}</option>
-                {{- end }}
-            </select>
-
-            <select name="trento-sap-system" id="trento-sap-system" class="selectpicker" multiple
-                    data-selected-text-format="count > 3" data-actions-box="true" title="SAP system...">
-                {{- range index .Filters "sapsystems" }}
-                    <option value="{{ . }}">{{ . }}</option>
-                {{- end }}
-            </select>
-
             {{ template "health_filter" }}
+            <select name="trento-sap-systems" id="trento-sap-systems" class="selectpicker" multiple
+                    data-selected-text-format="count > 3" data-actions-box="true" data-live-search="true" 
+                    title="SAP system...">
+                {{- range .SIDs }}
+                    <option value="{{ . }}">{{ . }}</option>
+                {{- end }}
+            </select>
+            <select name="tags" id="tags_filter" class="selectpicker" multiple
+                    data-selected-text-format="count > 3" data-actions-box="true" data-live-search="true"
+                    title="Tags...">
+                {{- range .Tags }}
+                    <option value="{{ . }}">{{ . }}</option>
+                {{- end }}
+            </select>
         </div>
         {{ template "hosts_table" . }}
         {{ template "pagination" .Pagination }}

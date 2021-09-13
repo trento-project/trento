@@ -13,6 +13,8 @@ import (
 
 	"github.com/trento-project/trento/agent/discovery"
 	"github.com/trento-project/trento/internal/consul"
+	"github.com/trento-project/trento/internal/hosts"
+	"github.com/trento-project/trento/version"
 )
 
 type Agent struct {
@@ -120,6 +122,8 @@ func (a *Agent) Start() error {
 		log.Println("consul-template loop stopped.")
 	}(&wg)
 
+	storeAgentMetadata(a.consul, version.Version)
+
 	wg.Wait()
 
 	return nil
@@ -176,18 +180,19 @@ func (a *Agent) registerConsulService() error {
 func (a *Agent) startDiscoverTicker() {
 	tick := func() {
 		for _, d := range a.discoveries {
-			var status string
+			var status, result string
 			var err error
 
-			err = d.Discover()
+			result, err = d.Discover()
 			if err != nil {
 				log.Printf("Error while running discovery '%s': %s", d.GetId(), err)
+				result = err.Error()
 				status = consulApi.HealthWarning
 			} else {
 				status = consulApi.HealthPassing
 			}
 
-			err = a.consul.Agent().UpdateTTL(d.GetId(), "", status)
+			err = a.consul.Agent().UpdateTTL(d.GetId(), result, status)
 			if err != nil {
 				log.Println("An error occurred while trying to update TTL with Consul:", err)
 			}
@@ -213,4 +218,17 @@ func repeat(tick func(), interval time.Duration, ctx context.Context) {
 			return
 		}
 	}
+}
+
+func storeAgentMetadata(client consul.Client, version string) error {
+	metadata := hosts.Metadata{
+		AgentVersion: version,
+	}
+
+	err := metadata.Store(client)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

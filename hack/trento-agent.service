@@ -4,7 +4,7 @@ Requires=consul.service
 After=consul.service
 
 [Service]
-ExecStart=/srv/trento/trento agent start --consul-config-dir=/srv/consul/consul.d /srv/trento/examples/generic-azure.yaml
+ExecStart=/srv/trento/trento agent start --consul-config-dir=/srv/consul/consul.d /srv/trento/examples/generic-azure.yaml /srv/trento/examples/hana-scale-up-perf-optimized-azure.yaml
 Type=simple
 User=root
 Restart=on-failure

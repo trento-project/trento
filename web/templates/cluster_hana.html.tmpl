@@ -31,12 +31,12 @@
                     </div>
                     <div class="col-6">
                         <strong>HANA system replication mode:</strong><br>
-                        <span class="text-muted">{{ index $firstNode.Attributes "hana_prd_srmode" }}</span>
+                        <span class="text-muted">{{ .Nodes.HANASystemReplicationMode }}</span>
                     </div>
 
                     <div class="col-3 mt-5">
-                        <strong>Pacemaker status:</strong><br>
-                        <span class="text-muted">-</span>
+                        <strong>SID:</strong><br>
+                        <span class="text-muted">{{ .SID }}</span>
                     </div>
                     <div class="col-3 mt-5">
                         <strong>SAPHanaSR health state:</strong><br>
@@ -74,7 +74,7 @@
                     </div>
                     <div class="col-6 mt-5">
                         <strong>HANA system replication operation mode:</strong><br>
-                        <span class="text-muted">{{ index $firstNode.Attributes "hana_prd_op_mode" }}</span>
+                        <span class="text-muted">{{ .Nodes.HANASystemReplicationOperationMode }}</span>
                     </div>
                 </div>
             </div>

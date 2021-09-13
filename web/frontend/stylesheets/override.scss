@@ -17,6 +17,12 @@ footer.footer-side-menu ul.footer-list {
   color: $eos-bc-gray-900;
 }
 
+// Set the same padding as info and warning
+.alert-danger {
+  padding-right: 8px;
+}
+
+/* ----- MODAL STYLE ----- */
 .modal.left .modal-dialog {
   position: fixed;
   right: 0;
@@ -50,13 +56,74 @@ footer.footer-side-menu ul.footer-list {
   right: 0;
 }
 
-/* ----- MODAL STYLE ----- */
 .modal-content {
   border-radius: 0;
   border: none;
 }
 
-// Set the same padding as info and warning
-.alert-danger {
-  padding-right: 8px;
+/* ----- COLLAPSE STYLE ----- */
+.collapse-toggle:after {
+  font-family: "eos-icons";
+  content: "keyboard_arrow_up";
+  float: right;
+  font-size: 24px;
+  font-weight: normal;
+  display: inline;
+}
+
+.collapse-toggle.collapsed:after {
+  font-family: "eos-icons";
+  content: "keyboard_arrow_down";
+  float: right;
+  font-size: 24px;
+  font-weight: normal;
+  display: inline;
+}
+
+/* ----- TAGS STYLE ----- */
+.tags-input {
+  width: 300px;
+  --tag-bg: #{$eos-bc-cerulean-900};
+  --tag-hover: #{$eos-bc-cerulean-500};
+  --tag-remove-btn-color: #fff;
+  --tag-text-color: #fff;
+  border: 1px solid transparent;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.tagify__tag > div {
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+.tagify__input::before {
+  content: "Add tags";
+}
+
+.tagify__tag > div > [contenteditable] {
+  font-weight: normal;
+}
+
+.tagify__tag + .tagify__input {
+  display: none;
+}
+
+.tags-look .tagify__dropdown__item {
+  display: inline-block;
+  border: 0px;
+  background: $eos-bc-cerulean-900;
+  margin: 0.2em;
+  color: #fff;
+  transition: 0s;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+.tags-look .tagify__dropdown__item--active {
+  color: #fff;
+}
+
+.tags-look .tagify__dropdown__item:hover {
+  background: $eos-bc-cerulean-500;
 }

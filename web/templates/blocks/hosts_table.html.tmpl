@@ -1,4 +1,5 @@
 {{ define "hosts_table" }}
+    {{ $hostsTags := .HostsTags }}
     <div class='table-responsive'>
         <table class='table eos-table'>
             <thead>
@@ -9,12 +10,15 @@
                 <th scope='col'>Cloud provider</th>
                 <th scope='col'>Cluster</th>
                 <th scope='col'>System</th>
-                <th scope='col'>Landscape</th>
-                <th scope='col'>Environment</th>
+                <th scope='col'>Agent version</th>
+                {{- if $hostsTags }}
+                    <th scope='col'>Tags</th>
+                {{- end }}
             </tr>
             </thead>
             <tbody>
             {{- range .Hosts }}
+                {{ $TrentoMeta := .TrentoMeta }}
                 <tr>
                     <td class="row-status">
                         {{ template "health_icon" .Health }}
@@ -32,23 +36,28 @@
                         </a>
                     </td>
                     <td>
-                        <a href='/sapsystems/{{ index .TrentoMeta "trento-sap-system" }}?environment={{ index .TrentoMeta "trento-sap-environment" }}&landscape={{ index .TrentoMeta "trento-sap-landscape" }}'>
-                            {{ index .TrentoMeta "trento-sap-system" }}
+                        {{- range $i, $v := split (index $TrentoMeta "trento-sap-systems") "," }}{{- if $i }},{{- end }}
+                        <a href="/sapsystems/{{ $v }}">
+                            {{ $v }}
                         </a>
+                        {{- end }}
                     </td>
                     <td>
-                        <a href='/landscapes/{{ index .TrentoMeta "trento-sap-landscape" }}?environment={{ index .TrentoMeta "trento-sap-environment" }}'>
-                            {{ index .TrentoMeta "trento-sap-landscape" }}
-                        </a>
+                        {{ .GetAgentVersionString }}
                     </td>
-                    <td>
-                        <a href='/environments/{{ index .TrentoMeta "trento-sap-environment" }}'>
-                            {{ index .TrentoMeta "trento-sap-environment" }}
-                        </a>
-                    </td>
+                    {{- if $hostsTags}}
+                        <td>
+                            <input class="tags-input" 
+                                value="{{- range (index $hostsTags .Name) }}{{ . }},{{- end }}" 
+                                data-resource-type="hosts" 
+                                data-resource-id="{{ .Name }}"
+                                autocomplete="off">
+                            </input>
+                        </td>
+                    {{- end }}
                 </tr>
             {{- else }}
-                {{ template "empty_table_body" 5}}
+                {{ template "empty_table_body" 6 }}
             {{- end }}
             </tbody>
         </table>

@@ -28,8 +28,9 @@
                     <td>{{ .Elapsedtime }}</td>
                     <td>{{ .Pid }}</td>
                     <td>
-                        {{- $Textstatus := .Textstatus }}
-                        <span class='badge badge-pill badge-{{ if eq $Textstatus "Running" }}primary{{ else }}danger{{ end }}'>{{ $Textstatus }}</span>
+                        <span class='badge badge-pill badge-{{ if eq .Dispstatus "SAPControl-GREEN" }}primary{{ else if eq .Dispstatus "SAPControl-YELLOW" }}warning{{ else if eq .Dispstatus "SAPControl-RED" }}danger{{ else if eq .Dispstatus "SAPControl-GRAY" }}secondary{{ end }}'>
+                            {{ .Textstatus }}
+                        </span>
                     </td>
                 </tr>
             {{- else }}

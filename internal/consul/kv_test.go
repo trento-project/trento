@@ -11,21 +11,21 @@ func TestKVListMap(t *testing.T) {
 
 	kvPairs := consulApi.KVPairs{
 		&consulApi.KVPair{Key: "/trento/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env1/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/land1/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/land1/sapsystems/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/land1/sapsystems/sys1/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/land1/sapsystems/sys1/name", Value: []byte("name")},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/land1/sapsystems/sys1/int32", Value: []byte("1"), Flags: int32Flag},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/land2/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/land2/sapsystems/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/land2/sapsystems/sys2/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env2/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env2/landscapes/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env2/landscapes/land3/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env2/landscapes/land3/sapsystems/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env2/landscapes/land3/sapsystems/sys3/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path1/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/subpath1/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/subpath1/resource2/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/subpath1/resource2/sys1/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/subpath1/resource2/sys1/name", Value: []byte("name")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/subpath1/resource2/sys1/int32", Value: []byte("1"), Flags: int32Flag},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/subpath2/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/subpath2/resource2/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/subpath2/resource2/sys2/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path2/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path2/resource1/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path2/resource1/subpath3/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path2/resource1/subpath3/resource2/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path2/resource1/subpath3/resource2/sys3/", Value: []byte("")},
 	}
 
 	kv := &kv{list: func(prefix string, q *consulApi.QueryOptions) (consulApi.KVPairs, *consulApi.QueryMeta, error) {
@@ -35,27 +35,27 @@ func TestKVListMap(t *testing.T) {
 
 	expectedMap := map[string]interface{}{
 		"trento": map[string]interface{}{
-			"env1": map[string]interface{}{
-				"landscapes": map[string]interface{}{
-					"land1": map[string]interface{}{
-						"sapsystems": map[string]interface{}{
+			"path1": map[string]interface{}{
+				"resource1": map[string]interface{}{
+					"subpath1": map[string]interface{}{
+						"resource2": map[string]interface{}{
 							"sys1": map[string]interface{}{
 								"name":  "name",
 								"int32": int32(1),
 							},
 						},
 					},
-					"land2": map[string]interface{}{
-						"sapsystems": map[string]interface{}{
+					"subpath2": map[string]interface{}{
+						"resource2": map[string]interface{}{
 							"sys2": map[string]interface{}{},
 						},
 					},
 				},
 			},
-			"env2": map[string]interface{}{
-				"landscapes": map[string]interface{}{
-					"land3": map[string]interface{}{
-						"sapsystems": map[string]interface{}{
+			"path2": map[string]interface{}{
+				"resource1": map[string]interface{}{
+					"subpath3": map[string]interface{}{
+						"resource2": map[string]interface{}{
 							"sys3": map[string]interface{}{},
 						},
 					},
@@ -71,20 +71,20 @@ func TestKVListMapOffset(t *testing.T) {
 
 	kvPairs := consulApi.KVPairs{
 		&consulApi.KVPair{Key: "/trento/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env1/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/land1/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/land1/sapsystems/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/land1/sapsystems/sys1/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/land1/sapsystems/sys1/name", Value: []byte("name")},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/land2/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/land2/sapsystems/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/land2/sapsystems/sys2/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env2/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env2/landscapes/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env2/landscapes/land3/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env2/landscapes/land3/sapsystems/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env2/landscapes/land3/sapsystems/sys3/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path1/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/subpath1/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/subpath1/resource2/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/subpath1/resource2/sys1/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/subpath1/resource2/sys1/name", Value: []byte("name")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/subpath2/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/subpath2/resource2/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/subpath2/resource2/sys2/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path2/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path2/resource1/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path2/resource1/subpath3/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path2/resource1/subpath3/resource2/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path2/resource1/subpath3/resource2/sys3/", Value: []byte("")},
 	}
 
 	kv := &kv{list: func(prefix string, q *consulApi.QueryOptions) (consulApi.KVPairs, *consulApi.QueryMeta, error) {
@@ -93,26 +93,26 @@ func TestKVListMapOffset(t *testing.T) {
 	result, _ := kv.ListMap("/trento", "/trento/")
 
 	expectedMap := map[string]interface{}{
-		"env1": map[string]interface{}{
-			"landscapes": map[string]interface{}{
-				"land1": map[string]interface{}{
-					"sapsystems": map[string]interface{}{
+		"path1": map[string]interface{}{
+			"resource1": map[string]interface{}{
+				"subpath1": map[string]interface{}{
+					"resource2": map[string]interface{}{
 						"sys1": map[string]interface{}{
 							"name": "name",
 						},
 					},
 				},
-				"land2": map[string]interface{}{
-					"sapsystems": map[string]interface{}{
+				"subpath2": map[string]interface{}{
+					"resource2": map[string]interface{}{
 						"sys2": map[string]interface{}{},
 					},
 				},
 			},
 		},
-		"env2": map[string]interface{}{
-			"landscapes": map[string]interface{}{
-				"land3": map[string]interface{}{
-					"sapsystems": map[string]interface{}{
+		"path2": map[string]interface{}{
+			"resource1": map[string]interface{}{
+				"subpath3": map[string]interface{}{
+					"resource2": map[string]interface{}{
 						"sys3": map[string]interface{}{},
 					},
 				},
@@ -127,20 +127,20 @@ func TestKVListMapOffsetNoBackslash(t *testing.T) {
 
 	kvPairs := consulApi.KVPairs{
 		&consulApi.KVPair{Key: "/trento/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env1/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/land1/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/land1/sapsystems/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/land1/sapsystems/sys1/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/land1/sapsystems/sys1/name", Value: []byte("name")},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/land2/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/land2/sapsystems/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/land2/sapsystems/sys2/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env2/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env2/landscapes/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env2/landscapes/land3/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env2/landscapes/land3/sapsystems/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env2/landscapes/land3/sapsystems/sys3/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path1/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/subpath1/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/subpath1/resource2/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/subpath1/resource2/sys1/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/subpath1/resource2/sys1/name", Value: []byte("name")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/subpath2/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/subpath2/resource2/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/subpath2/resource2/sys2/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path2/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path2/resource1/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path2/resource1/subpath3/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path2/resource1/subpath3/resource2/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path2/resource1/subpath3/resource2/sys3/", Value: []byte("")},
 	}
 
 	kv := &kv{list: func(prefix string, q *consulApi.QueryOptions) (consulApi.KVPairs, *consulApi.QueryMeta, error) {
@@ -149,26 +149,26 @@ func TestKVListMapOffsetNoBackslash(t *testing.T) {
 	result, _ := kv.ListMap("/trento", "/trento")
 
 	expectedMap := map[string]interface{}{
-		"env1": map[string]interface{}{
-			"landscapes": map[string]interface{}{
-				"land1": map[string]interface{}{
-					"sapsystems": map[string]interface{}{
+		"path1": map[string]interface{}{
+			"resource1": map[string]interface{}{
+				"subpath1": map[string]interface{}{
+					"resource2": map[string]interface{}{
 						"sys1": map[string]interface{}{
 							"name": "name",
 						},
 					},
 				},
-				"land2": map[string]interface{}{
-					"sapsystems": map[string]interface{}{
+				"subpath2": map[string]interface{}{
+					"resource2": map[string]interface{}{
 						"sys2": map[string]interface{}{},
 					},
 				},
 			},
 		},
-		"env2": map[string]interface{}{
-			"landscapes": map[string]interface{}{
-				"land3": map[string]interface{}{
-					"sapsystems": map[string]interface{}{
+		"path2": map[string]interface{}{
+			"resource1": map[string]interface{}{
+				"subpath3": map[string]interface{}{
+					"resource2": map[string]interface{}{
 						"sys3": map[string]interface{}{},
 					},
 				},
@@ -182,11 +182,11 @@ func TestKVListMapOffsetNoBackslash(t *testing.T) {
 func TestKVListMapSingleEntries(t *testing.T) {
 
 	kvPairs := consulApi.KVPairs{
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/land1/sapsystems/sys1/name", Value: []byte("name")},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/land1/sapsystems/sys1/description", Value: []byte("desc")},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/land2/description", Value: []byte("land_desc")},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/land2/sapsystems/sys2/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env2/landscapes/land3/sapsystems/sys3/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/subpath1/resource2/sys1/name", Value: []byte("name")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/subpath1/resource2/sys1/description", Value: []byte("desc")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/subpath2/description", Value: []byte("subpath_desc")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/subpath2/resource2/sys2/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path2/resource1/subpath3/resource2/sys3/", Value: []byte("")},
 		&consulApi.KVPair{Key: "/trento/list/", Value: []byte(""), Flags: sliceFlag},
 		&consulApi.KVPair{Key: "/trento/list/0000/data1", Value: []byte("false"), Flags: boolFlag},
 		&consulApi.KVPair{Key: "/trento/list/0000/data2", Value: []byte("3"), Flags: int32Flag},
@@ -203,28 +203,28 @@ func TestKVListMapSingleEntries(t *testing.T) {
 	result, _ := kv.ListMap("/trento", "/trento/")
 
 	expectedMap := map[string]interface{}{
-		"env1": map[string]interface{}{
-			"landscapes": map[string]interface{}{
-				"land1": map[string]interface{}{
-					"sapsystems": map[string]interface{}{
+		"path1": map[string]interface{}{
+			"resource1": map[string]interface{}{
+				"subpath1": map[string]interface{}{
+					"resource2": map[string]interface{}{
 						"sys1": map[string]interface{}{
 							"name":        "name",
 							"description": "desc",
 						},
 					},
 				},
-				"land2": map[string]interface{}{
-					"description": "land_desc",
-					"sapsystems": map[string]interface{}{
+				"subpath2": map[string]interface{}{
+					"description": "subpath_desc",
+					"resource2": map[string]interface{}{
 						"sys2": map[string]interface{}{},
 					},
 				},
 			},
 		},
-		"env2": map[string]interface{}{
-			"landscapes": map[string]interface{}{
-				"land3": map[string]interface{}{
-					"sapsystems": map[string]interface{}{
+		"path2": map[string]interface{}{
+			"resource1": map[string]interface{}{
+				"subpath3": map[string]interface{}{
+					"resource2": map[string]interface{}{
 						"sys3": map[string]interface{}{},
 					},
 				},
@@ -261,10 +261,10 @@ func TestKVListMapSingleEntries(t *testing.T) {
 
 func TestKVPutMap(t *testing.T) {
 	testMap := map[string]interface{}{
-		"env1": map[string]interface{}{
-			"landscapes": map[string]interface{}{
-				"land1": map[string]interface{}{
-					"sapsystems": map[string]interface{}{
+		"path1": map[string]interface{}{
+			"resource1": map[string]interface{}{
+				"subpath1": map[string]interface{}{
+					"resource2": map[string]interface{}{
 						"sys1": map[string]interface{}{
 							"name":        "name",
 							"description": "desc",
@@ -272,18 +272,18 @@ func TestKVPutMap(t *testing.T) {
 						},
 					},
 				},
-				"land2": map[string]interface{}{
-					"description": "land_desc",
-					"sapsystems": map[string]interface{}{
+				"subpath2": map[string]interface{}{
+					"description": "subpath_desc",
+					"resource2": map[string]interface{}{
 						"sys2": map[string]interface{}{},
 					},
 				},
 			},
 		},
-		"env2": map[string]interface{}{
-			"landscapes": map[string]interface{}{
-				"land3": map[string]interface{}{
-					"sapsystems": map[string]interface{}{
+		"path2": map[string]interface{}{
+			"resource1": map[string]interface{}{
+				"subpath3": map[string]interface{}{
+					"resource2": map[string]interface{}{
 						"sys3": map[string]interface{}{},
 					},
 				},
@@ -341,12 +341,12 @@ func TestKVPutMap(t *testing.T) {
 	}
 
 	expectedPut := []*consulApi.KVPair{
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/land1/sapsystems/sys1/name", Value: []byte("name")},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/land1/sapsystems/sys1/description", Value: []byte("desc")},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/land1/sapsystems/sys1/int32", Value: []byte("1"), Flags: int32Flag},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/land2/description", Value: []byte("land_desc")},
-		&consulApi.KVPair{Key: "/trento/env1/landscapes/land2/sapsystems/sys2/", Value: []byte("")},
-		&consulApi.KVPair{Key: "/trento/env2/landscapes/land3/sapsystems/sys3/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/subpath1/resource2/sys1/name", Value: []byte("name")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/subpath1/resource2/sys1/description", Value: []byte("desc")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/subpath1/resource2/sys1/int32", Value: []byte("1"), Flags: int32Flag},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/subpath2/description", Value: []byte("subpath_desc")},
+		&consulApi.KVPair{Key: "/trento/path1/resource1/subpath2/resource2/sys2/", Value: []byte("")},
+		&consulApi.KVPair{Key: "/trento/path2/resource1/subpath3/resource2/sys3/", Value: []byte("")},
 		&consulApi.KVPair{Key: "/trento/list/", Value: []byte(""), Flags: sliceFlag},
 		&consulApi.KVPair{Key: "/trento/list/0000/item1", Value: []byte("1"), Flags: int32Flag},
 		&consulApi.KVPair{Key: "/trento/list/0000/other_list/", Value: []byte(""), Flags: sliceFlag},

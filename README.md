@@ -42,7 +42,6 @@ of existing clusters, rather than deploying new one.
 
 - Automated discovery of SAP HANA HA clusters;
 - SAP Systems and Instances overview;
-- Grouping by Landscapes and Environments;
 - Configuration validation for Pacemaker, Corosync, SBD, SAPHanaSR and other generic _SUSE Linux Enterprise for SAP Application_ OS settings (a.k.a. the _HA Checks_);
 - Specific configuration audits for SAP HANA Scale-Up Performance-Optimized scenarios deployed on MS Azure cloud.
 
@@ -225,31 +224,6 @@ At this point, we can start the web application as follows:
 ```
 
 Please consult the `help` CLI command for more insights on the various options.
-
-# Usage
-
-## Grouping and filtering in the Web UI
-
-The web app provides the option to group and filter target Systems using tags.
-
-This functionality will be implemented in the Web UI soon but, for the time being, the underlying `consul` KV storage can be used to populate these tags:
-
-```shell
-# To group SAP Systems into Landscapes and Environments, you can do the following,
-# from any of the nodes where Trento is running:
-export ENV=an-environment-name
-export LAND=a-landscape-name
-export SID=an-actual-SID
-consul kv put trento/v0/environments/$ENV/name $ENV
-consul kv put trento/v0/environments/$ENV/landscapes/$LAND/name $LAND
-consul kv put trento/v0/environments/$ENV/landscapes/$LAND/sapsystems/$SID/name $SID
-```
-
-Keep in mind that the created Environments, Landscapes and SAP Systems are directories themselves, and there can be multiple of them.
-
-It is possible to have multiple Landscapes with the same name in different Environments, and the same goes for SAP Systems.
-
-Be aware that the node meta-data tags are not strictly linked to these names, they are soft relations (this means that only the string matches, there is no any real relationship between them).
 
 # Development
 

@@ -2,7 +2,9 @@ package web
 
 import (
 	"net/http"
-	"sort"
+	"strings"
+
+	"github.com/trento-project/trento/internal/tags"
 
 	"github.com/gin-gonic/gin"
 	consulApi "github.com/hashicorp/consul/api"
@@ -10,7 +12,6 @@ import (
 
 	"github.com/trento-project/trento/internal/cloud"
 	"github.com/trento-project/trento/internal/consul"
-	"github.com/trento-project/trento/internal/environments"
 	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/internal/sapsystem"
 )
@@ -35,17 +36,24 @@ func NewHostListHandler(client consul.Client) gin.HandlerFunc {
 		query := c.Request.URL.Query()
 		queryFilter := hosts.CreateFilterMetaQuery(query)
 		healthFilter := query["health"]
+		tagsFilter := query["tags"]
 
-		hostList, err := hosts.Load(client, queryFilter, healthFilter)
+		hostList, err := hosts.Load(client, queryFilter, healthFilter, tagsFilter)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 
-		filters, err := loadFilters(client)
-		if err != nil {
-			_ = c.Error(err)
-			return
+		hostsTags := make(map[string][]string)
+		for _, h := range hostList {
+			t := tags.NewTags(client)
+
+			ht, err := t.GetAllByResource(tags.HostResourceType, h.Name())
+			if err != nil {
+				_ = c.Error(err)
+				return
+			}
+			hostsTags[h.Name()] = ht
 		}
 
 		hContainer := NewHostsHealthContainer(hostList)
@@ -58,37 +66,52 @@ func NewHostListHandler(client consul.Client) gin.HandlerFunc {
 
 		c.HTML(http.StatusOK, "hosts.html.tmpl", gin.H{
 			"Hosts":           hostList[firstElem:lastElem],
-			"Filters":         filters,
+			"SIDs":            getAllSIDs(hostList),
+			"Tags":            getAllTags(hostsTags),
 			"AppliedFilters":  query,
 			"HealthContainer": hContainer,
 			"Pagination":      pagination,
+			"HostsTags":       hostsTags,
 		})
 	}
 }
 
-func loadFilters(client consul.Client) (map[string][]string, error) {
-	filter_data := make(map[string][]string)
+func getAllSIDs(hostList hosts.HostList) []string {
+	var sids []string
+	set := make(map[string]struct{})
 
-	envs, err := environments.Load(client)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not get the filters")
-	}
+	for _, host := range hostList {
+		for _, s := range strings.Split(host.TrentoMeta()["trento-sap-systems"], ",") {
+			if s == "" {
+				continue
+			}
 
-	for envKey, envValue := range envs {
-		filter_data["environments"] = append(filter_data["environments"], envKey)
-		for landKey, landValue := range envValue.Landscapes {
-			filter_data["landscapes"] = append(filter_data["landscapes"], landKey)
-			for sysKey, _ := range landValue.SAPSystems {
-				filter_data["sapsystems"] = append(filter_data["sapsystems"], sysKey)
+			_, ok := set[s]
+			if !ok {
+				sids = append(sids, s)
+				set[s] = struct{}{}
 			}
 		}
 	}
 
-	sort.Strings(filter_data["environments"])
-	sort.Strings(filter_data["landscapes"])
-	sort.Strings(filter_data["sapsystems"])
+	return sids
+}
 
-	return filter_data, nil
+func getAllTags(hostsTags map[string][]string) []string {
+	var tags []string
+	set := make(map[string]struct{})
+
+	for _, ht := range hostsTags {
+		for _, t := range ht {
+			_, ok := set[t]
+			if !ok {
+				tags = append(tags, t)
+				set[t] = struct{}{}
+			}
+		}
+	}
+
+	return tags
 }
 
 func loadHealthChecks(client consul.Client, node string) ([]*consulApi.HealthCheck, error) {

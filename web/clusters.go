@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"sort"
 	"strings"
 
 	"github.com/trento-project/trento/internal"
@@ -14,8 +15,10 @@ import (
 
 	"github.com/trento-project/trento/internal/cloud"
 	"github.com/trento-project/trento/internal/cluster"
+	"github.com/trento-project/trento/internal/cluster/cib"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
+	"github.com/trento-project/trento/internal/tags"
 	"github.com/trento-project/trento/runner"
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
@@ -28,6 +31,7 @@ type Node struct {
 	Ip         string
 	Health     string
 	VirtualIps []string
+	SID        string
 }
 
 type Resource struct {
@@ -101,18 +105,14 @@ func getHanaSID(c *cluster.Cluster) string {
 	return ""
 }
 
-// HANARole parses the hana_prd_roles string and returns the HANA Role
-// Possible values: master, slave
-// e.g. 4:P:master1:master:worker:master returns master (last element)
-func (node *Node) HANARole() string {
-	if r, ok := node.Attributes["hana_prd_roles"]; ok {
-		role := r[strings.LastIndex(r, ":")+1:]
-		return strings.Title(role)
-	}
-	return "-"
+func (node *Node) GetHanaAttribute(attributeName string) (string, bool) {
+	hanaAttributeName := fmt.Sprintf("hana_%s_%s", strings.ToLower(node.SID), attributeName)
+	value, ok := node.Attributes[hanaAttributeName]
+
+	return value, ok
 }
 
-// HANAHealthState parses the hana_prd_roles string and returns the SAPHanaSR Health state
+// HANAHealthState parses the hana_<SID>_roles string and returns the SAPHanaSR Health state
 // Possible values: 0-4
 // 4 - SAP HANA database is up and OK. The cluster does interpret this as a correctly running database.
 // 3 - SAP HANA database is up and in status info. The cluster does interpret this as a correctly running database.
@@ -121,18 +121,18 @@ func (node *Node) HANARole() string {
 // 0 - Internal Script Error – to be ignored.
 // e.g. 4:P:master1:master:worker:master returns 4 (first element)
 func (node *Node) HANAHealthState() string {
-	if r, ok := node.Attributes["hana_prd_roles"]; ok {
+	if r, ok := node.GetHanaAttribute("roles"); ok {
 		healthState := strings.SplitN(r, ":", 2)[0]
 		return healthState
 	}
 	return "-"
 }
 
-// HANAStatus parses the hana_prd_roles string and returns the SAPHanaSR Health state
+// HANAStatus parses the hana_<SID>_roles string and returns the SAPHanaSR Health state
 // Possible values: Primary, Secondary
 // e.g. 4:P:master1:master:worker:master returns Primary (second element)
 func (node *Node) HANAStatus() string {
-	if r, ok := node.Attributes["hana_prd_roles"]; ok {
+	if r, ok := node.GetHanaAttribute("roles"); ok {
 		status := strings.SplitN(r, ":", 3)[1]
 
 		switch status {
@@ -150,6 +150,7 @@ func NewNodes(s services.ChecksService, c *cluster.Cluster, hl hosts.HostList) N
 	// eventually we will need to have different factory methods depending on the cluster type
 
 	var nodes Nodes
+	sid := getHanaSID(c)
 
 	// TODO: remove plain resources grouping as in the future we'll need to distinguish between Cloned and Groups
 	resources := c.Crmmon.Resources
@@ -162,7 +163,11 @@ func NewNodes(s services.ChecksService, c *cluster.Cluster, hl hosts.HostList) N
 	}
 
 	for _, n := range c.Crmmon.NodeAttributes.Nodes {
-		node := &Node{Name: n.Name, Attributes: make(map[string]string)}
+		node := &Node{
+			Name:       n.Name,
+			Attributes: make(map[string]string),
+			SID:        sid,
+		}
 
 		for _, a := range n.Attributes {
 			node.Attributes[a.Name] = a.Value
@@ -189,8 +194,15 @@ func NewNodes(s services.ChecksService, c *cluster.Cluster, hl hosts.HostList) N
 					resource.Status = "orphaned"
 				}
 
+				var primitives []cib.Primitive
+				primitives = append(primitives, c.Cib.Configuration.Resources.Primitives...)
+
+				for _, g := range c.Cib.Configuration.Resources.Groups {
+					primitives = append(primitives, g.Primitives...)
+				}
+
 				if r.Agent == "ocf::heartbeat:IPaddr2" {
-					for _, p := range c.Cib.Configuration.Resources.Primitives {
+					for _, p := range primitives {
 						if r.Id == p.Id {
 							node.VirtualIps = append(node.VirtualIps, p.InstanceAttributes[0].Value)
 							break
@@ -232,9 +244,27 @@ func NewNodes(s services.ChecksService, c *cluster.Cluster, hl hosts.HostList) N
 func (nodes Nodes) HANASecondarySyncState() string {
 	for _, n := range nodes {
 		if n.HANAStatus() == "Secondary" {
-			if s, ok := n.Attributes["hana_prd_sync_state"]; ok {
+			if s, ok := n.GetHanaAttribute("sync_state"); ok {
 				return s
 			}
+		}
+	}
+	return "-"
+}
+
+func (nodes Nodes) HANASystemReplicationMode() string {
+	if len(nodes) > 0 {
+		if srmode, ok := nodes[0].GetHanaAttribute("srmode"); ok {
+			return srmode
+		}
+	}
+	return "-"
+}
+
+func (nodes Nodes) HANASystemReplicationOperationMode() string {
+	if len(nodes) > 0 {
+		if srmode, ok := nodes[0].GetHanaAttribute("op_mode"); ok {
+			return srmode
 		}
 	}
 	return "-"
@@ -244,7 +274,7 @@ func (nodes Nodes) GroupBySite() map[string]Nodes {
 	nodesBySite := make(map[string]Nodes)
 
 	for _, n := range nodes {
-		if site, ok := n.Attributes["hana_prd_site"]; ok {
+		if site, ok := n.GetHanaAttribute("site"); ok {
 			nodesBySite[site] = append(nodesBySite[site], n)
 		}
 	}
@@ -253,31 +283,41 @@ func (nodes Nodes) GroupBySite() map[string]Nodes {
 }
 
 type ClustersRow struct {
-	Id              string
-	Name            string
-	Health          string
-	SIDs            []string
-	Type            string
-	ResourcesNumber int
-	HostsNumber     int
+	Id                string
+	Name              string
+	Health            string
+	SIDs              []string
+	Type              string
+	ResourcesNumber   int
+	HostsNumber       int
+	Tags              []string
+	HasDuplicatedName bool
 }
 
 type ClustersTable []*ClustersRow
 
-func NewClustersTable(s services.ChecksService, clusters map[string]*cluster.Cluster) ClustersTable {
+func NewClustersTable(s services.ChecksService, client consul.Client, clusters map[string]*cluster.Cluster) (ClustersTable, error) {
 	var clusterTable ClustersTable
+	names := make(map[string]int)
 
 	for id, c := range clusters {
 		var health string
 		// TODO: Cost-optimized has multiple SIDs
 		var sids []string
-
 		sids = append(sids, getHanaSID(c))
 
 		// Using empty string in case of error
 		if aCheckData, err := s.GetAggregatedChecksResultByCluster(id); err == nil {
 			health = aCheckData.String()
 		}
+
+		t := tags.NewTags(client)
+		clusterTags, err := t.GetAllByResource(tags.ClusterResourceType, c.Id)
+		if err != nil {
+			return nil, err
+		}
+
+		names[c.Name] += 1
 
 		clustersRow := &ClustersRow{
 			Id:              id,
@@ -287,38 +327,75 @@ func NewClustersTable(s services.ChecksService, clusters map[string]*cluster.Clu
 			Type:            detectClusterType(c),
 			ResourcesNumber: c.Crmmon.Summary.Resources.Number,
 			HostsNumber:     c.Crmmon.Summary.Nodes.Number,
+			Tags:            clusterTags,
 		}
+
 		clusterTable = append(clusterTable, clustersRow)
 	}
 
-	return clusterTable
+	for _, c := range clusterTable {
+		if names[c.Name] > 1 {
+			c.HasDuplicatedName = true
+		}
+	}
+
+	sort.Slice(clusterTable, func(i, j int) bool {
+		if clusterTable[i].Name == clusterTable[j].Name {
+			return clusterTable[i].Id < clusterTable[j].Id
+		}
+		return clusterTable[i].Name < clusterTable[j].Name
+	})
+
+	return clusterTable, nil
 }
 
-func (t ClustersTable) Filter(name []string, health []string, sid []string, clusterType []string) ClustersTable {
+func (t ClustersTable) filter(name []string, health []string, sid []string, clusterType []string, tags []string) ClustersTable {
 	var filteredClustersTable ClustersTable
 
 	for _, r := range t {
-		nameFilter := len(name) == 0 || internal.Contains(name, r.Name)
-		healthFilter := len(health) == 0 || internal.Contains(health, r.Health)
+		if len(name) > 0 && !internal.Contains(name, r.Name) {
+			continue
+		}
 
-		sidFilter := false
-		if len(sid) == 0 {
-			sidFilter = true
-		} else {
+		if len(health) > 0 && !internal.Contains(health, r.Health) {
+			continue
+		}
+
+		if len(sid) > 0 {
+			sidFound := false
 			for _, s := range sid {
 				if internal.Contains(r.SIDs, s) {
-					sidFilter = true
+					sidFound = true
 					break
 				}
 			}
+
+			if !sidFound {
+				continue
+			}
 		}
 
-		clusterTypeFilter := len(clusterType) == 0 || internal.Contains(clusterType, r.Type)
-
-		if nameFilter && healthFilter && sidFilter && clusterTypeFilter {
-			filteredClustersTable = append(filteredClustersTable, r)
+		if len(clusterType) > 0 && !internal.Contains(clusterType, r.Type) {
+			continue
 		}
+
+		if len(tags) > 0 {
+			tagFound := false
+			for _, t := range tags {
+				if internal.Contains(r.Tags, t) {
+					tagFound = true
+					break
+				}
+			}
+
+			if !tagFound {
+				continue
+			}
+		}
+
+		filteredClustersTable = append(filteredClustersTable, r)
 	}
+
 	return filteredClustersTable
 }
 
@@ -327,11 +404,15 @@ func (t ClustersTable) GetAllSIDs() []string {
 	set := make(map[string]struct{})
 
 	for _, r := range t {
-		for _, s := range r.SIDs {
-			_, ok := set[s]
+		for _, sid := range r.SIDs {
+			if sid == "" {
+				continue
+			}
+
+			_, ok := set[sid]
 			if !ok {
-				set[s] = struct{}{}
-				sids = append(sids, s)
+				set[sid] = struct{}{}
+				sids = append(sids, sid)
 			}
 		}
 	}
@@ -339,12 +420,28 @@ func (t ClustersTable) GetAllSIDs() []string {
 	return sids
 }
 
+func (t ClustersTable) GetAllTags() []string {
+	var tags []string
+	set := make(map[string]struct{})
+
+	for _, r := range t {
+		for _, tag := range r.Tags {
+			_, ok := set[tag]
+			if !ok {
+				set[tag] = struct{}{}
+				tags = append(tags, tag)
+			}
+		}
+	}
+
+	return tags
+}
+
 func (t ClustersTable) GetAllClusterTypes() []string {
 	var clusterTypes []string
 	set := make(map[string]struct{})
 
 	for _, r := range t {
-
 		_, ok := set[r.Type]
 		if !ok {
 			set[r.Type] = struct{}{}
@@ -376,7 +473,8 @@ func NewClusterListHandler(client consul.Client, s services.ChecksService) gin.H
 		healthFilter := query["health"]
 		sidFilter := query["sid"]
 		nameFilter := query["name"]
-		clusterTypeFilter := query["type"]
+		clusterTypeFilter := query["cluster_type"]
+		tagsFilter := query["tags"]
 
 		clusters, err := cluster.Load(client)
 		if err != nil {
@@ -384,8 +482,12 @@ func NewClusterListHandler(client consul.Client, s services.ChecksService) gin.H
 			return
 		}
 
-		clustersTable := NewClustersTable(s, clusters)
-		clustersTable = clustersTable.Filter(nameFilter, healthFilter, sidFilter, clusterTypeFilter)
+		clustersTable, err := NewClustersTable(s, client, clusters)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+		clustersTable = clustersTable.filter(nameFilter, healthFilter, sidFilter, clusterTypeFilter, tagsFilter)
 
 		healthContainer := NewClustersHealthContainer(clustersTable)
 		healthContainer.Layout = "horizontal"
@@ -457,7 +559,7 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 		}
 
 		filterQuery := fmt.Sprintf("Meta[\"trento-ha-cluster-id\"] == \"%s\"", clusterId)
-		hosts, err := hosts.Load(client, filterQuery, nil)
+		hosts, err := hosts.Load(client, filterQuery, nil, nil)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -513,6 +615,7 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 
 		c.HTML(http.StatusOK, "cluster_hana.html.tmpl", gin.H{
 			"Cluster":               clusterItem,
+			"SID":                   getHanaSID(clusterItem),
 			"Nodes":                 nodes,
 			"StoppedResources":      stoppedResources(clusterItem),
 			"ClusterType":           clusterType,

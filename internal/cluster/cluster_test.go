@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ClusterLabs/ha_cluster_exporter/collector/pacemaker/cib"
-	"github.com/ClusterLabs/ha_cluster_exporter/collector/pacemaker/crmmon"
+	"github.com/trento-project/trento/internal/cluster/cib"
+	"github.com/trento-project/trento/internal/cluster/crmmon"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -22,20 +22,6 @@ func TestClusterId(t *testing.T) {
 	authkey, _ := getCorosyncAuthkeyMd5("../../test/authkey")
 
 	assert.Equal(t, c.Id, authkey)
-}
-
-func TestClusterAlias(t *testing.T) {
-	root := new(cib.Root)
-
-	c := Cluster{
-		Cib:  *root,
-		Name: "sculpin",
-		Id:   "47d1190ffb4f781974c8356d7f863b03",
-	}
-
-	name, _ := getName(c.Id)
-
-	assert.Equal(t, c.Name, name)
 }
 
 func TestClusterName(t *testing.T) {

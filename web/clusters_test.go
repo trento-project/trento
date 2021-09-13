@@ -44,13 +44,28 @@ func clustersListMap() map[string]interface{} {
 									},
 								},
 							},
-						},
-						"CrmConfig": map[string]interface{}{
-							"ClusterProperties": []interface{}{
+							"Groups": []interface{}{
 								map[string]interface{}{
-									"Id":    "cib-bootstrap-options-cluster-name",
-									"Value": "test_cluster",
+									"Primitives": []interface{}{
+										map[string]interface{}{
+											"Id": "ip",
+											"InstanceAttributes": []interface{}{
+												map[string]interface{}{
+													"Name":  "ip",
+													"Value": "10.123.123.123",
+												},
+											},
+										},
+									},
 								},
+							},
+						},
+					},
+					"CrmConfig": map[string]interface{}{
+						"ClusterProperties": []interface{}{
+							map[string]interface{}{
+								"Id":    "cib-bootstrap-options-cluster-name",
+								"Value": "hana_cluster",
 							},
 						},
 					},
@@ -149,6 +164,15 @@ func clustersListMap() map[string]interface{} {
 					},
 					"Resources": []interface{}{
 						map[string]interface{}{
+							"Id":     "ip",
+							"Agent":  "ocf::heartbeat:IPaddr2",
+							"Role":   "Started",
+							"Active": true,
+							"Node": map[string]interface{}{
+								"Name": "test_node_1",
+							},
+						},
+						map[string]interface{}{
 							"Id":     "sbd",
 							"Agent":  "stonith:external/sbd",
 							"Role":   "Started",
@@ -168,7 +192,7 @@ func clustersListMap() map[string]interface{} {
 						},
 					},
 				},
-				"name": "sculpin",
+				"name": "hana_cluster",
 				"id":   "47d1190ffb4f781974c8356d7f863b03",
 			},
 		},
@@ -180,7 +204,7 @@ func clustersListMap() map[string]interface{} {
 							"ClusterProperties": []interface{}{
 								map[string]interface{}{
 									"Id":    "cib-bootstrap-options-cluster-name",
-									"Value": "2nd_cluster",
+									"Value": "netweaver_cluster",
 								},
 							},
 						},
@@ -196,8 +220,36 @@ func clustersListMap() map[string]interface{} {
 						},
 					},
 				},
-				"name": "panther",
+				"name": "netweaver_cluster",
 				"id":   "e2f2eb50aef748e586a7baa85e0162cf",
+			},
+		},
+		"e27d313a674375b2066777a89ee346b9": map[string]interface{}{
+			"discovered_data": map[string]interface{}{
+				"cib": map[string]interface{}{
+					"Configuration": map[string]interface{}{
+						"CrmConfig": map[string]interface{}{
+							"ClusterProperties": []interface{}{
+								map[string]interface{}{
+									"Id":    "cib-bootstrap-options-cluster-name",
+									"Value": "netweaver_cluster",
+								},
+							},
+						},
+					},
+				},
+				"crmmon": map[string]interface{}{
+					"Summary": map[string]interface{}{
+						"Nodes": map[string]interface{}{
+							"Number": 2,
+						},
+						"Resources": map[string]interface{}{
+							"Number": 10,
+						},
+					},
+				},
+				"name": "netweaver_cluster",
+				"id":   "e27d313a674375b2066777a89ee346b9",
 			},
 		},
 	}
@@ -367,6 +419,14 @@ func aggregatedByClusterCritical() *services.AggregatedCheckData {
 	}
 }
 
+func aggregatedByClusterEmpty() *services.AggregatedCheckData {
+	return &services.AggregatedCheckData{
+		PassingCount:  0,
+		WarningCount:  0,
+		CriticalCount: 0,
+	}
+}
+
 func checksResultByHost() map[string]*services.AggregatedCheckData {
 	return map[string]*services.AggregatedCheckData{
 		"test_node_1": &services.AggregatedCheckData{
@@ -408,6 +468,19 @@ func TestClustersListHandler(t *testing.T) {
 		aggregatedByCluster(), nil)
 	checksMocks.On("GetAggregatedChecksResultByCluster", "e2f2eb50aef748e586a7baa85e0162cf").Return(
 		aggregatedByClusterCritical(), nil)
+	checksMocks.On("GetAggregatedChecksResultByCluster", "e27d313a674375b2066777a89ee346b9").Return(
+		aggregatedByClusterEmpty(), nil)
+
+	tags := map[string]interface{}{
+		"tag1": struct{}{},
+	}
+
+	tagsPath := "trento/v0/tags/clusters/47d1190ffb4f781974c8356d7f863b03/"
+	kv.On("ListMap", tagsPath, tagsPath).Return(tags, nil)
+	tagsPath = "trento/v0/tags/clusters/e2f2eb50aef748e586a7baa85e0162cf/"
+	kv.On("ListMap", tagsPath, tagsPath).Return(tags, nil)
+	tagsPath = "trento/v0/tags/clusters/e27d313a674375b2066777a89ee346b9/"
+	kv.On("ListMap", tagsPath, tagsPath).Return(nil, nil)
 
 	deps := DefaultDependencies()
 	deps.consul = consulInst
@@ -444,8 +517,9 @@ func TestClustersListHandler(t *testing.T) {
 
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, minified, "Clusters")
-	assert.Regexp(t, regexp.MustCompile("<td.*check_circle.*<td>PRD</td><td>sculpin</td><td>47d1190ffb4f781974c8356d7f863b03</td><td>HANA scale-up</td><td>3</td><td>5</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*error.*<td></td><td>panther</td><td>e2f2eb50aef748e586a7baa85e0162cf</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td .*>.*check_circle.*</td><td>.*hana_cluster.*</td><td>.*47d1190ffb4f781974c8356d7f863b03.*</td><td>HANA scale-up</td><td>PRD</td><td>3</td><td>5</td><td><input.*value=tag1.*></td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td .*>.*error.*</td><td>.*duplicated.*netweaver_cluster.*</td><td>.*e2f2eb50aef748e586a7baa85e0162cf.*</td><td>Unknown</td><td></td><td>2</td><td>10</td><td><input.*value=tag1.*></td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td .*>.*fiber_manual_record.*</td><td>.*duplicated.*netweaver_cluster.*</td><td>.*e27d313a674375b2066777a89ee346b9.*</td><td>Unknown</td><td></td>"), minified)
 }
 
 func TestClusterHandlerHANA(t *testing.T) {
@@ -540,7 +614,7 @@ func TestClusterHandlerHANA(t *testing.T) {
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, resp.Body.String(), "Cluster details")
 	// Summary
-	assert.Regexp(t, regexp.MustCompile("<strong>Cluster name:</strong><br><span.*>sculpin</span>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<strong>Cluster name:</strong><br><span.*>hana_cluster</span>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<strong>Cluster type:</strong><br><span.*>HANA scale-up</span>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<strong>HANA system replication mode:</strong><br><span.*>sync</span>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<strong>Stonith type:</strong><br><span.*>external/sbd</span>"), minified)
@@ -552,8 +626,8 @@ func TestClusterHandlerHANA(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile(".*error.*alert-body.*Critical.*1"), minified)
 
 	// Nodes
-	assert.Regexp(t, regexp.MustCompile("<td.*check_circle.*<td>test_node_1</td><td>192.168.1.1</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*error.*<td>test_node_2</td><td>192.168.1.2</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*check_circle.*<td><a.*href=/hosts/test_node_1.*>test_node_1</a></td><td>192.168.1.1</td><td>10.123.123.123</td><td><span .*>HANA Primary</span>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*error.*<td><a.*href=/hosts/test_node_2.*>test_node_2</a></td><td>192.168.1.2</td>"), minified)
 	// Resources
 	assert.Regexp(t, regexp.MustCompile("<td>sbd</td><td>stonith:external/sbd</td><td>Started</td><td>active</td><td>0</td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td>dummy_failed</td><td>dummy</td><td>Started</td><td>failed</td><td>0</td>"), minified)
@@ -799,7 +873,7 @@ func TestClusterHandlerGeneric(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, resp.Body.String(), "Cluster details")
-	assert.Contains(t, resp.Body.String(), "panther")
+	assert.Contains(t, resp.Body.String(), "netweaver_cluster")
 	assert.NotContains(t, resp.Body.String(), "HANA scale-out")
 	assert.NotContains(t, resp.Body.String(), "HANA scale-up")
 }

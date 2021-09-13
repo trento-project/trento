@@ -62,6 +62,14 @@ func NotFoundError(msg string) *HttpError {
 	}
 }
 
+func BadRequestError(msg string) *HttpError {
+	return &HttpError{
+		msg,
+		http.StatusBadRequest,
+		"error.html.tmpl",
+	}
+}
+
 func InternalServerError(msg string) *HttpError {
 	return &HttpError{
 		msg,

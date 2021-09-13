@@ -36,7 +36,7 @@ func NewAgentCmd() *cobra.Command {
 func start(cmd *cobra.Command, args []string) {
 	var err error
 
-	signals := make(chan os.Signal)
+	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
 
 	cfg, err := agent.DefaultConfig()
@@ -63,11 +63,5 @@ func start(cmd *cobra.Command, args []string) {
 	err = a.Start()
 	if err != nil {
 		log.Fatal("Failed to start the agent: ", err)
-	}
-}
-
-func must(err error) {
-	if err != nil {
-		panic(err)
 	}
 }

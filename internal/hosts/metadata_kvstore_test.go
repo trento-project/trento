@@ -18,17 +18,13 @@ func TestMetadataStore(t *testing.T) {
 	consulInst.On("KV").Return(kv)
 
 	m := Metadata{
-		Cluster:     "test-cluster",
-		Environment: "env1",
-		Landscape:   "land1",
-		SAPSystem:   "sys1",
+		Cluster:    "test-cluster",
+		SAPSystems: "sys1",
 	}
 
 	expectedPutMap := map[string]interface{}{
-		"ha-cluster":      "test-cluster",
-		"sap-environment": "env1",
-		"sap-landscape":   "land1",
-		"sap-system":      "sys1",
+		"ha-cluster":  "test-cluster",
+		"sap-systems": "sys1",
 	}
 
 	kvPath := fmt.Sprintf(consul.KvHostsMetadataPath, host)

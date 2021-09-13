@@ -1,0 +1,235 @@
+definitions:
+  web.JSONTag:
+    properties:
+      tag:
+        type: string
+    required:
+    - tag
+    type: object
+info:
+  contact: {}
+paths:
+  /api/clusters/{id}/tags:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Cluster id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: The tag to create
+        in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/web.JSONTag'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/web.JSONTag'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Add tag to Cluster
+  /api/clusters/{name}/tags/{tag}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Cluster id
+        in: path
+        name: cluster
+        required: true
+        type: string
+      - description: Tag
+        in: path
+        name: tag
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete a specific tag that belongs to a cluster
+  /api/hosts/{name}/tags:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Host name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: The tag to create
+        in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/web.JSONTag'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/web.JSONTag'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Add tag to host
+  /api/hosts/{name}/tags/{tag}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Host name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Tag
+        in: path
+        name: tag
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete a specific tag that belongs to a host
+  /api/sapsystems/{id}/tags:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: SAPSystem id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: The tag to create
+        in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/web.JSONTag'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/web.JSONTag'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Add tag to SAPSystem
+  /api/sapsystems/{name}/tags/{tag}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: SAPSystem id
+        in: path
+        name: cluster
+        required: true
+        type: string
+      - description: Tag
+        in: path
+        name: tag
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete a specific tag that belongs to a SAPSystem
+  /api/tags:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Filter by resource type
+        in: query
+        name: resourceType
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List all the tags in the system
+swagger: "2.0"

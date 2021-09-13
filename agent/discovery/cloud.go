@@ -1,6 +1,8 @@
 package discovery
 
 import (
+	"fmt"
+
 	"github.com/trento-project/trento/internal/cloud"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
@@ -24,23 +26,23 @@ func (d CloudDiscovery) GetId() string {
 	return d.id
 }
 
-func (d CloudDiscovery) Discover() error {
+func (d CloudDiscovery) Discover() (string, error) {
 	cloudData, err := cloud.NewCloudInstance()
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	err = cloudData.Store(d.discovery.client)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	err = storeCloudMetadata(d.discovery.client, cloudData.Provider)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return fmt.Sprintf("Cloud provider %s discovered", cloudData.Provider), nil
 }
 
 func storeCloudMetadata(client consul.Client, cloudProvider string) error {

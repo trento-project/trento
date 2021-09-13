@@ -9,18 +9,15 @@
     #  HANA and SPS versions are compatible
     sid=$(sudo crm configure show | grep -m1 SID= | sed -e "s/.*SID=\(...\).*/\1/" | tr '[:upper:]' '[:lower:]')
     full_version=$(sudo -i -u ${sid}adm HDB version | grep "version:" | sed -e "s/^.*:[\ ]*//")
-    hana_version=$(echo $full_version | cut -d. -f1)
-    sps_version=$(echo $full_version | cut -d. -f3)
-    sps_revision=$(echo $full_version | cut -d. -f4)
-    [[ "$hana_version" = "{{ expected[test_id] }}" ]] && exit 0
-    [[ "$hana_version" != "1" ]] && exit 1
-    [[ "$sps_version" -ge "110" ]] && exit 0
-    [[ "$sps_version" = "100" && "$sps_revision" = "03" ]] && exit 0
-    exit 1
+    if [[ "$full_version" = "" ]]; then
+      echo "0"
+    else
+      echo "$full_version"
+    fi
   check_mode: no
   register: config_updated
-  changed_when: config_updated.rc != 0
-  failed_when: config_updated.rc > 1
+  changed_when: config_updated.stdout is version(expected[test_id], '<')
+  failed_when: config_updated.rc > 0
 
 - block:
     - import_role:

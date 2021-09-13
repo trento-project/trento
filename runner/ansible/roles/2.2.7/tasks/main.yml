@@ -7,13 +7,13 @@
 - name: "{{ test_id }}.check"
   shell: |
     #  Check python version
-    VERSION=$(python3 --version)
-    [[ "{{ expected[test_id] }}" =~ $VERSION ]] && exit 0
-    exit 1
+    python3 --version | cut -d" " -f2
   check_mode: no
   register: config_updated
-  changed_when: config_updated.rc != 0
-  failed_when: config_updated.rc > 1
+  changed_when: >
+    config_updated.stdout is version(expected[test_id + '.low'], '<') or
+    config_updated.stdout is version(expected[test_id + '.high'], '>')
+  failed_when: config_updated.rc !=0
 
 - block:
     - import_role:

@@ -6,14 +6,12 @@
 
 - name: "{{ test_id }}.check"
   shell: |
-    # Check the sbd version IS
+    # Check the sbd version IS NOT
     # If not installed, exit with error
-    VERSION_ID=$(rpm -q --qf "%{VERSION}\n" sbd) || exit 2
-    [[ "$VERION_ID" != "{{ expected[test_id] }}" ]] && exit 0
-    exit 1
+    rpm -q --qf "%{VERSION}\n" sbd || exit 2
   check_mode: no
   register: config_updated
-  changed_when: config_updated.rc != 0
+  changed_when: config_updated.stdout is version(expected[test_id], '=')
   failed_when: config_updated.rc > 1
 
 - block:

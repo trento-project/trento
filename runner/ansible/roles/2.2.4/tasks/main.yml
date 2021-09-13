@@ -8,12 +8,10 @@
   shell: |
     # Check the corosync version IS
     # If not installed, exit with error
-    PACKAGE=$(rpm -qv corosync) || exit 2
-    [[ "$PACKAGE" == "{{ expected[test_id] }}" ]] && exit 0
-    exit 1
+    rpm -q --qf "%{VERSION}\n" corosync || exit 2
   check_mode: no
   register: config_updated
-  changed_when: config_updated.rc != 0
+  changed_when: config_updated.stdout is version(expected[test_id], '<')
   failed_when: config_updated.rc > 1
 
 - block:

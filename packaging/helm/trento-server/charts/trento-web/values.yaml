@@ -49,7 +49,7 @@ ingress:
     kubernetes.io/ingress.class: "traefik"
     kubernetes.io/tls-acme: "true"
   hosts:
-    - host: "localhost"
+    - host: ""
       paths:
         - path: /
           pathType: ImplementationSpecific

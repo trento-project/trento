@@ -9,6 +9,9 @@ import (
 
 const (
 	Azure = "azure"
+	// DMI chassis asset tag for Azure machines, needed to identify wether or not we are running on Azure
+	// This is actually ASCII-encoded, the decoding into a string results in "MSFT AZURE VM"
+	azureDmiTag = "7783-7084-3265-9085-8269-3286-77"
 )
 
 type CloudInstance struct {
@@ -22,7 +25,7 @@ var customExecCommand CustomCommand = exec.Command
 
 func IdentifyCloudProvider() (string, error) {
 	log.Info("Identifying if the VM is running in a cloud environment...")
-	output, err := customExecCommand("dmidecode", "-s", "bios-vendor").Output()
+	output, err := customExecCommand("dmidecode", "-s", "chassis-asset-tag").Output()
 	if err != nil {
 		return "", err
 	}
@@ -31,7 +34,7 @@ func IdentifyCloudProvider() (string, error) {
 	log.Debugf("dmidecode output: %s", provider)
 
 	switch string(provider) {
-	case "Microsoft Corporation":
+	case azureDmiTag:
 		log.Infof("VM is running on %s", Azure)
 		return Azure, nil
 	default:

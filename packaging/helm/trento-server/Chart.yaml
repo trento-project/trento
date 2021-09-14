@@ -1,0 +1,25 @@
+apiVersion: v2
+name: Trento server chart
+description: The trento server chart contains all the components necessary to run a Trento server.
+type: application
+# This is the chart version. This version number should be incremented each time you make changes
+# to the chart and its templates
+version: 0.1.0
+
+dependencies:
+  - name: trento-web
+    repository: file://charts/trento-web
+    version: ">0.0.0"
+    condition: trento-web.enabled
+  - name: trento-runner
+    repository: file://charts/trento-runner
+    version: ">0.0.0"
+    condition: trento-runner.enabled
+  - name: ara
+    repository: file://charts/ara
+    version: ">0.0.0"
+    condition: ara.enabled
+  - name: consul
+    version: "~0.32.1"
+    repository: https://helm.releases.hashicorp.com
+    condition: consul.enabled

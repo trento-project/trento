@@ -8,15 +8,12 @@ version: 0.1.0
 
 dependencies:
   - name: trento-web
-    repository: file://charts/trento-web
     version: ">0.0.0"
     condition: trento-web.enabled
   - name: trento-runner
-    repository: file://charts/trento-runner
     version: ">0.0.0"
     condition: trento-runner.enabled
   - name: ara
-    repository: file://charts/ara
     version: ">0.0.0"
     condition: ara.enabled
   - name: consul

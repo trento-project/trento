@@ -1,0 +1,26 @@
+Trento Server installed!
+                _  _ _  _                   _  _ _  _
+               | |_| |_| |                 | |_| |_| |
+               \  .      /                 \ .    .  /
+                \    ,  /                   \    .  /
+                 | .   |_   _   _   _   _   _| ,   |
+                 |    .| |_| |_| |_| |_| |_| |  .  |
+                 | ,   | .    .     .      . |    .|
+                 |   . |  .     . .   .  ,   |.    |
+     ___----_____| .   |.   ,  _______   .   |   , |---~_____
+_---~            |     |  .   /+++++++\    . | .   |         ~---_
+                 |.    | .    |+++++++| .    |   . |              ~-_
+              __ |   . |   ,  |+++++++|.  . _|__   |                 ~-_
+     ____--`~    '--~~__ .    |++++ __|----~    ~`---,              ___^~-__
+-~--~                   ~---__|,--~'                  ~~----_____-~'   `~----~
+
+
+{{- if (index .Values "trento-web").enabled }}
+{{- if  (index .Values "trento-web").ingress.enabled }}
+{{- range $host := (index .Values "trento-web").ingress.hosts }}
+  {{- range .paths }}
+URL: http{{ if (index $.Values "trento-web").ingress.tls }}s{{ end }}://{{ $host.host }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

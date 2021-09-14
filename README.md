@@ -23,7 +23,8 @@ of existing clusters, rather than deploying new one.
   - [Runtime dependencies](#runtime-dependencies)
   - [Build dependencies](#build-dependencies)
   - [Development dependencies](#development-dependencies)
-- [Installation](#installation)
+- [Quick-start installation](#quick-start-installation)
+- [Manual installation](#manual-installation)
 - [Running Trento](#running-trento)
   - [Consul](#consul)
   - [Trento Agents](#trento-agents)
@@ -89,13 +90,73 @@ Additionally, for the development we use:
 
 > See the [Development](#development) section for details on how to install `mockery`.
 
-# Installation
+# Quick-Start Installation
 
-## From binaries
+We provide an installation script to automatically install and update the latest version of Trento.
+
+## Trento Server Installation
+
+T.B.D.
+
+## Trento Agent Installation
+
+You can `curl | bash` if you want to live on the edge.
+
+```
+$ curl -sfL https://raw.githubusercontent.com/trento-project/trento/main/install-agent.sh | sudo bash
+```
+
+Or you can fetch the script, and then execute it manually.
+
+```
+$ curl -O https://raw.githubusercontent.com/trento-project/trento/main/install-agent.sh
+$ chmod 700 install-agent.sh
+$ sudo ./install-agent.sh
+```
+
+The script will ask you for two IP addresses.
+
+- `agent bind IP`: the private address to which the trento-agent should be bound for internal communications.
+  This is an IP address that should be reachable by the other hosts, including the trento server.
+  Note for the Pacemaker users: this IP address _should not be_ a floating IP.
+
+- `trento server IP`: the address where Trento server can be reached.
+
+You can pass these arguments as flags or env variables too:
+
+```
+$ curl -sfL https://raw.githubusercontent.com/trento-project/trento/main/install-agent.sh | sudo bash -s - --agent-bind-ip=192.168.33.10 --server-ip=192.168.33.1
+```
+
+```
+$ AGENT_BIND_IP=192.168.33.10 SERVER_IP=192.168.33.1 sudo ./install-agent.sh
+```
+
+### Start Trento Agent
+
+The installation script does not start the agent automatically.
+
+You can start it by simply:
+
+```
+$ sudo systemctl start trento-agent
+```
+
+Please make sure the server is running before starting the agent
+
+To enable the service execute:
+
+```
+$ sudo systemctl enable trento-agent
+```
+
+# Manual Installation
+
+## Pre-built binaries
 
 Pre-built statically linked binaries are made available via [GitHub releases](https://github.com/trento-project/trento/releases).
 
-## Manual
+## Compile from source
 
 You clone also clone and build it manually:
 

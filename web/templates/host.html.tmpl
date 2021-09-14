@@ -56,13 +56,12 @@
             <hr/>
         {{- end }}
         <p class='clearfix'></p>
-        <h2>Checks</h2>
+        <h2>Trento Agent status</h2>
         <div class='table-responsive'>
             <table class='table eos-table'>
                 <thead>
                 <tr>
-                    <th scope='col'>Check name</th>
-                    <th scope='col'>CheckId</th>
+                    <th scope='col'>Item</th>
                     <th scope='col'>Notes</th>
                     <th scope='col'>Output</th>
                     <th scope='col'>Status</th>
@@ -73,7 +72,6 @@
                 {{- range .HealthChecks }}
                     <tr>
                         <td>{{ .Name }}</td>
-                        <td>{{ .CheckID }}</td>
                         <td>{{ .Notes }}</td>
                         <td class='show-white-space'>{{ .Output }}</td>
                         <td>
@@ -81,7 +79,7 @@
                         </td>
                     </tr>
                 {{- else }}
-                    {{ template "empty_table_body" 5}}
+                    {{ template "empty_table_body" 4}}
                 {{- end }}
                 </tbody>
             </table>

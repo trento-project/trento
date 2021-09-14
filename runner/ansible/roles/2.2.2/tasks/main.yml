@@ -1,0 +1,13 @@
+---
+
+- name: Set Test ID
+  set_fact:
+    test_id: '2.2.2'
+
+- block:
+    - import_role:
+        name: post-results
+  when:
+    - ansible_check_mode
+  vars:
+    status: "{{  ansible_distribution_version is version(expected[test_id], '>=') }}"

@@ -27,9 +27,9 @@ type Agent struct {
 }
 
 type Config struct {
-	DiscoveryTTL    time.Duration
 	InstanceName    string
 	ConsulConfigDir string
+	DiscoveryPeriod time.Duration
 }
 
 func New() (*Agent, error) {
@@ -77,8 +77,8 @@ func DefaultConfig() (Config, error) {
 	}
 
 	return Config{
-		InstanceName: hostname,
-		DiscoveryTTL: 2 * time.Minute,
+		InstanceName:    hostname,
+		DiscoveryPeriod: 2 * time.Minute,
 	}, nil
 }
 
@@ -136,6 +136,7 @@ func (a *Agent) Stop() {
 func (a *Agent) registerConsulService() error {
 	var err error
 
+	discoveryTTL := a.cfg.DiscoveryPeriod * 2
 	consulService := &consulApi.AgentServiceRegistration{
 		ID:   a.cfg.InstanceName,
 		Name: "trento-agent",
@@ -145,21 +146,21 @@ func (a *Agent) registerConsulService() error {
 				CheckID: discovery.ClusterDiscoveryId,
 				Name:    "HA Cluster Discovery",
 				Notes:   "Collects details about the HA Cluster components running on this node",
-				TTL:     a.cfg.DiscoveryTTL.String(),
+				TTL:     discoveryTTL.String(),
 				Status:  consulApi.HealthWarning,
 			},
 			&consulApi.AgentServiceCheck{
 				CheckID: discovery.SAPDiscoveryId,
 				Name:    "SAP System Discovery",
 				Notes:   "Collects details about SAP System components running on this node",
-				TTL:     a.cfg.DiscoveryTTL.String(),
+				TTL:     discoveryTTL.String(),
 				Status:  consulApi.HealthWarning,
 			},
 			&consulApi.AgentServiceCheck{
 				CheckID: discovery.CloudDiscoveryId,
 				Name:    "Cloud metadata discovery",
 				Notes:   "Collects details about the cloud instance metadata",
-				TTL:     a.cfg.DiscoveryTTL.String(),
+				TTL:     discoveryTTL.String(),
 				Status:  consulApi.HealthWarning,
 			},
 		},
@@ -199,7 +200,7 @@ func (a *Agent) startDiscoverTicker() {
 		}
 	}
 
-	interval := a.cfg.DiscoveryTTL / 2
+	interval := a.cfg.DiscoveryPeriod
 
 	repeat(tick, interval, a.ctx)
 }

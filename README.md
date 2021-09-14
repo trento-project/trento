@@ -165,6 +165,9 @@ To start the trento agent:
 ./trento agent start
 ```
 
+> If the discovery loop is being executed too frequently, and this impacts the Web interface performance, the agent
+has the option to configure the discovery loop mechanism using the `--discovery-period` flag. Increasing this value improves the overall performance of the application
+
 ## Trento Runner
 
 The Trento Runner is responsible for running the health checks. It is based on [Ansible](https://docs.ansible.com/ansible/latest/index.html) and [ARA](https://ara.recordsansible.org/).

@@ -1,0 +1,36 @@
+---
+
+- name: Set Test ID
+  set_fact:
+    test_id: '2.1.7'
+
+- name: "{{ test_id }}.check"
+  shell: |
+    #  if no sid, then fail
+    sid=$(crm configure show | grep -m1 SID= | sed -e "s/.*SID=\(...\).*/\1/")
+    [[ $sid == "" ]] && exit 1
+    # if config file does not exist, exit fail
+    [[ -e /usr/sap/${sid}/SYS/global/hdb/custom/config/global.ini ]] || exit 1
+    # get ha_dr_provider_SAPHanaSR section from config file
+    ha_dr_provider_SAPHanaSR=$(sed -n -e '/ha_dr_provider_SAPHanaSR\]/,/\[/ p; /trace\]/,/\[/ p' /usr/sap/${sid}/SYS/global/hdb/custom/config/global.ini)
+    # if following not found, fail
+    echo ${ha_dr_provider_SAPHanaSR} | grep "provider = {{ expected[test_id + '.provider'] }}" || exit 1
+    echo ${ha_dr_provider_SAPHanaSR} | grep "path = {{ expected[test_id + '.path'] }}" || exit 1
+    echo ${ha_dr_provider_SAPHanaSR} | grep "execution_order = {{ expected[test_id + '.execution_order'] }}" || exit 1
+    echo ${ha_dr_provider_SAPHanaSR} | grep "ha_dr_saphanasr = {{ expected[test_id + '.ha_dr_saphanasr'] }}" || exit 1
+    # if hook not found, exit with fail
+    share_path=$(cat /hana/shared/${sid}/global/hdb/custom/config/global.ini | grep "path =" | sed "s/.*= //")
+    [[ -s "$share_path/SAPHanaSR.py" ]] || exit 1
+    exit 0
+  check_mode: no
+  register: config_updated
+  changed_when: config_updated.rc != 0
+  failed_when: config_updated.rc > 1
+
+- block:
+    - import_role:
+        name: post-results
+  when:
+    - ansible_check_mode
+  vars:
+    status: "{{ config_updated is not changed }}"

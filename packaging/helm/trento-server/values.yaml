@@ -1,0 +1,19 @@
+### Global Values if any ###
+global: {}
+
+### Sub Charts Specific Values ###
+trento-web:
+  enabled: true
+
+trento-runner:
+  enabled: true
+
+ara:
+  enabled: true
+
+consul:
+  enabled: true
+  server:
+    bootstrapExpect: 1
+    replicas: 1
+    exposeGossipAndRPCPorts: true

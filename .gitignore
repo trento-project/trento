@@ -2,4 +2,4 @@
 /build
 /web/frontend/assets
 /web/frontend/node_modules
-/helm/trento-server/charts/*.tgz
+/packaging/helm/trento-server/charts/*.tgz

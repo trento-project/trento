@@ -4,6 +4,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 
@@ -13,6 +14,7 @@ import (
 )
 
 var consulConfigDir string
+var discoveryPeriod int
 
 func NewAgentCmd() *cobra.Command {
 
@@ -27,6 +29,7 @@ func NewAgentCmd() *cobra.Command {
 		Run:   start,
 	}
 	startCmd.Flags().StringVarP(&consulConfigDir, "consul-config-dir", "", "consul.d", "Consul configuration directory used to store node meta-data")
+	startCmd.Flags().IntVarP(&discoveryPeriod, "discovery-period", "", 2, "Discovery mechanism loop period on minutes")
 
 	agentCmd.AddCommand(startCmd)
 
@@ -45,6 +48,7 @@ func start(cmd *cobra.Command, args []string) {
 	}
 
 	cfg.ConsulConfigDir = consulConfigDir
+	cfg.DiscoveryPeriod = time.Duration(discoveryPeriod) * time.Minute
 
 	a, err := agent.NewWithConfig(cfg)
 	if err != nil {

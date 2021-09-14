@@ -1,0 +1,15 @@
+dependencies:
+- name: trento-web
+  repository: ""
+  version: '>0.0.0'
+- name: trento-runner
+  repository: ""
+  version: '>0.0.0'
+- name: ara
+  repository: ""
+  version: '>0.0.0'
+- name: consul
+  repository: https://helm.releases.hashicorp.com
+  version: 0.32.1
+digest: sha256:bff2dfdc3c192b2b4c9bdb928d23f0fa9a587135d2083232db67b87fbc4994fc
+generated: "2021-09-14T17:46:57.219498157+02:00"

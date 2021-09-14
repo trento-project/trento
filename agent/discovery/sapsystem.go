@@ -50,10 +50,11 @@ func (d SAPSystemsDiscovery) Discover() (string, error) {
 
 	sysNames := systems.GetSIDsString()
 	if sysNames != "" {
+
 		return fmt.Sprintf("SAP system(s) with ID: %s discovered", sysNames), nil
 	}
-	output := "No SAP systems were found (you possibly need to run the trento agent with root privileges)"
-	return output, nil
+
+	return "No SAP system discovered on this host", nil
 }
 
 func storeSAPSystemTags(client consul.Client, systems sapsystem.SAPSystemsList) error {

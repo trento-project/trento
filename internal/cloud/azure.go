@@ -34,7 +34,7 @@ type Compute struct {
 	Location                   string              `json:"location,omitempty" mapstructure:"location,omitempty"`
 	Name                       string              `json:"name,omitempty" mapstructure:"name,omitempty"`
 	Offer                      string              `json:"offer,omitempty" mapstructure:"offer,omitempty"`
-	OsProfile                  OsProfile           `json:"osProfile,omitempty" mapstructure:"ofprofile,omitempty"`
+	OsProfile                  OsProfile           `json:"osProfile,omitempty" mapstructure:"osprofile,omitempty"`
 	OsType                     string              `json:"osType,omitempty" mapstructure:"ostype,omitempty"`
 	PlacementGroupId           string              `json:"placementGroupId,omitempty" mapstructure:"placementgroupid,omitempty"`
 	Plan                       Plan                `json:"plan,omitempty" mapstructure:"plan,omitempty"`

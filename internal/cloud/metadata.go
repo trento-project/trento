@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	azure = "azure"
+	Azure = "azure"
 	// DMI chassis asset tag for Azure machines, needed to identify wether or not we are running on Azure
 	// This is actually ASCII-encoded, the decoding into a string results in "MSFT AZURE VM"
 	azureDmiTag = "7783-7084-3265-9085-8269-3286-77"
@@ -35,8 +35,8 @@ func IdentifyCloudProvider() (string, error) {
 
 	switch string(provider) {
 	case azureDmiTag:
-		log.Infof("VM is running on %s", azure)
-		return azure, nil
+		log.Infof("VM is running on %s", Azure)
+		return Azure, nil
 	default:
 		log.Info("VM is not running in any recognized cloud provider")
 		return "", nil
@@ -58,7 +58,7 @@ func NewCloudInstance() (*CloudInstance, error) {
 	}
 
 	switch provider {
-	case azure:
+	case Azure:
 		cloudMetadata, err = NewAzureMetadata()
 		if err != nil {
 			return nil, err

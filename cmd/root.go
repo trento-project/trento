@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/trento-project/trento/cmd/agent"
+	"github.com/trento-project/trento/cmd/runner"
 	"github.com/trento-project/trento/cmd/web"
 	"github.com/trento-project/trento/internal"
 )
@@ -34,9 +35,14 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.trento.yaml)")
-	rootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "", "then minimum severity (error, warn, info, debug) of logs to output")
+	rootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "info", "then minimum severity (error, warn, info, debug) of logs to output")
+
+	// Make log-level available in the children commands
+	viper.BindPFlag("log-level", rootCmd.PersistentFlags().Lookup("log-level"))
+
 	rootCmd.AddCommand(web.NewWebCmd())
 	rootCmd.AddCommand(agent.NewAgentCmd())
+	rootCmd.AddCommand(runner.NewRunnerCmd())
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -54,9 +60,6 @@ func initConfig() {
 		viper.SetConfigName(".trento")
 	}
 
-	if logLevel == "" {
-		logLevel = "info"
-	}
 	internal.SetLogLevel(logLevel)
 	internal.SetLogFormatter("2006-01-02 15:04:05")
 

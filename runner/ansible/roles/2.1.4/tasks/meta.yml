@@ -1,0 +1,24 @@
+- block:
+    - import_role:
+        name: post-metadata
+        tasks_from: store
+  vars:
+    id: 2.1.4
+    name: Virtual IP Resource Agent properly configured
+    group: SAP HANA System Replication Resource Agent
+    labels: hana
+    description: |
+      Test if the HANA cluster virtual IP resource agent is properly configured
+    remediation: |
+      ## Abstract
+      The IPaddr2 resource-agent is responsible to manage the floating virtual IP used to acccess
+      the SAP HANA and to reconfigure it in case of take-overs.
+
+      ## Remediation
+      Make sure that it is configured and grouped together with the azure-lb resource agent, and that the following timings are set for the operations:
+
+      monitor: interval="10" timeout="20" \
+
+      ## References
+      - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability#create-sap-hana-cluster-resources
+    implementation: "{{ lookup('file', 'roles/'+id+'/tasks/main.yml') }}"

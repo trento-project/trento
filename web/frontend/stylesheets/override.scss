@@ -17,6 +17,12 @@ footer.footer-side-menu ul.footer-list {
   color: $eos-bc-gray-900;
 }
 
+// Set the same padding as info and warning
+.alert-danger {
+  padding-right: 8px;
+}
+
+/* ----- MODAL STYLE ----- */
 .modal.left .modal-dialog {
   position: fixed;
   right: 0;
@@ -50,12 +56,12 @@ footer.footer-side-menu ul.footer-list {
   right: 0;
 }
 
-/* ----- MODAL STYLE ----- */
 .modal-content {
   border-radius: 0;
   border: none;
 }
 
+/* ----- COLLAPSE STYLE ----- */
 .collapse-toggle:after {
   font-family: "eos-icons";
   content: "keyboard_arrow_up";
@@ -74,6 +80,7 @@ footer.footer-side-menu ul.footer-list {
   display: inline;
 }
 
+/* ----- TAGS STYLE ----- */
 .tags-input {
   width: 300px;
   --tag-bg: #{$eos-bc-cerulean-900};

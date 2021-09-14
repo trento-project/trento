@@ -95,6 +95,10 @@ hr.margin-10px {
   margin: 10px 0;
 }
 
+td.align-center {
+  text-align: center;
+}
+
 td.row-status {
   width: 0px;
 }
@@ -109,4 +113,47 @@ td i.warning {
 
 td i.critical {
   color: $eos-bc-red-500;
+}
+
+#checksAccordion .card .card-body {
+  background: white;
+}
+
+.collapse-toggle {
+  display: inline;
+  cursor: pointer;
+}
+
+.collapse-toggle:after {
+  font-family: 'eos-icons';
+  content: "keyboard_arrow_up";
+  float: right;
+  font-size: 24px;
+  font-weight: normal;
+}
+
+.collapse-toggle.collapsed:after {
+  font-family: 'eos-icons';
+  content: "keyboard_arrow_down";
+  float: right;
+  font-size: 24px;
+  font-weight: normal;
+}
+
+.cluster-settings {
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.card-check-selection {
+  background-color: white;
+  padding: 0 !important;
+}
+
+.card-header-check-selection {
+  padding: 0.40rem 0  0 1.25rem;
+}
+
+.header-check-selection {
+  padding-left: 0 !important;
 }

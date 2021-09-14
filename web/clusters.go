@@ -3,20 +3,25 @@ package web
 import (
 	"fmt"
 	"net/http"
+	"net/url"
+	"path"
 	"sort"
 	"strings"
 
 	"github.com/trento-project/trento/internal"
 
-	consulApi "github.com/hashicorp/consul/api"
-
 	"github.com/gin-gonic/gin"
+	"github.com/mitchellh/mapstructure"
 
+	"github.com/trento-project/trento/internal/cloud"
 	"github.com/trento-project/trento/internal/cluster"
 	"github.com/trento-project/trento/internal/cluster/cib"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/internal/tags"
+	"github.com/trento-project/trento/runner"
+	"github.com/trento-project/trento/web/models"
+	"github.com/trento-project/trento/web/services"
 )
 
 type Node struct {
@@ -140,7 +145,7 @@ func (node *Node) HANAStatus() string {
 	return "-"
 }
 
-func NewNodes(c *cluster.Cluster, hl hosts.HostList) Nodes {
+func NewNodes(s services.ChecksService, c *cluster.Cluster, hl hosts.HostList) Nodes {
 	// TODO: this factory is HANA specific,
 	// eventually we will need to have different factory methods depending on the cluster type
 
@@ -223,7 +228,10 @@ func NewNodes(c *cluster.Cluster, hl hosts.HostList) Nodes {
 		for _, h := range hl {
 			if h.Name() == node.Name {
 				node.Ip = h.Address
-				node.Health = h.Health()
+				cData, _ := s.GetAggregatedChecksResultByHost(c.Id)
+				if _, ok := cData[node.Name]; ok {
+					node.Health = cData[node.Name].String()
+				}
 			}
 		}
 
@@ -274,42 +282,6 @@ func (nodes Nodes) GroupBySite() map[string]Nodes {
 	return nodesBySite
 }
 
-func (nodes Nodes) CriticalCount() int {
-	var critical int
-
-	for _, n := range nodes {
-		if n.Health == consulApi.HealthCritical {
-			critical += 1
-		}
-	}
-
-	return critical
-}
-
-func (nodes Nodes) WarningCount() int {
-	var warning int
-
-	for _, n := range nodes {
-		if n.Health == consulApi.HealthWarning {
-			warning += 1
-		}
-	}
-
-	return warning
-}
-
-func (nodes Nodes) PassingCount() int {
-	var warning int
-
-	for _, n := range nodes {
-		if n.Health == consulApi.HealthPassing {
-			warning += 1
-		}
-	}
-
-	return warning
-}
-
 type ClustersRow struct {
 	Id                string
 	Name              string
@@ -324,15 +296,20 @@ type ClustersRow struct {
 
 type ClustersTable []*ClustersRow
 
-func NewClustersTable(clusters map[string]*cluster.Cluster, hostList hosts.HostList, client consul.Client) (ClustersTable, error) {
+func NewClustersTable(s services.ChecksService, client consul.Client, clusters map[string]*cluster.Cluster) (ClustersTable, error) {
 	var clusterTable ClustersTable
 	names := make(map[string]int)
 
 	for id, c := range clusters {
-		var clusterHostList hosts.HostList
+		var health string
 		// TODO: Cost-optimized has multiple SIDs
 		var sids []string
 		sids = append(sids, getHanaSID(c))
+
+		// Using empty string in case of error
+		if aCheckData, err := s.GetAggregatedChecksResultByCluster(id); err == nil {
+			health = aCheckData.String()
+		}
 
 		t := tags.NewTags(client)
 		clusterTags, err := t.GetAllByResource(tags.ClusterResourceType, c.Id)
@@ -340,20 +317,12 @@ func NewClustersTable(clusters map[string]*cluster.Cluster, hostList hosts.HostL
 			return nil, err
 		}
 
-		for _, n := range c.Crmmon.NodeAttributes.Nodes {
-			for _, h := range hostList {
-				if h.Name() == n.Name {
-					clusterHostList = append(clusterHostList, h)
-				}
-			}
-		}
-
 		names[c.Name] += 1
 
 		clustersRow := &ClustersRow{
 			Id:              id,
 			Name:            c.Name,
-			Health:          clusterHostList.Health(),
+			Health:          health,
 			SIDs:            sids,
 			Type:            detectClusterType(c),
 			ResourcesNumber: c.Crmmon.Summary.Resources.Number,
@@ -488,18 +457,16 @@ func NewClustersHealthContainer(t ClustersTable) *HealthContainer {
 	h := &HealthContainer{}
 	for _, r := range t {
 		switch r.Health {
-		case consulApi.HealthPassing:
+		case services.CheckPassing:
 			h.PassingCount += 1
-		case consulApi.HealthWarning:
-			h.WarningCount += 1
-		case consulApi.HealthCritical:
+		case services.CheckCritical:
 			h.CriticalCount += 1
 		}
 	}
 	return h
 }
 
-func NewClusterListHandler(client consul.Client) gin.HandlerFunc {
+func NewClusterListHandler(client consul.Client, s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		query := c.Request.URL.Query()
 
@@ -515,13 +482,7 @@ func NewClusterListHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		hostList, err := hosts.Load(client, "", nil, nil)
-		if err != nil {
-			_ = c.Error(err)
-			return
-		}
-
-		clustersTable, err := NewClustersTable(clusters, hostList, client)
+		clustersTable, err := NewClustersTable(s, client, clusters)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -545,7 +506,43 @@ func NewClusterListHandler(client consul.Client) gin.HandlerFunc {
 	}
 }
 
-func NewClusterHandler(client consul.Client) gin.HandlerFunc {
+func getChecksCatalogModalData(s services.ChecksService, clusterId, selectedChecks string) (map[string]map[string]*models.Check, error) {
+	checksCatalog, err := s.GetChecksCatalogByGroup()
+	if err != nil {
+		return checksCatalog, err
+	}
+
+	for _, checkList := range checksCatalog {
+		for _, check := range checkList {
+			if internal.Contains(strings.Split(selectedChecks, ","), check.ID) {
+				check.Selected = true
+			}
+		}
+	}
+
+	return checksCatalog, nil
+}
+
+func getDefaultConnectionSettings(client consul.Client, c *cluster.Cluster) (map[string]string, error) {
+	connData := make(map[string]string)
+	for _, n := range c.Crmmon.Nodes {
+		data, err := cloud.Load(client, n.Name)
+		if err != nil {
+			return connData, err
+		}
+		if data.Provider == cloud.Azure {
+			azureMetadata := &cloud.AzureMetadata{}
+			mapstructure.Decode(data.Metadata, &azureMetadata)
+			connData[n.Name] = azureMetadata.Compute.OsProfile.AdminUserName
+		} else {
+			connData[n.Name] = runner.DefaultUser
+		}
+	}
+
+	return connData, nil
+}
+
+func NewClusterHandler(client consul.Client, s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		clusterId := c.Param("id")
 
@@ -555,7 +552,7 @@ func NewClusterHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		cluster, ok := clusters[clusterId]
+		clusterItem, ok := clusters[clusterId]
 		if !ok {
 			_ = c.Error(NotFoundError("could not find cluster"))
 			return
@@ -568,29 +565,117 @@ func NewClusterHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		clusterType := detectClusterType(cluster)
+		clusterType := detectClusterType(clusterItem)
 		if clusterType == ClusterTypeUnknown {
 			c.HTML(http.StatusOK, "cluster_generic.html.tmpl", gin.H{
-				"Cluster": cluster,
+				"Cluster": clusterItem,
 				"Hosts":   hosts,
 			})
 			return
 		}
 
-		nodes := NewNodes(cluster, hosts)
+		selectedChecks, getCheckErr := cluster.GetCheckSelection(client, clusterId)
+		if getCheckErr != nil {
+			StoreAlert(c, AlertCatalogNotFound())
+		}
+
+		connectionData, getConnErr := cluster.GetConnectionSettings(client, clusterId)
+		defaultConnectionData, getDefConnErr := getDefaultConnectionSettings(client, clusterItem)
+		if getConnErr != nil || getDefConnErr != nil {
+			StoreAlert(c, AlertConnectionDataNotFound())
+		}
+
+		checksCatalog, errCatalog := s.GetChecksCatalog()
+		checksCatalogModalData, errCatalogByGroup := getChecksCatalogModalData(
+			s, clusterId, selectedChecks)
+		checksResult, errResult := s.GetChecksResultByCluster(clusterItem.Id)
+		if errCatalog != nil || errCatalogByGroup != nil {
+			StoreAlert(c, AlertCatalogNotFound())
+		} else if errResult != nil {
+			StoreAlert(c, CheckResultsNotFound())
+		} else if selectedChecks == "" {
+			a := Alert{
+				Type:  "info",
+				Title: "There is not any check selected",
+				Text:  "Select the desired checks in the settings modal in order to validate the cluster configuration",
+			}
+			StoreAlert(c, a)
+		}
+
+		nodes := NewNodes(s, clusterItem, hosts)
+		// It returns an empty aggretaged data in case of error
+		aCheckData, _ := s.GetAggregatedChecksResultByCluster(clusterId)
+
+		hContainer := &HealthContainer{
+			CriticalCount: aCheckData.CriticalCount,
+			WarningCount:  aCheckData.WarningCount,
+			PassingCount:  aCheckData.PassingCount,
+			Layout:        "vertical",
+		}
 
 		c.HTML(http.StatusOK, "cluster_hana.html.tmpl", gin.H{
-			"Cluster":          cluster,
-			"SID":              getHanaSID(cluster),
-			"Nodes":            nodes,
-			"StoppedResources": stoppedResources(cluster),
-			"ClusterType":      clusterType,
-			"HealthContainer": &HealthContainer{
-				CriticalCount: nodes.CriticalCount(),
-				WarningCount:  nodes.WarningCount(),
-				PassingCount:  nodes.PassingCount(),
-				Layout:        "vertical",
-			},
+			"Cluster":               clusterItem,
+			"SID":                   getHanaSID(clusterItem),
+			"Nodes":                 nodes,
+			"StoppedResources":      stoppedResources(clusterItem),
+			"ClusterType":           clusterType,
+			"HealthContainer":       hContainer,
+			"ChecksCatalog":         checksCatalog,
+			"ChecksCatalogModal":    checksCatalogModalData,
+			"ConnectionData":        connectionData,
+			"DefaultConnectionData": defaultConnectionData,
+			"ChecksResult":          checksResult,
+			"Alerts":                GetAlerts(c),
 		})
+	}
+}
+
+type checkSelectionForm struct {
+	Ids []string `form:"check_ids[]"`
+}
+
+func getConnectionMap(form url.Values) map[string]interface{} {
+	usernames := make(map[string]interface{})
+	for key, value := range form {
+		if strings.HasPrefix(key, "username") {
+			usernames[strings.Split(key, "username-")[1]] = value[0]
+		}
+	}
+
+	return usernames
+}
+
+func NewSaveClusterSettingsHandler(client consul.Client) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		clusterId := c.Param("id")
+
+		var selectedChecks checkSelectionForm
+		c.ShouldBind(&selectedChecks)
+
+		usernames := getConnectionMap(c.Request.PostForm)
+
+		checkErr := cluster.StoreCheckSelection(
+			client, clusterId, strings.Join(selectedChecks.Ids, ","))
+
+		connErr := cluster.StoreConnectionSettings(
+			client, clusterId, usernames)
+
+		var newAlert Alert
+		if checkErr == nil && connErr == nil {
+			newAlert = Alert{
+				Type:  "success",
+				Title: "Cluster settings saved",
+				Text:  "The cluster settings has been saved correctly.",
+			}
+		} else {
+			newAlert = Alert{
+				Type:  "danger",
+				Title: "Error saving cluster settings",
+				Text:  "The cluster settings couldn't be saved.",
+			}
+		}
+		StoreAlert(c, newAlert)
+
+		c.Redirect(http.StatusFound, path.Join("/clusters", clusterId))
 	}
 }

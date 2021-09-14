@@ -612,9 +612,9 @@ func TestApiSAPSystemDeleteTagHandler404(t *testing.T) {
 
 func TestApiSAPSystemDeleteTagHandler500(t *testing.T) {
 	consulInst := new(mocks.Client)
-	kv := new(mocks.KV)
-	consulInst.On("KV").Return(kv)
-	consulInst.On("WaitLock", mock.Anything).Return(fmt.Errorf("kaboom"))
+	catalog := new(mocks.Catalog)
+	catalog.On("Nodes", mock.Anything).Return(nil, nil, fmt.Errorf("kaboom"))
+	consulInst.On("Catalog").Return(catalog)
 
 	deps := DefaultDependencies()
 	deps.consul = consulInst

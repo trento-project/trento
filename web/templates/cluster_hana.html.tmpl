@@ -1,5 +1,8 @@
+{{ define "additional_scripts" }}
+<script src="/static/frontend/assets/js/check_selection.js"></script>{{ end }}
 {{ define "content" }}
-    <h1>Cluster details</h1>
+    {{ template "alerts" .Alerts }}
+    <h1>Cluster details <i class="eos-icons eos-24 cluster-settings" data-toggle="modal" data-target="#clusterModal">settings</i></h1>
     <div class="row">
         <div class="col">
             <h6>
@@ -79,6 +82,10 @@
                 <div class="mt-3">
                     {{ template "health_container" .HealthContainer }}
                 </div>
+                <button class="btn btn-secondary btn-sm" data-toggle="modal"
+                        data-target="#checks-result-modal">
+                    Checks result
+                </button>
             </div>
         </div>
     </div>
@@ -110,4 +117,6 @@
     {{- range .Nodes }}
         {{ template "node_modal" . }}
     {{- end}}
+    {{ template "cluster_modal" . }}
+    {{ template "cluster_checks_result_modal" . }}
 {{- end }}

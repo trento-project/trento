@@ -7,7 +7,7 @@ replicaCount: 1
 privateKey: ""
 
 image:
-  repository: ghcr.io/fabriziosestito/trento
+  repository: ghcr.io/trento-project/trento
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""

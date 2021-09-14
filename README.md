@@ -102,15 +102,15 @@ T.B.D.
 You can `curl | bash` if you want to live on the edge.
 
 ```
-$ curl -sfL https://raw.githubusercontent.com/trento-project/trento/main/install.sh | sudo bash
+$ curl -sfL https://raw.githubusercontent.com/trento-project/trento/main/install-agent.sh | sudo bash
 ```
 
 Or you can fetch the script, and then execute it manually.
 
 ```
-$ curl -O https://raw.githubusercontent.com/trento-project/trento/main/install.sh
-$ chmod 700 install.sh
-$ sudo ./install.sh
+$ curl -O https://raw.githubusercontent.com/trento-project/trento/main/install-agent.sh
+$ chmod 700 install-agent.sh
+$ sudo ./install-agent.sh
 ```
 
 The script will ask you for two IP addresses.
@@ -124,11 +124,11 @@ The script will ask you for two IP addresses.
 You can pass these arguments as flags or env variables too:
 
 ```
-$ curl -sfL https://raw.githubusercontent.com/trento-project/trento/main/install.sh | sudo bash -s - --agent-bind-ip=192.168.33.10 --server-ip=192.168.33.1
+$ curl -sfL https://raw.githubusercontent.com/trento-project/trento/main/install-agent.sh | sudo bash -s - --agent-bind-ip=192.168.33.10 --server-ip=192.168.33.1
 ```
 
 ```
-$ AGENT_BIND_IP=192.168.33.10 SERVER_IP=192.168.33.1 sudo ./install.sh
+$ AGENT_BIND_IP=192.168.33.10 SERVER_IP=192.168.33.1 sudo ./install-agent.sh
 ```
 
 ### Start Trento Agent

@@ -15,7 +15,7 @@ that can help you deploy, provision and operate infrastructure for SAP Applicati
 
 Usage:
 
-  sudo ./install.sh --agent-bind-ip <192.168.122.10> --server-ip <192.168.122.5>
+  sudo ./install-agent.sh --agent-bind-ip <192.168.122.10> --server-ip <192.168.122.5>
 
 Arguments:
   --agent-bind-ip   The private address to which the trento-agent should be bound for internal communications.

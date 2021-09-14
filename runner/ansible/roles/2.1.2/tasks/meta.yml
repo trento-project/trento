@@ -18,9 +18,9 @@
       ## Remediation
       Make sure that it is configured as a clone resource, so it runs on all nodes of the cluster and that the following timings are set for the operations:
 
-        monitor: interval="10" timeout="600"
-        start:  interval="0" timeout="600"
-        stop: interval="0" timeout="300"
+      monitor: interval="10" timeout="600" \
+      start:  interval="0" timeout="600" \
+      stop: interval="0" timeout="300" \
 
       ## References
       - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability#create-sap-hana-cluster-resources

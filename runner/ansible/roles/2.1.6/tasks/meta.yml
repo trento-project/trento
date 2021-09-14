@@ -18,7 +18,7 @@
       Make sure that the constraint score is set to 4000 to guarantee proper actions calculations related with the defaults set for resource-stickiness=1000.
       An order constraint is also needed to guarantee that SAPHanaTopology resource starts before the SAPHana resource, avoiding miscalculations regarding the cluster status.
 
-      **IMPORTANT**: This check is based on the resource prefix names recommended on the documentation (e.g. "g_ip_*", "msl_SAPHana_*", "cln_SAPHanaTopology_*").
+      **IMPORTANT**: This check is based on the resource prefix names recommended on the documentation (e.g. "g_ip_*", "col_saphana_*", "ord_SAPHana_*", "cln_SAPHanaTopology_*).
       Please, check the naming convention in case the resource configuration is done correctly.
 
       ## References

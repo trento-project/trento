@@ -17,7 +17,7 @@
       ## Remediation
       Make sure that it is configured and grouped together with the azure-lb resource agent, and that the following timings are set for the operations:
 
-        monitor: interval="10" timeout="20"
+      monitor: interval="10" timeout="20" \
 
       ## References
       - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability#create-sap-hana-cluster-resources

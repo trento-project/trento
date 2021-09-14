@@ -19,9 +19,9 @@
     echo ${ha_dr_provider_SAPHanaSR} | grep "execution_order = {{ expected[test_id + '.execution_order'] }}" || exit 1
     echo ${ha_dr_provider_SAPHanaSR} | grep "ha_dr_saphanasr = {{ expected[test_id + '.ha_dr_saphanasr'] }}" || exit 1
     # if hook not found, exit with fail
-    share_path=$(cat /hana/shared/PRD/global/hdb/custom/config/global.ini | grep "path =" | sed "s/.*= //")
+    share_path=$(cat /hana/shared/${sid}/global/hdb/custom/config/global.ini | grep "path =" | sed "s/.*= //")
     [[ -s "$share_path/SAPHanaSR.py" ]] || exit 1
-    exit 0 
+    exit 0
   check_mode: no
   register: config_updated
   changed_when: config_updated.rc != 0

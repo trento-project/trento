@@ -10,9 +10,7 @@
     python3 --version | cut -d" " -f2
   check_mode: no
   register: config_updated
-  changed_when: >
-    config_updated.stdout is version(expected[test_id + '.low'], '<') or
-    config_updated.stdout is version(expected[test_id + '.high'], '>')
+  changed_when: config_updated.stdout is version(expected[test_id], '<')
   failed_when: config_updated.rc !=0
 
 - block:

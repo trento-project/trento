@@ -1,0 +1,28 @@
+---
+
+- name: Set Test ID
+  set_fact:
+    test_id: '2.1.8'
+
+- name: "{{ test_id }}.check"
+  shell: |
+    # make sure sudoers is set up
+    grep -E "[a-z][a-z0-9]{2}adm +ALL=\(ALL\) +NOPASSWD: +/usr/sbin/crm_attribute +-n +hana_[a-z][a-z0-9]{2}_site_srHook_\*" /etc/sudoers && exit 0
+    grep -E "^Cmnd_Alias +SOK_SITEA += +/usr/sbin/crm_attribute" /etc/sudoers grep -E "\-n +hana_[a-z][a-z0-9]{2}_site_srHook_.+" | grep -E "\-v +SOK" | grep -E "\-t +crm_config" | grep -E "\-s +SAPHanaSR" || exit 1
+    grep -E "^Cmnd_Alias +SFAIL_SITEA += +/usr/sbin/crm_attribute" /etc/sudoers | grep -E "\-n +hana_[a-z][a-z0-9]{2}_site_srHook_.+" | grep -E "\-v +SFAIL" | grep -E "\-t +crm_config" | grep -E "\-s +SAPHanaSR" || exit 1
+    grep -E "^Cmnd_Alias +SOK_SITEB += +/usr/sbin/crm_attribute" /etc/sudoers | grep -E "\-n +hana_[a-z][a-z0-9]{2}_site_srHook_.+" | grep -E "\-v +SOK" | grep -E "\-t +crm_config" | grep -E "\-s +SAPHanaSR" || exit 1
+    grep -E "^Cmnd_Alias +SFAIL_SITEB += +/usr/sbin/crm_attribute" /etc/sudoers | grep -E "\-n +hana_[a-z][a-z0-9]{2}_site_srHook_.+" | grep -E "\-v +SFAIL" | grep -E "\-t +crm_config" | grep -E "\-s +SAPHanaSR" || exit 1
+    grep -E "[a-z][a-z0-9]{2}adm +ALL=\(ALL\) +NOPASSWD:" /etc/sudoers | sed "s/.*: //" | grep SOK_SITEA | grep SFAIL_SITEA | grep SOK_SITEB | grep SFAIL_SITEB || exit 1
+    exit 0 
+  check_mode: no
+  register: config_updated
+  changed_when: config_updated.rc != 0
+  failed_when: config_updated.rc > 1
+
+- block:
+    - import_role:
+        name: post-results
+  when:
+    - ansible_check_mode
+  vars:
+    status: "{{ config_updated is not changed }}"

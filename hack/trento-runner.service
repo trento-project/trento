@@ -1,10 +1,10 @@
 [Unit]
-Description=Trento agent service
+Description=Trento Runner
 Requires=consul.service
 After=consul.service
 
 [Service]
-ExecStart=/srv/trento/trento agent start --consul-config-dir=/srv/consul/consul.d
+ExecStart=/srv/trento/trento runner start
 Type=simple
 User=root
 Restart=on-failure

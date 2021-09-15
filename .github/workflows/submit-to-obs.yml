@@ -1,0 +1,74 @@
+name: Rebuild trento in obs
+on: [push]
+env:
+  PACKAGE_NAME: trento
+  OBS_USER: ${{ secrets.OBS_USER }}
+  OBS_PASS: ${{ secrets.OBS_PASS }}
+  OBS_PROJECT: ${{ secrets.OBS_PROJECT}}
+  TARGET_PROJECT: ${{ secrets.TARGET_PROJECT}}
+  FOLDER: packaging/suse
+  REPOSITORY: ${{ github.repository }}
+jobs:
+  delivery:
+    runs-on: ubuntu-18.04
+    if: github.ref == 'refs/heads/main'
+    container:
+      image: shap/continuous_deliver
+      env:
+        OBS_UNSTABLE: https://download.opensuse.org/repositories/OBS:/Server:/Unstable/SLE_15_SP3/OBS:Server:Unstable.repo
+        OBS_UNSTABLE_KEY: https://download.opensuse.org/repositories/OBS:/Server:/Unstable/SLE_15_SP3/repodata/repomd.xml.key
+        GITHUB_OAUTH_TOKEN:  ${{ secrets.GITHUB_TOKEN }}
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: configure OSC
+    # OSC credentials must be configured beforehand as the HOME variables cannot be changed from /github/home
+    # that is used to run osc commands
+      run: |
+        /scripts/init_osc_creds.sh
+        mkdir -p $HOME/.config/osc
+        cp /root/.config/osc/oscrc $HOME/.config/osc
+    - name: update go and install obs-service-node_modules
+      run: |
+        rpm --import ${OBS_UNSTABLE_KEY}
+        zypper ar ${OBS_UNSTABLE}
+        zypper ref
+        zypper in -y obs-service-node_modules go
+        go version
+    - name: prepare tranto.changes file
+      run: |
+        VERSION=$(hack/get_version_from_git.sh)
+        TAG=$(echo $VERSION | cut -f1 -d+)
+        .ci/gh_release_to_obs_changeset.py $REPOSITORY -a shap-staff@suse.de -t $TAG -f $FOLDER/trento.changes
+    - name: prepare _service file
+      run: |
+        VERSION=$(hack/get_version_from_git.sh)
+        sed -i 's~%%REVISION%%~${{ github.sha }}~' $FOLDER/_service && \
+        sed -i 's~%%REPOSITORY%%~${{ github.repository }}~' $FOLDER/_service && \
+        sed -i 's~%%VERSION%%~'"${VERSION}"'~' $FOLDER/_service
+    - name: deliver package
+      run: cp $FOLDER/_service . && /scripts/upload.sh
+  submit:
+    needs: delivery
+    runs-on: ubuntu-18.04
+    if: ${{ github.event_name != 'pull_request' }}
+    container:
+      image: shap/continuous_deliver
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: configure OSC
+      run: |
+        /scripts/init_osc_creds.sh
+        mkdir -p $HOME/.config/osc
+        cp /root/.config/osc/oscrc $HOME/.config/osc
+    - name: prepare _service file
+      run: |
+        VERSION=$(hack/get_version_from_git.sh)
+        sed -i 's~%%REVISION%%~${{ github.sha }}~' $FOLDER/_service && \
+        sed -i 's~%%REPOSITORY%%~${{ github.repository }}~' $FOLDER/_service && \
+        sed -i 's~%%VERSION%%~'"${VERSION}"'~' $FOLDER/_service
+    - name: submit package
+      run: cp $FOLDER/_service . && /scripts/submit.sh

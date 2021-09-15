@@ -21,7 +21,7 @@ Name:           trento
 Version:        0
 Release:        0
 License:        Apache-2.0
-Summary:        An open cloud-native web console improving on the life of SAP Applications administrators .
+Summary:        An open cloud-native web console improving on the life of SAP Applications administrators.
 Group:          System/Monitoring
 URL:            https://github.com/trento-project/trento
 Source:         %{name}-%{version}.tar.gz
@@ -42,7 +42,7 @@ Provides:       trento = %{version}-%{release}
 %description
 An open cloud-native web console improving on the life of SAP Applications administrators.
 
-Trento is a city on the Adige River in Trentino-Alto Adige/Suedtirol in Italy. [...] It is one of the nation''s wealthiest and most prosperous cities, [...] often ranking highly among Italian cities for quality of life, standard of living, and business and job opportunities. (source)
+Trento is a city on the Adige River in Trentino-Alto Adige/Suedtirol in Italy. [...] It is one of the nation's wealthiest and most prosperous cities, [...] often ranking highly among Italian cities for quality of life, standard of living, and business and job opportunities. (source)
 
 This project is a reboot of the "SUSE Console for SAP Applications", also known as the Blue Horizon for SAP prototype, which is focused on automated infrastructure deployment and provisioning for SAP Applications.
 
@@ -68,19 +68,7 @@ make build
 install -D -m 0755 %{shortname} "%{buildroot}%{_bindir}/%{shortname}"
 
 # Install the systemd unit
-install -D -m 0644 hack/trento-agent.service %{buildroot}%{_unitdir}/trento-agent.service
-sed -i "s+/srv/trento/trento agent start+trento agent start+g" %{buildroot}%{_unitdir}/trento-agent.service
-
-# Install compat wrapper for legacy init systems
-install -Dd -m 0755 %{buildroot}%{_sbindir}
-ln -s /usr/sbin/service %{buildroot}%{_sbindir}/rc%{name}
-
-# Install checkers
-install -D -m 0644 examples/hana-scale-up-perf-optimized-azure.yaml "%{buildroot}/srv/%{shortname}/examples/hana-scale-up-perf-optimized-azure.yaml"
-install -D -m 0644 examples/generic-azure.yaml "%{buildroot}/srv/%{shortname}/examples/generic-azure.yaml"
-
-# Create a link
-#ln -s "%{buildroot}%{_bindir}/%{shortname}" "%{buildroot}/srv/%{shortname}/"
+install -D -m 0644 trento-agent.service %{buildroot}%{_unitdir}/trento-agent.service
 
 %pre
 %service_add_pre trento-agent.service
@@ -98,17 +86,8 @@ install -D -m 0644 examples/generic-azure.yaml "%{buildroot}/srv/%{shortname}/ex
 %defattr(-,root,root)
 %doc *.md
 %doc docs/*.md
-%if 0%{?suse_version} >= 1500
 %license LICENSE
-%else
-%doc LICENSE
-%endif
 %{_bindir}/%{shortname}
 %{_unitdir}/trento-agent.service
-%{_sbindir}/rc%{name}
-%dir /srv/%{shortname}/
-%dir /srv/%{shortname}/examples/
-%config /srv/%{shortname}/examples/generic-azure.yaml
-%config /srv/%{shortname}/examples/hana-scale-up-perf-optimized-azure.yaml
 
 %changelog

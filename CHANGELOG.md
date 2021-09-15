@@ -5,7 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## (Unreleased) [0.4.0](https://github.com/trento-project/trento/releases/tag/0.4.0) 2021-09-15
+## [0.4.0](https://github.com/trento-project/trento/releases/tag/0.4.0) 2021-09-15
+
+### Added
+
+- New Ansible-driven "Trento Runner" component, powering the main HA Checker feature (#150, #165, #187, #191, #204, #213)
+- Add the checks catalog page (#159)
+- Granular customization of the HA Checker rules (#181, #189, #211, #217)
+- One-line installers and Continuously Delivered packages​ (#226)
+- Helm Chart for the Trento Server deployment​​ (#206, #239, #242, #244)
+- Add trento agent version visualization in the UI (#168, #198)
+- Add discovery-period flag to the agent (#234)
+
+### Changed
+
+- Move the benchcommon based checks to ansible (#167, #172, #173, #174, #175, #180, #185, #190, #202, #223, #223, #225, #233)
+- New SAP focused HANA Cluster and SAP Systems views​ (#169, #170, #171, #179, #192, #193, #222, #228)
+- Tagging, filtering, and general navigation enhancements (#160, #221)
+- Update the Dockerfile to use distroless containers (#241)
+- Update the agent systemd unit file (#158)
+- Rename the "Checks" section in the single host page (#238)
+- Use full version of trento server in the web ui (#245)
+
+### Fixed
+
+- Fix and improve CI process steps (#182, #184, #212, #243)
+- Fix Azure metadata discovery for different hypervisors (#229, #232)
+- Fix assets upload in the CI process (#147, #156)
+- Fix SID retrieval on the cluster context (#149)
+- Fix the CIB Groups usage (it was not present before) (#151)
+
+### Removed
+
+- Remove Environment and Landscapes pages in favor of the new tagging system (#188)
+- Remove automatic cluster name generation (#203)
+- Remove HANA role badge (#210)
+- Remove benchcommo checker for HA checks (#220)
 
 ## [0.3.0](https://github.com/trento-project/trento/releases/tag/0.3.0) 2021-07-14
 

@@ -94,7 +94,90 @@ We provide an installation script to automatically install and update the latest
 
 ## Trento Server Installation
 
-T.B.D.
+The [packaging/helm](packaging/helm) directory contains the Helm chart for installing Trento Server in a Kubernetes cluster.
+
+### Install K3s
+
+If installing as root:
+
+```
+# curl -sfL https://get.k3s.io | sh
+```
+
+If installing as non-root user:
+
+```
+$ curl -sfL https://get.k3s.io | sh -s - --write-kubeconfig-mode 644
+```
+
+Export KUBECONFIG env variable:
+
+```
+$ export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+```
+
+Please refer to the [K3s official documentation](https://rancher.com/docs/k3s/latest/en/installation/) for more information about the installation.
+
+### Install Helm and chart dependencies
+
+Install Helm:
+
+```
+$ curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+```
+
+Please refer to the [Helm official documentation](https://helm.sh/docs/intro/install/) for more information about the installation.
+
+### Install the Trento Server Helm chart
+
+Add HashiCorp Helm repository:
+
+```
+$ helm repo add hashicorp https://helm.releases.hashicorp.com
+$ helm repo update
+```
+
+Install chart dependencies:
+
+```
+$ cd helm/trento-server/
+$ helm dependency update
+```
+
+The runner component of Trento server needs ssh access to the agent nodes to perform the checks.
+You need to pass a valid private key used for ssh authentication to the Helm chart, and it will be stored
+in the K3s cluster as a secret.
+Please refer to the [Trento Runner](#trento-runner) for more information.
+
+Install Trento server chart:
+
+```
+$ helm install trento . trento-runner.privateKey=/your/path/id_rsa_runner
+```
+
+or perform a rolling update:
+
+```
+$ helm upgrade trento . trento-runner.privateKey=/your/path/id_rsa_runner
+```
+
+Now you can connect to the web server via `http://localhost` and point the agents to the cluster IP address.
+
+### Other Helm chart usage examples:
+
+Use a different container image:
+
+```
+$ helm install trento . --set trento-web.tag="runner" --set trento-runner.tag="runner" --set-file trento-runner.privateKey=id_rsa_runner
+```
+
+Use a different container registry:
+
+```
+$ helm install trento . --set trento-web.image.repository="ghcr.io/myrepo/trento" --set trento-runner.image.repository="ghcr.io/myrepo/trento" trento-runner.privateKey=id_rsa_runner
+```
+
+Please refer to the the subcharts `values.yaml` for an advanced usage.
 
 ## Trento Agent Installation
 
@@ -225,7 +308,7 @@ To start the trento agent:
 ```
 
 > If the discovery loop is being executed too frequently, and this impacts the Web interface performance, the agent
-has the option to configure the discovery loop mechanism using the `--discovery-period` flag. Increasing this value improves the overall performance of the application
+> has the option to configure the discovery loop mechanism using the `--discovery-period` flag. Increasing this value improves the overall performance of the application
 
 ## Trento Runner
 

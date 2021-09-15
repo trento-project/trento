@@ -8,8 +8,15 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: stop-trento
+    - name: stop trento
       run: sudo systemctl stop trento-${{ inputs.role }}
+      shell: bash
+    # The trento runner goes in the same machine than the web
+    - name: stop trento runner
+      run: |
+        if [ "${{ inputs.role }}" = "web" ]; then
+          systemctl stop trento-runner
+        fi
       shell: bash
     - name: uncompress
       run: |
@@ -19,20 +26,19 @@ runs:
     - name: chmod
       run: chmod +x trento
       shell: bash
-    - name: deploy-binary
+    - name: deploy binary
       run: rsync -av trento /srv/trento/
       shell: bash
-    - name: deploy-rules
-      run: |
-        if [ "${{ inputs.role }}" = "agent" ]; then
-          rm -rf /srv/trento/examples
-          mkdir /srv/trento/examples
-          mv examples/*.yaml /srv/trento/examples/
-        fi
-      shell: bash
-    - name: start-consul
+    - name: start consul
       run: sudo systemctl start consul
       shell: bash
-    - name: start-trento
+    - name: start trento
       run: sudo systemctl start trento-${{ inputs.role }}
+      shell: bash
+    # The trento runner goes in the same machine than the web
+    - name: start trento runner
+      run: |
+        if [ "${{ inputs.role }}" = "web" ]; then
+          systemctl start trento-runner
+        fi
       shell: bash

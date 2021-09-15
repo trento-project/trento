@@ -30,8 +30,6 @@ of existing clusters, rather than deploying new one.
   - [Trento Agents](#trento-agents)
   - [Trento Runner](#trento-runner)
   - [Trento Web UI](#trento-web-ui)
-- [Usage](#usage)
-  - [Grouping and filtering in the Web UI](#grouping-and-filtering-in-the-web-ui)
 - [Development](#development)
   - [Build system](#build-system)
   - [Mockery](#mockery)

@@ -4,6 +4,8 @@
   set_fact:
     test_id: '1.1.1'
     key_name: 'token'
+  delegate_to: localhost
+
 
 - name: "{{ test_id }}.check"
   lineinfile:

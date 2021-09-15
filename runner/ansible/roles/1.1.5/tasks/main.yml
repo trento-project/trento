@@ -4,6 +4,7 @@
   set_fact:
     test_id: '1.1.5'
     key_name: 'token_retransmits_before_loss_const'
+  delegate_to: localhost
 
 - name: "{{ test_id }}.check"
   lineinfile:

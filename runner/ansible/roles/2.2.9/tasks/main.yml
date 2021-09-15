@@ -3,6 +3,7 @@
 - name: Set Test ID
   set_fact:
     test_id: '2.2.9'
+  delegate_to: localhost
 
 - name: "{{ test_id }}.check"
   shell: |

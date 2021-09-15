@@ -3,6 +3,7 @@
 - name: Set Test ID
   set_fact:
     test_id: '1.1.1.runtime'
+  delegate_to: localhost
 
 - name: "{{ test_id }}.check"
   shell: 'corosync-cmapctl | grep "runtime.config.totem.token (u32) = " | sed "s/^.*= //"'

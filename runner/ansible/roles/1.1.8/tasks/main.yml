@@ -4,6 +4,7 @@
   set_fact:
     test_id: '1.1.8'
     key_name: 'two_node'
+  delegate_to: localhost
 
 - name: "{{ test_id }}.check"
   lineinfile:

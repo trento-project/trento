@@ -3,6 +3,7 @@
   set_fact:
     test_id: '1.1.7'
     key_name: 'expected_votes'
+  delegate_to: localhost
 
 - name: "{{ test_id }}.check"
   lineinfile:

@@ -14,6 +14,8 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+dataVolumeSize: 1Gi
+
 serviceAccount:
   # Specifies whether a service account should be created
   create: true

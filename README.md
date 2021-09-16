@@ -140,25 +140,27 @@ $ helm repo update
 Install chart dependencies:
 
 ```
-$ cd helm/trento-server/
+$ cd packaging/helm/trento-server/
 $ helm dependency update
 ```
 
 The runner component of Trento server needs ssh access to the agent nodes to perform the checks.
-You need to pass a valid private key used for ssh authentication to the Helm chart, and it will be stored
+
+You need to pass a valid private key used for SSH authentication to the Helm chart, and it will be stored
 in the K3s cluster as a secret.
+
 Please refer to the [Trento Runner](#trento-runner) for more information.
 
 Install Trento server chart:
 
 ```
-$ helm install trento . trento-runner.privateKey=/your/path/id_rsa_runner
+$ helm install trento . --set-file trento-runner.privateKey=/your/path/id_rsa_runner
 ```
 
 or perform a rolling update:
 
 ```
-$ helm upgrade trento . trento-runner.privateKey=/your/path/id_rsa_runner
+$ helm upgrade trento . --set-file trento-runner.privateKey=/your/path/id_rsa_runner
 ```
 
 Now you can connect to the web server via `http://localhost` and point the agents to the cluster IP address.
@@ -174,7 +176,7 @@ $ helm install trento . --set trento-web.tag="runner" --set trento-runner.tag="r
 Use a different container registry:
 
 ```
-$ helm install trento . --set trento-web.image.repository="ghcr.io/myrepo/trento" --set trento-runner.image.repository="ghcr.io/myrepo/trento" trento-runner.privateKey=id_rsa_runner
+$ helm install trento . --set trento-web.image.repository="ghcr.io/myrepo/trento" --set trento-runner.image.repository="ghcr.io/myrepo/trento" --set-file trento-runner.privateKey=id_rsa_runner
 ```
 
 Please refer to the the subcharts `values.yaml` for an advanced usage.

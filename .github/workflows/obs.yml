@@ -1,5 +1,8 @@
-name: Rebuild trento in obs
-on: [push]
+name: SUSE OBS Continuous Delivery
+on:
+  push:
+  release:
+    types: [ published ]
 env:
   PACKAGE_NAME: trento
   OBS_USER: ${{ secrets.OBS_USER }}
@@ -9,7 +12,7 @@ env:
   FOLDER: packaging/suse
   REPOSITORY: ${{ github.repository }}
 jobs:
-  delivery:
+  commit:
     runs-on: ubuntu-18.04
     if: github.ref == 'refs/heads/main'
     container:
@@ -47,12 +50,12 @@ jobs:
         sed -i 's~%%REVISION%%~${{ github.sha }}~' $FOLDER/_service && \
         sed -i 's~%%REPOSITORY%%~${{ github.repository }}~' $FOLDER/_service && \
         sed -i 's~%%VERSION%%~'"${VERSION}"'~' $FOLDER/_service
-    - name: deliver package
+    - name: commit changes into OBS
       run: cp $FOLDER/_service . && /scripts/upload.sh
   submit:
-    needs: delivery
+    needs: commit
     runs-on: ubuntu-18.04
-    if: ${{ github.event_name != 'pull_request' }}
+    if: github.event.release
     container:
       image: shap/continuous_deliver
     steps:

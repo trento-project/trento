@@ -1,3 +1,4 @@
+name: Continous Integration and Demo Deployment
 on:
   push:
   pull_request:

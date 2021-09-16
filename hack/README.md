@@ -31,7 +31,7 @@ The machines that we are deploying to require to have `rsync` as well as a runni
 
 ## Automatic deploy to private nodes with GitHub actions
 
-The repository contains a GitHub actions [workflow](../.github/workflows/ci.yaml) to deploy Trento to private nodes by
+The repository contains a GitHub actions [workflow](../.github/workflows/ci-cd.yaml) to deploy Trento to private nodes by
 using [self-hosted runners](https://docs.github.com/en/actions/hosting-your-own-runners/about-self-hosted-runners).
 
 This is triggered automatically when pushing (or merging PRs) into the `main` branch of the upstream remote, or manually
@@ -80,7 +80,7 @@ Trento, Consul and the deployment process.
   The actions runner name.
 
   One of `vmahana01`, `vmhana02`, `vmmonitoring` is expected if used in conjuction with the
-  provided [workflow](../.github/workflows/ci.yaml).
+  provided [workflow](../.github/workflows/ci-cd.yaml).
 
 - `[agent|web]`
   `agent` provisions an agent instance

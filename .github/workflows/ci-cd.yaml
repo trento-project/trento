@@ -5,9 +5,17 @@ on:
   workflow_dispatch:
   release:
     types: [published]
+env:
+  PACKAGE_NAME: trento
+  OBS_USER: ${{ secrets.OBS_USER }}
+  OBS_PASS: ${{ secrets.OBS_PASS }}
+  OBS_PROJECT: ${{ secrets.OBS_PROJECT}}
+  TARGET_PROJECT: ${{ secrets.TARGET_PROJECT}}
+  FOLDER: packaging/suse
+  REPOSITORY: ${{ github.repository }}
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -42,6 +50,35 @@ jobs:
         run: make vet-check
       - name: coding styles
         run: make fmt-check
+
+  build:
+    runs-on: ubuntu-20.04
+    needs: test
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "15"
+      - uses: actions/cache@v2
+        id: go-cache
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - uses: actions/cache@v2
+        id: npm-cache
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: get git tags
+        run: git fetch --prune --unshallow --tags
       - name: build
         run: make -j4 cross-compiled
       - name: compress
@@ -196,7 +233,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
   build-and-push-image:
-    needs: build
+    needs: test
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release' || github.event_name == 'workflow_dispatch'
     env:
       REGISTRY: ghcr.io
@@ -234,3 +271,69 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  commit-obs:
+    needs: test
+    runs-on: ubuntu-18.04
+    if: github.ref == 'refs/heads/main'
+    container:
+      image: shap/continuous_deliver
+      env:
+        OBS_UNSTABLE: https://download.opensuse.org/repositories/OBS:/Server:/Unstable/SLE_15_SP3/OBS:Server:Unstable.repo
+        OBS_UNSTABLE_KEY: https://download.opensuse.org/repositories/OBS:/Server:/Unstable/SLE_15_SP3/repodata/repomd.xml.key
+        GITHUB_OAUTH_TOKEN:  ${{ secrets.GITHUB_TOKEN }}
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: configure OSC
+    # OSC credentials must be configured beforehand as the HOME variables cannot be changed from /github/home
+    # that is used to run osc commands
+      run: |
+        /scripts/init_osc_creds.sh
+        mkdir -p $HOME/.config/osc
+        cp /root/.config/osc/oscrc $HOME/.config/osc
+    - name: update go and install obs-service-node_modules
+      run: |
+        rpm --import ${OBS_UNSTABLE_KEY}
+        zypper ar ${OBS_UNSTABLE}
+        zypper ref
+        zypper in -y obs-service-node_modules go
+        go version
+    - name: prepare tranto.changes file
+      run: |
+        VERSION=$(hack/get_version_from_git.sh)
+        TAG=$(echo $VERSION | cut -f1 -d+)
+        .ci/gh_release_to_obs_changeset.py $REPOSITORY -a shap-staff@suse.de -t $TAG -f $FOLDER/trento.changes
+    - name: prepare _service file
+      run: |
+        VERSION=$(hack/get_version_from_git.sh)
+        sed -i 's~%%REVISION%%~${{ github.sha }}~' $FOLDER/_service && \
+        sed -i 's~%%REPOSITORY%%~${{ github.repository }}~' $FOLDER/_service && \
+        sed -i 's~%%VERSION%%~'"${VERSION}"'~' $FOLDER/_service
+    - name: commit changes into OBS
+      run: cp $FOLDER/_service . && /scripts/upload.sh
+
+  submit-obs:  
+    needs: commit-obs
+    runs-on: ubuntu-18.04
+    if: github.event.release
+    container:
+      image: shap/continuous_deliver
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: configure OSC
+      run: |
+        /scripts/init_osc_creds.sh
+        mkdir -p $HOME/.config/osc
+        cp /root/.config/osc/oscrc $HOME/.config/osc
+    - name: prepare _service file
+      run: |
+        VERSION=$(hack/get_version_from_git.sh)
+        sed -i 's~%%REVISION%%~${{ github.sha }}~' $FOLDER/_service && \
+        sed -i 's~%%REPOSITORY%%~${{ github.repository }}~' $FOLDER/_service && \
+        sed -i 's~%%VERSION%%~'"${VERSION}"'~' $FOLDER/_service
+    - name: submit package
+      run: cp $FOLDER/_service . && /scripts/submit.sh

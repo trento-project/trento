@@ -6,7 +6,6 @@
     key_name: 'token'
   delegate_to: localhost
 
-
 - name: "{{ test_id }}.check"
   lineinfile:
     path: /etc/corosync/corosync.conf

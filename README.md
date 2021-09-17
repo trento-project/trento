@@ -24,7 +24,12 @@ of existing clusters, rather than deploying new one.
   - [Build dependencies](#build-dependencies)
   - [Development dependencies](#development-dependencies)
 - [Quick-start installation](#quick-start-installation)
+  - [Trento Server installation](#trento-server-installation)
+  - [Trento Agent installation](#trento-agent-installation)
 - [Manual installation](#manual-installation)
+  - [Pre-built binaries](#pre-built-binaries)
+  - [Compile from source](#compile-from-source)
+  - [Helm chart](#helm-chart)
 - [Running Trento](#running-trento)
   - [Consul](#consul)
   - [Trento Agents](#trento-agents)
@@ -88,102 +93,45 @@ Additionally, for the development we use:
 
 > See the [Development](#development) section for details on how to install `mockery`.
 
-# Quick-Start Installation
+# Quick-Start installation
 
-We provide an installation script to automatically install and update the latest version of Trento.
+We provide installations scripts for to automatically install and update the latest version of Trento.
+Please follow the installation in the given order/
 
-## Trento Server Installation
+## Trento Server installation
 
-The [packaging/helm](packaging/helm) directory contains the Helm chart for installing Trento Server in a Kubernetes cluster.
-
-### Install K3s
-
-If installing as root:
-
-```
-# curl -sfL https://get.k3s.io | sh
-```
-
-If installing as non-root user:
-
-```
-$ curl -sfL https://get.k3s.io | sh -s - --write-kubeconfig-mode 644
-```
-
-Export KUBECONFIG env variable:
-
-```
-$ export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
-```
-
-Please refer to the [K3s official documentation](https://rancher.com/docs/k3s/latest/en/installation/) for more information about the installation.
-
-### Install Helm and chart dependencies
-
-Install Helm:
-
-```
-$ curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-```
-
-Please refer to the [Helm official documentation](https://helm.sh/docs/intro/install/) for more information about the installation.
-
-### Install the Trento Server Helm chart
-
-Add HashiCorp Helm repository:
-
-```
-$ helm repo add hashicorp https://helm.releases.hashicorp.com
-$ helm repo update
-```
-
-Install chart dependencies:
-
-```
-$ cd packaging/helm/trento-server/
-$ helm dependency update
-```
-
-The runner component of Trento server needs ssh access to the agent nodes to perform the checks.
-
-You need to pass a valid private key used for SSH authentication to the Helm chart, and it will be stored
-in the K3s cluster as a secret.
-
-Please refer to the [Trento Runner](#trento-runner) for more information.
-
-Install Trento server chart:
-
-```
-$ helm install trento . --set-file trento-runner.privateKey=/your/path/id_rsa_runner
-```
-
-or perform a rolling update:
-
-```
-$ helm upgrade trento . --set-file trento-runner.privateKey=/your/path/id_rsa_runner
-```
-
-Now you can connect to the web server via `http://localhost` and point the agents to the cluster IP address.
-
-### Other Helm chart usage examples:
-
-Use a different container image:
-
-```
-$ helm install trento . --set trento-web.tag="runner" --set trento-runner.tag="runner" --set-file trento-runner.privateKey=id_rsa_runner
-```
-
-Use a different container registry:
-
-```
-$ helm install trento . --set trento-web.image.repository="ghcr.io/myrepo/trento" --set trento-runner.image.repository="ghcr.io/myrepo/trento" --set-file trento-runner.privateKey=id_rsa_runner
-```
-
-Please refer to the the subcharts `values.yaml` for an advanced usage.
-
-## Trento Agent Installation
+The script installs a single node K3s cluster and uses the [trento-server Helm chart](packaging/helm/trento-server)
+to bootstrap a complete Trento server component.
 
 You can `curl | bash` if you want to live on the edge.
+
+```
+$ curl -sfL https://raw.githubusercontent.com/trento-project/trento/main/install-server.sh | bash
+```
+
+Or you can fetch the script, and then execute it manually.
+
+```
+$ curl -O https://raw.githubusercontent.com/trento-project/trento/main/install-server.sh
+$ chmod 700 install-server.sh
+$ sudo ./install-server.sh
+```
+
+The script will ask you for a private key that is used by the runner service to perform checks in the agent hosts via ssh.
+
+_Note: if a Trento server is already installed in the host, it will be updated._
+
+Please refer to the [Trento Runner](#trento-runner) section for more information.
+Please refer to the [Helm chart](#helm-chart) section for more information about the Helm chart.
+
+## Trento Agent installation
+
+After the server installation, you might want to install Trento agents in a running cluster.
+Please add the public key to the ssh authorized_keys to enable the runner checks in the agent host, 
+as mentioned in the server installation above.
+
+As for the server component an installation script is provided, 
+you can `curl | bash` it if you want to live on the edge.
 
 ```
 $ curl -sfL https://raw.githubusercontent.com/trento-project/trento/main/install-agent.sh | sudo bash
@@ -256,6 +204,93 @@ T.B.D.
 ## RPM Packages
 
 T.B.D.
+
+## Helm chart
+
+The [packaging/helm](packaging/helm) directory contains the Helm chart for installing Trento Server in a Kubernetes cluster.
+
+### Install K3s
+
+If installing as root:
+
+```
+# curl -sfL https://get.k3s.io | sh
+```
+
+If installing as non-root user:
+
+```
+$ curl -sfL https://get.k3s.io | sh -s - --write-kubeconfig-mode 644
+```
+
+Export KUBECONFIG env variable:
+
+```
+$ export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+```
+
+Please refer to the [K3s official documentation](https://rancher.com/docs/k3s/latest/en/installation/) for more information about the installation.
+
+### Install Helm and chart dependencies
+
+Install Helm:
+
+```
+$ curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+```
+
+Please refer to the [Helm official documentation](https://helm.sh/docs/intro/install/) for more information about the installation.
+
+### Install the Trento Server Helm chart
+
+Add HashiCorp Helm repository:
+
+```
+$ helm repo add hashicorp https://helm.releases.hashicorp.com
+$ helm repo update
+```
+
+Install chart dependencies:
+
+```
+$ cd packaging/helm/trento-server/
+$ helm dependency update
+```
+
+The runner component of Trento server needs ssh access to the agent nodes to perform the checks.
+You need to pass a valid private key used for ssh authentication to the Helm chart, and it will be stored
+in the K3s cluster as a secret.
+Please refer to the [Trento Runner](#trento-runner) section for more information.
+
+Install Trento server chart:
+
+```
+$ helm install trento . --set-file trento-runner.privateKey=/your/path/id_rsa_runner
+```
+
+or perform a rolling update:
+
+```
+$ helm upgrade trento . --set-file trento-runner.privateKey=/your/path/id_rsa_runner
+```
+
+Now you can connect to the web server via `http://localhost` and point the agents to the cluster IP address.
+
+### Other Helm chart usage examples:
+
+Use a different container image:
+
+```
+$ helm install trento . --set trento-web.tag="runner" --set trento-runner.tag="runner" --set-file trento-runner.privateKey=id_rsa_runner
+```
+
+Use a different container registry:
+
+```
+$ helm install trento . --set trento-web.image.repository="ghcr.io/myrepo/trento" --set trento-runner.image.repository="ghcr.io/myrepo/trento" --set-file trento-runner.privateKey=id_rsa_runner
+```
+
+Please refer to the the subcharts `values.yaml` for an advanced usage.
 
 # Running Trento
 

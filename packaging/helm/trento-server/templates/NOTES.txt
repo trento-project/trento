@@ -19,7 +19,7 @@ _---~            |     |  .   /+++++++\    . | .   |         ~---_
 {{- if  (index .Values "trento-web").ingress.enabled }}
 {{- range $host := (index .Values "trento-web").ingress.hosts }}
   {{- range .paths }}
-URL: http{{ if (index $.Values "trento-web").ingress.tls }}s{{ end }}://{{ $host.host }}
+URL: http{{ if (index $.Values "trento-web").ingress.tls }}s{{ end }}://{{ $host.host | default "localhost" }}
   {{- end }}
 {{- end }}
 {{- end }}

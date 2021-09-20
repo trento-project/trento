@@ -25,6 +25,7 @@ ACTIONS_RUNNER_NAME=$4
 ACTIONS_RUNNER_PATH="$ACTIONS_RUNNER_HOME/actions-runner"
 ACTIONS_RUNNER_REPO_URL="https://github.com/$ACTIONS_RUNNER_REPO_OWNER/$ACTIONS_RUNNER_REPO_NAME"
 ACTIONS_RUNNER_SYSTEMD_UNIT="actions.runner.$ACTIONS_RUNNER_REPO_OWNER-$ACTIONS_RUNNER_REPO_NAME.$ACTIONS_RUNNER_NAME.service"
+TRENTO_RUNNER_SYSTEMD_UNIT="trento-runner.service"
 
 CONSUL_VERSION=1.9.6
 CONSUL_BIND_IP=$5
@@ -59,7 +60,7 @@ create_user() {
   echo ""
   echo "* Creating user: $user"
 
-  if id "$user" &>/dev/null; then
+  if id "$user" &> /dev/null; then
     echo "  Warning: user $user already exists. Skipping..."
     return
   fi
@@ -79,17 +80,17 @@ install_actions_runner() {
   fi
 
   mkdir -p $ACTIONS_RUNNER_PATH
-  pushd -- "$ACTIONS_RUNNER_PATH" >/dev/null
-  curl -f -sS -O -L "https://github.com/actions/runner/releases/download/v${ACTIONS_RUNNER_VERSION}/actions-runner-linux-x64-${ACTIONS_RUNNER_VERSION}.tar.gz" >/dev/null
+  pushd -- "$ACTIONS_RUNNER_PATH" > /dev/null
+  curl -f -sS -O -L "https://github.com/actions/runner/releases/download/v${ACTIONS_RUNNER_VERSION}/actions-runner-linux-x64-${ACTIONS_RUNNER_VERSION}.tar.gz" > /dev/null
   tar xfz "actions-runner-linux-x64-${ACTIONS_RUNNER_VERSION}.tar.gz"
   rm "actions-runner-linux-x64-${ACTIONS_RUNNER_VERSION}.tar.gz"
   chown -R $ACTIONS_RUNNER_USER $ACTIONS_RUNNER_PATH
 
   echo "  Installing dependencies"
-  ./bin/installdependencies.sh >/dev/null
+  ./bin/installdependencies.sh > /dev/null
 
   echo "  Configuring"
-  su -m $ACTIONS_RUNNER_USER -c "./config.sh --token $ACTIONS_RUNNER_TOKEN --unattended --url $ACTIONS_RUNNER_REPO_URL --name $ACTIONS_RUNNER_NAME --labels $ACTIONS_RUNNER_NAME >/dev/null"
+  su -m $ACTIONS_RUNNER_USER -c "./config.sh --token $ACTIONS_RUNNER_TOKEN --unattended --url $ACTIONS_RUNNER_REPO_URL --name $ACTIONS_RUNNER_NAME --labels $ACTIONS_RUNNER_NAME > /dev/null"
 
   if [ -f "/etc/systemd/system/$ACTIONS_RUNNER_SYSTEMD_UNIT" ]; then
     echo "  Warning: Systemd unit already installed. Removing..."
@@ -98,10 +99,20 @@ install_actions_runner() {
   fi
 
   echo "  Installing systemd unit"
-  ./svc.sh install >/dev/null
+  ./svc.sh install > /dev/null
   systemctl enable --now "$ACTIONS_RUNNER_SYSTEMD_UNIT"
 
-  popd >/dev/null
+  if [ -f "/etc/systemd/system/$TRENTO_RUNNER_SYSTEMD_UNIT" ]; then
+    echo "  Warning: trento-runner systemd unit already installed. Removing..."
+    systemctl stop "$TRENTO_RUNNER_SYSTEMD_UNIT"
+    rm "/etc/systemd/system/$TRENTO_RUNNER_SYSTEMD_UNIT"
+  fi
+
+  echo "  Installing systemd unit"
+  ./svc.sh install > /dev/null
+  systemctl enable --now "$TRENTO_RUNNER_SYSTEMD_UNIT"
+
+  popd > /dev/null
 }
 
 install_consul() {
@@ -109,12 +120,12 @@ install_consul() {
   echo "* Installing Consul"
 
   mkdir -p $CONSUL_CONFIG_PATH
-  pushd -- "$CONSUL_HOME" >/dev/null
-  curl -f -sS -O -L "https://releases.hashicorp.com/consul/$CONSUL_VERSION/consul_${CONSUL_VERSION}_linux_amd64.zip" >/dev/null
-  unzip -o "consul_${CONSUL_VERSION}_linux_amd64".zip >/dev/null
+  pushd -- "$CONSUL_HOME" > /dev/null
+  curl -f -sS -O -L "https://releases.hashicorp.com/consul/$CONSUL_VERSION/consul_${CONSUL_VERSION}_linux_amd64.zip" > /dev/null
+  unzip -o "consul_${CONSUL_VERSION}_linux_amd64".zip > /dev/null
   rm "consul_${CONSUL_VERSION}_linux_amd64".zip
   chown -R $CONSUL_USER $CONSUL_HOME
-  popd >/dev/null
+  popd > /dev/null
 }
 
 setup_consul() {
@@ -122,11 +133,11 @@ setup_consul() {
   echo "* Setting up Consul"
 
   echo "  Creating configuration"
-  pushd -- $CONSUL_CONFIG_PATH >/dev/null
-  curl -f -sS -O -L $CONSUL_HCL_TEMPLATE_URL >/dev/null
+  pushd -- $CONSUL_CONFIG_PATH > /dev/null
+  curl -f -sS -O -L $CONSUL_HCL_TEMPLATE_URL > /dev/null
   cat $CONSUL_HCL.template | sed "s|@JOIN_ADDR@|${CONSUL_SERVER_IP}|g" | sed "s|@BIND_ADDR@|${CONSUL_BIND_IP}|g" >consul.hcl
   rm $CONSUL_HCL.template
-  popd >/dev/null
+  popd > /dev/null
 
   if [ -f "/etc/systemd/system/$CONSUL_SYSTEMD_UNIT" ]; then
     echo "  Warning: Systemd unit already installed. Removing..."
@@ -135,7 +146,7 @@ setup_consul() {
   fi
 
   echo "  Installing systemd unit"
-  curl -f -sS -L $CONSUL_SYSTEMD_UNIT_URL -o /tmp/$CONSUL_SYSTEMD_UNIT >/dev/null
+  curl -f -sS -L $CONSUL_SYSTEMD_UNIT_URL -o /tmp/$CONSUL_SYSTEMD_UNIT > /dev/null
 
   if [ "$ROLE" = "web" ]; then
     sed -i "s|Type=notify|Type=simple|g" /tmp/$CONSUL_SYSTEMD_UNIT
@@ -146,9 +157,9 @@ setup_consul() {
   systemctl enable --now $CONSUL_SYSTEMD_UNIT
 
   echo "  Adding sudoers entries"
-  echo "$ACTIONS_RUNNER_USER ALL=(ALL) NOPASSWD: /bin/systemctl start consul" >/etc/sudoers.d/github-runner-consul
-  echo "$ACTIONS_RUNNER_USER ALL=(ALL) NOPASSWD: /bin/systemctl stop consul" >>/etc/sudoers.d/github-runner-consul
-  echo "$ACTIONS_RUNNER_USER ALL=(ALL) NOPASSWD: /bin/rm -rf /srv/consul/data" >>/etc/sudoers.d/github-runner-consul
+  echo "$ACTIONS_RUNNER_USER ALL=(ALL) NOPASSWD: /bin/systemctl start consul" > /etc/sudoers.d/github-runner-consul
+  echo "$ACTIONS_RUNNER_USER ALL=(ALL) NOPASSWD: /bin/systemctl stop consul" >> /etc/sudoers.d/github-runner-consul
+  echo "$ACTIONS_RUNNER_USER ALL=(ALL) NOPASSWD: /bin/rm -rf /srv/consul/data" >> /etc/sudoers.d/github-runner-consul
 }
 
 setup_trento() {
@@ -166,14 +177,14 @@ setup_trento() {
   fi
 
   echo "  Installing systemd unit"
-  curl -f -sS -L "$TRENTO_SYSTEMD_UNIT_URL" -o /tmp/"$TRENTO_SYSTEMD_UNIT" >/dev/null
+  curl -f -sS -L "$TRENTO_SYSTEMD_UNIT_URL" -o /tmp/"$TRENTO_SYSTEMD_UNIT" > /dev/null
   mv /tmp/"$TRENTO_SYSTEMD_UNIT" /etc/systemd/system/
   systemctl daemon-reload
   systemctl enable "$TRENTO_SYSTEMD_UNIT"
 
   echo "  Adding sudoers entries"
-  echo "$ACTIONS_RUNNER_USER ALL=(ALL) NOPASSWD: /bin/systemctl start trento-$ROLE" >/etc/sudoers.d/github-runner-trento
-  echo "$ACTIONS_RUNNER_USER ALL=(ALL) NOPASSWD: /bin/systemctl stop trento-$ROLE" >>/etc/sudoers.d/github-runner-trento
+  echo "$ACTIONS_RUNNER_USER ALL=(ALL) NOPASSWD: /bin/systemctl start trento-$ROLE" > /etc/sudoers.d/github-runner-trento
+  echo "$ACTIONS_RUNNER_USER ALL=(ALL) NOPASSWD: /bin/systemctl stop trento-$ROLE" >> /etc/sudoers.d/github-runner-trento
 }
 
 create_user $ACTIONS_RUNNER_USER $ACTIONS_RUNNER_HOME

@@ -1,0 +1,20 @@
+---
+
+id: 2.1.5
+name: Azure Load Balancer Resource Agent properly configured
+group: SAP HANA System Replication Resource Agent
+labels: hana
+description: |
+  Test if the Azure load balancer resource agent is properly configured
+remediation: |
+  ## Abstract
+  The azure-lb resource-agent is responsible to provide health probes to inform the Azure Load
+  Balancer if a switch to secorary node is needed.
+
+  ## Remediation
+  Make sure that it is configured and grouped together with the IPaddr2 resource and that the resource-stickiness is set to 0.
+  This configuration guarantees that the cluster migrate the azure-lb together with the SAP HANA primary resource in case of a failover.
+
+  ## References
+  - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability#create-sap-hana-cluster-resources
+implementation: "{{ lookup('file', 'roles/checks/'+id+'/tasks/main.yml') }}"

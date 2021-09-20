@@ -2,12 +2,16 @@
 
 Place to store Ansible playbooks that are executed by the Trento runner
 
+## Implementing a check
+
+To be defined...
+
 ## Metadata files
 
 The metadata files provide information about the test themselves. They are used to get information
 from the Trento Web GUI and render properly everything related with the Ansible tasks.
 
-In order to use them properly, some fields are required. An example is available at [meta.yml](roles/1.1.1/tasks/meta.yml).
+In order to use them properly, some fields are required. An example is available at [defaults/main.yml](roles/checks/1.1.1/defaults/main.yml).
 
 These are the fields needed by Trento:
 

@@ -1,0 +1,18 @@
+---
+
+id: 1.1.2.runtime
+name: Corosync consensus is set to {{ expected['1.1.2'] }} (runtime)
+group: Corosync
+labels: generic
+description: |
+  Test if the configured corosync consensus has the correct value during runtime: {{ expected['1.1.2'] }}
+remediation: |
+  ## Abstract
+  The runtime value of the Corosync `consensus` timeout is not set as recommended.
+
+  ## Remediation
+  Adjust the corosync `consensus` timeout as recommended on the Azure best practices, and reload the corosync service.
+
+  ## References
+  - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker
+implementation: "{{ lookup('file', 'roles/checks/'+id+'/tasks/main.yml') }}"

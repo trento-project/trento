@@ -1,3 +1,6 @@
+- name: Load metadata
+  include_vars: "{{ metadata_path }}"
+
 - name: Set metadata {{ id }}
   set_fact:
     metadata: |

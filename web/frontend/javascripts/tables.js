@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 // ajax operation to reload the table on pagination operations
 // query can be `page` or `per_page`
 function reloadTable(path) {

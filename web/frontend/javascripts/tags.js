@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 $(() => {
   function initTags() {
     const inputs = document.querySelectorAll('.tags-input');

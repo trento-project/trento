@@ -277,10 +277,8 @@ jobs:
     runs-on: ubuntu-18.04
     if: github.ref == 'refs/heads/main'
     container:
-      image: shap/continuous_deliver
-      env:
-        OBS_UNSTABLE: https://download.opensuse.org/repositories/OBS:/Server:/Unstable/SLE_15_SP3/OBS:Server:Unstable.repo
-        OBS_UNSTABLE_KEY: https://download.opensuse.org/repositories/OBS:/Server:/Unstable/SLE_15_SP3/repodata/repomd.xml.key
+      image: ghcr.io/trento-project/continuous-delivery:master
+      env:        
         GITHUB_OAUTH_TOKEN:  ${{ secrets.GITHUB_TOKEN }}
     steps:
     - uses: actions/checkout@v2
@@ -292,14 +290,7 @@ jobs:
       run: |
         /scripts/init_osc_creds.sh
         mkdir -p $HOME/.config/osc
-        cp /root/.config/osc/oscrc $HOME/.config/osc
-    - name: update go and install obs-service-node_modules
-      run: |
-        rpm --import ${OBS_UNSTABLE_KEY}
-        zypper ar ${OBS_UNSTABLE}
-        zypper ref
-        zypper in -y obs-service-node_modules go
-        go version
+        cp /root/.config/osc/oscrc $HOME/.config/osc    
     - name: prepare tranto.changes file
       run: |
         VERSION=$(hack/get_version_from_git.sh)
@@ -319,7 +310,7 @@ jobs:
     runs-on: ubuntu-18.04
     if: github.event.release
     container:
-      image: shap/continuous_deliver
+      image: ghcr.io/trento-project/continuous-delivery:master
     steps:
     - uses: actions/checkout@v2
       with:

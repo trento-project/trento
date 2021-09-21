@@ -1,17 +1,19 @@
-@import "../node_modules/eos-ds/dist/vendors/bootstrap/css/bootstrap";
-@import "../node_modules/eos-ds/dist/scss/index";
+@import '../node_modules/eos-ds/dist/vendors/bootstrap/css/bootstrap';
+@import '../node_modules/eos-ds/dist/scss/index';
 
-
-.health-critical, .check-state-FAIL {
-  @extend .text-danger
+.health-critical,
+.check-state-FAIL {
+  @extend .text-danger;
 }
 
-.health-warning, .check-state-WARN {
-  @extend .text-warning
+.health-warning,
+.check-state-WARN {
+  @extend .text-warning;
 }
 
-.health-pass, .check-state-PASS {
-  @extend .text-success
+.health-pass,
+.check-state-PASS {
+  @extend .text-success;
 }
 
 tr.clickable {
@@ -19,18 +21,18 @@ tr.clickable {
 }
 
 .show-white-space {
-    white-space: pre-wrap;
+  white-space: pre-wrap;
 }
 
 dl.inline dd {
   display: inline;
   margin: 0;
 }
-dl.inline dd:after{
+dl.inline dd:after {
   display: block;
   content: '';
 }
-dl.inline dt{
+dl.inline dt {
   display: inline-block;
   min-width: 100px;
 }
@@ -126,7 +128,7 @@ td i.critical {
 
 .collapse-toggle:after {
   font-family: 'eos-icons';
-  content: "keyboard_arrow_up";
+  content: 'keyboard_arrow_up';
   float: right;
   font-size: 24px;
   font-weight: normal;
@@ -134,7 +136,7 @@ td i.critical {
 
 .collapse-toggle.collapsed:after {
   font-family: 'eos-icons';
-  content: "keyboard_arrow_down";
+  content: 'keyboard_arrow_down';
   float: right;
   font-size: 24px;
   font-weight: normal;
@@ -151,7 +153,7 @@ td i.critical {
 }
 
 .card-header-check-selection {
-  padding: 0.40rem 0  0 1.25rem;
+  padding: 0.4rem 0 0 1.25rem;
 }
 
 .header-check-selection {

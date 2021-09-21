@@ -20,7 +20,7 @@ $(document).ready(function () {
     var href = new URL(window.location.href);
     href.searchParams.set('page', this.value);
     path = href.pathname + href.search;
-    reloadTable(path)
+    reloadTable(path);
     history.pushState(undefined, '', href);
   });
 
@@ -28,22 +28,22 @@ $(document).ready(function () {
     var href = new URL(window.location.href);
     href.searchParams.set('per_page', this.textContent);
     path = href.pathname + href.search;
-    reloadTable(path)
+    reloadTable(path);
     history.pushState(undefined, '', href);
   });
 
   $('body').on('change', '.selectpicker', function () {
     var href = new URL(window.location.href);
-    href.searchParams.delete(this.name)
+    href.searchParams.delete(this.name);
     values = $(this).val();
     for (let i in values) {
-      if (values[i] != "") {
+      if (values[i] != '') {
         href.searchParams.append(this.name, values[i]);
       }
     }
 
     path = href.pathname + href.search;
-    reloadTable(path)
+    reloadTable(path);
     history.pushState(undefined, '', href);
   });
 });

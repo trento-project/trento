@@ -1,14 +1,10 @@
 ---
 
-- name: Set Test ID
-  set_fact:
-    test_id: '1.2.1'
-
-- name: "{{ test_id }}.check"
+- name: "{{ id }}.check"
   shell: 'crm_attribute -t crm_config -G -n stonith-enabled --quiet'
   check_mode: no
   register: config_updated
-  changed_when: config_updated.stdout != expected[test_id]
+  changed_when: config_updated.stdout != expected[id]
 
 - block:
     - import_role:

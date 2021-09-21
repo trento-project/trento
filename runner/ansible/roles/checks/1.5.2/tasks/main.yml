@@ -1,12 +1,8 @@
 ---
 
-- name: Set Test ID
-  set_fact:
-    test_id: '1.5.2'
-
-- name: "{{ test_id }}.check"
+- name: "{{ id }}.check"
   shell: |
-    # if hacluster passwd is linux, fail 
+    # if hacluster passwd is linux, fail
     salt=$(sudo getent shadow hacluster | cut -d$ -f3)
     epassword=$(sudo getent shadow hacluster | cut -d: -f2)
     match=$(python3 -c 'import crypt; print(crypt.crypt("linux", "$6$'${salt}'"))')

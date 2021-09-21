@@ -1,10 +1,6 @@
 ---
 
-- name: Set Test ID
-  set_fact:
-    test_id: '2.1.3'
-
-- name: "{{ test_id }}.check"
+- name: "{{ id }}.check"
   shell: |
     # SAP HANA Resource Agent is not configured, then fail
     cibadmin -Q --xpath "//primitive[@type='SAPHana']/@type" || exit 1
@@ -12,22 +8,22 @@
     cibadmin -Q --xpath "//master/primitive[@type='SAPHana']/@type" || exit 1
     # check the following values, if any do not match expected fail.
     XPATH="//primitive[@type='SAPHana']/operations/op"
-    [[ $(cibadmin -Q --xpath "${XPATH} [@name='monitor'] [@role='Master']" | grep -oP 'interval="\K[^"]+') != "{{ expected[test_id + '.master_interval'] }}" ]] && exit 1
-    [[ $(cibadmin -Q --xpath "${XPATH} [@name='monitor'] [@role='Master']" | grep -oP 'timeout="\K[^"]+') != "{{ expected[test_id + '.master_timeout'] }}" ]] && exit 1
-    [[ $(cibadmin -Q --xpath "${XPATH} [@name='monitor'] [@role='Slave']" | grep -oP 'interval="\K[^"]+') != "{{ expected[test_id + '.slave_interval'] }}" ]] && exit 1
-    [[ $(cibadmin -Q --xpath "${XPATH} [@name='monitor'] [@role='Slave']" | grep -oP 'timeout="\K[^"]+') != "{{ expected[test_id + '.slave_timeout'] }}" ]] && exit 1
-    [[ $(cibadmin -Q --xpath "${XPATH} [@name='start']" | grep -oP 'interval="\K[^"]+') != "{{ expected[test_id + '.start_interval'] }}" ]] && exit 1
-    [[ $(cibadmin -Q --xpath "${XPATH} [@name='start']" | grep -oP 'timeout="\K[^"]+') != "{{ expected[test_id + '.start_timeout'] }}" ]] && exit 1
-    [[ $(cibadmin -Q --xpath "${XPATH} [@name='stop']" | grep -oP 'interval="\K[^"]+') != "{{ expected[test_id + '.stop_interval'] }}" ]] && exit 1
-    [[ $(cibadmin -Q --xpath "${XPATH} [@name='stop']" | grep -oP 'timeout="\K[^"]+') != "{{ expected[test_id + '.stop_timeout'] }}" ]] && exit 1
-    [[ $(cibadmin -Q --xpath "${XPATH} [@name='promote']" | grep -oP 'interval="\K[^"]+') != "{{ expected[test_id + '.promote_interval'] }}" ]] && exit 1
-    [[ $(cibadmin -Q --xpath "${XPATH} [@name='promote']" | grep -oP 'timeout="\K[^"]+') != "{{ expected[test_id + '.promote_timeout'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "${XPATH} [@name='monitor'] [@role='Master']" | grep -oP 'interval="\K[^"]+') != "{{ expected[id + '.master_interval'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "${XPATH} [@name='monitor'] [@role='Master']" | grep -oP 'timeout="\K[^"]+') != "{{ expected[id + '.master_timeout'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "${XPATH} [@name='monitor'] [@role='Slave']" | grep -oP 'interval="\K[^"]+') != "{{ expected[id + '.slave_interval'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "${XPATH} [@name='monitor'] [@role='Slave']" | grep -oP 'timeout="\K[^"]+') != "{{ expected[id + '.slave_timeout'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "${XPATH} [@name='start']" | grep -oP 'interval="\K[^"]+') != "{{ expected[id + '.start_interval'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "${XPATH} [@name='start']" | grep -oP 'timeout="\K[^"]+') != "{{ expected[id + '.start_timeout'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "${XPATH} [@name='stop']" | grep -oP 'interval="\K[^"]+') != "{{ expected[id + '.stop_interval'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "${XPATH} [@name='stop']" | grep -oP 'timeout="\K[^"]+') != "{{ expected[id + '.stop_timeout'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "${XPATH} [@name='promote']" | grep -oP 'interval="\K[^"]+') != "{{ expected[id + '.promote_interval'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "${XPATH} [@name='promote']" | grep -oP 'timeout="\K[^"]+') != "{{ expected[id + '.promote_timeout'] }}" ]] && exit 1
 
     XPATH="//primitive[@type='SAPHana']/instance_attributes/nvpair"
-    [[ $(cibadmin -Q --xpath "${XPATH} [@name='PREFER_SITE_TAKEOVER']" | grep -oP 'value="\K[^"]+' | tr '[:upper:]' '[:lower:]') != "{{ expected[test_id + '.nvpair_PREFER_SITE_TAKEOVER'] }}" ]] && exit 1
-    [[ $(cibadmin -Q --xpath "${XPATH} [@name='AUTOMATED_REGISTER']" | grep -oP 'value="\K[^"]+' | tr '[:upper:]' '[:lower:]') != "{{ expected[test_id + '.nvpair_AUTOMATED_REGISTER'] }}" ]] && exit 1
-    [[ $(cibadmin -Q --xpath "${XPATH} [@name='DUPLICATE_PRIMARY_TIMEOUT']" | grep -oP 'value="\K[^"]+') != "{{ expected[test_id + '.nvpair_DUPLICATE_PRIMARY_TIMEOUT'] }}" ]] && exit 1
-    exit 0 
+    [[ $(cibadmin -Q --xpath "${XPATH} [@name='PREFER_SITE_TAKEOVER']" | grep -oP 'value="\K[^"]+' | tr '[:upper:]' '[:lower:]') != "{{ expected[id + '.nvpair_PREFER_SITE_TAKEOVER'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "${XPATH} [@name='AUTOMATED_REGISTER']" | grep -oP 'value="\K[^"]+' | tr '[:upper:]' '[:lower:]') != "{{ expected[id + '.nvpair_AUTOMATED_REGISTER'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "${XPATH} [@name='DUPLICATE_PRIMARY_TIMEOUT']" | grep -oP 'value="\K[^"]+') != "{{ expected[id + '.nvpair_DUPLICATE_PRIMARY_TIMEOUT'] }}" ]] && exit 1
+    exit 0
   check_mode: no
   register: config_updated
   changed_when: config_updated.rc != 0

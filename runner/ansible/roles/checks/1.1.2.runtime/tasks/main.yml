@@ -1,9 +1,6 @@
 ---
-- name: Set Test ID
-  set_fact:
-    test_id: '1.1.2.runtime'
 
-- name: "{{ test_id }}.check"
+- name: "{{ id }}.check"
   shell:  'corosync-cmapctl | grep "runtime.config.totem.consensus (u32) = " | sed "s/^.*= //"'
   check_mode: no
   register: config_updated

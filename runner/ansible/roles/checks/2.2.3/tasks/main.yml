@@ -1,17 +1,13 @@
 ---
 
-- name: Set Test ID
-  set_fact:
-    test_id: '2.2.3'
-
-- name: "{{ test_id }}.check"
+- name: "{{ id }}.check"
   shell: |
     # Check the pacemaker version IS
     # If not installed, exit with error
     rpm -q --qf "%{VERSION}\n" pacemaker || exit 2
   check_mode: no
   register: config_updated
-  changed_when: config_updated.stdout is version(expected[test_id], '<')
+  changed_when: config_updated.stdout is version(expected[id], '<')
   failed_when: config_updated.rc > 1
 
 - block:

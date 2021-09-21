@@ -5,7 +5,7 @@
 
   vars:
     ara_playbook_labels:
-      - test
+      - test # Do not change the name. It is use in the trento callback call
 
   tasks:
     - name: require check mode
@@ -14,26 +14,9 @@
       when:
         - not ansible_check_mode
 
-    - block:
-        - name: Include load_facts
-          import_role:
-            name: load_facts
-          register: result
-
-        - name: count unreachable hosts number
-          set_fact:
-            unreachable_count: |
-              {{ unreachable_count|default(0)|int + 1 }}
-          when: facts_result is unreachable
-          delegate_to: localhost
-
-        - name: Post initial empty results to ARA if all hosts are unreachable
-          import_role:
-            name: post-results
-            tasks_from: post
-          when: unreachable_count|default(0)|int == hostvars|length
-
-      ignore_unreachable: yes
+    - name: Include load_facts
+      import_role:
+        name: load_facts
 
     - name: Find checks
       find:
@@ -43,6 +26,7 @@
       run_once: yes
       delegate_to: localhost
 
+    # Do not change the name. It is use in the trento callback call
     - name: run_checks
       include_role:
         name: "{{ check_item.path }}"
@@ -50,9 +34,3 @@
       loop_control:
         loop_var: check_item # Do not change the name. It is use in the trento callback call
       when: (check_item.path | basename) in cluster_selected_checks
-
-  post_tasks:
-    - name: Post results
-      import_role:
-        name: post-results
-        tasks_from: post

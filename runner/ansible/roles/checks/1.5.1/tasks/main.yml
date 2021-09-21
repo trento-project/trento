@@ -1,10 +1,6 @@
 ---
 
-- name: Set Test ID
-  set_fact:
-    test_id: '1.5.1'
-
-- name: "{{ test_id }}.check"
+- name: "{{ id }}.check"
   shell: |
     for i in $(crm_node -l | cut -d' ' -f2); do
       if ! cat /etc/hosts |grep -q $i; then exit 1; fi

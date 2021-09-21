@@ -1,24 +1,7 @@
 ---
 
-- name: set_global_results {{ id }}
+# Do not change the name. It is use in the trento callback call
+- name: set_test_result
   set_fact:
-    results: |
-      {{ (results | default({})) | combine(
-        {
-          'results': {
-            item: {
-              'checks': {
-                id: {
-                  'hosts': {
-                    inventory_hostname: {
-                      'result': status
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }, recursive=True)
-      }}
+    test_result: "{{ status }}"
   delegate_to: localhost
-  with_items: "{{ group_names }}"

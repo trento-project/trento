@@ -1,15 +1,10 @@
 ---
 
-- name: Set Test ID
-  set_fact:
-    test_id: '1.1.6'
-    key_name: 'transport'
-
-- name: "{{ test_id }}.check"
+- name: "{{ id }}.check"
   lineinfile:
     path: /etc/corosync/corosync.conf
     regexp: '^(\s+){{ key_name }}:'
-    line: "\t{{ key_name }}: {{ expected[test_id] }}"
+    line: "\t{{ key_name }}: {{ expected[id] }}"
     insertafter: 'totem {'
   register: config_updated
   when: ansible_check_mode

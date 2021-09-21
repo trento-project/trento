@@ -43,11 +43,13 @@
       run_once: yes
       delegate_to: localhost
 
-    - name: Run check
+    - name: run_checks
       include_role:
-        name: "{{ item.path }}"
+        name: "{{ check_item.path }}"
       loop: "{{ checks.files }}"
-      when: "{{ (item.path | basename) in cluster_selected_checks }}"
+      loop_control:
+        loop_var: check_item # Do not change the name. It is use in the trento callback call
+      when: (check_item.path | basename) in cluster_selected_checks
 
   post_tasks:
     - name: Post results

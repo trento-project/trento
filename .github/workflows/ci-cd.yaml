@@ -50,7 +50,8 @@ jobs:
         run: make vet-check
       - name: coding styles
         run: make fmt-check
-
+      - name: frontend lint and coding style check
+        run: make web-check
   build:
     runs-on: ubuntu-20.04
     needs: test

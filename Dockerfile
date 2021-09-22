@@ -19,5 +19,7 @@ ENV PATH="/venv/bin:$PATH"
 ENV PYTHONPATH=/venv/lib/python3.7/site-packages
 COPY --from=go-build /build/trento /app/trento
 
+LABEL org.opencontainers.image.source https://github.com/trento-project/trento
+
 EXPOSE 8080/tcp
 ENTRYPOINT ["/app/trento"]

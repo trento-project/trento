@@ -70,6 +70,15 @@ web-deps: web/frontend/node_modules
 web/frontend/node_modules:
 	cd web/frontend; npm install
 
+web-format: web/frontend/format
+web-check: web/frontend/format-check web/frontend/lint
+web/frontend/format:
+	cd web/frontend; npx prettier --write .
+web/frontend/format-check:
+	cd web/frontend; npx prettier --check .
+web/frontend/lint:
+	cd web/frontend; npx eslint .
+
 web-assets: web/frontend/assets
 
 web/frontend/assets: web/frontend/assets/js web/frontend/assets/stylesheets web/frontend/assets/images

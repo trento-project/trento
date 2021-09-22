@@ -1,4 +1,4 @@
-@import "../node_modules/eos-ds/dist/scss/eos-base/variables/branding";
+@import '../node_modules/eos-ds/dist/scss/eos-base/variables/branding';
 
 .main-menu {
   width: 280px;
@@ -63,8 +63,8 @@ footer.footer-side-menu ul.footer-list {
 
 /* ----- COLLAPSE STYLE ----- */
 .collapse-toggle:after {
-  font-family: "eos-icons";
-  content: "keyboard_arrow_up";
+  font-family: 'eos-icons';
+  content: 'keyboard_arrow_up';
   float: right;
   font-size: 24px;
   font-weight: normal;
@@ -72,8 +72,8 @@ footer.footer-side-menu ul.footer-list {
 }
 
 .collapse-toggle.collapsed:after {
-  font-family: "eos-icons";
-  content: "keyboard_arrow_down";
+  font-family: 'eos-icons';
+  content: 'keyboard_arrow_down';
   float: right;
   font-size: 24px;
   font-weight: normal;
@@ -98,7 +98,7 @@ footer.footer-side-menu ul.footer-list {
 }
 
 .tagify__input::before {
-  content: "Add tags";
+  content: 'Add tags';
 }
 
 .tagify__tag > div > [contenteditable] {

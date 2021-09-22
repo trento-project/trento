@@ -5,6 +5,14 @@ import (
 	"strings"
 )
 
+const (
+	CheckPassing   string = "passing"
+	CheckWarning   string = "warning"
+	CheckCritical  string = "critical"
+	CheckSkipped   string = "skipped"
+	CheckUndefined string = "undefined"
+)
+
 type CheckData struct {
 	Metadata Metadata            `json:"metadata,omitempty" mapstructure:"metadata,omitempty"`
 	Groups   map[string]*Results `json:"results,omitempty" mapstructure:"results,omitempty"`
@@ -24,15 +32,15 @@ type ChecksByHost struct {
 }
 
 type Check struct {
-	ID             string `json:"id,omitempty" mapstructure:"id,omitempty"`
-	Name           string `json:"name,omitempty" mapstructure:"name,omitempty"`
-	Group          string `json:"group,omitempty" mapstructure:"group,omitempty"`
-	Description    string `json:"description,omitempty" mapstructure:"description,omitempty"`
-	Remediation    string `json:"remediation,omitempty" mapstructure:"remediation,omitempty"`
-	Implementation string `json:"implementation,omitempty" mapstructure:"implementation,omitempty"`
-	Labels         string `json:"labels,omitempty" mapstructure:"labels,omitempty"`
-	Selected       bool   `json:"selected,omitempty" mapstructure:"selected,omitempty"`
-	Result         bool   `json:"result,omitempty" mapstructure:"result,omitempty"`
+	ID             string      `json:"id,omitempty" mapstructure:"id,omitempty"`
+	Name           string      `json:"name,omitempty" mapstructure:"name,omitempty"`
+	Group          string      `json:"group,omitempty" mapstructure:"group,omitempty"`
+	Description    string      `json:"description,omitempty" mapstructure:"description,omitempty"`
+	Remediation    string      `json:"remediation,omitempty" mapstructure:"remediation,omitempty"`
+	Implementation string      `json:"implementation,omitempty" mapstructure:"implementation,omitempty"`
+	Labels         string      `json:"labels,omitempty" mapstructure:"labels,omitempty"`
+	Selected       bool        `json:"selected,omitempty" mapstructure:"selected,omitempty"`
+	Result         string `json:"result,omitempty" mapstructure:"result,omitempty"`
 }
 
 func (c *Results) GetHostNames() []string {

@@ -42,7 +42,7 @@
                                   {{- range $node := $nodes }}
                                   {{- $result := index $checkList.Hosts $node.Name }}
                                   {{- if $result }}
-                                  <td class="align-center">{{- if $result.Result }}<i class="eos-icons eos-18 text-success">check_circle</i>{{ else }}<i class="eos-icons eos-18 text-danger">error</i>{{ end }}</td>
+                                  <td class="align-center">{{ template "health_icon" $result.Result }}</td>
                                   {{- else }}
                                   <td class="align-center"><i class="eos-icons eos-18 text-muted">sync_problem</i></td>
                                   {{- end }}

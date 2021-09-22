@@ -12,7 +12,7 @@ usage() {
     Install Trento Server
 
     OPTIONS:
-       -p --private-key         the private key used by the runner to connect to the hosts
+       -p --private-key         pre-authorized private SSH key used by the runner to connect to the hosts
        -h --help                show this help
 
 
@@ -30,6 +30,7 @@ cmdline() {
             --private-key)  args="${args}-p ";;
             --help)         args="${args}-h ";;
             
+            # pass through anything else
             *) [[ "${arg:0:1}" == "-" ]] || delim="\""
             args="${args}${delim}${arg}${delim} ";;
         esac
@@ -37,7 +38,7 @@ cmdline() {
     
     eval set -- "$args"
     
-    while getopts "ph" OPTION
+    while getopts "p:h" OPTION
     do
         case $OPTION in
             h)
@@ -75,6 +76,7 @@ check_deps() {
 install_k3s() {
     echo "Installing K3s..."
     curl -sfL https://get.k3s.io | sh >/dev/null
+    mkdir -p ~/.kube
     sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
     sudo chown "$USER": ~/.kube/config
     unset KUBECONFIG
@@ -108,6 +110,7 @@ install_trento_server_chart() {
     pushd -- /tmp/trento-"${repo_branch}"/packaging/helm/trento-server >/dev/null 
     helm dep update >/dev/null
     helm upgrade --install trento-server . --set-file trento-runner.privateKey="${private_key}" --set trento-web.image.tag="${image_tag}" --set trento-runner.image.tag="${image_tag}"
+    rm -rf /tmp/trento-"${repo_branch}"
     popd >/dev/null
 }
 

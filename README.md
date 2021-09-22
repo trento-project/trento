@@ -95,8 +95,8 @@ Additionally, for the development we use:
 
 # Quick-Start installation
 
-We provide installations scripts for to automatically install and update the latest version of Trento.
-Please follow the installation in the given order/
+Installation scripts are provided to automatically install and update the latest version of Trento.
+Please follow the installation in the given order
 
 ## Trento Server installation
 

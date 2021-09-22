@@ -60,6 +60,7 @@ type KV interface {
 	DeleteTree(prefix string, w *consulApi.WriteOptions) (*consulApi.WriteMeta, error)
 	ListMap(prefix, offset string) (map[string]interface{}, error)
 	PutMap(prefix string, data map[string]interface{}) error
+	PutInterface(prefix string, value interface{}) error
 	PutTyped(prefix string, value interface{}) error
 }
 
@@ -220,7 +221,7 @@ func (k *kv) PutMap(prefix string, data map[string]interface{}) error {
 	}
 
 	for key, value := range data {
-		err := k.putInterface(path.Join(prefix, key), value)
+		err := k.PutInterface(path.Join(prefix, key), value)
 		if err != nil {
 			return err
 		}
@@ -228,7 +229,7 @@ func (k *kv) PutMap(prefix string, data map[string]interface{}) error {
 	return nil
 }
 
-func (k *kv) putInterface(prefix string, value interface{}) error {
+func (k *kv) PutInterface(prefix string, value interface{}) error {
 	switch reflect.ValueOf(value).Kind() {
 	case reflect.Map, reflect.Struct, reflect.Ptr:
 		valueInterface := make(map[string]interface{})
@@ -252,8 +253,11 @@ func (k *kv) putInterface(prefix string, value interface{}) error {
 }
 
 func (k *kv) putSlice(prefix string, value interface{}) error {
+	if !strings.HasSuffix(prefix, "/") {
+		prefix = fmt.Sprintf("%s/", prefix)
+	}
 	// Store the slice with slice flag, to be able to reload as list in the ListMap funciton
-	err := k.PutTyped(fmt.Sprintf("%s/", prefix), []string{})
+	err := k.PutTyped(prefix, []string{})
 	if err != nil {
 		return err
 	}
@@ -263,7 +267,7 @@ func (k *kv) putSlice(prefix string, value interface{}) error {
 	for i := 0; i < sliceValue.Len(); i++ {
 		// Index is composed by 4 digits to keep correct numbers order in KV storage
 		index := fmt.Sprintf("%04d", i)
-		err := k.putInterface(path.Join(prefix, index), sliceValue.Index(i).Interface())
+		err := k.PutInterface(path.Join(prefix, index), sliceValue.Index(i).Interface())
 		if err != nil {
 			return err
 		}

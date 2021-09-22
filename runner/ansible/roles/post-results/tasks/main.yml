@@ -1,6 +1,6 @@
 ---
 
-- name: set_global_results {{ test_id }}
+- name: set_global_results {{ id }}
   set_fact:
     results: |
       {{ (results | default({})) | combine(
@@ -8,7 +8,7 @@
           'results': {
             item: {
               'checks': {
-                test_id: {
+                id: {
                   'hosts': {
                     inventory_hostname: {
                       'result': status

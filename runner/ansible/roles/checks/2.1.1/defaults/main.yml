@@ -1,0 +1,22 @@
+---
+
+id: 2.1.1
+name: Cluster default resource-stickiness and migration-threshold properly configured
+group: SAP HANA System Replication Resource Agent
+labels: hana
+description: |
+  Test if the cluster resource-stickiness and migration-threshold are properly configured
+remediation: |
+  ## Abstract
+  For proper SAP HANA cluster actions calculations, it is needed to set resource-stickiness=1000 and migration-threshold=5000.
+
+  ## Remediation
+  Execute the following command to enable it:
+  ```
+  crm configure rsc_defaults resource-stickiness=1000
+  crm configure rsc_defaults migration-threshold=5000
+  ```
+
+  ## References
+  - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability
+implementation: "{{ lookup('file', 'roles/checks/'+id+'/tasks/main.yml') }}"

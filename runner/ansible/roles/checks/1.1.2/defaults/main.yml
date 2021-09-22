@@ -1,0 +1,15 @@
+---
+
+id: 1.1.2
+name: Corosync consensus is set to {{ expected[id] }}
+group: Corosync
+labels: generic
+description: |
+  Test if the configured corosync consensus has the correct value: {{ expected[id] }}
+remediation: |
+  ## Remediation
+  Adjust the Corosync `consensus` timeout as recommended on the Azure best practices.
+
+  ## References
+  - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker
+implementation: "{{ lookup('file', 'roles/checks/'+id+'/tasks/main.yml') }}"

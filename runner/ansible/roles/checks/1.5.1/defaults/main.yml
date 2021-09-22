@@ -1,0 +1,21 @@
+---
+
+id: 1.5.1
+name: /etc/hosts contains all cluster nodes
+group: Miscellaneous
+labels: generic
+description: |
+  Test if the /etc/hosts file contains all the cluster nodes
+remediation: |
+  ## Abstract
+  If using host names in the cluster configuration, it is vital to have reliable host name resolution.
+  The cluster communication will fail, if the names are not available and that can lead to cluster failover delays.
+  The benefit of using /etc/hosts is that your cluster becomes independent of DNS, which could be a single point
+  of failures too.Name resolution of cluster nodes and virtual IPs is recommended to be local.
+
+  ## Remedation
+  Specify IP addresses of all cluster nodes in the /etc/hosts.
+
+  ## References
+  - Cluster installation in https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker
+implementation: "{{ lookup('file', 'roles/checks/'+id+'/tasks/main.yml') }}"

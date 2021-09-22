@@ -1,0 +1,24 @@
+---
+
+id: 2.1.2
+name: SAP HANA Topology Resource Agent properly configured
+group: SAP HANA System Replication Resource Agent
+labels: hana
+description: |
+  Test if the SAP HANA Topology resource agent is properly configured
+remediation: |
+  ## Abstract
+  The SAPHanaTopology resource-agent is responsible to monitor the status of the
+  SAP HANA System Replication and provide this information for actions calculations
+  by Pacemaker and the SAPHanaSR resource-agent
+
+  ## Remediation
+  Make sure that it is configured as a clone resource, so it runs on all nodes of the cluster and that the following timings are set for the operations:
+
+  monitor: interval="10" timeout="600" \
+  start:  interval="0" timeout="600" \
+  stop: interval="0" timeout="300" \
+
+  ## References
+  - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability#create-sap-hana-cluster-resources
+implementation: "{{ lookup('file', 'roles/checks/'+id+'/tasks/main.yml') }}"

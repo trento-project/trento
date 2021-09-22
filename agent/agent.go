@@ -64,6 +64,7 @@ func NewWithConfig(cfg Config) (*Agent, error) {
 			discovery.NewClusterDiscovery(client),
 			discovery.NewSAPSystemsDiscovery(client),
 			discovery.NewCloudDiscovery(client),
+			discovery.NewSubscriptionDiscovery(client),
 		},
 		templateRunner: templateRunner,
 	}
@@ -160,6 +161,13 @@ func (a *Agent) registerConsulService() error {
 				CheckID: discovery.CloudDiscoveryId,
 				Name:    "Cloud metadata discovery",
 				Notes:   "Collects details about the cloud instance metadata",
+				TTL:     discoveryTTL.String(),
+				Status:  consulApi.HealthWarning,
+			},
+			&consulApi.AgentServiceCheck{
+				CheckID: discovery.SubscriptionDiscoveryId,
+				Name:    "Subscription discovery",
+				Notes:   "Collects details about the SUSE subscription",
 				TTL:     discoveryTTL.String(),
 				Status:  consulApi.HealthWarning,
 			},

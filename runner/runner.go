@@ -19,8 +19,9 @@ import (
 var ansibleFS embed.FS
 
 const (
-	AnsibleMain = "ansible/check.yml"
-	AnsibleMeta = "ansible/meta.yml"
+	AnsibleMain       = "ansible/check.yml"
+	AnsibleMeta       = "ansible/meta.yml"
+	AnsibleConfigFile = "ansible/ansible.cfg"
 )
 
 type Runner struct {
@@ -163,6 +164,8 @@ func NewAnsibleMetaRunner(cfg *Config) (*AnsibleRunner, error) {
 		return ansibleRunner, err
 	}
 
+	configFile := path.Join(cfg.AnsibleFolder, AnsibleConfigFile)
+	ansibleRunner.SetConfigFile(configFile)
 	ansibleRunner.SetAraServer(cfg.AraServer)
 
 	return ansibleRunner, err
@@ -186,6 +189,8 @@ func NewAnsibleCheckRunner(cfg *Config) (*AnsibleRunner, error) {
 	}
 
 	ansibleRunner.Check = true
+	configFile := path.Join(cfg.AnsibleFolder, AnsibleConfigFile)
+	ansibleRunner.SetConfigFile(configFile)
 	ansibleRunner.SetAraServer(cfg.AraServer)
 
 	return ansibleRunner, nil

@@ -111,10 +111,13 @@ func TestRunPlaybookComplex(t *testing.T) {
 		cmd,
 	)
 
+	runnerInst.SetConfigFile("/path/myconfig.conf")
+
 	err := runnerInst.RunPlaybook()
 
 	assert.Contains(t, cmd.Env, "env1=value1")
 	assert.Contains(t, cmd.Env, "env2=value2")
+	assert.Contains(t, cmd.Env, "ANSIBLE_CONFIG=/path/myconfig.conf")
 	assert.NoError(t, err)
 
 	mockCommand.AssertExpectations(t)

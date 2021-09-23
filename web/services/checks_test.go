@@ -56,20 +56,40 @@ func araResultRecord() *ara.Record {
 						"1.1.1": map[string]interface{}{
 							"hosts": map[string]interface{}{
 								"host1": map[string]interface{}{
-									"result": true,
+									"result": "passing",
 								},
 								"host2": map[string]interface{}{
-									"result": true,
+									"result": "passing",
 								},
 							},
 						},
 						"1.1.2": map[string]interface{}{
 							"hosts": map[string]interface{}{
 								"host1": map[string]interface{}{
-									"result": false,
+									"result": "warning",
 								},
 								"host2": map[string]interface{}{
-									"result": false,
+									"result": "critical",
+								},
+							},
+						},
+						"1.1.3": map[string]interface{}{
+							"hosts": map[string]interface{}{
+								"host1": map[string]interface{}{
+									"result": "passing",
+								},
+								"host2": map[string]interface{}{
+									"result": "warning",
+								},
+							},
+						},
+						"1.1.4": map[string]interface{}{
+							"hosts": map[string]interface{}{
+								"host1": map[string]interface{}{
+									"result": "skipped",
+								},
+								"host2": map[string]interface{}{
+									"result": "skipped",
 								},
 							},
 						},
@@ -420,20 +440,40 @@ func TestGetChecksResult(t *testing.T) {
 				"1.1.1": &models.ChecksByHost{
 					Hosts: map[string]*models.Check{
 						"host1": &models.Check{
-							Result: true,
+							Result: models.CheckPassing,
 						},
 						"host2": &models.Check{
-							Result: true,
+							Result: models.CheckPassing,
 						},
 					},
 				},
 				"1.1.2": &models.ChecksByHost{
 					Hosts: map[string]*models.Check{
 						"host1": &models.Check{
-							Result: false,
+							Result: models.CheckWarning,
 						},
 						"host2": &models.Check{
-							Result: false,
+							Result: models.CheckCritical,
+						},
+					},
+				},
+				"1.1.3": &models.ChecksByHost{
+					Hosts: map[string]*models.Check{
+						"host1": &models.Check{
+							Result: models.CheckPassing,
+						},
+						"host2": &models.Check{
+							Result: models.CheckWarning,
+						},
+					},
+				},
+				"1.1.4": &models.ChecksByHost{
+					Hosts: map[string]*models.Check{
+						"host1": &models.Check{
+							Result: models.CheckSkipped,
+						},
+						"host2": &models.Check{
+							Result: models.CheckSkipped,
 						},
 					},
 				},
@@ -570,20 +610,40 @@ func TestGetChecksResultByCluster(t *testing.T) {
 			"1.1.1": &models.ChecksByHost{
 				Hosts: map[string]*models.Check{
 					"host1": &models.Check{
-						Result: true,
+						Result: models.CheckPassing,
 					},
 					"host2": &models.Check{
-						Result: true,
+						Result: models.CheckPassing,
 					},
 				},
 			},
 			"1.1.2": &models.ChecksByHost{
 				Hosts: map[string]*models.Check{
 					"host1": &models.Check{
-						Result: false,
+						Result: models.CheckWarning,
 					},
 					"host2": &models.Check{
-						Result: false,
+						Result: models.CheckCritical,
+					},
+				},
+			},
+			"1.1.3": &models.ChecksByHost{
+				Hosts: map[string]*models.Check{
+					"host1": &models.Check{
+						Result: models.CheckPassing,
+					},
+					"host2": &models.Check{
+						Result: models.CheckWarning,
+					},
+				},
+			},
+			"1.1.4": &models.ChecksByHost{
+				Hosts: map[string]*models.Check{
+					"host1": &models.Check{
+						Result: models.CheckSkipped,
+					},
+					"host2": &models.Check{
+						Result: models.CheckSkipped,
 					},
 				},
 			},
@@ -637,13 +697,13 @@ func TestGetAggregatedChecksResultByHost(t *testing.T) {
 
 	expectedResults := map[string]*AggregatedCheckData{
 		"host1": &AggregatedCheckData{
-			PassingCount:  1,
-			WarningCount:  0,
-			CriticalCount: 1,
+			PassingCount:  2,
+			WarningCount:  1,
+			CriticalCount: 0,
 		},
 		"host2": &AggregatedCheckData{
 			PassingCount:  1,
-			WarningCount:  0,
+			WarningCount:  1,
 			CriticalCount: 1,
 		},
 	}
@@ -694,9 +754,9 @@ func TestGetAggregatedChecksResultByCluster(t *testing.T) {
 	c, err := checksService.GetAggregatedChecksResultByCluster("myClusterId")
 
 	expectedResults := &AggregatedCheckData{
-		PassingCount:  2,
-		WarningCount:  0,
-		CriticalCount: 2,
+		PassingCount:  3,
+		WarningCount:  2,
+		CriticalCount: 1,
 	}
 
 	assert.NoError(t, err)

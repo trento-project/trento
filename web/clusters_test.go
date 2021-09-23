@@ -252,6 +252,34 @@ func clustersListMap() map[string]interface{} {
 				"id":   "e27d313a674375b2066777a89ee346b9",
 			},
 		},
+		"a615a35f65627be5a757319a0741127f": map[string]interface{}{
+			"discovered_data": map[string]interface{}{
+				"cib": map[string]interface{}{
+					"Configuration": map[string]interface{}{
+						"CrmConfig": map[string]interface{}{
+							"ClusterProperties": []interface{}{
+								map[string]interface{}{
+									"Id":    "cib-bootstrap-options-cluster-name",
+									"Value": "netweaver_cluster",
+								},
+							},
+						},
+					},
+				},
+				"crmmon": map[string]interface{}{
+					"Summary": map[string]interface{}{
+						"Nodes": map[string]interface{}{
+							"Number": 2,
+						},
+						"Resources": map[string]interface{}{
+							"Number": 10,
+						},
+					},
+				},
+				"name": "other_cluster",
+				"id":   "a615a35f65627be5a757319a0741127f",
+			},
+		},
 	}
 
 	return listMap
@@ -296,6 +324,24 @@ func checksCatalog() map[string]*models.Check {
 			Implementation: "implementation 3",
 			Labels:         "labels 3",
 		},
+		"1.1.3": &models.Check{
+			ID:             "1.1.3",
+			Name:           "check 3",
+			Group:          "group 1",
+			Description:    "description 3",
+			Remediation:    "remediation 3",
+			Implementation: "implementation 3",
+			Labels:         "labels 2",
+		},
+		"1.1.4": &models.Check{
+			ID:             "1.1.4",
+			Name:           "check 4",
+			Group:          "group 1",
+			Description:    "description 4",
+			Remediation:    "remediation 4",
+			Implementation: "implementation 4",
+			Labels:         "labels 2",
+		},
 	}
 
 	return checksByGroup
@@ -332,6 +378,24 @@ func checksCatalogByGroup() map[string]map[string]*models.Check {
 				Implementation: "implementation 2",
 				Labels:         "labels 2",
 			},
+			"1.1.3": &models.Check{
+				ID:             "1.1.3",
+				Name:           "check 3",
+				Group:          "group 1",
+				Description:    "description 3",
+				Remediation:    "remediation 3",
+				Implementation: "implementation 3",
+				Labels:         "labels 2",
+			},
+			"1.1.4": &models.Check{
+				ID:             "1.1.4",
+				Name:           "check 4",
+				Group:          "group 1",
+				Description:    "description 4",
+				Remediation:    "remediation 4",
+				Implementation: "implementation 4",
+				Labels:         "labels 2",
+			},
 		},
 		"group 2": {
 			"1.2.3": &models.Check{
@@ -356,20 +420,40 @@ func checksResult() *models.Results {
 			"1.1.1": &models.ChecksByHost{
 				Hosts: map[string]*models.Check{
 					"test_node_1": &models.Check{
-						Result: true,
+						Result: models.CheckPassing,
 					},
 					"test_node_2": &models.Check{
-						Result: true,
+						Result: models.CheckPassing,
 					},
 				},
 			},
 			"1.1.2": &models.ChecksByHost{
 				Hosts: map[string]*models.Check{
 					"test_node_1": &models.Check{
-						Result: false,
+						Result: models.CheckPassing,
 					},
 					"test_node_2": &models.Check{
-						Result: false,
+						Result: models.CheckWarning,
+					},
+				},
+			},
+			"1.1.3": &models.ChecksByHost{
+				Hosts: map[string]*models.Check{
+					"test_node_1": &models.Check{
+						Result: models.CheckWarning,
+					},
+					"test_node_2": &models.Check{
+						Result: models.CheckCritical,
+					},
+				},
+			},
+			"1.1.4": &models.ChecksByHost{
+				Hosts: map[string]*models.Check{
+					"test_node_1": &models.Check{
+						Result: models.CheckSkipped,
+					},
+					"test_node_2": &models.Check{
+						Result: models.CheckSkipped,
 					},
 				},
 			},
@@ -386,14 +470,14 @@ func checksResultUnreachable() *models.Results {
 			"1.1.1": &models.ChecksByHost{
 				Hosts: map[string]*models.Check{
 					"test_node_1": &models.Check{
-						Result: true,
+						Result: models.CheckPassing,
 					},
 				},
 			},
 			"1.1.2": &models.ChecksByHost{
 				Hosts: map[string]*models.Check{
 					"test_node_1": &models.Check{
-						Result: false,
+						Result: models.CheckCritical,
 					},
 				},
 			},
@@ -407,6 +491,14 @@ func aggregatedByCluster() *services.AggregatedCheckData {
 	return &services.AggregatedCheckData{
 		PassingCount:  2,
 		WarningCount:  0,
+		CriticalCount: 0,
+	}
+}
+
+func aggregatedByClusterWarning() *services.AggregatedCheckData {
+	return &services.AggregatedCheckData{
+		PassingCount:  2,
+		WarningCount:  2,
 		CriticalCount: 0,
 	}
 }
@@ -466,6 +558,8 @@ func TestClustersListHandler(t *testing.T) {
 
 	checksMocks.On("GetAggregatedChecksResultByCluster", "47d1190ffb4f781974c8356d7f863b03").Return(
 		aggregatedByCluster(), nil)
+	checksMocks.On("GetAggregatedChecksResultByCluster", "a615a35f65627be5a757319a0741127f").Return(
+		aggregatedByClusterWarning(), nil)
 	checksMocks.On("GetAggregatedChecksResultByCluster", "e2f2eb50aef748e586a7baa85e0162cf").Return(
 		aggregatedByClusterCritical(), nil)
 	checksMocks.On("GetAggregatedChecksResultByCluster", "e27d313a674375b2066777a89ee346b9").Return(
@@ -476,6 +570,8 @@ func TestClustersListHandler(t *testing.T) {
 	}
 
 	tagsPath := "trento/v0/tags/clusters/47d1190ffb4f781974c8356d7f863b03/"
+	kv.On("ListMap", tagsPath, tagsPath).Return(tags, nil)
+	tagsPath = "trento/v0/tags/clusters/a615a35f65627be5a757319a0741127f/"
 	kv.On("ListMap", tagsPath, tagsPath).Return(tags, nil)
 	tagsPath = "trento/v0/tags/clusters/e2f2eb50aef748e586a7baa85e0162cf/"
 	kv.On("ListMap", tagsPath, tagsPath).Return(tags, nil)
@@ -518,6 +614,7 @@ func TestClustersListHandler(t *testing.T) {
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, minified, "Clusters")
 	assert.Regexp(t, regexp.MustCompile("<td .*>.*check_circle.*</td><td>.*hana_cluster.*</td><td>.*47d1190ffb4f781974c8356d7f863b03.*</td><td>HANA scale-up</td><td>PRD</td><td>3</td><td>5</td><td><input.*value=tag1.*></td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td .*>.*error.*</td><td>.*other_cluster.*</td><td>.*a615a35f65627be5a757319a0741127f.*</td><td>Unknown</td><td></td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td .*>.*error.*</td><td>.*duplicated.*netweaver_cluster.*</td><td>.*e2f2eb50aef748e586a7baa85e0162cf.*</td><td>Unknown</td><td></td><td>2</td><td>10</td><td><input.*value=tag1.*></td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td .*>.*fiber_manual_record.*</td><td>.*duplicated.*netweaver_cluster.*</td><td>.*e27d313a674375b2066777a89ee346b9.*</td><td>Unknown</td><td></td>"), minified)
 }
@@ -647,7 +744,9 @@ func TestClusterHandlerHANA(t *testing.T) {
 	// Checks result modal
 	assert.Regexp(t, regexp.MustCompile("<th.*>test_node_1.*<th.*>test_node_2"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td.*>1.1.1</td><td.*>description 1</td><td.*>.*check_circle.*check_circle"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*>1.1.2</td><td.*>description 2</td><td.*>.*error.*error"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*>1.1.2</td><td.*>description 2</td><td.*>.*check_circle.*warning"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*>1.1.3</td><td.*>description 3</td><td.*>.*warning.*error"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*>1.1.4</td><td.*>description 4</td><td.*>.*fiber_manual_record.*fiber_manual_record"), minified)
 }
 
 func TestClusterHandlerUnreachableNodes(t *testing.T) {

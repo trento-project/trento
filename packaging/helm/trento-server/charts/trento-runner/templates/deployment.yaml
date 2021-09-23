@@ -45,18 +45,6 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          ports:
-            - name: http
-              containerPort: 80
-              protocol: TCP
-          livenessProbe:
-            exec:
-              command:
-                - /usr/bin/true
-          readinessProbe:
-            exec:
-              command:
-                - /usr/bin/true
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:

@@ -1,18 +1,14 @@
 ---
 
-- name: Set Test ID
-  set_fact:
-    test_id: '2.1.5'
-
-- name: "{{ test_id }}.check"
+- name: "{{ id }}.check"
   shell: |
     #  if azure-lb RA is not configured, then fail
     cibadmin -Q --xpath "//primitive[@type='azure-lb']/@type" || exit 1
     # if not grouped, exit with fail
     cibadmin -Q --xpath "//group/primitive[@type='azure-lb']/@type" || exit 1
     # Check that following match expected, exit with error if any do not
-    [[ $(cibadmin -Q --xpath "//primitive[@type='azure-lb']/meta_attributes/nvpair [@name='resource-stickiness']" | grep -oP 'value="\K[^"]+') != "{{ expected[test_id + '.nvpair_resource_stickiness'] }}" ]] && exit 1
-    exit 0 
+    [[ $(cibadmin -Q --xpath "//primitive[@type='azure-lb']/meta_attributes/nvpair [@name='resource-stickiness']" | grep -oP 'value="\K[^"]+') != "{{ expected[id + '.nvpair_resource_stickiness'] }}" ]] && exit 1
+    exit 0
   check_mode: no
   register: config_updated
   changed_when: config_updated.rc != 0

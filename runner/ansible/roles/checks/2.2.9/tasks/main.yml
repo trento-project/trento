@@ -1,10 +1,6 @@
 ---
 
-- name: Set Test ID
-  set_fact:
-    test_id: '2.2.9'
-
-- name: "{{ test_id }}.check"
+- name: "{{ id }}.check"
   shell: |
     /usr/sap/hostctrl/exe/saphostctrl -function Ping || exit 1
     /usr/sap/hostctrl/exe/sapcontrol -nr 99 -function CheckHostAgent || exit 1

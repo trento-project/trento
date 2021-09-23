@@ -1,15 +1,12 @@
 ---
-- name: Set Test ID
-  set_fact:
-    test_id: '1.2.2'
 
-- name: "{{ test_id }}.check"
+- name: "{{ id }}.check"
   shell: |
    timeout=$(crm_attribute -t crm_config -G -n stonith-timeout --quiet)
    if [[cibadmin -Q --xpath "//primitive[@type='fence_azure_arm']/@type" > /dev/null 2>&1 ]]; then
-     exit $([[ "${timeout}" = "{{ expected[test_id + '.fence_azure_arm'] }}" ]])
+     exit $([[ "${timeout}" = "{{ expected[id + '.fence_azure_arm'] }}" ]])
    else
-     exit $([[ "${timeout}" = "{{ expected[test_id + '.sbd'] }}" ]])
+     exit $([[ "${timeout}" = "{{ expected[id + '.sbd'] }}" ]])
    fi
   check_mode: no
   register: config_updated

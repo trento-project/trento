@@ -1,10 +1,6 @@
 ---
 
-- name: Set Test ID
-  set_fact:
-    test_id: '2.1.4'
-
-- name: "{{ test_id }}.check"
+- name: "{{ id }}.check"
   shell: |
     # if virtIP not configured, exit with fail
     cibadmin -Q --xpath "//primitive[@type='IPaddr2']/@type" || exit 1
@@ -12,9 +8,9 @@
     cibadmin -Q --xpath "//group/primitive[@type='IPaddr2']/@type" || exit 1
     # Check that following match expected, exit with error if any do not
     XPATH="//primitive[@type='IPaddr2']/operations/op"
-    [[ $(cibadmin -Q --xpath "${XPATH} [@name='monitor']" | grep -oP 'interval="\K[^"]+') != "{{ expected[test_id + '.monitor_interval'] }}" ]] && exit 1
-    [[ $(cibadmin -Q --xpath "${XPATH} [@name='monitor']" | grep -oP 'timeout="\K[^"]+') != "{{ expected[test_id + '.monitor_timeout'] }}" ]] && exit 1
-    exit 0 
+    [[ $(cibadmin -Q --xpath "${XPATH} [@name='monitor']" | grep -oP 'interval="\K[^"]+') != "{{ expected[id + '.monitor_interval'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "${XPATH} [@name='monitor']" | grep -oP 'timeout="\K[^"]+') != "{{ expected[id + '.monitor_timeout'] }}" ]] && exit 1
+    exit 0
   check_mode: no
   register: config_updated
   changed_when: config_updated.rc != 0

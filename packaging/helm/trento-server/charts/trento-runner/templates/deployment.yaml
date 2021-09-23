@@ -78,7 +78,7 @@ spec:
       volumes:
       - name: sshconfig
         secret:
-          secretName: trento-runner-privatekey
+          secretName: {{ include "trento-runner.fullname" . }}-privatekey
           defaultMode: 0400
           items:
           - key: privatekey

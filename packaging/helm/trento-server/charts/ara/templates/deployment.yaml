@@ -39,17 +39,17 @@ spec:
             - name: ARA_ALLOWED_HOSTS
               value:  "['*']"
           ports:
-            - name: http
+            - name: ara-http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
           livenessProbe:
             httpGet:
               path: /
-              port: http
+              port: ara-http
           readinessProbe:
             httpGet:
               path: /
-              port: http
+              port: ara-http
           volumeMounts:
             - name: {{ include "ara.fullname" . }}-data
               mountPath: "/data"

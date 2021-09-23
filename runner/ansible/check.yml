@@ -33,4 +33,4 @@
       loop: "{{ checks.files }}"
       loop_control:
         loop_var: check_item # Do not change the name. It is use in the trento callback call
-      when: (check_item.path | basename) in cluster_selected_checks
+      when: (check_item.path | basename) in cluster_selected_checks_list

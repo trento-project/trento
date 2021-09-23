@@ -9,9 +9,9 @@
   delegate_to: localhost
   run_once: yes
 
-- name: set default value to cluster_selected_checks
+- name: set default value to cluster_selected_checks_list
   set_fact:
-    cluster_selected_checks: "{{ cluster_selected_checks|default('')|split(',') }}"
+    cluster_selected_checks_list: "{{ cluster_selected_checks|default('')|split(',') }}"
 
 - debug:
     var: expected

@@ -87,6 +87,12 @@ check_requirements() {
         echo "unzip is required by this script, please install it and try again."
         exit 1
     fi
+    if grep -q "Y" /sys/module/apparmor/parameters/enabled; then
+        if ! command -v apparmor_parser >/dev/null 1>&1; then
+            echo "apparmor-parser is required by k3s when using AppArmor, please install it and try again."
+            exit 0
+        fi
+    fi
 }
 
 install_k3s() {
@@ -108,7 +114,6 @@ update_helm_dependencies() {
     helm repo add hashicorp https://helm.releases.hashicorp.com >/dev/null
     helm repo update >/dev/null
 }
-
 
 install_trento_server_chart() {
     local repo_owner=${TRENTO_REPO_OWNER:-"trento-project"}

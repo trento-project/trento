@@ -60,7 +60,7 @@ local-npm-registry %{_sourcedir} install --with=dev
 %build
 
 mv node_modules web/frontend/
-make build
+VERSION=%{version} make build
 
 %install
 

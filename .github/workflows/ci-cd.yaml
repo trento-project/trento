@@ -97,128 +97,46 @@ jobs:
           name: trento-amd64-binary
           path: build/trento-amd64.gz
 
-  consul-cleanup:
-    runs-on: [self-hosted, vmmonitoring]
-    needs: build
+  install-server:
+    runs-on: [ self-hosted, trento-gh-runner ]
+    needs: test
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
+    environment: AZURE_DEMO
+    env:
+      TRENTO_SERVER_IP: ${{ secrets.TRENTO_SERVER_IP }}      
+      TARGET_USER: ${{ secrets.TARGET_USER }}
     steps:
       - uses: actions/checkout@v2
-      - id: cleanup
-        uses: ./.github/actions/consul_cleanup
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_KEY }}
+          name: id_rsa
+          known_hosts: unnecessary
+          if_key_exists: replace
+          config: ${{ secrets.SSH_CONFIG }}
+      - name: deploy trento services on K3S cluster
+        run: ssh "$TARGET_USER@$TRENTO_SERVER_IP" "sudo bash -s" -- < ./install-server.sh -p ~/.ssh/id_rsa
 
-  deploy-hana01:
-    runs-on: [self-hosted, vmhana01]
-    needs: consul-cleanup
+  deploy-agents:
+    runs-on: [ self-hosted, trento-gh-runner ]
+    needs: install-server
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
+    environment: AZURE_DEMO
+    env:
+      TRENTO_TARGET_AGENTS: ${{ secrets.TRENTO_TARGET_AGENTS }}
+      TARGET_USER: ${{ secrets.TARGET_USER }}
+      TRENTO_SERVER_IP: ${{ secrets.TRENTO_SERVER_IP }}
     steps:
       - uses: actions/checkout@v2
-      - id: cleanup
-        uses: ./.github/actions/consul_cleanup
-      - uses: actions/download-artifact@v2
-        with:
-          name: trento-amd64-binary
-      - id: deploy
-        uses: ./.github/actions/deploy
-        with:
-          role: agent
-
-  deploy-hana02:
-    runs-on: [self-hosted, vmhana02]
-    needs: consul-cleanup
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
-    steps:
-      - uses: actions/checkout@v2
-      - id: cleanup
-        uses: ./.github/actions/consul_cleanup
-      - uses: actions/download-artifact@v2
-        with:
-          name: trento-amd64-binary
-      - id: deploy
-        uses: ./.github/actions/deploy
-        with:
-          role: agent
-
-  deploy-monitoring:
-    runs-on: [self-hosted, vmmonitoring]
-    needs: consul-cleanup
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
-    steps:
-      - uses: actions/checkout@v2
-      - id: cleanup
-        uses: ./.github/actions/consul_cleanup
-      - uses: actions/download-artifact@v2
-        with:
-          name: trento-amd64-binary
-      - id: deploy
-        uses: ./.github/actions/deploy
-        with:
-          role: web
-
-  # TODO: This duplication is going to be removed once we make use of the installer
-  # in the CI
-  deploy-netweaver01:
-    runs-on: [self-hosted, vmnetweaver01]
-    needs: consul-cleanup
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
-    steps:
-      - uses: actions/checkout@v2
-      - id: cleanup
-        uses: ./.github/actions/consul_cleanup
-      - uses: actions/download-artifact@v2
-        with:
-          name: trento-amd64-binary
-      - id: deploy
-        uses: ./.github/actions/deploy
-        with:
-          role: agent
-
-  deploy-netweaver02:
-    runs-on: [self-hosted, vmnetweaver02]
-    needs: consul-cleanup
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
-    steps:
-      - uses: actions/checkout@v2
-      - id: cleanup
-        uses: ./.github/actions/consul_cleanup
-      - uses: actions/download-artifact@v2
-        with:
-          name: trento-amd64-binary
-      - id: deploy
-        uses: ./.github/actions/deploy
-        with:
-          role: agent
-
-  deploy-netweaver03:
-    runs-on: [self-hosted, vmnetweaver03]
-    needs: consul-cleanup
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
-    steps:
-      - uses: actions/checkout@v2
-      - id: cleanup
-        uses: ./.github/actions/consul_cleanup
-      - uses: actions/download-artifact@v2
-        with:
-          name: trento-amd64-binary
-      - id: deploy
-        uses: ./.github/actions/deploy
-        with:
-          role: agent
-
-  deploy-netweaver04:
-    runs-on: [self-hosted, vmnetweaver04]
-    needs: consul-cleanup
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
-    steps:
-      - uses: actions/checkout@v2
-      - id: cleanup
-        uses: ./.github/actions/consul_cleanup
-      - uses: actions/download-artifact@v2
-        with:
-          name: trento-amd64-binary
-      - id: deploy
-        uses: ./.github/actions/deploy
-        with:
-          role: agent
+      - name: install and enable agents
+        run: |
+          set -ex
+          for target_host in ${TRENTO_TARGET_AGENTS//,/ }
+          do
+            ssh "$TARGET_USER@$target_host" "sudo bash -s" -- < ./install-agent.sh "--agent-bind-ip" "$target_host" "--server-ip" "$TRENTO_SERVER_IP"
+            ssh "$TARGET_USER@$target_host" "sudo systemctl enable --now trento-agent.service"
+          done
 
   upload-release-assets:
     needs: build

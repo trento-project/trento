@@ -34,8 +34,8 @@ case "$1" in
 esac
 
 ARGUMENT_LIST=(
-    "agent-bind-ip"
-    "server-ip"
+    "agent-bind-ip:"
+    "server-ip:"
     "rolling"
 )
 
@@ -44,7 +44,7 @@ TRENTO_REPO_KEY=${TRENTO_REPO_KEY:-"https://download.opensuse.org/repositories/d
 
 opts=$(
     getopt \
-        --longoptions "$(printf "%s:," "${ARGUMENT_LIST[@]}")" \
+        --longoptions "$(printf "%s," "${ARGUMENT_LIST[@]}")" \
         --name "$(basename "$0")" \
         --options "" \
         -- "$@"

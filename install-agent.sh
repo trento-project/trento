@@ -37,6 +37,9 @@ ARGUMENT_LIST=(
     "server-ip"
 )
 
+TRENTO_REPO=${TRENTO_REPO:-"https://download.opensuse.org/repositories/devel:/sap:/trento/15.3/devel:sap:trento.repo"}
+TRENTO_REPO_KEY=${TRENTO_REPO_KEY:-"https://download.opensuse.org/repositories/devel:/sap:/trento/15.3/repodata/repomd.xml.key"}
+
 opts=$(
     getopt \
         --longoptions "$(printf "%s:," "${ARGUMENT_LIST[@]}")" \
@@ -59,14 +62,19 @@ while [[ $# -gt 0 ]]; do
         shift 2
         ;;
 
+    --rolling)
+        TRENTO_REPO=${TRENTO_REPO:-"https://download.opensuse.org/repositories/devel:/sap:/trento:/factory/15.3/devel:sap:trento:factory.repo"}
+        TRENTO_REPO_KEY=${TRENTO_REPO_KEY:-"https://download.opensuse.org/repositories/devel:/sap:/trento:/factory/15.3/repodata/repomd.xml.key"}
+
+        shift 1
+        ;;
+
     *)
         break
         ;;
     esac
 done
 
-TRENTO_REPO_KEY=${TRENTO_REPO_KEY:-"https://download.opensuse.org/repositories/devel:/sap:/trento/15.3/repodata/repomd.xml.key"}
-TRENTO_REPO=${TRENTO_REPO:-"https://download.opensuse.org/repositories/devel:/sap:/trento/15.3/devel:sap:trento.repo"}
 
 CONSUL_VERSION=1.9.6
 CONSUL_PATH=/srv/consul

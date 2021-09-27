@@ -20,13 +20,14 @@
     [[ $(cibadmin -Q --xpath "${XPATH}" | grep -oP ' first="\K[^"]+' | grep -o cln_SAPHanaTopology) != "{{ expected[id + '.rsc_order_first'] }}" ]] && exit 1
     [[ $(cibadmin -Q --xpath "${XPATH}" | grep -oP ' then="\K[^"]+' | grep -o msl_SAPHana) != "{{ expected[id + '.rsc_order_then'] }}" ]] && exit 1
     exit 0
-  check_mode: no
+  check_mode: false
   register: config_updated
   changed_when: config_updated.rc != 0
   failed_when: config_updated.rc > 1
 
 - block:
-    - import_role:
+    - name: Post results
+      import_role:
         name: post-results
   when:
     - ansible_check_mode

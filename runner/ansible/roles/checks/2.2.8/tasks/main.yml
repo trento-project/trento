@@ -10,13 +10,14 @@
     else
       echo "$full_version"
     fi
-  check_mode: no
+  check_mode: false
   register: config_updated
   changed_when: config_updated.stdout is version(expected[id], '<')
   failed_when: config_updated.rc > 0
 
 - block:
-    - import_role:
+    - name: Post results
+      import_role:
         name: post-results
   when:
     - ansible_check_mode

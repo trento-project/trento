@@ -24,13 +24,14 @@
     [[ $(cibadmin -Q --xpath "${XPATH} [@name='AUTOMATED_REGISTER']" | grep -oP 'value="\K[^"]+' | tr '[:upper:]' '[:lower:]') != "{{ expected[id + '.nvpair_AUTOMATED_REGISTER'] }}" ]] && exit 1
     [[ $(cibadmin -Q --xpath "${XPATH} [@name='DUPLICATE_PRIMARY_TIMEOUT']" | grep -oP 'value="\K[^"]+') != "{{ expected[id + '.nvpair_DUPLICATE_PRIMARY_TIMEOUT'] }}" ]] && exit 1
     exit 0
-  check_mode: no
+  check_mode: false
   register: config_updated
   changed_when: config_updated.rc != 0
   failed_when: config_updated.rc > 1
 
 - block:
-    - import_role:
+    - name: Post results
+      import_role:
         name: post-results
   when:
     - ansible_check_mode

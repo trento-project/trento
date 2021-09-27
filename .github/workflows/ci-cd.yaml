@@ -53,19 +53,12 @@ jobs:
       - name: frontend lint and coding style check
         run: make web-check
       - name: ansible playbooks and roles lint check
-        uses: ansible/ansible-lint-action@master
-        with:
-          targets: |
-            runner/ansible/check.yml
-            runner/ansible/meta.yml
-            runner/ansible/roles/*
-            runner/ansible/roles/checks/*
-            runner/ansible/vars/*
-          override-deps: |
-            ansible==4.6.0
-            ansible-core==2.11.5
-            ansible-lint==5.1.3
-          args: "-x role-name,risky-shell-pipe,no-tabs"
+        run: |
+          pip install ansible==4.6.0 ansible-core==2.11.5 ansible-lint==5.1.3 ara==1.5.7
+          export ANSIBLE_ACTION_PLUGINS=$(python3 -m ara.setup.action_plugins)
+          ansible-lint -vv -x role-name,risky-shell-pipe,no-tabs -w yaml \
+            runner/ansible/* runner/ansible/roles/* \
+            runner/ansible/roles/checks/* runner/ansible/vars/*
 
   build:
     runs-on: ubuntu-20.04

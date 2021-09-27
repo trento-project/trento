@@ -21,6 +21,7 @@ Arguments:
   --agent-bind-ip   The private address to which the trento-agent should be bound for internal communications.
                     This is an IP address that should be reachable by the other hosts, including the trento server.
   --server-ip       The trento server ip.
+  --rolling         Use the factory/rolling-release version instead of the stable one.
   --help            Print this help.
 END
 }
@@ -35,6 +36,7 @@ esac
 ARGUMENT_LIST=(
     "agent-bind-ip"
     "server-ip"
+    "rolling"
 )
 
 TRENTO_REPO=${TRENTO_REPO:-"https://download.opensuse.org/repositories/devel:/sap:/trento/15.3/devel:sap:trento.repo"}

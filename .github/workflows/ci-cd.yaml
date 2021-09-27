@@ -99,7 +99,7 @@ jobs:
 
   install-server:
     runs-on: [ self-hosted, trento-gh-runner ]
-    needs: test
+    #needs: test
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
     environment: AZURE_DEMO
     env:

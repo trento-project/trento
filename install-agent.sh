@@ -21,6 +21,7 @@ Arguments:
   --agent-bind-ip   The private address to which the trento-agent should be bound for internal communications.
                     This is an IP address that should be reachable by the other hosts, including the trento server.
   --server-ip       The trento server ip.
+  --rolling         Use the factory/rolling-release version instead of the stable one.
   --help            Print this help.
 END
 }
@@ -33,13 +34,17 @@ case "$1" in
 esac
 
 ARGUMENT_LIST=(
-    "agent-bind-ip"
-    "server-ip"
+    "agent-bind-ip:"
+    "server-ip:"
+    "rolling"
 )
+
+TRENTO_REPO=${TRENTO_REPO:-"https://download.opensuse.org/repositories/devel:/sap:/trento/15.3/devel:sap:trento.repo"}
+TRENTO_REPO_KEY=${TRENTO_REPO_KEY:-"https://download.opensuse.org/repositories/devel:/sap:/trento/15.3/repodata/repomd.xml.key"}
 
 opts=$(
     getopt \
-        --longoptions "$(printf "%s:," "${ARGUMENT_LIST[@]}")" \
+        --longoptions "$(printf "%s," "${ARGUMENT_LIST[@]}")" \
         --name "$(basename "$0")" \
         --options "" \
         -- "$@"
@@ -59,14 +64,19 @@ while [[ $# -gt 0 ]]; do
         shift 2
         ;;
 
+    --rolling)
+        TRENTO_REPO=${TRENTO_REPO:-"https://download.opensuse.org/repositories/devel:/sap:/trento:/factory/15.3/devel:sap:trento:factory.repo"}
+        TRENTO_REPO_KEY=${TRENTO_REPO_KEY:-"https://download.opensuse.org/repositories/devel:/sap:/trento:/factory/15.3/repodata/repomd.xml.key"}
+
+        shift 1
+        ;;
+
     *)
         break
         ;;
     esac
 done
 
-TRENTO_REPO_KEY=${TRENTO_REPO_KEY:-"https://download.opensuse.org/repositories/devel:/sap:/trento/15.3/repodata/repomd.xml.key"}
-TRENTO_REPO=${TRENTO_REPO:-"https://download.opensuse.org/repositories/devel:/sap:/trento/15.3/devel:sap:trento.repo"}
 
 CONSUL_VERSION=1.9.6
 CONSUL_PATH=/srv/consul

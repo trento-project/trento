@@ -9,13 +9,14 @@
     # Check that following match expected, exit with error if any do not
     [[ $(cibadmin -Q --xpath "//primitive[@type='azure-lb']/meta_attributes/nvpair [@name='resource-stickiness']" | grep -oP 'value="\K[^"]+') != "{{ expected[id + '.nvpair_resource_stickiness'] }}" ]] && exit 1
     exit 0
-  check_mode: no
+  check_mode: false
   register: config_updated
   changed_when: config_updated.rc != 0
   failed_when: config_updated.rc > 1
 
 - block:
-    - import_role:
+    - name: Post results
+      import_role:
         name: post-results
   when:
     - ansible_check_mode

@@ -1,5 +1,5 @@
 - hosts: localhost
-  gather_facts: False
+  gather_facts: false
 
   vars:
     ara_playbook_labels:
@@ -12,7 +12,7 @@
 
     - name: Find checks
       find:
-        paths: "{{ playbook_dir}}/roles/checks"
+        paths: "{{ playbook_dir }}/roles/checks"
         file_type: directory
       register: checks
 

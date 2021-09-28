@@ -10,13 +10,14 @@
     grep -E "^Cmnd_Alias +SFAIL_SITEB += +/usr/sbin/crm_attribute" /etc/sudoers | grep -E "\-n +hana_[a-z][a-z0-9]{2}_site_srHook_.+" | grep -E "\-v +SFAIL" | grep -E "\-t +crm_config" | grep -E "\-s +SAPHanaSR" || exit 1
     grep -E "[a-z][a-z0-9]{2}adm +ALL=\(ALL\) +NOPASSWD:" /etc/sudoers | sed "s/.*: //" | grep SOK_SITEA | grep SFAIL_SITEA | grep SOK_SITEB | grep SFAIL_SITEB || exit 1
     exit 0
-  check_mode: no
+  check_mode: false
   register: config_updated
   changed_when: config_updated.rc != 0
   failed_when: config_updated.rc > 1
 
 - block:
-    - import_role:
+    - name: Post results
+      import_role:
         name: post-results
   when:
     - ansible_check_mode

@@ -22,6 +22,7 @@ Arguments:
                     This is an IP address that should be reachable by the other hosts, including the trento server.
   --server-ip       The trento server ip.
   --rolling         Use the factory/rolling-release version instead of the stable one.
+  --use-tgz         Use the trento tar.gz file from GH releases rather than the RPM
   --help            Print this help.
 END
 }
@@ -37,7 +38,10 @@ ARGUMENT_LIST=(
     "agent-bind-ip:"
     "server-ip:"
     "rolling"
+    "use-tgz"
 )
+
+readonly TRENTO_VERSION=0.4.0
 
 opts=$(
     getopt \
@@ -62,9 +66,12 @@ while [[ $# -gt 0 ]]; do
         ;;
 
     --rolling)
-        TRENTO_REPO=${TRENTO_REPO:-"https://download.opensuse.org/repositories/devel:/sap:/trento:/factory/15.3/devel:sap:trento:factory.repo"}
-        TRENTO_REPO_KEY=${TRENTO_REPO_KEY:-"https://download.opensuse.org/repositories/devel:/sap:/trento:/factory/15.3/repodata/repomd.xml.key"}
+        USE_ROLLING=1
+        shift 1
+        ;;
 
+    --use-tgz)
+        USE_TGZ=1
         shift 1
         ;;
 
@@ -73,9 +80,6 @@ while [[ $# -gt 0 ]]; do
         ;;
     esac
 done
-
-TRENTO_REPO=${TRENTO_REPO:-"https://download.opensuse.org/repositories/devel:/sap:/trento/15.3/devel:sap:trento.repo"}
-TRENTO_REPO_KEY=${TRENTO_REPO_KEY:-"https://download.opensuse.org/repositories/devel:/sap:/trento/15.3/repodata/repomd.xml.key"}
 
 CONSUL_VERSION=1.9.6
 CONSUL_PATH=/srv/consul
@@ -129,10 +133,10 @@ function check_installer_deps() {
 }
 
 function configure_installation() {
-    if [ -z "$AGENT_BIND_IP" ]; then
+    if [[ -z "$AGENT_BIND_IP" ]]; then
         read -rp "Please provide a bind IP for the agent: " AGENT_BIND_IP </dev/tty
     fi
-    if [ -z "$SERVER_IP" ]; then
+    if [[ -z "$SERVER_IP" ]]; then
         read -rp "Please provide the server IP: " SERVER_IP </dev/tty
     fi
 }
@@ -152,7 +156,7 @@ function setup_consul() {
         sed "s|@BIND_ADDR@|${AGENT_BIND_IP}|g" \
             >${CONFIG_PATH}/consul.hcl
 
-    if [ -f "/usr/lib/systemd/system/$CONSUL_SERVICE_NAME" ]; then
+    if [[ -f "/usr/lib/systemd/system/$CONSUL_SERVICE_NAME" ]]; then
         echo "  Warning: Consul systemd unit already installed. Removing..."
         systemctl stop "$CONSUL_SERVICE_NAME"
         rm "/usr/lib/systemd/system/$CONSUL_SERVICE_NAME"
@@ -163,6 +167,22 @@ function setup_consul() {
 }
 
 function install_trento() {
+    if [[ -n "$USE_TGZ" ]] ; then
+        install_trento_tgz
+    else
+        install_trento_rpm
+    fi
+}
+
+function install_trento_rpm() {
+    if [[ -n "$USE_ROLLING" ]] ; then
+        TRENTO_REPO=${TRENTO_REPO:-"https://download.opensuse.org/repositories/devel:/sap:/trento:/factory/15.3/devel:sap:trento:factory.repo"}
+        TRENTO_REPO_KEY=${TRENTO_REPO_KEY:-"https://download.opensuse.org/repositories/devel:/sap:/trento:/factory/15.3/repodata/repomd.xml.key"}
+    else
+        TRENTO_REPO=${TRENTO_REPO:-"https://download.opensuse.org/repositories/devel:/sap:/trento/15.3/devel:sap:trento.repo"}
+        TRENTO_REPO_KEY=${TRENTO_REPO_KEY:-"https://download.opensuse.org/repositories/devel:/sap:/trento/15.3/repodata/repomd.xml.key"}        
+    fi
+
     rpm --import "${TRENTO_REPO_KEY}" >/dev/null
     path=${TRENTO_REPO%/*}/
     if zypper lr --details | cut -d'|' -f9 | grep "$path" >/dev/null 2>&1; then
@@ -179,6 +199,19 @@ function install_trento() {
         echo "* Installing trento"
         zypper in -y trento >/dev/null
     fi
+}
+
+function install_trento_tgz() {
+    ARCH=$(uname -m | sed "s~x86_64~amd64~" | sed "s~aarch64~arm64~" )
+    if [[ -n "$USE_ROLLING" ]] ; then        
+        TRENTO_TGZ_URL=https://github.com/trento-project/trento/releases/download/rolling/trento-${ARCH}.gz        
+    else
+        TRENTO_TGZ_URL=https://github.com/trento-project/trento/releases/download/${TRENTO_VERSION}/trento-${ARCH}.gz
+    fi
+  
+    curl -f -sS -O -L "${TRENTO_TGZ_URL}" >/dev/null
+    tar -zxf trento-${ARCH}.gz /usr/bin/
+    rm trento-${ARCH}.gz
 }
 
 check_installer_deps

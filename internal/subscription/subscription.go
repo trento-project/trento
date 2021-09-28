@@ -8,6 +8,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+//go:generate mockery --all
+
 type Subscriptions []*Subscription
 
 type Subscription struct {

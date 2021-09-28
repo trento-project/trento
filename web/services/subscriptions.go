@@ -5,6 +5,8 @@ import (
 	"github.com/trento-project/trento/internal/subscription"
 )
 
+//go:generate mockery --name=SubscriptionsService
+
 type SubscriptionsService interface {
 	//GetSubscriptionType() (string, error)
 	GetHostSubscriptions(host string) (subscription.Subscriptions, error)

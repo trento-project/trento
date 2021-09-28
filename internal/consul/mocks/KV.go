@@ -178,6 +178,20 @@ func (_m *KV) Put(p *api.KVPair, q *api.WriteOptions) (*api.WriteMeta, error) {
 	return r0, r1
 }
 
+// PutInterface provides a mock function with given fields: prefix, value
+func (_m *KV) PutInterface(prefix string, value interface{}) error {
+	ret := _m.Called(prefix, value)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, interface{}) error); ok {
+		r0 = rf(prefix, value)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // PutMap provides a mock function with given fields: prefix, data
 func (_m *KV) PutMap(prefix string, data map[string]interface{}) error {
 	ret := _m.Called(prefix, data)

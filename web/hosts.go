@@ -14,6 +14,8 @@ import (
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/internal/sapsystem"
+
+	"github.com/trento-project/trento/web/services"
 )
 
 func NewHostsHealthContainer(hostList hosts.HostList) *HealthContainer {
@@ -124,7 +126,7 @@ func loadHealthChecks(client consul.Client, node string) ([]*consulApi.HealthChe
 	return checks, nil
 }
 
-func NewHostHandler(client consul.Client) gin.HandlerFunc {
+func NewHostHandler(client consul.Client, subsService services.SubscriptionsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		name := c.Param("name")
 		catalogNode, _, err := client.Catalog().Node(name, nil)
@@ -156,12 +158,19 @@ func NewHostHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
+		subs, err := subsService.GetHostSubscriptions(name)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
 		host := hosts.NewHost(*catalogNode.Node, client)
 		c.HTML(http.StatusOK, "host.html.tmpl", gin.H{
-			"Host":         &host,
-			"HealthChecks": checks,
-			"SAPSystems":   systems,
-			"CloudData":    cloudData,
+			"Host":          &host,
+			"HealthChecks":  checks,
+			"SAPSystems":    systems,
+			"CloudData":     cloudData,
+			"Subscriptions": subs,
 		})
 	}
 }

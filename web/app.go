@@ -35,10 +35,11 @@ type App struct {
 }
 
 type Dependencies struct {
-	consul        consul.Client
-	engine        *gin.Engine
-	store         cookie.Store
-	checksService services.ChecksService
+	consul               consul.Client
+	engine               *gin.Engine
+	store                cookie.Store
+	checksService        services.ChecksService
+	subscriptionsService services.SubscriptionsService
 }
 
 func DefaultDependencies() Dependencies {
@@ -48,8 +49,9 @@ func DefaultDependencies() Dependencies {
 
 	araService := ara.NewAraService(araAddrDefault)
 	checksService := services.NewChecksService(araService)
+	subscriptionsService := services.NewSubscriptionsService(consulClient)
 
-	return Dependencies{consulClient, engine, store, checksService}
+	return Dependencies{consulClient, engine, store, checksService, subscriptionsService}
 }
 
 func (d *Dependencies) SetAraAddr(araAddr string) {
@@ -90,7 +92,7 @@ func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
 	engine.StaticFS("/static", http.FS(assetsFS))
 	engine.GET("/", HomeHandler)
 	engine.GET("/hosts", NewHostListHandler(deps.consul))
-	engine.GET("/hosts/:name", NewHostHandler(deps.consul))
+	engine.GET("/hosts/:name", NewHostHandler(deps.consul, deps.subscriptionsService))
 	engine.GET("/catalog", NewChecksCatalogHandler(deps.checksService))
 	engine.GET("/clusters", NewClusterListHandler(deps.consul, deps.checksService))
 	engine.GET("/clusters/:id", NewClusterHandler(deps.consul, deps.checksService))

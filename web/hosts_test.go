@@ -12,6 +12,8 @@ import (
 	"github.com/tdewolff/minify/v2/html"
 	"github.com/trento-project/trento/internal/consul/mocks"
 	"github.com/trento-project/trento/internal/hosts"
+	"github.com/trento-project/trento/internal/subscription"
+	serviceMocks "github.com/trento-project/trento/web/services/mocks"
 )
 
 func TestNewHostsHealthContainer(t *testing.T) {
@@ -189,6 +191,7 @@ func TestHostHandler(t *testing.T) {
 	catalog := new(mocks.Catalog)
 	health := new(mocks.Health)
 	kv := new(mocks.KV)
+	subscriptionsMocks := new(serviceMocks.SubscriptionsService)
 
 	consulInst.On("Catalog").Return(catalog)
 	consulInst.On("Health").Return(health)
@@ -275,8 +278,30 @@ func TestHostHandler(t *testing.T) {
 	consulInst.On("WaitLock", cloudPath).Return(nil)
 	kv.On("ListMap", cloudListMapPath, cloudListMapPath).Return(cloudListMap, nil)
 
+	subscriptionsList := subscription.Subscriptions{
+		&subscription.Subscription{
+			Identifier:         "SLES_SAP",
+			Version:            "15.2",
+			Arch:               "x64_84",
+			Status:             "Registered",
+			StartsAt:           "2019-03-20 09:55:32 UTC",
+			ExpiresAt:          "2024-03-20 09:55:32 UTC",
+			SubscriptionStatus: "ACTIVE",
+			Type:               "internal",
+		},
+		&subscription.Subscription{
+			Identifier: "sle-module-desktop-applications",
+			Version:    "15.2",
+			Arch:       "x64_84",
+			Status:     "Registered",
+		},
+	}
+
+	subscriptionsMocks.On("GetHostSubscriptions", "test_host").Return(subscriptionsList, nil)
+
 	deps := DefaultDependencies()
 	deps.consul = consulInst
+	deps.subscriptionsService = subscriptionsMocks
 
 	app, err := NewAppWithDeps("", 80, deps)
 	if err != nil {
@@ -310,6 +335,13 @@ func TestHostHandler(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("<a.*sapsystems.*>sys1</a>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<dd.*>v1</dd>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<span.*>passing</span>"), minified)
+	// Subscriptions
+	assert.Regexp(t, regexp.MustCompile(
+		"<td>SLES_SAP</td><td>x64_84</td><td>15.2</td><td>internal</td><td>Registered</td>"+
+			"<td>ACTIVE</td><td>2019-03-20 09:55:32 UTC</td><td>2024-03-20 09:55:32 UTC</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile(
+		"<td>sle-module-desktop-applications</td><td>x64_84</td><td>15.2</td><td></td>"+
+			"<td>Registered</td><td></td><td></td><td></td>"), minified)
 	// SAP Instance
 	assert.Regexp(t, regexp.MustCompile("<dt.*>Name</dt><dd.*>HDB00</dd>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<dt.*>SID</dt><dd.*>PRD</dd>"), minified)
@@ -326,6 +358,7 @@ func TestHostHandlerAzure(t *testing.T) {
 	catalog := new(mocks.Catalog)
 	health := new(mocks.Health)
 	kv := new(mocks.KV)
+	subscriptionsMocks := new(serviceMocks.SubscriptionsService)
 
 	consulInst.On("Catalog").Return(catalog)
 	consulInst.On("Health").Return(health)
@@ -383,9 +416,12 @@ func TestHostHandlerAzure(t *testing.T) {
 	cloudListMapPath := cloudPath + "cloud/"
 	consulInst.On("WaitLock", cloudPath).Return(nil)
 	kv.On("ListMap", cloudListMapPath, cloudListMapPath).Return(cloudListMap, nil)
+	subscriptionsMocks.On(
+		"GetHostSubscriptions", "test_host").Return(subscription.Subscriptions{}, nil)
 
 	deps := DefaultDependencies()
 	deps.consul = consulInst
+	deps.subscriptionsService = subscriptionsMocks
 
 	app, err := NewAppWithDeps("", 80, deps)
 	if err != nil {

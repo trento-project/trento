@@ -16,6 +16,7 @@ import (
 )
 
 const (
+	AnsibleConfigFileEnv   = "ANSIBLE_CONFIG"
 	AnsibleCallbackPlugins = "ANSIBLE_CALLBACK_PLUGINS"
 	AnsibleActionPlugins   = "ANSIBLE_ACTION_PLUGINS"
 	AraApiClient           = "ARA_API_CLIENT"
@@ -74,6 +75,10 @@ func (a *AnsibleRunner) SetInventory(inventory string) error {
 
 	a.Inventory = inventory
 	return nil
+}
+
+func (a *AnsibleRunner) SetConfigFile(confFile string) {
+	a.setEnv(AnsibleConfigFileEnv, confFile)
 }
 
 // ARA_API_CLIENT is always set to "http" to ensure the usage of the REST API

@@ -5,6 +5,14 @@ import (
 	"strings"
 )
 
+const (
+	CheckPassing   string = "passing"
+	CheckWarning   string = "warning"
+	CheckCritical  string = "critical"
+	CheckSkipped   string = "skipped"
+	CheckUndefined string = "undefined"
+)
+
 type CheckData struct {
 	Metadata Metadata            `json:"metadata,omitempty" mapstructure:"metadata,omitempty"`
 	Groups   map[string]*Results `json:"results,omitempty" mapstructure:"results,omitempty"`
@@ -32,7 +40,7 @@ type Check struct {
 	Implementation string `json:"implementation,omitempty" mapstructure:"implementation,omitempty"`
 	Labels         string `json:"labels,omitempty" mapstructure:"labels,omitempty"`
 	Selected       bool   `json:"selected,omitempty" mapstructure:"selected,omitempty"`
-	Result         bool   `json:"result,omitempty" mapstructure:"result,omitempty"`
+	Result         string `json:"result,omitempty" mapstructure:"result,omitempty"`
 }
 
 func (c *Results) GetHostNames() []string {

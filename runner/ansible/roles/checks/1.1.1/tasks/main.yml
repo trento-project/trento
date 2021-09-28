@@ -11,7 +11,8 @@
     - ansible_check_mode
 
 - block:
-    - import_role:
+    - name: Post results
+      import_role:
         name: post-results
   when:
     - ansible_check_mode

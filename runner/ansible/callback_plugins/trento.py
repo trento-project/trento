@@ -110,6 +110,10 @@ class CallbackModule(CallbackBase):
         """
         On task Ok
         """
+        if self._is_check_include_loop(result):
+            self._store_skipped(result)
+            return
+
         if not self._is_test_result(result):
             return
 
@@ -188,6 +192,30 @@ class CallbackModule(CallbackBase):
                 (result._task_fields.get("name") == TEST_RESULT_TASK_NAME):
             return True
         return False
+
+    def _is_check_include_loop(self, result):
+        """
+        Check if the current task is the checks include loop task
+        """
+        if (result._task_fields.get("action") == "include_role") and \
+                (result._task_fields.get("name") == TEST_INCLUDE_TASK_NAME):
+            return True
+        return False
+
+    def _store_skipped(self, result):
+        """
+        Store skipped checks
+        """
+        task_vars = self._all_vars(host=result._host, task=result._task)
+        host = result._host.get_name()
+
+        for check_result in result._result["results"]:
+            skipped = check_result.get("skipped", False)
+            if skipped:
+                check_id = os.path.basename(check_result["check_item"]["path"])
+
+                for group in task_vars["group_names"]:
+                    self.results.add_result(group, check_id, host, "skipped")
 
     def _get_playbook_id(self):
         """

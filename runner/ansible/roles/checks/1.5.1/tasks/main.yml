@@ -6,13 +6,14 @@
       if ! cat /etc/hosts |grep -q $i; then exit 1; fi
     done
     exit 0
-  check_mode: no
+  check_mode: false
   register: config_updated
   changed_when: config_updated.rc != 0
   failed_when: config_updated.rc > 1
 
 - block:
-    - import_role:
+    - name: Post results
+      import_role:
         name: post-results
   when:
     - ansible_check_mode

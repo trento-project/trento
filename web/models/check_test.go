@@ -12,20 +12,20 @@ func TestGetHostNames(t *testing.T) {
 			"1.1.1": &ChecksByHost{
 				Hosts: map[string]*Check{
 					"host1": &Check{
-						Result: true,
+						Result: "passing",
 					},
 					"host2": &Check{
-						Result: true,
+						Result: "critical",
 					},
 				},
 			},
 			"1.1.2": &ChecksByHost{
 				Hosts: map[string]*Check{
 					"host1": &Check{
-						Result: false,
+						Result: "warning",
 					},
 					"host2": &Check{
-						Result: false,
+						Result: "skipped",
 					},
 				},
 			},

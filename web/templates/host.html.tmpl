@@ -41,10 +41,43 @@
                 <dd class="inline">{{ $Compute.Offer }}</dd>
                 <dt class="inline">SKU</dt>
                 <dd class="inline">{{ $Compute.Sku }}</dd>
-
             </dl>
             <hr/>
         {{- end }}
+        <h1>SUSE subscription details</h1>
+        <div class='table-responsive'>
+            <table class='table eos-table'>
+                <thead>
+                <tr>
+                    <th scope='col'>Identifier</th>
+                    <th scope='col'>Arch</th>
+                    <th scope='col'>Version</th>
+                    <th scope='col'>Type</th>
+                    <th scope='col'>Status</th>
+                    <th scope='col'>Subscription status</th>
+                    <th scope='col'>Starts at</th>
+                    <th scope='col'>Expires at</th>
+                </tr>
+                </thead>
+                <tbody>
+                    {{- range .Subscriptions }}
+                        <tr>
+                            <td>{{ .Identifier }}</td>
+                            <td>{{ .Arch }}</td>
+                            <td>{{ .Version }}</td>
+                            <td>{{ .Type }}</td>
+                            <td>{{ .Status }}</td>
+                            <td>{{ .SubscriptionStatus }}</td>
+                            <td>{{ .StartsAt }}</td>
+                            <td>{{ .ExpiresAt }}</td>
+                        </tr>
+                    {{- else }}
+                        {{ template "empty_table_body" 4}}
+                    {{- end }}
+                </tbody>
+            </table>
+        </div>
+        <hr/>
         {{- if ne (len .SAPSystems) 0 }}
             <p class='clearfix'></p>
             <h2>SAP instances</h2>

@@ -51,6 +51,7 @@ func TestNewAnsibleMetaRunner(t *testing.T) {
 	expectedMetaRunner := &AnsibleRunner{
 		Playbook: path.Join(TestAnsibleFolder, "ansible/meta.yml"),
 		Envs: map[string]string{
+			"ANSIBLE_CONFIG":           path.Join(TestAnsibleFolder, "ansible/ansible.cfg"),
 			"ANSIBLE_CALLBACK_PLUGINS": "callback",
 			"ANSIBLE_ACTION_PLUGINS":   "action",
 			"ARA_API_CLIENT":           "http",
@@ -90,6 +91,7 @@ func TestNewAnsibleCheckRunner(t *testing.T) {
 		Playbook:  path.Join(TestAnsibleFolder, "ansible/check.yml"),
 		Inventory: path.Join(TestAnsibleFolder, "ansible_hosts"),
 		Envs: map[string]string{
+			"ANSIBLE_CONFIG":           path.Join(TestAnsibleFolder, "ansible/ansible.cfg"),
 			"ANSIBLE_CALLBACK_PLUGINS": "callback",
 			"ANSIBLE_ACTION_PLUGINS":   "action",
 			"ARA_API_CLIENT":           "http",

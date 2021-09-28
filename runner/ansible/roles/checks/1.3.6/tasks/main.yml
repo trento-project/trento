@@ -15,11 +15,12 @@
     done
     echo $result_msgwait
   register: config_updated
-  check_mode: no
+  check_mode: false
   changed_when: config_updated.stdout != expected[id]
 
 - block:
-    - import_role:
+    - name: Post results
+      import_role:
         name: post-results
   when:
     - ansible_check_mode

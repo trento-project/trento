@@ -457,9 +457,11 @@ func NewClustersHealthContainer(t ClustersTable) *HealthContainer {
 	h := &HealthContainer{}
 	for _, r := range t {
 		switch r.Health {
-		case services.CheckPassing:
+		case models.CheckPassing:
 			h.PassingCount += 1
-		case services.CheckCritical:
+		case models.CheckWarning:
+			h.WarningCount += 1
+		case models.CheckCritical:
 			h.CriticalCount += 1
 		}
 	}

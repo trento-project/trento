@@ -17,3 +17,4 @@ remediation: |
   ## References
   - section 9.1.2 https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
 implementation: "{{ lookup('file', 'roles/checks/'+id+'/tasks/main.yml') }}"
+on_failure: warning

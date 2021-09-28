@@ -12,13 +12,6 @@ import (
 
 //go:generate mockery --name=ChecksService
 
-const (
-	CheckPassing   = "passing"
-	CheckWarning   = "warning"
-	CheckCritical  = "critical"
-	CheckUndefined = "undefined"
-)
-
 type AggregatedCheckData struct {
 	PassingCount  int
 	WarningCount  int
@@ -27,14 +20,14 @@ type AggregatedCheckData struct {
 
 func (a *AggregatedCheckData) String() string {
 	if a.CriticalCount > 0 {
-		return CheckCritical
+		return models.CheckCritical
 	} else if a.WarningCount > 0 {
-		return CheckWarning
+		return models.CheckWarning
 	} else if a.PassingCount > 0 {
-		return CheckPassing
+		return models.CheckPassing
 	}
 
-	return CheckUndefined
+	return models.CheckUndefined
 }
 
 type ChecksService interface {
@@ -146,9 +139,11 @@ func (c *checksService) GetAggregatedChecksResultByHost(clusterId string) (map[s
 			if _, ok := aCheckDataByHost[hostName]; !ok {
 				aCheckDataByHost[hostName] = &AggregatedCheckData{}
 			}
-			if !host.Result {
+			if host.Result == models.CheckCritical {
 				aCheckDataByHost[hostName].CriticalCount += 1
-			} else {
+			} else if host.Result == models.CheckWarning {
+				aCheckDataByHost[hostName].WarningCount += 1
+			} else if host.Result == models.CheckPassing {
 				aCheckDataByHost[hostName].PassingCount += 1
 			}
 		}

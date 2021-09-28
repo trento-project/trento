@@ -19,3 +19,4 @@ remediation: |
   ## References
   - Cluster installation in https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker
 implementation: "{{ lookup('file', 'roles/checks/'+id+'/tasks/main.yml') }}"
+on_failure: warning

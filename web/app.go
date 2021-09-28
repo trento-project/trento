@@ -91,6 +91,7 @@ func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
 	engine.Use(sessions.Sessions("session", deps.store))
 	engine.StaticFS("/static", http.FS(assetsFS))
 	engine.GET("/", HomeHandler)
+	engine.GET("/about", NewAboutHandler(deps.subscriptionsService))
 	engine.GET("/hosts", NewHostListHandler(deps.consul))
 	engine.GET("/hosts/:name", NewHostHandler(deps.consul, deps.subscriptionsService))
 	engine.GET("/catalog", NewChecksCatalogHandler(deps.checksService))

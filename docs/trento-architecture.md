@@ -41,12 +41,3 @@ This uses a very traditional multi-tier client server setup:
 * Application Server Layer: Business applications which the end users interact with (can be written in ABAP programming language, for example)
 
 * Database Server Layer: Contains the customer data and all the ABAP code which is run by the application servers. Most often this is SAP HANA.
-
-## SAP Landscape
-
-A SAP Landscape is one or more SAP Systems, usually combined in a Staging Systems Setup: DEV -> QA -> PRD
-
-## SAP Environment
-
-In cases when there are multiple SAP applications to manage, each business application can be deployed in its own SAP Landscape. It could also be
-that the same business application is replicated (sharded) in multiple SAP Landscapes (one for each Business Unit for example). Often this is also referred to as a `SAP Landscape`.

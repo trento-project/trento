@@ -2,7 +2,9 @@ package agent
 
 import (
 	"context"
+	"fmt"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -16,6 +18,8 @@ import (
 	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/version"
 )
+
+const trentoAgentCheckId = "trentoAgent"
 
 type Agent struct {
 	cfg            Config
@@ -105,9 +109,7 @@ func (a *Agent) Start() error {
 	var wg sync.WaitGroup
 
 	wg.Add(1)
-	// The Discover Loop is executing at a much slower pace than the Checker Loop
-	// and will keep namespaces in Key-Value Consul store updated with specific facts
-	// discovered on the node
+
 	go func(wg *sync.WaitGroup) {
 		log.Println("Starting Discover loop...")
 		defer wg.Done()
@@ -144,30 +146,9 @@ func (a *Agent) registerConsulService() error {
 		Tags: []string{"trento"},
 		Checks: consulApi.AgentServiceChecks{
 			&consulApi.AgentServiceCheck{
-				CheckID: discovery.ClusterDiscoveryId,
-				Name:    "HA Cluster Discovery",
-				Notes:   "Collects details about the HA Cluster components running on this node",
-				TTL:     discoveryTTL.String(),
-				Status:  consulApi.HealthWarning,
-			},
-			&consulApi.AgentServiceCheck{
-				CheckID: discovery.SAPDiscoveryId,
-				Name:    "SAP System Discovery",
-				Notes:   "Collects details about SAP System components running on this node",
-				TTL:     discoveryTTL.String(),
-				Status:  consulApi.HealthWarning,
-			},
-			&consulApi.AgentServiceCheck{
-				CheckID: discovery.CloudDiscoveryId,
-				Name:    "Cloud metadata discovery",
-				Notes:   "Collects details about the cloud instance metadata",
-				TTL:     discoveryTTL.String(),
-				Status:  consulApi.HealthWarning,
-			},
-			&consulApi.AgentServiceCheck{
-				CheckID: discovery.SubscriptionDiscoveryId,
-				Name:    "Subscription discovery",
-				Notes:   "Collects details about the SUSE subscription",
+				CheckID: trentoAgentCheckId,
+				Name:    "Trento Agent",
+				Notes:   "Reports the health of the Trento Agent itself",
 				TTL:     discoveryTTL.String(),
 				Status:  consulApi.HealthWarning,
 			},
@@ -188,28 +169,26 @@ func (a *Agent) registerConsulService() error {
 // is reported back in the "discover_cluster" Service in consul under a TTL of 60 minutes
 func (a *Agent) startDiscoverTicker() {
 	tick := func() {
+		var output []string
+		status := consulApi.HealthPassing
+
 		for _, d := range a.discoveries {
-			var status, result string
-			var err error
-
-			result, err = d.Discover()
+			result, err := d.Discover()
 			if err != nil {
-				log.Printf("Error while running discovery '%s': %s", d.GetId(), err)
-				result = err.Error()
-				status = consulApi.HealthWarning
-			} else {
-				status = consulApi.HealthPassing
-			}
+				result = fmt.Sprintf("Error while running discovery '%s': %s", d.GetId(), err)
+				status = consulApi.HealthCritical
 
-			err = a.consul.Agent().UpdateTTL(d.GetId(), result, status)
-			if err != nil {
-				log.Println("An error occurred while trying to update TTL with Consul:", err)
+				log.Errorln(result)
 			}
+			output = append(output, result)
+		}
+
+		if err := a.consul.Agent().UpdateTTL(trentoAgentCheckId, strings.Join(output, "\n\n"), status); err != nil {
+			log.Errorln("An error occurred while trying to update TTL with Consul:", err)
 		}
 	}
 
 	interval := a.cfg.DiscoveryPeriod
-
 	repeat(tick, interval, a.ctx)
 }
 

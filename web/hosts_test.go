@@ -261,7 +261,8 @@ func TestHostHandler(t *testing.T) {
 
 	healthChecks := consulApi.HealthChecks{
 		&consulApi.HealthCheck{
-			Status: consulApi.HealthPassing,
+			CheckID: "trentoAgent",
+			Status:  consulApi.HealthPassing,
 		},
 	}
 	health.On("Node", "test_host", (*consulApi.QueryOptions)(nil)).Return(healthChecks, nil, nil)

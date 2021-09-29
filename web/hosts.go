@@ -116,14 +116,22 @@ func getAllTags(hostsTags map[string][]string) []string {
 	return tags
 }
 
-func loadHealthChecks(client consul.Client, node string) ([]*consulApi.HealthCheck, error) {
-
+func getTrentoAgentCheck(client consul.Client, node string) (*consulApi.HealthCheck, error) {
 	checks, _, err := client.Health().Node(node, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not query Consul for health checks")
 	}
 
-	return checks, nil
+	var trentoAgentCheck *consulApi.HealthCheck
+
+	for _, check := range checks {
+		if check.CheckID == "trentoAgent" {
+			trentoAgentCheck = check
+			break
+		}
+	}
+
+	return trentoAgentCheck, nil
 }
 
 func NewHostHandler(client consul.Client, subsService services.SubscriptionsService) gin.HandlerFunc {
@@ -140,7 +148,7 @@ func NewHostHandler(client consul.Client, subsService services.SubscriptionsServ
 			return
 		}
 
-		checks, err := loadHealthChecks(client, name)
+		trentoAgentCheck, err := getTrentoAgentCheck(client, name)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -166,11 +174,11 @@ func NewHostHandler(client consul.Client, subsService services.SubscriptionsServ
 
 		host := hosts.NewHost(*catalogNode.Node, client)
 		c.HTML(http.StatusOK, "host.html.tmpl", gin.H{
-			"Host":          &host,
-			"HealthChecks":  checks,
-			"SAPSystems":    systems,
-			"CloudData":     cloudData,
-			"Subscriptions": subs,
+			"Host":             &host,
+			"TrentoAgentCheck": trentoAgentCheck,
+			"SAPSystems":       systems,
+			"CloudData":        cloudData,
+			"Subscriptions":    subs,
 		})
 	}
 }

@@ -4,6 +4,7 @@ set -e
 
 readonly ARGS=( "$@" )
 readonly PROGNAME="./install-server.sh"
+readonly TRENTO_VERSION="0.4.0"
 
 usage() {
     cat <<- EOF
@@ -13,6 +14,7 @@ usage() {
 
     OPTIONS:
        -p --private-key         pre-authorized private SSH key used by the runner to connect to the hosts
+       -r --rolling             Use the rolling-release version instead of the stable one
        -h --help                show this help
 
 
@@ -28,7 +30,8 @@ cmdline() {
         local delim=""
         case "$arg" in
             --private-key)  args="${args}-p ";;
-            --help)         args="${args}-h ";;
+            --rolling)      args="${args}-r ";;
+            --help)         args="${args}-h ";;            
             
             # pass through anything else
             *) [[ "${arg:0:1}" == "-" ]] || delim="\""
@@ -38,7 +41,7 @@ cmdline() {
     
     eval set -- "$args"
     
-    while getopts "p:h" OPTION
+    while getopts "p:rh" OPTION
     do
         case $OPTION in
             h)
@@ -47,6 +50,9 @@ cmdline() {
             ;;
             p)
                 readonly PRIVATE_KEY=$OPTARG
+            ;;
+            r)
+                readonly ROLLING=true
             ;;
             *)
                 usage
@@ -84,6 +90,8 @@ install_k3s() {
 
 install_helm() {
     echo "Installing Helm..."
+    # FIXME: why does /usr/local/bin vanish from PATH?
+    PATH=$PATH:/usr/local/bin
     curl -s https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash >/dev/null
 }
 
@@ -96,21 +104,33 @@ update_helm_dependencies() {
 
 install_trento_server_chart() {
     local repo_owner=${TRENTO_REPO_OWNER:-"trento-project"}
-    local repo_branch=${TRENTO_REPO_BRANCH:-"main"}
     local private_key=${PRIVATE_KEY:-"./id_rsa_runner"}
     local image_tag=${IMAGE_TAG:-""}
-    
+    local rolling=${ROLLING:-false}
+    local trento_packages_url="https://github.com/${repo_owner}/trento/archive/refs/tags"
+    local trento_source_zip="${TRENTO_VERSION}"
+
+    if [[ "$rolling" == "true" ]]; then
+        image_tag="rolling"        
+        trento_source_zip="rolling"
+    fi
+
     echo "Installing trento-server chart..."
     pushd -- /tmp >/dev/null
-    curl -f -sS -O -L https://github.com/"${repo_owner}"/trento/archive/refs/heads/"${repo_branch}".zip>/dev/null
-    unzip -o "${repo_branch}".zip >/dev/null
-    rm "${repo_branch}".zip
+    curl -f -sS -O -L "${trento_packages_url}/${trento_source_zip}.zip" >/dev/null
+    unzip -o "${trento_source_zip}.zip" >/dev/null
+    rm ${trento_source_zip}.zip
     popd >/dev/null
     
-    pushd -- /tmp/trento-"${repo_branch}"/packaging/helm/trento-server >/dev/null 
+    pushd -- /tmp/trento-"${trento_source_zip}"/packaging/helm/trento-server >/dev/null 
     helm dep update >/dev/null
-    helm upgrade --install trento-server . --set-file trento-runner.privateKey="${private_key}" --set trento-web.image.tag="${image_tag}" --set trento-runner.image.tag="${image_tag}"
-    rm -rf /tmp/trento-"${repo_branch}"
+    helm upgrade --install trento-server . \
+        --set-file trento-runner.privateKey="${private_key}" \
+        --set trento-web.image.tag="${image_tag}" \
+        --set trento-runner.image.tag="${image_tag}" \
+        --set trento-web.image.pullPolicy="Always" \
+        --set trento-runner.image.pullPolicy="Always"
+    rm -rf /tmp/trento-"${trento_source_zip}"
     popd >/dev/null
 }
 

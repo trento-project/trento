@@ -1,0 +1,27 @@
+{{ define "content" }}
+    <div class="mb-4">
+        <div class="row">
+            <div class="col-sm-6">
+                <h1 class='display-4 lead'>About {{ .Title }}</h1>
+                <p class='subheadline'>An open cloud-native web console improving the
+                  life of SAP Applications administrators</p>
+                <hr/>
+                <dl class="row">
+                    <dt class="col-sm-3">Web version</dt>
+                    <dd class="col-sm-9">v{{ .Version }}</dd>
+                    <dt class="col-sm-3">Github repository</dt>
+                    <dd class="col-sm-9"><a href="https://github.com/trento-project/trento" target="_blank">https://github.com/trento-project/trento</a></dd>
+                    <dt class="col-sm-3">Subscription</dt>
+                    <dd class="col-sm-9"><span class='badge badge-{{ if eq .SubscriptionData.Type "Premium" }}success{{ else }}secondary{{ end }}'>{{ .SubscriptionData.Type }}</span></dd>
+                    {{- if eq .SubscriptionData.Type "Premium" }}
+                    <dt class="col-sm-3">SLES_SAP machines</dt>
+                    <dd class="col-sm-9">{{ .SubscriptionData.SubscribedCount }}</dd>
+                    {{- end }}
+                </dl>
+            </div>
+            <div class="col-sm-6">
+                <img src="/static/frontend/assets/images/trento-icon.png" alt="logo" width="320"/>
+            </div>
+        </div>
+    </div>
+{{ end }}

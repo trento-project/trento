@@ -8,10 +8,78 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	consulApi "github.com/hashicorp/consul/api"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/consul/mocks"
 	"github.com/trento-project/trento/internal/subscription"
 )
+
+func TestGetSubscriptionData(t *testing.T) {
+	consulInst := new(mocks.Client)
+	catalog := new(mocks.Catalog)
+	kv := new(mocks.KV)
+
+	nodes := []*consulApi.Node{
+		{
+			Node: "node1",
+		},
+		{
+			Node: "node2",
+		},
+		{
+			Node: "node3",
+		},
+	}
+
+	catalog.On("Nodes", &consulApi.QueryOptions{}).Return(nodes, nil, nil)
+
+	sub1 := map[string]interface{}{
+		"0000": map[string]string{
+			"identifier": "SLES_SAP",
+		},
+		"0001": map[string]string{
+			"identifier": "sle-module-public-cloud",
+		},
+	}
+
+	sub2 := map[string]interface{}{
+		"0000": map[string]string{
+			"identifier": "SLES_SAP",
+		},
+	}
+
+	sub3 := map[string]interface{}{
+		"0000": map[string]string{
+			"identifier": "sle-module-public-cloud",
+		},
+	}
+
+	kvPath := fmt.Sprintf(consul.KvHostsSubscriptionsPath, "node1")
+	kv.On("ListMap", kvPath, kvPath).Return(sub1, nil)
+	consulInst.On("WaitLock", path.Join(consul.KvHostsPath, "node1")+"/").Return(nil)
+
+	kvPath = fmt.Sprintf(consul.KvHostsSubscriptionsPath, "node2")
+	kv.On("ListMap", kvPath, kvPath).Return(sub2, nil)
+	consulInst.On("WaitLock", path.Join(consul.KvHostsPath, "node2")+"/").Return(nil)
+
+	kvPath = fmt.Sprintf(consul.KvHostsSubscriptionsPath, "node3")
+	kv.On("ListMap", kvPath, kvPath).Return(sub3, nil)
+	consulInst.On("WaitLock", path.Join(consul.KvHostsPath, "node3")+"/").Return(nil)
+
+	consulInst.On("Catalog").Return(catalog)
+	consulInst.On("KV").Return(kv)
+
+	subsService := NewSubscriptionsService(consulInst)
+	subData, err := subsService.GetSubscriptionData()
+
+	expectedSubData := &SubscriptionData{
+		Type:            Premium,
+		SubscribedCount: 2,
+	}
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedSubData, subData)
+}
 
 func TestGetHostSubscriptions(t *testing.T) {
 	host, _ := os.Hostname()

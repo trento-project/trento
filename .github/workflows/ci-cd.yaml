@@ -112,6 +112,7 @@ jobs:
   release-rolling:
     name: "submit-pre-release"
     needs: build
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main')
     runs-on: "ubuntu-latest"
     steps:
       - uses: actions/download-artifact@v2

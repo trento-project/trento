@@ -120,5 +120,5 @@ func TestLoad(t *testing.T) {
 		},
 	}
 
-	assert.Equal(t, expectedSubs, subs)
+	assert.ElementsMatch(t, expectedSubs, subs)
 }

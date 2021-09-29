@@ -115,8 +115,8 @@ WantedBy=multi-user.target'
 
 . /etc/os-release
 if [[ ! $PRETTY_NAME =~ "SUSE" ]]; then
-    echo "Operating system is not supported. Exiting."
-    exit 1
+    echo "Warning: non-SUSE operating system, forcing --use-tgz"
+    USE_TGZ=1
 fi
 
 echo "Installing trento-agent..."
@@ -203,15 +203,21 @@ function install_trento_rpm() {
 
 function install_trento_tgz() {
     ARCH=$(uname -m | sed "s~x86_64~amd64~" | sed "s~aarch64~arm64~" )
-    if [[ -n "$USE_ROLLING" ]] ; then        
-        TRENTO_TGZ_URL=https://github.com/trento-project/trento/releases/download/rolling/trento-${ARCH}.gz        
+    local bin_dir=${BIN_DIR:-"/usr/bin"}
+    local sysd_dir=${SYSD_DIR:-"/usr/lib/systemd/system"}
+    
+    if [[ -n "$USE_ROLLING" ]] ; then
+        TRENTO_TGZ_URL=https://github.com/trento-project/trento/releases/download/rolling/trento-${ARCH}.tgz
     else
-        TRENTO_TGZ_URL=https://github.com/trento-project/trento/releases/download/${TRENTO_VERSION}/trento-${ARCH}.gz
+        TRENTO_TGZ_URL=https://github.com/trento-project/trento/releases/download/${TRENTO_VERSION}/trento-${ARCH}.tgz
     fi
   
     curl -f -sS -O -L "${TRENTO_TGZ_URL}" >/dev/null
-    tar -zxf trento-${ARCH}.gz /usr/bin/
-    rm trento-${ARCH}.gz
+    tar -zxf trento-${ARCH}.tgz
+
+    mv trento ${bin_dir}/trento
+    mv trento-agent.service {$sysd_dir}/trento-agent.service
+    rm trento-${ARCH}.tgz
 }
 
 check_installer_deps

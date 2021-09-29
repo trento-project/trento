@@ -20,8 +20,8 @@ trento: web-assets
 
 cross-compiled: $(ARCHS)
 $(ARCHS): web-assets
-	@mkdir -p build
-	GOOS=linux GOARCH=$@ $(GO_BUILD) -o build/trento-$@
+	@mkdir -p build/$@	
+	GOOS=linux GOARCH=$@ $(GO_BUILD) -o build/$@/trento
 
 clean: clean-binary clean-frontend
 

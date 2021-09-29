@@ -97,8 +97,8 @@ jobs:
       - name: compress
         run: |
           set -x
-          for FILE in build/*; do
-            gzip $FILE
+          for ARCH in $(ls -1 -d  build/*/ | cut -f2 -d/); do
+            tar -czf trento-$ARCH.tgz --directory=./build/$ARCH ../../trento-agent.service ./trento
           done
       - uses: actions/upload-artifact@v2
         with:

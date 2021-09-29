@@ -166,7 +166,7 @@ jobs:
           set -ex
           for target_host in ${TRENTO_AGENT_HOSTS//,/ }
           do
-            ssh "$TRENTO_USER@$target_host" "sudo bash -s" -- < ./install-agent.sh "--rolling" "--agent-bind-ip" "$target_host" "--server-ip" "$TRENTO_SERVER_HOST"
+            ssh "$TRENTO_USER@$target_host" "sudo bash -s" -- < ./install-agent.sh "--rolling" "--use-tgz" "--agent-bind-ip" "$target_host" "--server-ip" "$TRENTO_SERVER_HOST"
             ssh "$TRENTO_USER@$target_host" "sudo systemctl enable --now trento-agent.service"
           done
 

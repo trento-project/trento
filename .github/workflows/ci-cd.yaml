@@ -98,7 +98,7 @@ jobs:
         run: |
           set -x
           for ARCH in $(ls -1 -d  build/*/ | cut -f2 -d/); do
-            tar -czf trento-$ARCH.tgz --directory=./build/$ARCH ../../trento-agent.service ./trento
+            tar -czf build/trento-$ARCH.tgz --directory=./build/$ARCH ../../trento-agent.service ./trento
           done
       - uses: actions/upload-artifact@v2
         with:
@@ -107,7 +107,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: trento-amd64-binary
-          path: build/trento-amd64.gz
+          path: build/trento-amd64.tgz
 
   release-rolling:
     name: "submit-pre-release"
@@ -125,10 +125,10 @@ jobs:
           prerelease: true
           title: "Development Build"
           files: |
-            trento-amd64.gz
-            trento-arm64.gz
-            trento-ppc64le.gz
-            trento-s390x.gz
+            trento-amd64.tgz
+            trento-arm64.tgz
+            trento-ppc64le.tgz
+            trento-s390x.tgz
 
   install-server:
     runs-on: [ self-hosted, trento-gh-runner ]

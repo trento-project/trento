@@ -28,3 +28,6 @@ remediation: |
   -  https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#1-create-the-stonith-devices
 implementation: "{{ lookup('file', 'roles/checks/'+id+'/tasks/main.yml') }}"
 on_failure: warning
+
+# check external_id. This value must not be changed over the life of this check
+external_id: DE74B2

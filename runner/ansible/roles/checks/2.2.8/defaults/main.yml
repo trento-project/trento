@@ -17,3 +17,6 @@ remediation: |
   ## References
   - Section 2 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/#cha.hana-sr.scenario
 implementation: "{{ lookup('file', 'roles/checks/'+id+'/tasks/main.yml') }}"
+
+# check external_id. This value must not be changed over the life of this check
+external_id: 2C2D43

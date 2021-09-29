@@ -25,3 +25,6 @@ remediation: |
   ## References
   - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability#create-sap-hana-cluster-resources
 implementation: "{{ lookup('file', 'roles/checks/'+id+'/tasks/main.yml') }}"
+
+# check external_id. This value must not be changed over the life of this check
+external_id: 3D8598

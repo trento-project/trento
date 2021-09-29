@@ -8,8 +8,9 @@
         {
           'metadata': {
             'checks': {
-              id: {
+              external_id: {
                 'id': id,
+                'external_id': external_id|default("unknown"),
                 'name': name,
                 'group': group,
                 'description': description,

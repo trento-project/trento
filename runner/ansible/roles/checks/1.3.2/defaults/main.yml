@@ -31,3 +31,6 @@ remediation: |
   ## References
   - T.B.D.
 implementation: "{{ lookup('file', 'roles/checks/'+id+'/tasks/main.yml') }}"
+
+# check external_id. This value must not be changed over the life of this check
+external_id: 49591F

@@ -16,6 +16,7 @@ module.exports = {
   plugins: ['react'],
   rules: {
     'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    'react/prop-types': 'off',
   },
   ignorePatterns: ['assets/js/**'],
 };

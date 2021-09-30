@@ -97,17 +97,15 @@ jobs:
       - name: compress
         run: |
           set -x
-          for ARCH in $(ls -1 -d  build/*/ | cut -f2 -d/); do
-            tar -czf build/trento-$ARCH.tgz --directory=./build/$ARCH ../../trento-agent.service ./trento
-          done
+          find ./build -maxdepth 1 -mindepth 1 -type d -exec sh -c 'tar -zcf build/trento-$(basename {}).tgz -C {} trento -C $(pwd) trento-agent.service' \;
       - uses: actions/upload-artifact@v2
         with:
           name: trento-binaries
-          path: build
-      - uses: actions/upload-artifact@v2
-        with:
-          name: trento-amd64-binary
-          path: build/trento-amd64.tgz
+          path: |
+                  build/trento-amd64.tgz
+                  build/trento-arm64.tgz
+                  build/trento-ppc64le.tgz
+                  build/trento-s390x.tgz
 
   release-rolling:
     name: "submit-pre-release"
@@ -149,7 +147,7 @@ jobs:
           if_key_exists: replace
           config: ${{ secrets.SSH_CONFIG }}
       - name: deploy trento services on K3S cluster
-        run: ssh "$TRENTO_USER@$TRENTO_SERVER_HOST" "sudo bash -s" -- < ./install-server.sh -r -p ~/.ssh/id_rsa
+        run: ssh "$TRENTO_USER@$TRENTO_SERVER_HOST" "sudo --preserve-env=PATH bash -s" -- < ./install-server.sh -r -p ~/.ssh/id_rsa
 
   deploy-agents:
     runs-on: [ self-hosted, trento-gh-runner ]
@@ -167,7 +165,7 @@ jobs:
           set -ex
           for target_host in ${TRENTO_AGENT_HOSTS//,/ }
           do
-            ssh "$TRENTO_USER@$target_host" "sudo bash -s" -- < ./install-agent.sh "--rolling" "--use-tgz" "--agent-bind-ip" "$target_host" "--server-ip" "$TRENTO_SERVER_HOST"
+            ssh "$TRENTO_USER@$target_host" "sudo --preserve-env=PATH bash -s" -- < ./install-agent.sh "--rolling" "--use-tgz" "--agent-bind-ip" "$target_host" "--server-ip" "$TRENTO_SERVER_HOST"
             ssh "$TRENTO_USER@$target_host" "sudo systemctl enable --now trento-agent.service"
           done
 

@@ -97,17 +97,15 @@ jobs:
       - name: compress
         run: |
           set -x
-          for ARCH in $(ls -1 -d  build/*/ | cut -f2 -d/); do
-            tar -czf build/trento-$ARCH.tgz --directory=./build/$ARCH ../../trento-agent.service ./trento
-          done
+          find ./build -maxdepth 1 -mindepth 1 -type d -exec sh -c 'tar -zcf build/trento-$(basename {}).tgz -C {} trento -C $(pwd) trento-agent.service' \;
       - uses: actions/upload-artifact@v2
         with:
           name: trento-binaries
-          path: build
-      - uses: actions/upload-artifact@v2
-        with:
-          name: trento-amd64-binary
-          path: build/trento-amd64.tgz
+          path: |
+                  build/trento-amd64.tgz
+                  build/trento-arm64.tgz
+                  build/trento-ppc64le.tgz
+                  build/trento-s390x.tgz
 
   release-rolling:
     name: "submit-pre-release"

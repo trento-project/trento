@@ -9,6 +9,7 @@ import (
 	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/internal/sapsystem"
 	"github.com/trento-project/trento/internal/tags"
+	"github.com/trento-project/trento/web/services"
 )
 
 func ApiPingHandler(c *gin.Context) {
@@ -321,5 +322,34 @@ func ApiSAPSystemDeleteTagHandler(client consul.Client) gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusNoContent, nil)
+	}
+}
+
+// ApiCheckResultsHandler godoc
+// @Summary Get a specific cluster's check results
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Error 500
+// @Router /api/clusters/{id}/results
+func ApiCheckResultsHandler(client consul.Client, s services.ChecksService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		clusterId := c.Param("id")
+		checkResults, errResult := s.GetChecksResultByCluster(clusterId)
+		checksCatalog, errCatalog := s.GetChecksCatalog()
+		if errResult != nil {
+			c.Error(errResult)
+			return
+		} else if errCatalog != nil {
+			c.Error(errCatalog)
+			return
+		}
+
+		for checkId, check := range checkResults.Checks {
+			check.Group = checksCatalog[checkId].Group
+			check.Description = checksCatalog[checkId].Description
+			check.ID = checksCatalog[checkId].ID
+		}
+
+		c.JSON(http.StatusOK, checkResults)
 	}
 }

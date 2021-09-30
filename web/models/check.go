@@ -28,7 +28,10 @@ type Results struct {
 
 // The ChecksByHost struct stores the checks list, but the results are grouped by hosts
 type ChecksByHost struct {
-	Hosts map[string]*Check `json:"hosts,omitempty" mapstructure:"hosts,omitempty"`
+	ID          string            `json:"id,omitempty" mapstructure:"id,omitempty"`
+	Hosts       map[string]*Check `json:"hosts,omitempty" mapstructure:"hosts,omitempty"`
+	Group       string            `json:"group,omitempty" mapstructure:"group,omitempty"`
+	Description string            `json:"description,omitempty" mapstructure:"description,omitempty"`
 }
 
 type Check struct {

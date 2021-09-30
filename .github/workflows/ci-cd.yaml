@@ -64,7 +64,7 @@ jobs:
             runner/ansible/* runner/ansible/roles/* \
             runner/ansible/roles/checks/* runner/ansible/vars/*
 
-  build:
+  build-static-binary:
     runs-on: ubuntu-20.04
     needs: test
     steps:
@@ -111,7 +111,7 @@ jobs:
 
   release-rolling:
     name: "submit-pre-release"
-    needs: build
+    needs: build-static-binary
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main')
     runs-on: "ubuntu-latest"
     steps:
@@ -130,13 +130,13 @@ jobs:
             trento-ppc64le.tgz
             trento-s390x.tgz
 
-  install-server:
+  deploy-server:
     runs-on: [ self-hosted, trento-gh-runner ]
     needs: build-and-push-image
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
     environment: AZURE_DEMO
     env:
-      TRENTO_SERVER_HOST: ${{ secrets.TRENTO_SERVER_HOST }}      
+      TRENTO_SERVER_HOST: ${{ secrets.TRENTO_SERVER_HOST }}
       TRENTO_USER: ${{ secrets.TRENTO_USER }}
     steps:
       - uses: actions/checkout@v2
@@ -153,10 +153,10 @@ jobs:
 
   deploy-agents:
     runs-on: [ self-hosted, trento-gh-runner ]
-    needs: [ install-server, release-rolling ]
+    needs: [ deploy-server, release-rolling ]
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
     environment: AZURE_DEMO
-    env:      
+    env:
       TRENTO_AGENT_HOSTS: ${{ secrets.TRENTO_AGENT_HOSTS }}
       TRENTO_USER: ${{ secrets.TRENTO_USER }}
       TRENTO_SERVER_HOST: ${{ secrets.TRENTO_SERVER_HOST }}
@@ -172,7 +172,7 @@ jobs:
           done
 
   upload-release-assets:
-    needs: build
+    needs: build-static-binary
     if: github.event.release
     runs-on: ubuntu-20.04
     steps:
@@ -184,12 +184,16 @@ jobs:
           files: "trento-*"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-  build-and-push-image:
+  build-container-images:
     needs: test
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+    strategy:
+      matrix:
+        image-target:
+          - trento-web
+          - trento-runner
     env:
-      REGISTRY: ghcr.io
-      IMAGE_NAME: ${{ github.repository }}
+      IMAGE_REPOSITORY: ghcr.io/${{ github.repository_owner }}/${{ matrix.image-target }}
       IMAGE_TAG: "${{ github.event_name == 'release' && github.event.release.tag_name || 'rolling' }}"
     runs-on: ubuntu-latest
     permissions:
@@ -214,17 +218,18 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+      - name: Build and push Web image
+        uses: docker/build-push-action@v2
         with:
           context: .
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          target: ${{ matrix.image-target }}
+          tags: ${{ env.IMAGE_REPOSITORY }}:${{ env.IMAGE_TAG }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  commit-obs:
+  obs-commit:
     needs: test
     runs-on: ubuntu-18.04
     if: github.ref == 'refs/heads/main'
@@ -257,7 +262,7 @@ jobs:
     - name: commit changes into OBS
       run: cp $FOLDER/_service . && /scripts/upload.sh
 
-  submit-obs:
+  obs-submit:
     needs: commit-obs
     runs-on: ubuntu-18.04
     if: github.event.release

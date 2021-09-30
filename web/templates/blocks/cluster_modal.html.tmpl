@@ -60,12 +60,12 @@
                   <div id="checksAccordion">
                       <h6>Checks selection</h6>
                       {{- $groupNumber := 0 }}
-                      {{- range $group, $data := .ChecksCatalogModal }}
+                      {{- range .ChecksCatalog }}
                       <div class="card">
                           <div class="card-header card-header-check-selection" id="check-{{ $groupNumber }}">
                               <div class='form-check float-left'>
-                                  <input class='parent form-check-input eos-checkbox' type='checkbox' id='{{ $groupNumber }}' {{ $found := .Selected }}{{- range $index, $check := $data }}{{ if and .Selected (not $found) }}checked="checked"{{ $found := true }}{{ end }}{{ end }}>
-                                  <label class='form-check-label' for='{{ $groupNumber }}'>{{ $group }}</label>
+                                  <input class='parent form-check-input eos-checkbox' type='checkbox' id='{{ $groupNumber }}' {{ $found := false }}{{- range $index, $check := .Checks }}{{ if and $check.Selected (not $found) }}checked="checked"{{ $found := true }}{{ end }}{{ end }}>
+                                  <label class='form-check-label' for='{{ $groupNumber }}'>{{ .Group }}</label>
                               </div>
                               <div class='dropdown float-right'>
                                   <div class='dropdown-toggle' data-toggle="collapse" data-target="#collapse-{{ $groupNumber }}" aria-expanded="true" aria-controls="collapse-{{ $groupNumber }}">
@@ -86,15 +86,15 @@
                                               </tr>
                                           </thead>
                                           <tbody>
-                                              {{- range $index, $check := $data }}
+                                              {{- range .Checks }}
                                               <tr>
                                                   <td class="row-status">
                                                       <div class='form-check'>
-                                                         <input class='parent-{{ $groupNumber }} form-check-input eos-checkbox' type='checkbox' name="check_ids[]" value="{{ .ID }}" id='{{ $groupNumber }}-{{ .NormalizeID }}' {{ if .Selected }}checked="checked"{{ end }}>
-                                                         <label class='form-check-label' for='{{ $groupNumber }}-{{ .NormalizeID }}'>{{ .ID }}</label>
+                                                         <input class='parent-{{ $groupNumber }} form-check-input eos-checkbox' type='checkbox' name="check_ids[]" value="{{ .ExternalID }}" id='{{ $groupNumber }}-{{ .ExternalID }}' {{ if .Selected }}checked="checked"{{ end }}>
+                                                         <label class='form-check-label' for='{{ $groupNumber }}-{{ .ExternalID }}'>{{ .ExternalID }}</label>
                                                      </div>
                                                   </td>
-                                                  <td>{{ .ID }}</td>
+                                                  <td>{{ .ExternalID }}</td>
                                                   <td>{{ .Description}}</td>
                                               </tr>
                                               {{- else }}

@@ -13,12 +13,12 @@
     <hr class="margin-10px"/>
     <div id="checksAccordion">
         {{- $groupIndex := 0 }}
-        {{- range $group, $checkList := .Checks }}
+        {{- range .ChecksCatalog }}
         {{- $groupIndex = sum $groupIndex 1 }}
         <div class="card">
             <div class="card-header" id="heading-{{ $groupIndex }}">
                 <h4 class="float-left">
-                    {{ $group }}
+                    {{ .Group }}
                 </h4>
                 <i class="eos-icons eos-18 collapse-toggle clickable collapsed" data-toggle="collapse" data-target="#collapse-{{ $groupIndex }}"></i>
             </div>
@@ -34,15 +34,15 @@
                             </tr>
                             </thead>
                             <tbody>
-                            {{- range $checkList }}
+                            {{- range .Checks }}
                                 <tr>
-                                    <td class="align-top">{{ .ID }}</td>
+                                    <td class="align-top">{{ .ExternalID }}</td>
                                     <td class="align-top">
                                         {{ .Description }}
-                                        <div class="ha-check-remediation collapse" id="info-{{ .NormalizeID }}">
+                                        <div class="ha-check-remediation collapse" id="info-{{ .ExternalID }}">
                                             {{ markdown (.Remediation) }}
                                         </div>
-                                        <div class="ha-check-remediation collapse" id="info-{{ .NormalizeID }}">
+                                        <div class="ha-check-remediation collapse" id="info-{{ .ExternalID }}">
                                             <h2>Implementation</h2>
                                             <pre>{{ .Implementation }}</pre>
                                         </div>
@@ -51,9 +51,9 @@
                                     <td class="align-top text-center">
                                         <a class="link-dark" type="button"
                                            data-toggle="collapse"
-                                           href="#info-{{ .NormalizeID }}"
+                                           href="#info-{{ .ExternalID }}"
                                            aria-expanded="false"
-                                           aria-controls="info-{{ .NormalizeID }}"
+                                           aria-controls="info-{{ .ExternalID }}"
                                            title="Details">
                                             <i class='eos-icons eos-18'>info</i>
                                         </a>

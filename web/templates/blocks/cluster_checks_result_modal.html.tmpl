@@ -20,7 +20,7 @@
                               <th scope="col">Description</th>
                               {{- if $checksResult }}
                               {{- range $node := $nodes }}
-                              <th scope="col">
+                              <th scope="col" class="text-center">
                                   {{- $result := $checksResult.HostResultPresent $node.Name }}
                                   {{- if not $result }}
                                   <i class="eos-icons eos-18 text-warning" data-toggle="tooltip" title="Node is unreacheable">warning</i>
@@ -32,22 +32,25 @@
                           </tr>
                           </thead>
                           <tbody>
-                          {{- $checksMetadata := .ChecksCatalog }}
                           {{- if $checksResult }}
-                          {{- range $checkID, $checkList := $checksResult.Checks }}
-                              {{- $checkMeta := index $checksMetadata $checkID }}
-                              <tr>
-                                  <td>{{ $checkID }}</td>
-                                  <td>{{ if $checkMeta }}{{ $checkMeta.Description }}{{ else }}Test metadata not found{{ end }}</td>
-                                  {{- range $node := $nodes }}
-                                  {{- $result := index $checkList.Hosts $node.Name }}
-                                  {{- if $result }}
-                                  <td class="align-center">{{ template "health_icon" $result.Result }}</td>
-                                  {{- else }}
-                                  <td class="align-center"><i class="eos-icons eos-18 text-muted">sync_problem</i></td>
+                          {{- range .ChecksCatalog }}
+                              {{- range $checkMeta := .Checks }}
+                                  {{- $checkResultData := index $checksResult.Checks $checkMeta.ExternalID }}
+                                  {{- if $checkResultData }}
+                                  <tr>
+                                      <td>{{ $checkMeta.ExternalID }}</td>
+                                      <td>{{ $checkMeta.Description }}</td>
+                                      {{- range $node := $nodes }}
+                                      {{- $result := index $checkResultData.Hosts $node.Name }}
+                                      {{- if $result }}
+                                      <td class="align-center">{{ template "health_icon" $result.Result }}</td>
+                                      {{- else }}
+                                      <td class="align-center"><i class="eos-icons eos-18 text-muted">sync_problem</i></td>
+                                      {{- end }}
+                                      {{- end }}
+                                  </tr>
                                   {{- end }}
-                                  {{- end }}
-                              </tr>
+                              {{- end }}
                           {{- else }}
                               {{ template "empty_table_body" (sum 2 (len $nodes )) }}
                           {{- end }}

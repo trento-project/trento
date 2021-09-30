@@ -4,21 +4,19 @@
 - name: Set metadata {{ id }}
   set_fact:
     metadata: |
-      {{ (metadata | default({})) | combine(
-        {
-          'metadata': {
-            'checks': {
-              external_id: {
-                'id': id,
-                'external_id': external_id|default("unknown"),
-                'name': name,
-                'group': group,
-                'description': description,
-                'remediation': remediation,
-                'labels': labels,
-                'implementation': implementation
-              }
-            }
+      {{ (metadata|default({})) | combine(
+        {'metadata':
+          {
+            'checks': [{
+              'id': id,
+              'external_id': (external_id|default('unknown'))|string,
+              'name': name,
+              'group': group,
+              'description': description,
+              'remediation': remediation,
+              'labels': labels,
+              'implementation': implementation
+            }]
           }
-        }, recursive=True)
+        }, recursive=True, list_merge='append')
       }}

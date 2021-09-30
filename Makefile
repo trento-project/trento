@@ -93,6 +93,7 @@ web/frontend/assets/js: web/frontend/node_modules
 	cp web/frontend/node_modules/bootstrap-select/dist/js/bootstrap-select.min.js web/frontend/assets/js/
 	cp web/frontend/node_modules/@yaireo/tagify/dist/tagify.min.js web/frontend/assets/js/
 	cp web/frontend/node_modules/@yaireo/tagify/dist/tagify.polyfills.min.js web/frontend/assets/js/
+	cd web/frontend; npx webpack
 
 web/frontend/assets/stylesheets: web/frontend/node_modules
 	mkdir -p web/frontend/assets/stylesheets/eos-icons

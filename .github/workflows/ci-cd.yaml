@@ -110,7 +110,6 @@ jobs:
           path: build/trento-amd64.tgz
 
   release-rolling:
-    name: "submit-pre-release"
     needs: build-static-binary
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main')
     runs-on: "ubuntu-latest"
@@ -123,12 +122,27 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "rolling"
           prerelease: true
-          title: "Development Build"
+          title: "Cutting Edge"
           files: |
             trento-amd64.tgz
             trento-arm64.tgz
             trento-ppc64le.tgz
             trento-s390x.tgz
+
+  # This job doesn't actually make release, but rather reacts to a manual one, made via the GitHub UI.
+  # In the future, we might want to reuse the same mechanism of the rolling ones to automate everything here as well.
+  release-tag:
+    needs: build-static-binary
+    if: github.event.release
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: trento-binaries
+      - uses: AButler/upload-release-assets@v2.0
+        with:
+          files: "trento-*"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
   deploy-server:
     runs-on: [ self-hosted, trento-gh-runner ]
@@ -170,19 +184,6 @@ jobs:
             ssh "$TRENTO_USER@$target_host" "sudo bash -s" -- < ./install-agent.sh "--rolling" "--use-tgz" "--agent-bind-ip" "$target_host" "--server-ip" "$TRENTO_SERVER_HOST"
             ssh "$TRENTO_USER@$target_host" "sudo systemctl enable --now trento-agent.service"
           done
-
-  upload-release-assets:
-    needs: build-static-binary
-    if: github.event.release
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/download-artifact@v2
-        with:
-          name: trento-binaries
-      - uses: AButler/upload-release-assets@v2.0
-        with:
-          files: "trento-*"
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
   build-and-push-container-images:
     needs: test

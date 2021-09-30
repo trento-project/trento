@@ -4,7 +4,7 @@ set -e
 
 readonly ARGS=( "$@" )
 readonly PROGNAME="./install-server.sh"
-readonly TRENTO_VERSION="0.4.0"
+TRENTO_VERSION="0.4.0"
 
 usage() {
     cat <<- EOF
@@ -31,16 +31,16 @@ cmdline() {
         case "$arg" in
             --private-key)  args="${args}-p ";;
             --rolling)      args="${args}-r ";;
-            --help)         args="${args}-h ";;            
-            
+            --help)         args="${args}-h ";;
+
             # pass through anything else
             *) [[ "${arg:0:1}" == "-" ]] || delim="\""
             args="${args}${delim}${arg}${delim} ";;
         esac
     done
-    
+
     eval set -- "$args"
-    
+
     while getopts "p:rh" OPTION
     do
         case $OPTION in
@@ -63,6 +63,10 @@ cmdline() {
 
     if [[ -z "$PRIVATE_KEY" ]]; then
         read -rp "Please provide the path of the runner private key: " PRIVATE_KEY </dev/tty
+    fi
+
+    if [[ "$ROLLING" == "true" ]]; then
+      TRENTO_VERSION="rolling"
     fi
 
     return 0
@@ -105,15 +109,8 @@ update_helm_dependencies() {
 install_trento_server_chart() {
     local repo_owner=${TRENTO_REPO_OWNER:-"trento-project"}
     local private_key=${PRIVATE_KEY:-"./id_rsa_runner"}
-    local image_tag=${IMAGE_TAG:-""}
-    local rolling=${ROLLING:-false}
-    local trento_packages_url="https://github.com/${repo_owner}/trento/archive/refs/tags"
     local trento_source_zip="${TRENTO_VERSION}"
-
-    if [[ "$rolling" == "true" ]]; then
-        image_tag="rolling"        
-        trento_source_zip="rolling"
-    fi
+    local trento_packages_url="https://github.com/${repo_owner}/trento/archive/refs/tags"
 
     echo "Installing trento-server chart..."
     pushd -- /tmp >/dev/null
@@ -121,15 +118,13 @@ install_trento_server_chart() {
     unzip -o "${trento_source_zip}.zip" >/dev/null
     rm ${trento_source_zip}.zip
     popd >/dev/null
-    
-    pushd -- /tmp/trento-"${trento_source_zip}"/packaging/helm/trento-server >/dev/null 
+
+    pushd -- /tmp/trento-"${trento_source_zip}"/packaging/helm/trento-server >/dev/null
     helm dep update >/dev/null
     helm upgrade --install trento-server . \
         --set-file trento-runner.privateKey="${private_key}" \
-        --set trento-web.image.tag="${image_tag}" \
-        --set trento-runner.image.tag="${image_tag}" \
-        --set trento-web.image.pullPolicy="Always" \
-        --set trento-runner.image.pullPolicy="Always"
+        --set trento-web.image.tag="${TRENTO_VERSION}" \
+        --set trento-runner.image.tag="${TRENTO_VERSION}"
     rm -rf /tmp/trento-"${trento_source_zip}"
     popd >/dev/null
 }

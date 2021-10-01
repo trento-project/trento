@@ -1,0 +1,8 @@
+exclude-tags=rolling
+base=CHANGELOG.md
+user=trento-project
+project=trento
+usernames-as-github-logins=true
+configure-sections={"added":{"prefix":"### Added","labels":["addition","enhancement"]},"fixed":{"prefix":"### Fixed","labels":["bug","fix"]},"removed":{"prefix":"### Removed","labels":["removal"]}}
+pr-label=### Other Changes
+issues-wo-labels=false

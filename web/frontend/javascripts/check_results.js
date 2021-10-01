@@ -28,7 +28,6 @@ const ClustersChecks = ({ clusterId }) => {
   useEffect(() => {
     get(`/api/clusters/${clusterId}/results`).then(({ data: { checks } }) => {
       const groupedChecks = groupChecks(checks);
-      console.log(groupedChecks);
       setResults(groupedChecks);
     });
   }, []);

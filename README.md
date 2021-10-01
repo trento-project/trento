@@ -106,15 +106,15 @@ to bootstrap a complete Trento server component.
 You can `curl | bash` if you want to live on the edge.
 
 ```
-$ curl -sfL https://raw.githubusercontent.com/trento-project/trento/main/install-server.sh | bash
+curl -sfL https://raw.githubusercontent.com/trento-project/trento/main/install-server.sh | bash
 ```
 
 Or you can fetch the script, and then execute it manually.
 
 ```
-$ curl -O https://raw.githubusercontent.com/trento-project/trento/main/install-server.sh
-$ chmod 700 install-server.sh
-$ sudo ./install-server.sh
+curl -O https://raw.githubusercontent.com/trento-project/trento/main/install-server.sh
+chmod 700 install-server.sh
+sudo ./install-server.sh
 ```
 
 The script will ask you for a private key that is used by the runner service to perform checks in the agent hosts via ssh.
@@ -134,15 +134,15 @@ As for the server component an installation script is provided,
 you can `curl | bash` it if you want to live on the edge.
 
 ```
-$ curl -sfL https://raw.githubusercontent.com/trento-project/trento/main/install-agent.sh | sudo bash
+curl -sfL https://raw.githubusercontent.com/trento-project/trento/main/install-agent.sh | sudo bash
 ```
 
 Or you can fetch the script, and then execute it manually.
 
 ```
-$ curl -O https://raw.githubusercontent.com/trento-project/trento/main/install-agent.sh
-$ chmod 700 install-agent.sh
-$ sudo ./install-agent.sh
+curl -O https://raw.githubusercontent.com/trento-project/trento/main/install-agent.sh
+chmod 700 install-agent.sh
+sudo ./install-agent.sh
 ```
 
 The script will ask you for two IP addresses.
@@ -156,11 +156,11 @@ The script will ask you for two IP addresses.
 You can pass these arguments as flags or env variables too:
 
 ```
-$ curl -sfL https://raw.githubusercontent.com/trento-project/trento/main/install-agent.sh | sudo bash -s - --agent-bind-ip=192.168.33.10 --server-ip=192.168.33.1
+curl -sfL https://raw.githubusercontent.com/trento-project/trento/main/install-agent.sh | sudo bash -s - --agent-bind-ip=192.168.33.10 --server-ip=192.168.33.1
 ```
 
 ```
-$ AGENT_BIND_IP=192.168.33.10 SERVER_IP=192.168.33.1 sudo ./install-agent.sh
+AGENT_BIND_IP=192.168.33.10 SERVER_IP=192.168.33.1 sudo ./install-agent.sh
 ```
 
 ### Start Trento Agent
@@ -170,7 +170,7 @@ The installation script does not start the agent automatically.
 You can start it by simply:
 
 ```
-$ sudo systemctl start trento-agent
+sudo systemctl start trento-agent
 ```
 
 Please make sure the server is running before starting the agent
@@ -178,7 +178,7 @@ Please make sure the server is running before starting the agent
 To enable the service execute:
 
 ```
-$ sudo systemctl enable trento-agent
+sudo systemctl enable trento-agent
 ```
 
 # Manual Installation
@@ -220,13 +220,13 @@ If installing as root:
 If installing as non-root user:
 
 ```
-$ curl -sfL https://get.k3s.io | sh -s - --write-kubeconfig-mode 644
+curl -sfL https://get.k3s.io | sh -s - --write-kubeconfig-mode 644
 ```
 
 Export KUBECONFIG env variable:
 
 ```
-$ export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 ```
 
 Please refer to the [K3s official documentation](https://rancher.com/docs/k3s/latest/en/installation/) for more information about the installation.
@@ -236,7 +236,7 @@ Please refer to the [K3s official documentation](https://rancher.com/docs/k3s/la
 Install Helm:
 
 ```
-$ curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
 ```
 
 Please refer to the [Helm official documentation](https://helm.sh/docs/intro/install/) for more information about the installation.
@@ -246,15 +246,15 @@ Please refer to the [Helm official documentation](https://helm.sh/docs/intro/ins
 Add HashiCorp Helm repository:
 
 ```
-$ helm repo add hashicorp https://helm.releases.hashicorp.com
-$ helm repo update
+helm repo add hashicorp https://helm.releases.hashicorp.com
+helm repo update
 ```
 
 Install chart dependencies:
 
 ```
-$ cd packaging/helm/trento-server/
-$ helm dependency update
+cd packaging/helm/trento-server/
+helm dependency update
 ```
 
 The runner component of Trento server needs ssh access to the agent nodes to perform the checks.
@@ -265,13 +265,13 @@ Please refer to the [Trento Runner](#trento-runner) section for more information
 Install Trento server chart:
 
 ```
-$ helm install trento . --set-file trento-runner.privateKey=/your/path/id_rsa_runner
+helm install trento . --set-file trento-runner.privateKey=/your/path/id_rsa_runner
 ```
 
 or perform a rolling update:
 
 ```
-$ helm upgrade trento . --set-file trento-runner.privateKey=/your/path/id_rsa_runner
+helm upgrade trento . --set-file trento-runner.privateKey=/your/path/id_rsa_runner
 ```
 
 Now you can connect to the web server via `http://localhost` and point the agents to the cluster IP address.
@@ -281,13 +281,13 @@ Now you can connect to the web server via `http://localhost` and point the agent
 Use a different container image:
 
 ```
-$ helm install trento . --set trento-web.tag="runner" --set trento-runner.tag="runner" --set-file trento-runner.privateKey=id_rsa_runner
+helm install trento . --set trento-web.tag="runner" --set trento-runner.tag="runner" --set-file trento-runner.privateKey=id_rsa_runner
 ```
 
 Use a different container registry:
 
 ```
-$ helm install trento . --set trento-web.image.repository="ghcr.io/myrepo/trento" --set trento-runner.image.repository="ghcr.io/myrepo/trento" --set-file trento-runner.privateKey=id_rsa_runner
+helm install trento . --set trento-web.image.repository="ghcr.io/myrepo/trento" --set trento-runner.image.repository="ghcr.io/myrepo/trento" --set-file trento-runner.privateKey=id_rsa_runner
 ```
 
 Please refer to the the subcharts `values.yaml` for an advanced usage.

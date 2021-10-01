@@ -112,9 +112,10 @@ install_trento_server_chart() {
 
     echo "Installing trento-server chart..."
     pushd -- /tmp >/dev/null
+    rm -rf trento-"${trento_source_zip}"
+    rm -f ${trento_source_zip}.zip
     curl -f -sS -O -L "${trento_packages_url}/${trento_source_zip}.zip" >/dev/null
     unzip -o "${trento_source_zip}.zip" >/dev/null
-    rm ${trento_source_zip}.zip
     popd >/dev/null
 
     pushd -- /tmp/trento-"${trento_source_zip}"/packaging/helm/trento-server >/dev/null
@@ -123,7 +124,6 @@ install_trento_server_chart() {
         --set-file trento-runner.privateKey="${private_key}" \
         --set trento-web.image.tag="${TRENTO_VERSION}" \
         --set trento-runner.image.tag="${TRENTO_VERSION}"
-    rm -rf /tmp/trento-"${trento_source_zip}"
     popd >/dev/null
 }
 

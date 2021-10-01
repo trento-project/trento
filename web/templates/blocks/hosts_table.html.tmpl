@@ -37,7 +37,8 @@
                     </td>
                     <td>
                         {{- range $i, $v := split (index $TrentoMeta "trento-sap-systems") "," }}{{- if $i }},{{- end }}
-                        <a href="/sapsystems/{{ $v }}">
+                        {{- $type := (index (split (index $TrentoMeta "trento-sap-systems-type") ",") $i) }}
+                        <a href='/{{ if eq $type "Database" }}databases{{ else }}sapsystems{{ end }}/{{ $v }}'>
                             {{ $v }}
                         </a>
                         {{- end }}
@@ -47,9 +48,9 @@
                     </td>
                     {{- if $hostsTags}}
                         <td>
-                            <input class="tags-input" 
-                                value="{{- range (index $hostsTags .Name) }}{{ . }},{{- end }}" 
-                                data-resource-type="hosts" 
+                            <input class="tags-input"
+                                value="{{- range (index $hostsTags .Name) }}{{ . }},{{- end }}"
+                                data-resource-type="hosts"
                                 data-resource-id="{{ .Name }}"
                                 autocomplete="off">
                             </input>

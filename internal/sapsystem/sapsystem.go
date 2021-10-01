@@ -18,16 +18,22 @@ import (
 )
 
 const (
+	Database = iota + 1
+	Application
+)
+
+const (
 	sapInstallationPath  string = "/usr/sap"
 	sapIdentifierPattern string = "^[A-Z][A-Z0-9]{2}$" // PRD, HA1, etc
 	sapInstancePattern   string = "^[A-Z]+([0-9]{2})$" // HDB00, ASCS00, ERS10, etc
 	sapDefaultProfile    string = "DEFAULT.PFL"
 )
 
-const (
-	Database = iota + 1
-	Application
-)
+var systemTypes = map[int]string{
+	0: "Unknown",
+	1: "Database",
+	2: "Application",
+}
 
 type SAPSystemsList []*SAPSystem
 type SAPSystemsMap map[string]*SAPSystem
@@ -108,6 +114,21 @@ func (sl SAPSystemsList) GetSIDsString() string {
 	}
 
 	return strings.Join(sidString, ",")
+}
+
+func (sl SAPSystemsList) GetTypesString() string {
+	var typesString []string
+	var systemType string
+	var found bool
+
+	for _, system := range sl {
+		if systemType, found = systemTypes[system.Type]; !found {
+			systemType = systemTypes[0]  // 0 means unknown
+		}
+		typesString = append(typesString, systemType)
+	}
+
+	return strings.Join(typesString, ",")
 }
 
 func NewSAPSystem(fs afero.Fs, sysPath string) (*SAPSystem, error) {

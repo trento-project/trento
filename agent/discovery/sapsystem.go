@@ -59,10 +59,12 @@ func (d SAPSystemsDiscovery) Discover() (string, error) {
 
 func storeSAPSystemTags(client consul.Client, systems sapsystem.SAPSystemsList) error {
 	sysNames := systems.GetSIDsString()
+	sysTypes := systems.GetTypesString()
 
 	// Store host metadata
 	metadata := hosts.Metadata{
 		SAPSystems: sysNames,
+		SAPSystemsType: sysTypes,
 	}
 
 	if err := metadata.Store(client); err != nil {

@@ -331,16 +331,19 @@ func ApiSAPSystemDeleteTagHandler(client consul.Client) gin.HandlerFunc {
 // @Success 200 {object} map[string]interface{}
 // @Error 500
 // @Router /api/clusters/{id}/results
-func ApiCheckResultsHandler(client consul.Client, s services.ChecksService) gin.HandlerFunc {
+func ApiClusterCheckResultsHandler(client consul.Client, s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		clusterId := c.Param("id")
-		checkResults, errResult := s.GetChecksResultByCluster(clusterId)
-		checksCatalog, errCatalog := s.GetChecksCatalog()
-		if errResult != nil {
-			c.Error(errResult)
+		clusterId := c.Param("cluster_id")
+
+		checkResults, err := s.GetChecksResultByCluster(clusterId)
+		if err != nil {
+			c.Error(err)
 			return
-		} else if errCatalog != nil {
-			c.Error(errCatalog)
+		}
+
+		checksCatalog, err := s.GetChecksCatalog()
+		if err != nil {
+			c.Error(err)
 			return
 		}
 

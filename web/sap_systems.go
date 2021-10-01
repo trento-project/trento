@@ -11,6 +11,8 @@ import (
 	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/internal/sapsystem"
 	"github.com/trento-project/trento/internal/tags"
+
+	"github.com/trento-project/trento/web/services"
 )
 
 type SAPSystemRow struct {
@@ -30,14 +32,15 @@ type InstanceRow struct {
 
 type SAPSystemsTable []*SAPSystemRow
 
-func NewSAPSystemsTable(sapSystemsList sapsystem.SAPSystemsList, hostList hosts.HostList, client consul.Client) (SAPSystemsTable, error) {
+func NewSAPSystemsTable(
+	sapSystemsList sapsystem.SAPSystemsList,
+	hostsService services.HostsService,
+	client consul.Client) (SAPSystemsTable, error) {
+
 	var sapSystemsTable SAPSystemsTable
 	rowsBySID := make(map[string]*SAPSystemRow)
 
 	for _, s := range sapSystemsList {
-		if s.Type != sapsystem.Application {
-			continue
-		}
 
 		sapSystem, ok := rowsBySID[s.SID]
 		if !ok {
@@ -69,12 +72,9 @@ func NewSAPSystemsTable(sapSystemsList sapsystem.SAPSystemsList, hostList hosts.
 				}
 			}
 
-			for _, h := range hostList {
-				if i.Host == h.Name() {
-					clusterName = h.TrentoMeta()["trento-ha-cluster"]
-					clusterId = h.TrentoMeta()["trento-ha-cluster-id"]
-				}
-			}
+			metadata, _ := hostsService.GetHostMetadata(i.Host)
+			clusterName = metadata["trento-ha-cluster"]
+			clusterId = metadata["trento-ha-cluster-id"]
 
 			instance := &InstanceRow{
 				SID:            s.SID,
@@ -160,32 +160,21 @@ func (t SAPSystemsTable) GetAllTags() []string {
 	return tags
 }
 
-func NewSAPSystemListHandler(client consul.Client) gin.HandlerFunc {
+func NewSAPSystemListHandler(
+	client consul.Client, hostsService services.HostsService,
+	sapSystemsService services.SAPSystemsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var sapSystemsList sapsystem.SAPSystemsList
 		query := c.Request.URL.Query()
 		sidFilter := query["sid"]
 		tagsFilter := query["tags"]
 
-		hostList, err := hosts.Load(client, "", nil, nil)
+		saps, err := sapSystemsService.GetSAPSystemsByType(sapsystem.Application)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 
-		for _, h := range hostList {
-			sapSystems, err := h.GetSAPSystems()
-			if err != nil {
-				_ = c.Error(err)
-				return
-			}
-
-			for _, s := range sapSystems {
-				sapSystemsList = append(sapSystemsList, s)
-			}
-		}
-
-		sapSystemsTable, err := NewSAPSystemsTable(sapSystemsList, hostList, client)
+		sapSystemsTable, err := NewSAPSystemsTable(saps, hostsService, client)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -194,48 +183,72 @@ func NewSAPSystemListHandler(client consul.Client) gin.HandlerFunc {
 		sapSystemsTable = sapSystemsTable.filter(sidFilter, tagsFilter)
 
 		c.HTML(http.StatusOK, "sapsystems.html.tmpl", gin.H{
+			"Title":           "SAP Systems",
+			"ResourcePath":    "sapsystems",
 			"SAPSystemsTable": sapSystemsTable,
 		})
 	}
 }
 
-func NewSAPSystemHandler(client consul.Client) gin.HandlerFunc {
+func NewHanaDatabasesListHandler(
+	client consul.Client, hostsService services.HostsService,
+	sapSystemsService services.SAPSystemsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var system *sapsystem.SAPSystem
-		var systemHosts hosts.HostList
+		query := c.Request.URL.Query()
+		sidFilter := query["sid"]
+		tagsFilter := query["tags"]
 
-		sid := c.Param("sid")
-
-		hostList, err := hosts.Load(client, "", nil, nil)
+		saps, err := sapSystemsService.GetSAPSystemsByType(sapsystem.Database)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 
-		for _, h := range hostList {
-			sapSystems, err := h.GetSAPSystems()
-
-			if err != nil {
-				_ = c.Error(err)
-				return
-			}
-
-			for _, s := range sapSystems {
-				if s.SID == sid {
-					if system == nil {
-						system = s
-					}
-					systemHosts = append(systemHosts, h)
-				}
-			}
+		sapDatabasesTable, err := NewSAPSystemsTable(saps, hostsService, client)
+		if err != nil {
+			_ = c.Error(err)
+			return
 		}
 
-		if system == nil {
+		sapDatabasesTable = sapDatabasesTable.filter(sidFilter, tagsFilter)
+
+		c.HTML(http.StatusOK, "sapsystems.html.tmpl", gin.H{
+			"Title":           "HANA Databases",
+			"ResourcePath":    "databases",
+			"SAPSystemsTable": sapDatabasesTable,
+		})
+	}
+}
+
+func NewSAPResourceHandler(
+			client consul.Client, hostsService services.HostsService,
+			sapSystemsService services.SAPSystemsService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var systemList sapsystem.SAPSystemsList
+		var systemHosts hosts.HostList
+		var err error
+
+		sid := c.Param("sid")
+
+		systemList, err = sapSystemsService.GetSAPSystemsBySid(sid)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
+		if len(systemList) == 0 {
 			_ = c.Error(NotFoundError("could not find system"))
 			return
 		}
+
+		systemHosts, err = hostsService.GetHostsBySid(sid)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
 		c.HTML(http.StatusOK, "sapsystem.html.tmpl", gin.H{
-			"SAPSystem": system,
+			"SAPSystemList": systemList,
 			"Hosts":     systemHosts,
 		})
 	}

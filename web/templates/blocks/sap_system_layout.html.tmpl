@@ -13,21 +13,25 @@
             </tr>
             </thead>
             <tbody>
-            {{- range $Index, $SAPInstance := .Instances }}
-                {{- $SAPControlInstances := $SAPInstance.SAPControl.Instances }}
-                {{- range $Index, $Instance := $SAPControlInstances }}
-                    <tr>
-                        <td>{{ $Instance.Hostname }}</td>
-                        <td>{{ $Instance.InstanceNr }}</td>
-                        <td>{{ $Instance.Features }}</td>
-                        <td>{{ $Instance.HttpPort }}</td>
-                        <td>{{ $Instance.HttpsPort }}</td>
-                        <td>{{ $Instance.StartPriority }}</td>
-                        <td>
-                            <span class='badge badge-pill badge-{{ if eq $Instance.Dispstatus "SAPControl-GREEN" }}primary{{ else if eq $Instance.Dispstatus "SAPControl-YELLOW" }}warning{{ else if eq $Instance.Dispstatus "SAPControl-GRAY" }}secondary{{ else }}danger{{ end }}'>{{ $Instance.Dispstatus }}</span>
-                        </td>
-                    </tr>
-                {{- end }}
+            {{- range . }}
+              {{- range $Index, $SAPInstance := .Instances }}
+                  {{- $SAPControlInstances := $SAPInstance.SAPControl.Instances }}
+                  {{- range $Index, $Instance := $SAPControlInstances }}
+                      <tr>
+                          <td>{{ $Instance.Hostname }}</td>
+                          <td>{{ $Instance.InstanceNr }}</td>
+                          <td>{{ $Instance.Features }}</td>
+                          <td>{{ $Instance.HttpPort }}</td>
+                          <td>{{ $Instance.HttpsPort }}</td>
+                          <td>{{ $Instance.StartPriority }}</td>
+                          <td>
+                              <span class='badge badge-pill badge-{{ if eq $Instance.Dispstatus "SAPControl-GREEN" }}primary{{ else if eq $Instance.Dispstatus "SAPControl-YELLOW" }}warning{{ else if eq $Instance.Dispstatus "SAPControl-GRAY" }}secondary{{ else }}danger{{ end }}'>{{ $Instance.Dispstatus }}</span>
+                          </td>
+                      </tr>
+                  {{- end }}
+              {{- else }}
+                  {{ template "empty_table_body" 7}}
+              {{- end }}
             {{- else }}
                 {{ template "empty_table_body" 7}}
             {{- end }}

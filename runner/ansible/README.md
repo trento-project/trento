@@ -9,7 +9,8 @@ Place to store Ansible playbooks that are executed by the Trento runner
 - [Structure]
    - [Metadata files](#metadata-files)
    - [Check files](#check-files)
-   - [Workflow](#workflow)
+   -[Check structure](#check-structure)
+   -[Examples](#examples)
 
 ## Metadata files
 
@@ -34,31 +35,95 @@ The check files contain the actual task which the runner will execute. An
 example is available at [tasks/main.yml](roles/checks/1.1.1/tasks/main.yml).
 These files are written like a normal ansible task.
 
-## Workflow
-1. Adding checks
-- Create a directory in `/runner/ansible/roles/checks` and name it
-accordingly (e.g. `1.6.1`). In this newly created directory, add two more
-called `defaults` and `tasks`. 
+## Check structure
 
-- In the `defaults` directory, create a file called `main.yml` and fill it
-with the required metadata as described in [Metadata files](#metadata-files).
+The checks folder is in `runner/ansible/roles/checks`. Each check has its own
+number (e.g. 1.1.1) which refers to its place in the queue (1.1.2 will be 
+executed after 1.1.1 etc.). Inside these numbered folders are two subfolders, both of these each has one file in them named `main.yml`:
+- `defaults`
+   The defaults directory (or better the main.yml file inside of it)
+   contains all the required [metadata](#metadata-files) for the check. 
 
-- Also add a `main.yml` file into the `tasks` directory and fill it with 
-the task you wish to be executed according to the ansible syntax. 
+- `tasks`
 
-2. Stopping trento processes
-- Stop the running trento processes. 
-E.g.: Execute `"ps aux | grep trento"` and kill the running trento services. 
-- Stop the running kubernetes cluster by executing `"k3s-killall.sh"`.
+The checks themselfs are written like any ansible task, however their 
+output is either `true` (check passed) or `false` (check failed). This 
+output will then be passed to the `post-results` block with the `status` 
+field containing the result of the check. 
+Following lines can/should be left as they are since they are part of 
+how the checks are executed:
 
-3. Building trento and moving it to the machine
-- Navigate to the root directory of trento and execute `make build`.
-- Copy the newly build binary to the target machine, with a command
- like `scp`, to the according path (`/usr/bin/trento`).
+```
+name: "{{ id }}.check"
+```
 
-4. Rerunning trento
-- Start the trento services:
-- Restart the k3s: `"systemctl start k3s"`. 
-- `"./trento runner start --ara-server <ARA-SERVER-IP-AND-PORT> --consul-addr <TRENTO-CONSUL-SERVER-AND-PORT> -i 5"` (Runner).
-- `"./trento web serve --ara-addr <ARA-SERVER-IP-AND-PORT> -p <ARA-SERVER-PORT>"` (Trento Web)
+```  
+check_mode: no
+register: config_updated
+changed_when: config_updated.stdout != expected[id]
+```
+```
+- block:
+    - import_role:
+        name: post-results
+  when:
+    - ansible_check_mode
+  vars:
+    status: "{{ config_updated is not changed }}"
+``` 
+
+
+After implementing your checks, trento needs to be rebuild, moved to the 
+target machine and before beeing started, all running services related to
+trento need to be stopped.
+
+## Examples
+
+As an example (we will use 3.0.0), lets add a test which simply creates a simple file in /tmp.
+Fist we want to define the metadata in `runner/ansible/roles/checks/3.0.0/defaults/main.yml`:
+
+```
+---
+
+id: 3.0.0
+name: Touch testfile
+group: TESTING
+labels: generic
+description: |
+  Creates an empty file in /tmp
+remediation: |
+  ## Remediation
+  Enter remediation
+
+  ## References
+  Enter references
+implementation: "{{ lookup('file', 'roles/checks/'+id+'/tasks/main.yml') }}"
+
+# Test data
+key_name: token
+``` 
+
+Then the actual task `runner/ansible/roles/checks/3.0.0/tast/main.yml`:
+
+```
+---
+
+- name: "{{ id }}.check"
+  shell: 'touch /tmp/3.0.0.testfile'
+  check_mode: no
+  register: config_updated
+  changed_when: config_updated.stdout != expected[id]
+
+- block:
+    - import_role:
+        name: post-results
+  when:
+    - ansible_check_mode
+  vars:
+    status: "{{ config_updated is not changed }}"
+``` 
+As mentioned in [tasks](#check-sturcture), with this example the check
+only executes a `shell` command with most of the the check structure 
+beeing identical to the existing checks. 
+
 

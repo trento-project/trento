@@ -90,8 +90,6 @@ install_k3s() {
 
 install_helm() {
     echo "Installing Helm..."
-    # FIXME: why does /usr/local/bin vanish from PATH?
-    PATH=$PATH:/usr/local/bin
     curl -s https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash >/dev/null
 }
 

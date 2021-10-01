@@ -434,35 +434,21 @@ You can install it with `go install github.com/vektra/mockery/v2`.
 
 ## Docker
 
-To assist in testing & developing Trento, we have added a [Dockerfile](Dockerfile)
-that will automatically fetch all the required compile-time dependencies to build
+The [Dockerfile](Dockerfile) will automatically fetch all the required compile-time dependencies to build
 the binary and finally a container image with the fresh binary in it.
 
-We also provide a [docker-compose.yml](docker-compose.yml) file that allows to
-deploy other required services to run alongside `trento` by fetching
-the images from the [dockerhub](https://hub.docker.com/) registry and running
-the containers with your favourite container engine.
+We use a multi-stage build with two main targets: `trento-runner` and `trento-web`. The latter is the default.
 
-If you want to build & start `trento web` and it's dependencies, you can use `docker-compose`:
+You can build the component like follows:
 
 ```shell
-git clone https://github.com/trento-project/trento.git
-cd trento
-docker-compose up
-```
-
-The Web UI should then be reachable as defined in the `docker-compose.yml` file
-(`localhost:8080` by default).
-
-To only build the docker image, instead:
-
-```shell
-docker build -t trento .
+docker build --target trento-runner -t trento-runner .
+docker build -t trento-web . # same as specifying --target trento-web
 ```
 
 > Please note that the `trento agent` component requires to be running on
-> the OS (_not_ inside a container) so, while it is possible to hack the `docker-compose.yml`
-> file to also run a Trento Agent, it makes little sense because most of its internals
+> the OS (_not_ inside a container) so, while it is technically possible to run `trento agent` 
+> commands in the container, it makes little sense because most of its internals
 > require direct access to the host of the HA Cluster components.
 
 ## SAPControl web service

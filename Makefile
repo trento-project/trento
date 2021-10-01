@@ -1,4 +1,4 @@
-VERSION ?= $(shell ./get_version_from_git.sh)
+VERSION ?= $(shell ./hack/get_version_from_git.sh)
 LDFLAGS = -X github.com/trento-project/trento/version.Version="$(VERSION)"
 ARCHS ?= amd64 arm64 ppc64le s390x
 DEBUG ?= 0

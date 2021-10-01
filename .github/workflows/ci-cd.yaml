@@ -144,7 +144,7 @@ jobs:
 
   deploy-server:
     runs-on: [ self-hosted, trento-gh-runner ]
-    needs: build-and-push-container-images
+    needs: [ build-and-push-container-images, release-rolling ]
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
     environment: AZURE_DEMO
     env:
@@ -165,7 +165,7 @@ jobs:
 
   deploy-agents:
     runs-on: [ self-hosted, trento-gh-runner ]
-    needs: [ deploy-server, release-rolling ]
+    needs: [ deploy-server ]
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
     environment: AZURE_DEMO
     env:

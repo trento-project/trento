@@ -3,13 +3,13 @@
         <h1>SAP System details</h1>
         <dl class="inline">
             <dt class="inline">Name</dt>
-            <dd class="inline">{{ (index .SAPSystemList 0).SID }}</dd>
+            <dd class="inline">{{ .SAPSystem.SID }}</dd>
             <dt class="inline">Type</dt>
-            <dd class="inline">{{if eq (index .SAPSystemList 0).Type 1 }}HANA Database{{ else if eq (index .SAPSystemList 0).Type 2 }}Application server{{ end }}</dd>
+            <dd class="inline">{{if eq .SAPSystem.Type 1 }}HANA Database{{ else if eq .SAPSystem.Type 2 }}Application server{{ end }}</dd>
         </dl>
         <hr/>
         <h1>Layout</h1>
-        {{ template "sap_system_layout" .SAPSystemList }}
+        {{ template "sap_system_layout" .SAPSystem }}
         <hr/>
         <h1>Hosts</h1>
         {{ template "hosts_table" . }}

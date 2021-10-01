@@ -247,8 +247,10 @@ func NewSAPResourceHandler(
 			return
 		}
 
+		// We will send the 1st entry by now, as only use the layout, which is repeated among all the
+		// SAP instances within a System. It does not resolve the HANA SR scenario in any case
 		c.HTML(http.StatusOK, "sapsystem.html.tmpl", gin.H{
-			"SAPSystemList": systemList,
+			"SAPSystem": systemList[0],
 			"Hosts":     systemHosts,
 		})
 	}

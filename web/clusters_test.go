@@ -18,10 +18,11 @@ import (
 	"github.com/tdewolff/minify/v2/html"
 	"github.com/trento-project/trento/internal/cloud"
 	"github.com/trento-project/trento/internal/consul"
-	"github.com/trento-project/trento/internal/consul/mocks"
+	consulMocks "github.com/trento-project/trento/internal/consul/mocks"
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
 	serviceMocks "github.com/trento-project/trento/web/services/mocks"
+	servicesMocks "github.com/trento-project/trento/web/services/mocks"
 )
 
 func clustersListMap() map[string]interface{} {
@@ -548,10 +549,10 @@ func azureMeta(userIndex int) map[string]interface{} {
 }
 
 func TestClustersListHandler(t *testing.T) {
-	consulInst := new(mocks.Client)
+	consulInst := new(consulMocks.Client)
 	checksMocks := new(serviceMocks.ChecksService)
 
-	kv := new(mocks.KV)
+	kv := new(consulMocks.KV)
 	consulInst.On("KV").Return(kv)
 	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
 	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil)
@@ -565,22 +566,16 @@ func TestClustersListHandler(t *testing.T) {
 	checksMocks.On("GetAggregatedChecksResultByCluster", "e27d313a674375b2066777a89ee346b9").Return(
 		aggregatedByClusterEmpty(), nil)
 
-	tags := map[string]interface{}{
-		"tag1": struct{}{},
-	}
+	mockTagsService := new(servicesMocks.TagsService)
+	mockTagsService.On("GetAllByResource", models.TagClusterResourceType, "47d1190ffb4f781974c8356d7f863b03").Return([]string{"tag1"}, nil)
+	mockTagsService.On("GetAllByResource", models.TagClusterResourceType, "a615a35f65627be5a757319a0741127f").Return([]string{"tag1"}, nil)
+	mockTagsService.On("GetAllByResource", models.TagClusterResourceType, "e2f2eb50aef748e586a7baa85e0162cf").Return([]string{"tag1"}, nil)
+	mockTagsService.On("GetAllByResource", models.TagClusterResourceType, "e27d313a674375b2066777a89ee346b9").Return(nil, nil)
 
-	tagsPath := "trento/v0/tags/clusters/47d1190ffb4f781974c8356d7f863b03/"
-	kv.On("ListMap", tagsPath, tagsPath).Return(tags, nil)
-	tagsPath = "trento/v0/tags/clusters/a615a35f65627be5a757319a0741127f/"
-	kv.On("ListMap", tagsPath, tagsPath).Return(tags, nil)
-	tagsPath = "trento/v0/tags/clusters/e2f2eb50aef748e586a7baa85e0162cf/"
-	kv.On("ListMap", tagsPath, tagsPath).Return(tags, nil)
-	tagsPath = "trento/v0/tags/clusters/e27d313a674375b2066777a89ee346b9/"
-	kv.On("ListMap", tagsPath, tagsPath).Return(nil, nil)
-
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.consul = consulInst
 	deps.checksService = checksMocks
+	deps.tagsService = mockTagsService
 
 	var err error
 	app, err := NewAppWithDeps("", 80, deps)
@@ -633,15 +628,15 @@ func TestClusterHandlerHANA(t *testing.T) {
 		},
 	}
 
-	consulInst := new(mocks.Client)
+	consulInst := new(consulMocks.Client)
 	checksMocks := new(serviceMocks.ChecksService)
 
-	kv := new(mocks.KV)
+	kv := new(consulMocks.KV)
 	consulInst.On("KV").Return(kv)
 	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
 	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil).Times(3)
 
-	catalog := new(mocks.Catalog)
+	catalog := new(consulMocks.Catalog)
 	filter := &consulApi.QueryOptions{Filter: "Meta[\"trento-ha-cluster-id\"] == \"" + clusterId + "\""}
 	catalog.On("Nodes", filter).Return(nodes, nil, nil)
 	consulInst.On("Catalog").Return(catalog)
@@ -674,7 +669,7 @@ func TestClusterHandlerHANA(t *testing.T) {
 	checksMocks.On("GetAggregatedChecksResultByHost", clusterId).Return(
 		checksResultByHost(), nil)
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.consul = consulInst
 	deps.checksService = checksMocks
 
@@ -757,15 +752,15 @@ func TestClusterHandlerUnreachableNodes(t *testing.T) {
 		},
 	}
 
-	consulInst := new(mocks.Client)
+	consulInst := new(consulMocks.Client)
 	checksMocks := new(serviceMocks.ChecksService)
 
-	kv := new(mocks.KV)
+	kv := new(consulMocks.KV)
 	consulInst.On("KV").Return(kv)
 	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
 	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil).Times(3)
 
-	catalog := new(mocks.Catalog)
+	catalog := new(consulMocks.Catalog)
 	filter := &consulApi.QueryOptions{Filter: "Meta[\"trento-ha-cluster-id\"] == \"" + clusterId + "\""}
 	catalog.On("Nodes", filter).Return(nodes, nil, nil)
 	consulInst.On("Catalog").Return(catalog)
@@ -797,7 +792,7 @@ func TestClusterHandlerUnreachableNodes(t *testing.T) {
 	checksMocks.On("GetAggregatedChecksResultByHost", clusterId).Return(
 		checksResultByHost(), nil)
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.consul = consulInst
 	deps.checksService = checksMocks
 
@@ -844,15 +839,15 @@ func TestClusterHandlerAlert(t *testing.T) {
 		},
 	}
 
-	consulInst := new(mocks.Client)
+	consulInst := new(consulMocks.Client)
 	checksMocks := new(serviceMocks.ChecksService)
 
-	kv := new(mocks.KV)
+	kv := new(consulMocks.KV)
 	consulInst.On("KV").Return(kv)
 	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
 	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil).Times(3)
 
-	catalog := new(mocks.Catalog)
+	catalog := new(consulMocks.Catalog)
 	filter := &consulApi.QueryOptions{Filter: "Meta[\"trento-ha-cluster-id\"] == \"" + clusterId + "\""}
 	catalog.On("Nodes", filter).Return(nodes, nil, nil)
 	consulInst.On("Catalog").Return(catalog)
@@ -884,7 +879,7 @@ func TestClusterHandlerAlert(t *testing.T) {
 	checksMocks.On("GetAggregatedChecksResultByHost", clusterId).Return(
 		checksResultByHost(), nil)
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.consul = consulInst
 	deps.checksService = checksMocks
 
@@ -926,20 +921,20 @@ func TestClusterHandlerAlert(t *testing.T) {
 }
 
 func TestClusterHandlerGeneric(t *testing.T) {
-	consulInst := new(mocks.Client)
+	consulInst := new(consulMocks.Client)
 
-	kv := new(mocks.KV)
+	kv := new(consulMocks.KV)
 	consulInst.On("KV").Return(kv)
 
 	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
 	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil)
 
-	catalog := new(mocks.Catalog)
+	catalog := new(consulMocks.Catalog)
 	filter := &consulApi.QueryOptions{Filter: "Meta[\"trento-ha-cluster-id\"] == \"e2f2eb50aef748e586a7baa85e0162cf\""}
 	catalog.On("Nodes", filter).Return(nil, nil, nil)
 	consulInst.On("Catalog").Return(catalog)
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.consul = consulInst
 
 	app, err := NewAppWithDeps("", 80, deps)
@@ -967,14 +962,14 @@ func TestClusterHandlerGeneric(t *testing.T) {
 func TestClusterHandler404Error(t *testing.T) {
 	var err error
 
-	kv := new(mocks.KV)
+	kv := new(consulMocks.KV)
 	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
 
-	consulInst := new(mocks.Client)
+	consulInst := new(consulMocks.Client)
 	consulInst.On("KV").Return(kv)
 	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil)
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.consul = consulInst
 
 	app, err := NewAppWithDeps("", 80, deps)
@@ -1004,16 +999,16 @@ func TestSaveChecksHandler(t *testing.T) {
 		"host2": "myuser2",
 	}
 
-	kv := new(mocks.KV)
+	kv := new(consulMocks.KV)
 	kv.On("PutTyped", fmt.Sprintf(consul.KvClustersChecksPath, "foobar"), "1.2.3").Return(nil)
 	kv.On("PutMap", fmt.Sprintf(consul.KvClustersConnectionPath, "foobar"), expectedConnections).Return(nil)
 
-	consulInst := new(mocks.Client)
+	consulInst := new(consulMocks.Client)
 	consulInst.On("KV").Return(kv)
 	testLock := consulApi.Lock{}
 	consulInst.On("AcquireLockKey", consul.KvClustersPath).Return(&testLock, nil).Times(2)
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.consul = consulInst
 
 	app, err := NewAppWithDeps("", 80, deps)

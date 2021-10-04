@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/trento-project/trento/internal/tags"
+	"github.com/trento-project/trento/internal"
 
 	"github.com/gin-gonic/gin"
 	consulApi "github.com/hashicorp/consul/api"
@@ -15,6 +15,7 @@ import (
 	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/internal/sapsystem"
 
+	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
 )
 
@@ -33,14 +34,14 @@ func NewHostsHealthContainer(hostList hosts.HostList) *HealthContainer {
 	return h
 }
 
-func NewHostListHandler(client consul.Client) gin.HandlerFunc {
+func NewHostListHandler(client consul.Client, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		query := c.Request.URL.Query()
 		queryFilter := hosts.CreateFilterMetaQuery(query)
 		healthFilter := query["health"]
 		tagsFilter := query["tags"]
 
-		hostList, err := hosts.Load(client, queryFilter, healthFilter, tagsFilter)
+		hostList, err := hosts.Load(client, queryFilter, healthFilter)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -48,15 +49,15 @@ func NewHostListHandler(client consul.Client) gin.HandlerFunc {
 
 		hostsTags := make(map[string][]string)
 		for _, h := range hostList {
-			t := tags.NewTags(client)
-
-			ht, err := t.GetAllByResource(tags.HostResourceType, h.Name())
+			ht, err := tagsService.GetAllByResource(models.TagHostResourceType, h.Name())
 			if err != nil {
-				_ = c.Error(err)
+				c.Error(err)
 				return
 			}
 			hostsTags[h.Name()] = ht
 		}
+
+		hostList = filterHostsByTags(hostList, hostsTags, tagsFilter)
 
 		hContainer := NewHostsHealthContainer(hostList)
 		hContainer.Layout = "horizontal"
@@ -76,6 +77,24 @@ func NewHostListHandler(client consul.Client) gin.HandlerFunc {
 			"HostsTags":       hostsTags,
 		})
 	}
+}
+
+func filterHostsByTags(hostList hosts.HostList, hostsTags map[string][]string, tagsFilter []string) hosts.HostList {
+	if len(tagsFilter) == 0 {
+		return hostList
+	}
+	var filteredHostList hosts.HostList
+
+	for _, h := range hostList {
+		for _, t := range tagsFilter {
+			if internal.Contains(hostsTags[h.Name()], t) {
+				filteredHostList = append(filteredHostList, h)
+				break
+			}
+		}
+	}
+
+	return filteredHostList
 }
 
 func getAllSIDs(hostList hosts.HostList) []string {

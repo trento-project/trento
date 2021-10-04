@@ -5,8 +5,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/trento-project/trento/internal/tags"
-
 	consulApi "github.com/hashicorp/consul/api"
 	"github.com/pkg/errors"
 	"github.com/trento-project/trento/internal"
@@ -112,7 +110,7 @@ func CreateFilterMetaQuery(query map[string][]string) string {
 	return strings.Join(filters, " and ")
 }
 
-func Load(client consul.Client, queryFilter string, healthFilter []string, tagsFilter []string) (HostList, error) {
+func Load(client consul.Client, queryFilter string, healthFilter []string) (HostList, error) {
 	var hosts = HostList{}
 
 	query := &consulApi.QueryOptions{Filter: queryFilter}
@@ -125,26 +123,6 @@ func Load(client consul.Client, queryFilter string, healthFilter []string, tagsF
 		// This check could be done in the frontend maybe
 		if len(healthFilter) > 0 && !internal.Contains(healthFilter, populatedHost.Health()) {
 			continue
-		}
-
-		if len(tagsFilter) > 0 {
-			tagFound := false
-			t := tags.NewTags(client)
-			hostTags, err := t.GetAllByResource(tags.HostResourceType, node.Node)
-			if err != nil {
-				return nil, errors.Wrap(err, "could not query Tags for node")
-			}
-
-			for _, t := range tagsFilter {
-				if internal.Contains(hostTags, t) {
-					tagFound = true
-					break
-				}
-			}
-
-			if !tagFound {
-				continue
-			}
 		}
 
 		hosts = append(hosts, populatedHost)

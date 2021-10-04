@@ -1,7 +1,6 @@
 package web
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"regexp"
@@ -9,112 +8,139 @@ import (
 
 	consulApi "github.com/hashicorp/consul/api"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/tdewolff/minify/v2"
 	"github.com/tdewolff/minify/v2/html"
-	"github.com/trento-project/trento/internal/consul"
-	"github.com/trento-project/trento/internal/consul/mocks"
+	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/internal/sapsystem"
+	"github.com/trento-project/trento/internal/sapsystem/sapcontrol"
+
+	consulMocks "github.com/trento-project/trento/internal/consul/mocks"
+	servicesMocks "github.com/trento-project/trento/web/services/mocks"
 )
 
-func sapSystemsMap(instanceName string, host string, instanceNr int, features string) map[string]interface{} {
-	return map[string]interface{}{
-		"HA1": map[string]interface{}{
-			"sid":  "HA1",
-			"type": sapsystem.Application,
-			"instances": map[string]interface{}{
-				instanceName: map[string]interface{}{
-					"name": instanceName,
-					"host": host,
-					"sapcontrol": map[string]interface{}{
-						"properties": map[string]interface{}{
-							"SAPSYSTEM": map[string]interface{}{
-								"Value": fmt.Sprintf("%02d", instanceNr),
-							},
+var sapSystemsList = sapsystem.SAPSystemsList{
+	&sapsystem.SAPSystem{
+		SID:  "HA1",
+		Type: sapsystem.Application,
+		Instances: map[string]*sapsystem.SAPInstance{
+			"ASCS00": &sapsystem.SAPInstance{
+				Host: "netweaver01",
+				SAPControl: &sapsystem.SAPControl{
+					Properties: map[string]*sapcontrol.InstanceProperty{
+						"SAPSYSTEM": &sapcontrol.InstanceProperty{
+							Property:     "SAPSYSTEM",
+							Propertytype: "string",
+							Value:        "00",
 						},
-						"instances": map[string]interface{}{
-							"sapha1as": map[string]interface{}{
-								"hostname":      host,
-								"instancenr":    instanceNr,
-								"features":      features,
-								"httpport":      50013,
-								"httpsport":     50014,
-								"startpriority": "0.5",
-								"dispstatus":    "SAPControl-GREEN",
-							},
+					},
+					Instances: map[string]*sapcontrol.SAPInstance{
+						"netweaver01": &sapcontrol.SAPInstance{
+							Hostname:      "netweaver01",
+							InstanceNr:    0,
+							Features:      "MESSAGESERVER|ENQUEENQREP",
+							HttpPort:      50013,
+							HttpsPort:     50014,
+							StartPriority: "0.5",
+							Dispstatus:    "SAPControl-GREEN",
+						},
+						"netweaver02": &sapcontrol.SAPInstance{
+							Hostname:   "netweaver02",
+							InstanceNr: 10,
+							Features:   "ENQREP",
 						},
 					},
 				},
 			},
 		},
-	}
+	},
+	&sapsystem.SAPSystem{
+		SID:  "HA1",
+		Type: sapsystem.Application,
+		Instances: map[string]*sapsystem.SAPInstance{
+			"ERS10": &sapsystem.SAPInstance{
+				Host: "netweaver02",
+				SAPControl: &sapsystem.SAPControl{
+					Properties: map[string]*sapcontrol.InstanceProperty{
+						"SAPSYSTEM": &sapcontrol.InstanceProperty{
+							Property:     "SAPSYSTEM",
+							Propertytype: "string",
+							Value:        "10",
+						},
+					},
+					Instances: map[string]*sapcontrol.SAPInstance{
+						"netweaver01": &sapcontrol.SAPInstance{
+							Hostname:   "netweaver01",
+							InstanceNr: 0,
+							Features:   "MESSAGESERVER|ENQUE",
+						},
+						"netweaver02": &sapcontrol.SAPInstance{
+							Hostname:   "netweaver02",
+							InstanceNr: 10,
+							Features:   "ENQREP",
+						},
+					},
+				},
+			},
+		},
+	},
+}
+
+var sapDatabasesList = sapsystem.SAPSystemsList{
+	&sapsystem.SAPSystem{
+		SID:  "PRD",
+		Type: sapsystem.Database,
+		Instances: map[string]*sapsystem.SAPInstance{
+			"HDB00": &sapsystem.SAPInstance{
+				Host: "hana01",
+				SAPControl: &sapsystem.SAPControl{
+					Properties: map[string]*sapcontrol.InstanceProperty{
+						"SAPSYSTEM": &sapcontrol.InstanceProperty{
+							Property:     "SAPSYSTEM",
+							Propertytype: "string",
+							Value:        "00",
+						},
+					},
+					Instances: map[string]*sapcontrol.SAPInstance{
+						"hana01": &sapcontrol.SAPInstance{
+							Hostname:   "hana01",
+							InstanceNr: 0,
+							Features:   "HDB_WORKER",
+						},
+					},
+				},
+			},
+		},
+	},
 }
 
 func TestSAPSystemsListHandler(t *testing.T) {
-	nodes := []*consulApi.Node{
-		{
-			Node: "netweaver01",
-			Meta: map[string]string{
-				"trento-ha-cluster":    "banana",
-				"trento-ha-cluster-id": "e2f2eb50aef748e586a7baa85e0162cf",
-			},
-		},
-		{
-			Node: "netweaver02",
-			Meta: map[string]string{
-				"trento-ha-cluster":    "banana",
-				"trento-ha-cluster-id": "e2f2eb50aef748e586a7baa85e0162cf",
-			},
-		},
-		{
-			Node: "netweaver03",
-			Meta: map[string]string{
-				"trento-ha-cluster":    "banana",
-				"trento-ha-cluster-id": "e2f2eb50aef748e586a7baa85e0162cf",
-			},
-		},
-		{
-			Node: "netweaver04",
-			Meta: map[string]string{
-				"trento-ha-cluster":    "banana",
-				"trento-ha-cluster-id": "e2f2eb50aef748e586a7baa85e0162cf",
-			},
-		},
-	}
-
-	consulInst := new(mocks.Client)
-	catalog := new(mocks.Catalog)
-	kv := new(mocks.KV)
-
-	catalog.On("Nodes", mock.Anything).Return(nodes, nil, nil)
-	consulInst.On("Catalog").Return(catalog)
-
-	consulInst.On("WaitLock", mock.Anything).Return(nil)
-	p := fmt.Sprintf(consul.KvHostsSAPSystemPath, "netweaver01")
-	m := sapSystemsMap("ERS10", "netweaver01", 10, "ENQREP")
-	kv.On("ListMap", p, p).Return(m, nil)
-
-	p = fmt.Sprintf(consul.KvHostsSAPSystemPath, "netweaver02")
-	m = sapSystemsMap("ASCS00", "netweaver02", 0, "MESSAGESERVER|ENQUE")
-	kv.On("ListMap", p, p).Return(m, nil)
-
-	p = fmt.Sprintf(consul.KvHostsSAPSystemPath, "netweaver03")
-	m = sapSystemsMap("D01", "netweaver03", 1, "ABAP|GATEWAY|ICMAN|IGS")
-	kv.On("ListMap", p, p).Return(m, nil)
-
-	p = fmt.Sprintf(consul.KvHostsSAPSystemPath, "netweaver04")
-	m = sapSystemsMap("D02", "netweaver04", 2, "ABAP|GATEWAY|ICMAN|IGS")
-	kv.On("ListMap", p, p).Return(m, nil)
+	consulInst := new(consulMocks.Client)
+	kv := new(consulMocks.KV)
+	sapSystemsService := new(servicesMocks.SAPSystemsService)
+	hostsService := new(servicesMocks.HostsService)
 
 	tags := map[string]interface{}{
 		"tag1": struct{}{},
 	}
 	kv.On("ListMap", "trento/v0/tags/sapsystems/HA1/", "trento/v0/tags/sapsystems/HA1/").Return(tags, nil)
-
 	consulInst.On("KV").Return(kv)
+
+	sapSystemsService.On("GetSAPSystemsByType", sapsystem.Application).Return(sapSystemsList, nil)
+
+	hostsService.On("GetHostMetadata", "netweaver01").Return(map[string]string{
+		"trento-ha-cluster":    "netweaver_cluster",
+		"trento-ha-cluster-id": "e2f2eb50aef748e586a7baa85e0162cf",
+	}, nil)
+
+	hostsService.On("GetHostMetadata", "netweaver02").Return(map[string]string{
+		"trento-ha-cluster":    "netweaver_cluster",
+		"trento-ha-cluster-id": "e2f2eb50aef748e586a7baa85e0162cf",
+	}, nil)
 
 	deps := DefaultDependencies()
 	deps.consul = consulInst
+	deps.hostsService = hostsService
+	deps.sapSystemsService = sapSystemsService
 
 	var err error
 	app, err := NewAppWithDeps("", 80, deps)
@@ -130,59 +156,42 @@ func TestSAPSystemsListHandler(t *testing.T) {
 
 	app.ServeHTTP(resp, req)
 
-	consulInst.AssertExpectations(t)
-	catalog.AssertExpectations(t)
+	kv.AssertExpectations(t)
+	hostsService.AssertExpectations(t)
+	sapSystemsService.AssertExpectations(t)
 
 	responseBody := minifyHtml(resp.Body.String())
 
 	assert.Equal(t, 200, resp.Code)
+	assert.Contains(t, responseBody, "SAP Systems")
 	assert.Regexp(t, regexp.MustCompile("<td><a href=/sapsystems/HA1>HA1</a></td><td></td><td>.*<input.*value=tag1.*>.*</td>"), responseBody)
-	assert.Regexp(t, regexp.MustCompile("<td>HA1</td><td>ENQREP</td><td>10</td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>banana</a></td><td><a href=/hosts/netweaver01>netweaver01</a></td>"), responseBody)
-	assert.Regexp(t, regexp.MustCompile("<td>HA1</td><td>MESSAGESERVER|ENQUE</td><td>00</td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>banana</a></td><td><a href=/hosts/netweaver02>netweaver02</a></td>"), responseBody)
-	assert.Regexp(t, regexp.MustCompile("<td>HA1</td><td>ABAP|GATEWAY|ICMAN|IGS</td><td>01</td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>banana</a></td><td><a href=/hosts/netweaver03>netweaver03</a></td>"), responseBody)
-	assert.Regexp(t, regexp.MustCompile("<td>HA1</td><td>ABAP|GATEWAY|ICMAN|IGS</td><td>02</td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>banana</a></td><td><a href=/hosts/netweaver04>netweaver04</a></td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<td>HA1</td><td>MESSAGESERVER|ENQUEENQREP</td><td>00</td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>netweaver_cluster</a></td><td><a href=/hosts/netweaver01>netweaver01</a></td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<td>HA1</td><td>ENQREP</td><td>10</td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>netweaver_cluster</a></td><td><a href=/hosts/netweaver02>netweaver02</a></td>"), responseBody)
 }
 
-func TestSAPSystemHandler(t *testing.T) {
-	nodes := []*consulApi.Node{
-		{
-			Node:    "test_host",
-			Address: "192.168.10.10",
-			Meta: map[string]string{
-				"trento-ha-cluster":     "banana",
-				"trento-ha-cluster-id":  "e2f2eb50aef748e586a7baa85e0162cf",
-				"trento-cloud-provider": "azure",
-				"trento-sap-systems":    "HA1",
-				"trento-agent-version":  "0",
-			},
-		},
+func TestSAPDatabaseListHandler(t *testing.T) {
+	consulInst := new(consulMocks.Client)
+	kv := new(consulMocks.KV)
+	sapSystemsService := new(servicesMocks.SAPSystemsService)
+	hostsService := new(servicesMocks.HostsService)
+
+	tags := map[string]interface{}{
+		"tag1": struct{}{},
 	}
-
-	passHealthChecks := consulApi.HealthChecks{
-		&consulApi.HealthCheck{
-			Status: consulApi.HealthPassing,
-		},
-	}
-
-	consulInst := new(mocks.Client)
-	catalog := new(mocks.Catalog)
-	kv := new(mocks.KV)
-	health := new(mocks.Health)
-
-	catalog.On("Nodes", mock.Anything).Return(nodes, nil, nil)
-	consulInst.On("Catalog").Return(catalog)
-
-	consulInst.On("WaitLock", mock.Anything).Return(nil)
-	p := fmt.Sprintf(consul.KvHostsSAPSystemPath, "test_host")
-	m := sapSystemsMap("ERS10", "test_host", 10, "ENQREP")
-	kv.On("ListMap", p, p).Return(m, nil)
+	kv.On("ListMap", "trento/v0/tags/sapsystems/PRD/", "trento/v0/tags/sapsystems/PRD/").Return(tags, nil)
 	consulInst.On("KV").Return(kv)
 
-	health.On("Node", "test_host", mock.Anything).Return(passHealthChecks, nil, nil)
-	consulInst.On("Health").Return(health)
+	sapSystemsService.On("GetSAPSystemsByType", sapsystem.Database).Return(sapDatabasesList, nil)
+
+	hostsService.On("GetHostMetadata", "hana01").Return(map[string]string{
+		"trento-ha-cluster":    "hana_cluster",
+		"trento-ha-cluster-id": "e2f2eb50aef748e586a7baa85e0162cf",
+	}, nil)
 
 	deps := DefaultDependencies()
 	deps.consul = consulInst
+	deps.hostsService = hostsService
+	deps.sapSystemsService = sapSystemsService
 
 	var err error
 	app, err := NewAppWithDeps("", 80, deps)
@@ -191,7 +200,72 @@ func TestSAPSystemHandler(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/sapsystems/HA1", nil)
+	req, err := http.NewRequest("GET", "/databases", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	app.ServeHTTP(resp, req)
+
+	kv.AssertExpectations(t)
+	hostsService.AssertExpectations(t)
+	sapSystemsService.AssertExpectations(t)
+
+	responseBody := minifyHtml(resp.Body.String())
+
+	assert.Equal(t, 200, resp.Code)
+	assert.Contains(t, responseBody, "HANA Databases")
+	assert.Regexp(t, regexp.MustCompile("<td><a href=/databases/PRD>PRD</a></td><td></td><td>.*<input.*value=tag1.*>.*</td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<td>PRD</td><td>HDB_WORKER</td><td>00</td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>hana_cluster</a></td><td><a href=/hosts/hana01>hana01</a></td>"), responseBody)
+}
+
+func TestSAPResourceHandler(t *testing.T) {
+	consulInst := new(consulMocks.Client)
+	health := new(consulMocks.Health)
+	consulInst.On("Health").Return(health)
+	sapSystemsService := new(servicesMocks.SAPSystemsService)
+	hostsService := new(servicesMocks.HostsService)
+
+	deps := DefaultDependencies()
+	deps.consul = consulInst
+	deps.sapSystemsService = sapSystemsService
+	deps.hostsService = hostsService
+
+	host := hosts.NewHost(consulApi.Node{
+		Node:    "netweaver01",
+		Address: "192.168.10.10",
+		Meta: map[string]string{
+			"trento-sap-systems":      "foobar",
+			"trento-sap-systems-type": "Application",
+			"trento-cloud-provider":   "azure",
+			"trento-agent-version":    "0",
+			"trento-ha-cluster-id":    "e2f2eb50aef748e586a7baa85e0162cf",
+			"trento-ha-cluster":       "banana",
+		},
+	},
+		consulInst)
+	hostList := hosts.HostList{
+		&host,
+	}
+
+	passHealthChecks := consulApi.HealthChecks{
+		&consulApi.HealthCheck{
+			Status: consulApi.HealthPassing,
+		},
+	}
+
+	health.On("Node", "netweaver01", (*consulApi.QueryOptions)(nil)).Return(passHealthChecks, nil, nil)
+	sapSystemsService.On("GetSAPSystemsBySid", "foobar").Return(sapSystemsList, nil)
+	hostsService.On("GetHostsBySid", "foobar").Return(hostList, nil)
+
+	var err error
+	app, err := NewAppWithDeps("", 80, deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/sapsystems/foobar", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -199,40 +273,25 @@ func TestSAPSystemHandler(t *testing.T) {
 	assert.Equal(t, 200, resp.Code)
 	responseBody := minifyHtml(resp.Body.String())
 
+	sapSystemsService.AssertExpectations(t)
+	hostsService.AssertExpectations(t)
+	consulInst.AssertExpectations(t)
+
 	assert.Contains(t, responseBody, "SAP System details")
-	assert.Contains(t, responseBody, "HA1")
-	// Layout/
-	assert.Regexp(t, regexp.MustCompile("<tr><td>test_host</td><td>10</td><td>ENQREP</td><td>50013</td><td>50014</td><td>0.5</td><td><span.*primary.*>SAPControl-GREEN</span></td></tr>"), responseBody)
+	assert.Contains(t, responseBody, "foobar")
+	// Layout
+	assert.Regexp(t, regexp.MustCompile("<tr><td>netweaver01</td><td>00</td><td>MESSAGESERVER|ENQUEENQREP</td><td>50013</td><td>50014</td><td>0.5</td><td><span.*primary.*>SAPControl-GREEN</span></td></tr>"), responseBody)
 	// Host
-	assert.Regexp(t, regexp.MustCompile("<tr><td>.*check_circle.*</td><td><a href=/hosts/test_host>test_host</a></td><td>192.168.10.10</td><td>azure</td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>banana</a></td><td><a href=/sapsystems/HA1>HA1</a></td><td>v0</td></tr>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<tr><td>.*check_circle.*</td><td><a href=/hosts/netweaver01>netweaver01</a></td><td>192.168.10.10</td><td>azure</td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>banana</a></td><td><a href=/sapsystems/foobar>foobar</a></td><td>v0</td></tr>"), responseBody)
 }
 
-func TestSAPSystemHandler404Error(t *testing.T) {
-	nodes := []*consulApi.Node{
-		{
-			Node: "test_host",
-			Meta: map[string]string{
-				"trento-ha-cluster":    "banana",
-				"trento-ha-cluster-id": "e2f2eb50aef748e586a7baa85e0162cf",
-			},
-		},
-	}
-
-	consulInst := new(mocks.Client)
-	kv := new(mocks.KV)
-	catalog := new(mocks.Catalog)
-
-	catalog.On("Nodes", mock.Anything).Return(nodes, nil, nil)
-	consulInst.On("Catalog").Return(catalog)
-
-	consulInst.On("WaitLock", mock.Anything).Return(nil)
-	p := fmt.Sprintf(consul.KvHostsSAPSystemPath, "test_host")
-	m := sapSystemsMap("ERS10", "test_host", 10, "ENQREP")
-	kv.On("ListMap", p, p).Return(m, nil)
-	consulInst.On("KV").Return(kv)
+func TestSAPResourceHandler404Error(t *testing.T) {
+	sapSystemsService := new(servicesMocks.SAPSystemsService)
 
 	deps := DefaultDependencies()
-	deps.consul = consulInst
+	deps.sapSystemsService = sapSystemsService
+
+	sapSystemsService.On("GetSAPSystemsBySid", "foobar").Return(sapsystem.SAPSystemsList{}, nil)
 
 	var err error
 	app, err := NewAppWithDeps("", 80, deps)
@@ -245,6 +304,8 @@ func TestSAPSystemHandler404Error(t *testing.T) {
 	req.Header.Set("Accept", "text/html")
 
 	app.ServeHTTP(resp, req)
+
+	sapSystemsService.AssertExpectations(t)
 
 	assert.NoError(t, err)
 	assert.Equal(t, 404, resp.Code)

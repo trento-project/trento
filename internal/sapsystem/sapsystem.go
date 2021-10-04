@@ -123,7 +123,7 @@ func (sl SAPSystemsList) GetTypesString() string {
 
 	for _, system := range sl {
 		if systemType, found = systemTypes[system.Type]; !found {
-			systemType = systemTypes[0]  // 0 means unknown
+			systemType = systemTypes[0] // 0 means unknown
 		}
 		typesString = append(typesString, systemType)
 	}

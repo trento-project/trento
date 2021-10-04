@@ -190,7 +190,7 @@ func NewSAPSystemListHandler(
 	}
 }
 
-func NewHanaDatabasesListHandler(
+func NewHanaDatabaseListHandler(
 	client consul.Client, hostsService services.HostsService,
 	sapSystemsService services.SAPSystemsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -220,9 +220,7 @@ func NewHanaDatabasesListHandler(
 	}
 }
 
-func NewSAPResourceHandler(
-			client consul.Client, hostsService services.HostsService,
-			sapSystemsService services.SAPSystemsService) gin.HandlerFunc {
+func NewSAPResourceHandler(hostsService services.HostsService, sapSystemsService services.SAPSystemsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var systemList sapsystem.SAPSystemsList
 		var systemHosts hosts.HostList

@@ -105,9 +105,9 @@ func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
 	engine.GET("/clusters/:id", NewClusterHandler(deps.consul, deps.checksService))
 	engine.POST("/clusters/:id/settings", NewSaveClusterSettingsHandler(deps.consul))
 	engine.GET("/sapsystems", NewSAPSystemListHandler(deps.consul, deps.hostsService, deps.sapSystemsService))
-	engine.GET("/sapsystems/:sid", NewSAPResourceHandler(deps.consul, deps.hostsService, deps.sapSystemsService))
-	engine.GET("/databases", NewHanaDatabasesListHandler(deps.consul, deps.hostsService, deps.sapSystemsService))
-	engine.GET("/databases/:sid", NewSAPResourceHandler(deps.consul, deps.hostsService, deps.sapSystemsService))
+	engine.GET("/sapsystems/:sid", NewSAPResourceHandler(deps.hostsService, deps.sapSystemsService))
+	engine.GET("/databases", NewHanaDatabaseListHandler(deps.consul, deps.hostsService, deps.sapSystemsService))
+	engine.GET("/databases/:sid", NewSAPResourceHandler(deps.hostsService, deps.sapSystemsService))
 	engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	apiGroup := engine.Group("/api")

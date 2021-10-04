@@ -63,7 +63,7 @@ func storeSAPSystemTags(client consul.Client, systems sapsystem.SAPSystemsList) 
 
 	// Store host metadata
 	metadata := hosts.Metadata{
-		SAPSystems: sysNames,
+		SAPSystems:     sysNames,
 		SAPSystemsType: sysTypes,
 	}
 

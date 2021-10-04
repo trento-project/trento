@@ -35,6 +35,29 @@ func (_m *SAPSystemsService) GetSAPSystems() (sapsystem.SAPSystemsList, error) {
 	return r0, r1
 }
 
+// GetSAPSystemsBySid provides a mock function with given fields: sid
+func (_m *SAPSystemsService) GetSAPSystemsBySid(sid string) (sapsystem.SAPSystemsList, error) {
+	ret := _m.Called(sid)
+
+	var r0 sapsystem.SAPSystemsList
+	if rf, ok := ret.Get(0).(func(string) sapsystem.SAPSystemsList); ok {
+		r0 = rf(sid)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(sapsystem.SAPSystemsList)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(sid)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetSAPSystemsByType provides a mock function with given fields: systemType
 func (_m *SAPSystemsService) GetSAPSystemsByType(systemType int) (sapsystem.SAPSystemsList, error) {
 	ret := _m.Called(systemType)

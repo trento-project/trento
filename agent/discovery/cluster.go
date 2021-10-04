@@ -31,9 +31,8 @@ func (c ClusterDiscovery) GetId() string {
 // Execute one iteration of a discovery and store the result in the Consul KVStore.
 func (d ClusterDiscovery) Discover() (string, error) {
 	cluster, err := cluster.NewCluster()
-
 	if err != nil {
-		return "", err
+		return "No HA cluster discovered on this host", nil
 	}
 
 	d.Cluster = cluster

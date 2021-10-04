@@ -40,6 +40,13 @@ type ChecksByHost struct {
 	Hosts map[string]*Check `json:"hosts,omitempty" mapstructure:"hosts,omitempty"`
 }
 
+type ClusterCheckResults struct {
+	ID          string            `json:"id,omitempty" mapstructure:"id,omitempty"`
+	Hosts       map[string]*Check `json:"hosts,omitempty" mapstructure:"hosts,omitempty"`
+	Group       string            `json:"group,omitempty" mapstructure:"group,omitempty"`
+	Description string            `json:"description,omitempty" mapstructure:"description,omitempty"`
+}
+
 type Check struct {
 	ID             string `json:"id,omitempty" mapstructure:"id,omitempty"`
 	Name           string `json:"name,omitempty" mapstructure:"name,omitempty"`

@@ -1,4 +1,4 @@
-VERSION ?= $(shell hack/get_version_from_git.sh)
+VERSION ?= $(shell ./hack/get_version_from_git.sh)
 LDFLAGS = -X github.com/trento-project/trento/version.Version="$(VERSION)"
 ARCHS ?= amd64 arm64 ppc64le s390x
 DEBUG ?= 0
@@ -20,8 +20,8 @@ trento: web-assets
 
 cross-compiled: $(ARCHS)
 $(ARCHS): web-assets
-	@mkdir -p build
-	GOOS=linux GOARCH=$@ $(GO_BUILD) -o build/trento-$@
+	@mkdir -p build/$@	
+	GOOS=linux GOARCH=$@ $(GO_BUILD) -o build/$@/trento
 
 clean: clean-binary clean-frontend
 
@@ -93,6 +93,7 @@ web/frontend/assets/js: web/frontend/node_modules
 	cp web/frontend/node_modules/bootstrap-select/dist/js/bootstrap-select.min.js web/frontend/assets/js/
 	cp web/frontend/node_modules/@yaireo/tagify/dist/tagify.min.js web/frontend/assets/js/
 	cp web/frontend/node_modules/@yaireo/tagify/dist/tagify.polyfills.min.js web/frontend/assets/js/
+	cd web/frontend; npx webpack
 
 web/frontend/assets/stylesheets: web/frontend/node_modules
 	mkdir -p web/frontend/assets/stylesheets/eos-icons

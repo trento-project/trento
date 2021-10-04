@@ -42,6 +42,10 @@ func (d CloudDiscovery) Discover() (string, error) {
 		return "", err
 	}
 
+	if cloudData.Provider == "" {
+		return "No cloud provider discovered on this host", nil
+	}
+
 	return fmt.Sprintf("Cloud provider %s discovered", cloudData.Provider), nil
 }
 

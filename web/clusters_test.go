@@ -741,12 +741,6 @@ func TestClusterHandlerHANA(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("<td>1.1.2</td><td>description 2</td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("id=1-1-2-3>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td>1.2.3</td><td>description 3</td>"), minified)
-	// Checks result modal
-	assert.Regexp(t, regexp.MustCompile("<th.*>test_node_1.*<th.*>test_node_2"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*>1.1.1</td><td.*>description 1</td><td.*>.*check_circle.*check_circle"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*>1.1.2</td><td.*>description 2</td><td.*>.*check_circle.*warning"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*>1.1.3</td><td.*>description 3</td><td.*>.*warning.*error"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*>1.1.4</td><td.*>description 4</td><td.*>.*fiber_manual_record.*fiber_manual_record"), minified)
 }
 
 func TestClusterHandlerUnreachableNodes(t *testing.T) {
@@ -831,17 +825,10 @@ func TestClusterHandlerUnreachableNodes(t *testing.T) {
 		KeepDefaultAttrVals: true,
 		KeepEndTags:         true,
 	})
-	minified, err := m.String("text/html", resp.Body.String())
-	if err != nil {
-		panic(err)
-	}
 
 	assert.NoError(t, err)
 	assert.Equal(t, 200, resp.Code)
-	// Checks result modal
-	assert.Regexp(t, regexp.MustCompile("<th.*>test_node_1.*<th.*>.*warning.*test_node_2"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*>1.1.1</td><td.*>description 1</td><td.*>.*check_circle.*sync_problem"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*>1.1.2</td><td.*>description 2</td><td.*>.*error.*sync_problem"), minified)
+
 }
 
 func TestClusterHandlerAlert(t *testing.T) {

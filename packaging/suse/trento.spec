@@ -68,7 +68,7 @@ VERSION=%{version} make build
 install -D -m 0755 %{shortname} "%{buildroot}%{_bindir}/%{shortname}"
 
 # Install the systemd unit
-install -D -m 0644 trento-agent.service %{buildroot}%{_unitdir}/trento-agent.service
+install -D -m 0644 packaging/systemd/trento-agent.service %{buildroot}%{_unitdir}/trento-agent.service
 
 %pre
 %service_add_pre trento-agent.service

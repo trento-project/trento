@@ -4,11 +4,14 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+
 	"github.com/trento-project/trento/internal/cluster"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/internal/sapsystem"
 	"github.com/trento-project/trento/internal/tags"
+	"github.com/trento-project/trento/web/models"
+	"github.com/trento-project/trento/web/services"
 )
 
 func ApiPingHandler(c *gin.Context) {
@@ -321,5 +324,42 @@ func ApiSAPSystemDeleteTagHandler(client consul.Client) gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusNoContent, nil)
+	}
+}
+
+// ApiCheckResultsHandler godoc
+// @Summary Get a specific cluster's check results
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Error 500
+// @Router /api/clusters/{id}/results
+func ApiClusterCheckResultsHandler(client consul.Client, s services.ChecksService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		clusterId := c.Param("cluster_id")
+
+		checkResults, err := s.GetChecksResultByCluster(clusterId)
+		if err != nil {
+			c.Error(err)
+			return
+		}
+
+		checksCatalog, err := s.GetChecksCatalog()
+		if err != nil {
+			c.Error(err)
+			return
+		}
+
+		resultSet := []models.ClusterCheckResults{}
+		for _, check := range checksCatalog {
+			current := models.ClusterCheckResults{
+				Group:       check.Group,
+				Description: check.Description,
+				Hosts:       checkResults.Checks[check.ID].Hosts,
+				ID:          check.ID,
+			}
+			resultSet = append(resultSet, current)
+		}
+
+		c.JSON(http.StatusOK, resultSet)
 	}
 }

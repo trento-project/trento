@@ -90,32 +90,27 @@
         {{- end }}
         <p class='clearfix'></p>
         <h2>Trento Agent status</h2>
-        <div class='table-responsive'>
-            <table class='table eos-table'>
-                <thead>
-                <tr>
-                    <th scope='col'>Item</th>
-                    <th scope='col'>Notes</th>
-                    <th scope='col'>Output</th>
-                    <th scope='col'>Status</th>
-                </tr>
-                </thead>
-                <tbody>
-                {{- $HostName := .Host.Name }}
-                {{- range .HealthChecks }}
+        {{- if .TrentoAgentCheck }}
+            <div class='table-responsive'>
+                <table class='table eos-table'>
+                    <thead>
                     <tr>
-                        <td>{{ .Name }}</td>
-                        <td>{{ .Notes }}</td>
-                        <td class='show-white-space'>{{ .Output }}</td>
-                        <td>
-                            <span class='badge badge-pill badge-{{ if eq .Status "passing" }}primary{{ else if eq .Status "warning" }}warning{{ else }}danger{{ end }}'>{{ .Status }}</span>
-                        </td>
+                        <th scope='col'>Status</th>
+                        <th scope='col'>Output</th>
                     </tr>
-                {{- else }}
-                    {{ template "empty_table_body" 4}}
-                {{- end }}
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <span class='badge badge-pill badge-{{ if eq .TrentoAgentCheck.Status "passing" }}primary{{ else if eq .TrentoAgentCheck.Status "warning" }}warning{{ else }}danger{{ end }}'>{{ .TrentoAgentCheck.Status }}</span>
+                            </td>
+                            <td class='show-white-space'>{{ .TrentoAgentCheck.Output }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        {{- else }}
+            Agent not running
+        {{- end }}
     </div>
 {{ end }}

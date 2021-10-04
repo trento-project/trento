@@ -8,8 +8,8 @@
       - [HA Checker: Scenario SAP HANA Performance Optimized on Azure](#ha-checker-scenario-sap-hana-performance-optimized-on-azure)
       - [HA Checker: Scenario Pacemaker on Azure](#ha-checker-scenario-pacemaker-on-azure)
       - [More coming](#more-coming)
-  - [Clusters](#clusters)
-  - [Systems](#systems)
+  - [Pacemaker Clusters](#pacemaker-clusters)
+  - [SAP Systems](#sap-systems)
   - [Agents](#agents)
 
 # About this document
@@ -67,14 +67,14 @@ cluster.
 #### More coming
 Additional checkers are being implemented for other cloud providers.
 
-## Clusters
-This view currently allows to check the status of the all the discovered clusters,
+## Pacemaker Clusters
+This view currently allows to check the status of the all the discovered pacemaker clusters,
 including the information of the status of each node and the role associated to
 each node. This view also allows to see the resources, their type and distribution
 within the cluster nodes.
 
-## Systems
-In this view are listed the systems, usually identified by a SID or
+## SAP Systems
+In this view are listed the SAP Systems, usually identified by a SID or
 `SAP System Idenfication` string such as `PRD`, `DEV`, or `QAS`. These are used
 often to identify productive, development and quality assurance systems.
 In this view we get an overview of the distribution of each SID, the number of

@@ -154,11 +154,17 @@ func (r *LayoutRender) addFileFromFS(templatesFS fs.FS, file string) {
 		},
 		"markdown": markdownToHTML,
 		"split":    strings.Split,
+		"script":   script,
 	})
 	patterns := append([]string{r.root, file}, r.blocks...)
 	tmpl = template.Must(tmpl.ParseFS(templatesFS, patterns...))
 
 	r.addTemplate(name, tmpl)
+}
+
+func script(filename string) template.HTML {
+	scriptTag := fmt.Sprintf("<script src=\"/static/frontend/assets/js/%s\"></script>", filename)
+	return template.HTML(scriptTag)
 }
 
 func markdownToHTML(md string) template.HTML {

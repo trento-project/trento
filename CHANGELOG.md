@@ -1,9 +1,60 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+## [0.4.1](https://github.com/trento-project/trento/tree/0.4.1) (2021-10-01)
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+[Full Changelog](https://github.com/trento-project/trento/compare/0.4.0...0.4.1)
+
+### Added
+
+- Add About page with subscription details [\#273](https://github.com/trento-project/trento/pull/273) (@arbulu89)
+- Add a --rolling option to the install-agent script to use factory repos [\#270](https://github.com/trento-project/trento/pull/270) (@dottorblaster)
+- Use only one GitHub runner instead of 1 per node using new install scripts [\#269](https://github.com/trento-project/trento/pull/269) (@rtorrero)
+- Add warning and skipped states to the checks [\#266](https://github.com/trento-project/trento/pull/266) (@arbulu89)
+- Discover SUSE subscription details [\#260](https://github.com/trento-project/trento/pull/260) (@arbulu89)
+- Frontend tooling: introduce Prettier and ESLint [\#259](https://github.com/trento-project/trento/pull/259) (@dottorblaster)
+- Add server installer [\#253](https://github.com/trento-project/trento/pull/253) (@fabriziosestito)
+- Some improvements to the server installation on k3s through Helm [\#251](https://github.com/trento-project/trento/pull/251) (@dottorblaster)
+- Build containers in CI/CD [\#250](https://github.com/trento-project/trento/pull/250) (@fabriziosestito)
+
+### Fixed
+
+- Trento RPM built in devel:sap:trento is not being injected the version number correctly [\#262](https://github.com/trento-project/trento/issues/262)
+- Fix the liveness probe in the ARA chart due to sporadic sigterms [\#288](https://github.com/trento-project/trento/pull/288) (@rtorrero)
+- Fix runner container image [\#287](https://github.com/trento-project/trento/pull/287) (@stefanotorresi)
+- install-agent: fix typo in the script [\#280](https://github.com/trento-project/trento/pull/280) (@rtorrero)
+
+### Removed
+
+- Remove the discovery TTL consul health checks [\#208](https://github.com/trento-project/trento/issues/208)
+- Remove docker-compose.yml [\#296](https://github.com/trento-project/trento/pull/296) (@stefanotorresi)
+- remove unused gh action [\#294](https://github.com/trento-project/trento/pull/294) (@stefanotorresi)
+
+### Other Changes
+
+- Fix trento-server chart name [\#297](https://github.com/trento-project/trento/pull/297) (@fabriziosestito)
+- Remove `$` from all the bash code examples [\#295](https://github.com/trento-project/trento/pull/295) (@stefanotorresi)
+- Adjust scrips location [\#292](https://github.com/trento-project/trento/pull/292) (@nelsonkopliku)
+- Fix test on subscription code, replacing Equal by ElementsMatch [\#289](https://github.com/trento-project/trento/pull/289) (@arbulu89)
+- Minor improvements [\#286](https://github.com/trento-project/trento/pull/286) (@aleksei-burlakov)
+- Use correct name for pre-release job [\#285](https://github.com/trento-project/trento/pull/285) (@rtorrero)
+- halt deploy until images / packages are ready [\#284](https://github.com/trento-project/trento/pull/284) (@rtorrero)
+- Rename sidebar entries to Pacemaker Clusters and SAP Systems [\#283](https://github.com/trento-project/trento/pull/283) (@arbulu89)
+- fix wrong output path for the binaries [\#279](https://github.com/trento-project/trento/pull/279) (@rtorrero)
+- Update subscription Load test to use ElementsMatch [\#276](https://github.com/trento-project/trento/pull/276) (@arbulu89)
+- Adds an updated version of Trento Architecture Diagram [\#275](https://github.com/trento-project/trento/pull/275) (@nelsonkopliku)
+- Run ansilble-lint in the CI process [\#272](https://github.com/trento-project/trento/pull/272) (@arbulu89)
+- Set the TRENTO\_REPO variable properly inside install-agent.sh [\#271](https://github.com/trento-project/trento/pull/271) (@dottorblaster)
+- Fix support for -e cluster\_selected\_checks= option [\#267](https://github.com/trento-project/trento/pull/267) (@brett060102)
+- Fix: set the version in the Makefile explicitly [\#265](https://github.com/trento-project/trento/pull/265) (@aleksei-burlakov)
+- Minor Helm chart updates [\#264](https://github.com/trento-project/trento/pull/264) (@stefanotorresi)
+- add source label to dockerfile [\#263](https://github.com/trento-project/trento/pull/263) (@stefanotorresi)
+- Add a default ansible configuration file usage [\#261](https://github.com/trento-project/trento/pull/261) (@arbulu89)
+- Use new ghcr.io images [\#258](https://github.com/trento-project/trento/pull/258) (@rtorrero)
+- Create the Trento ansible callback code [\#257](https://github.com/trento-project/trento/pull/257) (@arbulu89)
+- Improve the metadata and check finding and move variables to defaults [\#255](https://github.com/trento-project/trento/pull/255) (@arbulu89)
+- Fix: trento path is /usr/bin [\#252](https://github.com/trento-project/trento/pull/252) (@aleksei-burlakov)
+- Fix obs workflow so that the submit job runs correctly on releases [\#248](https://github.com/trento-project/trento/pull/248) (@stefanotorresi)
+- Remove discovery health checks; add trento-agent health check [\#240](https://github.com/trento-project/trento/pull/240) (@fabriziosestito)
 
 ## [0.4.0](https://github.com/trento-project/trento/releases/tag/0.4.0) 2021-09-15
 
@@ -121,3 +172,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Configuration validation for Pacemaker, Corosync, SBD, SAPHanaSR and other + generic SUSE Linux Enterprise for SAP Application OS settings
 - Specific configuration audits for SAP HANA Scale-Up Performance-Optimized
 - scenarios deployed on MS Azure cloud.
+
+---
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+\* *This Changelog was automatically generated by [github_changelog_generator](https://github.com/github-changelog-generator/github-changelog-generator)*

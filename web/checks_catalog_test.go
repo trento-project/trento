@@ -16,7 +16,7 @@ import (
 func TestChecksCatalogHandler(t *testing.T) {
 	checksMocks := new(mocks.ChecksService)
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.checksService = checksMocks
 
 	checks := map[string]map[string]*models.Check{
@@ -89,7 +89,7 @@ func TestChecksCatalogHandlerError(t *testing.T) {
 
 	checksMocks := new(mocks.ChecksService)
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.checksService = checksMocks
 
 	checksMocks.On("GetChecksCatalogByGroup").Return(

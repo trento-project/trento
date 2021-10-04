@@ -1,21 +1,20 @@
 ---
 
-id: 1.1.1
-name: Corosync Token is set to {{ expected[id] }}
+name: 1.1.1
 group: Corosync
 labels: generic
 description: |
-  Test if the configured corosync Token has the correct value: {{ expected[id] }}
+  Test if the configured corosync Token has the correct value: {{ expected[name] }}
 remediation: |
   ## Remediation
   Adjust the Corosync `token` timeout as recommended on the Azure best practices.
 
   ## References
   - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker
-implementation: "{{ lookup('file', 'roles/checks/'+id+'/tasks/main.yml') }}"
+implementation: "{{ lookup('file', 'roles/checks/'+name+'/tasks/main.yml') }}"
 
 # Test data
 key_name: token
 
-# check external_id. This value must not be changed over the life of this check
-external_id: 156F64
+# check id. This value must not be changed over the life of this check
+id: 156F64

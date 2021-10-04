@@ -1,7 +1,6 @@
 ---
 
-id: 1.3.1
-name: Pacemaker and SBD integration is enabled
+name: 1.3.1
 group: SBD
 labels: generic
 description: |
@@ -30,7 +29,7 @@ remediation: |
 
   ## References
   - T.B.D.
-implementation: "{{ lookup('file', 'roles/checks/'+id+'/tasks/main.yml') }}"
+implementation: "{{ lookup('file', 'roles/checks/'+name+'/tasks/main.yml') }}"
 
-# check external_id. This value must not be changed over the life of this check
-external_id: 0B6DB2
+# check id. This value must not be changed over the life of this check
+id: 0B6DB2

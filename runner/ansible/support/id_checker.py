@@ -24,7 +24,7 @@ except ModuleNotFoundError:
 CHECKS_FOLDER = "../roles/checks"
 HEXDIGITS = "0123456789ABCDEF"
 ID_LENGTH = 6
-EXTERNAL_ID = "external_id"
+CHECK_ID = "id"
 REQUIRED_FIELDS = ["id", "name", "group", "labels", "description", "remediation", "implementation"]
 
 
@@ -77,11 +77,11 @@ def sanity_check(check_data, check_file, logger):
             logger.error("field %s not found in check %s", field, check_file)
             return False
 
-    if not id_sanity_check(check_data[EXTERNAL_ID]):
+    if not id_sanity_check(check_data[CHECK_ID]):
         logger.error(
             "%s id (%s) does not follow the ID correct syntax "\
             "(%s chars length hex string)",
-            check_file, check_data[EXTERNAL_ID], ID_LENGTH)
+            check_file, check_data[CHECK_ID], ID_LENGTH)
         return False
 
     return True
@@ -94,8 +94,8 @@ def append_id_to_check(check_file, new_id):
         write_ptr.write("\n")
         write_ptr.write(
             "# check {}. This value must not be changed over the life of this check\n".format(
-                EXTERNAL_ID))
-        write_ptr.write("{}: {}\n".format(EXTERNAL_ID, new_id))
+                CHECK_ID))
+        write_ptr.write("{}: {}\n".format(CHECK_ID, new_id))
 
 
 def main(generate, logger):
@@ -112,8 +112,8 @@ def main(generate, logger):
             try:
                 with open(check_path) as file_ptr:
                     data = yaml.load(file_ptr, Loader=yaml.Loader)
-                    if EXTERNAL_ID not in data:
-                        logger.info("check %s doesn't have the external_id value", c_file)
+                    if CHECK_ID not in data:
+                        logger.info("check %s doesn't have the %s value", c_file, CHECK_ID)
                         if generate:
                             check_add_id.append(check_path)
                             continue
@@ -122,10 +122,10 @@ def main(generate, logger):
                             return 1
                     if not sanity_check(data, check_path, logger):
                         return 1
-                    if data[EXTERNAL_ID] in id_list:
-                        logger.error("%s %s already exists!", EXTERNAL_ID, data[EXTERNAL_ID])
+                    if data[CHECK_ID] in id_list:
+                        logger.error("%s %s already exists!", CHECK_ID, data[CHECK_ID])
                         return 1
-                    id_list.append(data[EXTERNAL_ID])
+                    id_list.append(data[CHECK_ID])
             except FileNotFoundError:
                 logger.error("check %s doesn't have the defaults/main.yml file", c_file)
                 continue

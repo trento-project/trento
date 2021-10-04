@@ -1,7 +1,6 @@
 ---
 
-id: 2.2.6
-name: Check SAPHanaSR version
+name: 2.2.6
 group: OS and package versions
 labels: hana
 description: |
@@ -15,7 +14,7 @@ remediation: |
 
   ## Reference
   - https://documentation.suse.com/en-us/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
-implementation: "{{ lookup('file', 'roles/checks/'+id+'/tasks/main.yml') }}"
+implementation: "{{ lookup('file', 'roles/checks/'+name+'/tasks/main.yml') }}"
 
-# check external_id. This value must not be changed over the life of this check
-external_id: 31BDCB
+# check id. This value must not be changed over the life of this check
+id: 31BDCB

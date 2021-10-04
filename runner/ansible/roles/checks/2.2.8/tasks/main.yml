@@ -1,6 +1,6 @@
 ---
 
-- name: "{{ id }}.check"
+- name: "{{ name }}.check"
   shell: |
     #  HANA and SPS versions are compatible
     sid=$(sudo crm configure show | grep -m1 SID= | sed -e "s/.*SID=\(...\).*/\1/" | tr '[:upper:]' '[:lower:]')
@@ -12,7 +12,7 @@
     fi
   check_mode: false
   register: config_updated
-  changed_when: config_updated.stdout is version(expected[id], '<')
+  changed_when: config_updated.stdout is version(expected[name], '<')
   failed_when: config_updated.rc > 0
 
 - block:

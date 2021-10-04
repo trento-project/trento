@@ -7,4 +7,4 @@
   when:
     - ansible_check_mode
   vars:
-    status: "{{  ansible_distribution_version is version(expected[id], '>=') }}"
+    status: "{{  ansible_distribution_version is version(expected[name], '>=') }}"

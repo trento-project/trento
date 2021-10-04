@@ -1,6 +1,6 @@
 ---
 
-- name: "{{ id }}.check"
+- name: "{{ name }}.check"
   shell: |
     INTERFACE_COUNT=$(corosync-cmapctl | grep totem.interface\\..*\.ttl | wc -l)
     [[ ${INTERFACE_COUNT} -ge "2" ]] && exit 0

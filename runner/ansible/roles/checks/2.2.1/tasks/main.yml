@@ -1,9 +1,9 @@
 ---
 
-- name: "{{ id }}.check"
+- name: "{{ name }}.check"
   shell: |
     #
-    readlink /etc/products.d/baseproduct | grep -i "{{ expected [id] }}" || exit 1
+    readlink /etc/products.d/baseproduct | grep -i "{{ expected [name] }}" || exit 1
     exit 0
   check_mode: false
   register: config_updated

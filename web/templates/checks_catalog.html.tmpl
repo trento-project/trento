@@ -36,13 +36,13 @@
                             <tbody>
                             {{- range .Checks }}
                                 <tr>
-                                    <td class="align-top">{{ .ExternalID }}</td>
+                                    <td class="align-top">{{ .ID }}</td>
                                     <td class="align-top">
                                         {{ .Description }}
-                                        <div class="ha-check-remediation collapse" id="info-{{ .ExternalID }}">
+                                        <div class="ha-check-remediation collapse" id="info-{{ .ID }}">
                                             {{ markdown (.Remediation) }}
                                         </div>
-                                        <div class="ha-check-remediation collapse" id="info-{{ .ExternalID }}">
+                                        <div class="ha-check-remediation collapse" id="info-{{ .ID }}">
                                             <h2>Implementation</h2>
                                             <pre>{{ .Implementation }}</pre>
                                         </div>
@@ -51,9 +51,9 @@
                                     <td class="align-top text-center">
                                         <a class="link-dark" type="button"
                                            data-toggle="collapse"
-                                           href="#info-{{ .ExternalID }}"
+                                           href="#info-{{ .ID }}"
                                            aria-expanded="false"
-                                           aria-controls="info-{{ .ExternalID }}"
+                                           aria-controls="info-{{ .ID }}"
                                            title="Details">
                                             <i class='eos-icons eos-18'>info</i>
                                         </a>

@@ -1,7 +1,6 @@
 ---
 
-id: 1.4.2
-name: Concurrent fencing should be enabled if Azure Fence is configured
+name: 1.4.2
 group: Azure Fence Agent
 labels: generic
 description: |
@@ -18,7 +17,7 @@ remediation: |
 
   ## References
   - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#1-create-the-stonith-devices
-implementation: "{{ lookup('file', 'roles/checks/'+id+'/tasks/main.yml') }}"
+implementation: "{{ lookup('file', 'roles/checks/'+name+'/tasks/main.yml') }}"
 
-# check external_id. This value must not be changed over the life of this check
-external_id: 6E0DEC
+# check id. This value must not be changed over the life of this check
+id: 6E0DEC

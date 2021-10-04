@@ -1,7 +1,6 @@
 ---
 
-id: 2.1.4
-name: Virtual IP Resource Agent properly configured
+name: 2.1.4
 group: SAP HANA System Replication Resource Agent
 labels: hana
 description: |
@@ -18,7 +17,7 @@ remediation: |
 
   ## References
   - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability#create-sap-hana-cluster-resources
-implementation: "{{ lookup('file', 'roles/checks/'+id+'/tasks/main.yml') }}"
+implementation: "{{ lookup('file', 'roles/checks/'+name+'/tasks/main.yml') }}"
 
-# check external_id. This value must not be changed over the life of this check
-external_id: 9CFD28
+# check id. This value must not be changed over the life of this check
+id: 9CFD28

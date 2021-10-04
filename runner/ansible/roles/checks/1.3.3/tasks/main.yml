@@ -1,6 +1,6 @@
 ---
 
-- name: "{{ id }}.check"
+- name: "{{ name }}.check"
   systemd:
     name: sbd
     enabled: true

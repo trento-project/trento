@@ -8,8 +8,7 @@
         {'metadata':
           {
             'checks': [{
-              'id': id,
-              'external_id': (external_id|default('unknown'))|string,
+              'id': id|string,
               'name': name,
               'group': group,
               'description': description,

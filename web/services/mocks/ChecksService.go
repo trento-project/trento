@@ -61,15 +61,15 @@ func (_m *ChecksService) GetAggregatedChecksResultByHost(clusterId string) (map[
 }
 
 // GetChecksCatalog provides a mock function with given fields:
-func (_m *ChecksService) GetChecksCatalog() (map[string]*models.Check, error) {
+func (_m *ChecksService) GetChecksCatalog() (models.CheckList, error) {
 	ret := _m.Called()
 
-	var r0 map[string]*models.Check
-	if rf, ok := ret.Get(0).(func() map[string]*models.Check); ok {
+	var r0 models.CheckList
+	if rf, ok := ret.Get(0).(func() models.CheckList); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]*models.Check)
+			r0 = ret.Get(0).(models.CheckList)
 		}
 	}
 
@@ -84,15 +84,15 @@ func (_m *ChecksService) GetChecksCatalog() (map[string]*models.Check, error) {
 }
 
 // GetChecksCatalogByGroup provides a mock function with given fields:
-func (_m *ChecksService) GetChecksCatalogByGroup() (map[string]map[string]*models.Check, error) {
+func (_m *ChecksService) GetChecksCatalogByGroup() (models.GroupedCheckList, error) {
 	ret := _m.Called()
 
-	var r0 map[string]map[string]*models.Check
-	if rf, ok := ret.Get(0).(func() map[string]map[string]*models.Check); ok {
+	var r0 models.GroupedCheckList
+	if rf, ok := ret.Get(0).(func() models.GroupedCheckList); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]map[string]*models.Check)
+			r0 = ret.Get(0).(models.GroupedCheckList)
 		}
 	}
 

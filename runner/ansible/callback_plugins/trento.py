@@ -23,7 +23,7 @@ TRENTO_TEST_LABEL = "test"
 TRENTO_RECORD_KEY = "trento-results"
 TEST_RESULT_TASK_NAME = "set_test_result"
 TEST_INCLUDE_TASK_NAME = "run_checks"
-EXTERNAL_ID = "external_id"
+CHECK_ID = "id"
 
 
 class Results(object):
@@ -124,7 +124,7 @@ class CallbackModule(CallbackBase):
 
         test_result = result._task_fields["args"]["test_result"]
         for group in task_vars["group_names"]:
-            self.results.add_result(group, task_vars[EXTERNAL_ID], host, test_result)
+            self.results.add_result(group, task_vars[CHECK_ID], host, test_result)
 
     def v2_runner_on_failed(self, result):
         """
@@ -137,7 +137,7 @@ class CallbackModule(CallbackBase):
         task_vars = self._all_vars(host=result._host, task=result._task)
 
         for group in task_vars["group_names"]:
-            self.results.add_result(group, task_vars[EXTERNAL_ID], host, False)
+            self.results.add_result(group, task_vars[CHECK_ID], host, False)
 
     def v2_playbook_on_stats(self, _stats):
         """
@@ -218,7 +218,7 @@ class CallbackModule(CallbackBase):
                     check_result["check_item"]["path"], "defaults/main.yml")) as file_ptr:
 
                     data = yaml.load(file_ptr, Loader=yaml.Loader)
-                    check_id = data[EXTERNAL_ID]
+                    check_id = data[CHECK_ID]
 
                 for group in task_vars["group_names"]:
                     self.results.add_result(group, check_id, host, "skipped")

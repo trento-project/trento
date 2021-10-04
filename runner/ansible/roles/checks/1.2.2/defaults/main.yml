@@ -1,7 +1,6 @@
 ---
 
-id: 1.2.2
-name: Fencing timeout is correctly configured
+name: 1.2.2
 group: Pacemaker
 labels: generic
 description: |
@@ -19,7 +18,7 @@ remediation: |
 
   ## References
   - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker
-implementation: "{{ lookup('file', 'roles/checks/'+id+'/tasks/main.yml') }}"
+implementation: "{{ lookup('file', 'roles/checks/'+name+'/tasks/main.yml') }}"
 
-# check external_id. This value must not be changed over the life of this check
-external_id: 373DB8
+# check id. This value must not be changed over the life of this check
+id: 373DB8

@@ -42,7 +42,6 @@ type ChecksByHost struct {
 
 type Check struct {
 	ID             string `json:"id,omitempty" mapstructure:"id,omitempty"`
-	ExternalID     string `json:"external_id,omitempty" mapstructure:"external_id,omitempty"`
 	Name           string `json:"name,omitempty" mapstructure:"name,omitempty"`
 	Group          string `json:"group,omitempty" mapstructure:"group,omitempty"`
 	Description    string `json:"description,omitempty" mapstructure:"description,omitempty"`
@@ -82,14 +81,14 @@ func (g GroupedCheckList) Len() int {
 }
 
 func (g GroupedCheckList) Less(i, j int) bool {
-	return g[i].Checks[0].ID < g[j].Checks[0].ID
+	return g[i].Checks[0].Name < g[j].Checks[0].Name
 }
 
 func (g GroupedCheckList) Swap(i, j int) {
 	g[i], g[j] = g[j], g[i]
 }
 
-func (g GroupedCheckList) OrderById() GroupedCheckList {
+func (g GroupedCheckList) OrderByName() GroupedCheckList {
 	sort.Sort(g)
 	return g
 }

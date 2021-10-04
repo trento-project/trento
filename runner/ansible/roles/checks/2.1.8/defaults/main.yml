@@ -1,7 +1,6 @@
 ---
 
-id: 2.1.8
-name: SAPHanaSR sudoers configuration
+name: 2.1.8
 group: SAP HANA System Replication Resource Agent
 labels: hana
 description: |
@@ -12,7 +11,7 @@ remediation: |
 
   ## References
   - Section 8.3 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/#id-allowing-sidadm-to-access-the-cluster
-implementation: "{{ lookup('file', 'roles/checks/'+id+'/tasks/main.yml') }}"
+implementation: "{{ lookup('file', 'roles/checks/'+name+'/tasks/main.yml') }}"
 
-# check external_id. This value must not be changed over the life of this check
-external_id: 8F6362
+# check id. This value must not be changed over the life of this check
+id: 8F6362

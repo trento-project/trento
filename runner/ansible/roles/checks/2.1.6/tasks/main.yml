@@ -1,6 +1,6 @@
 ---
 
-- name: "{{ id }}.check"
+- name: "{{ name }}.check"
   shell: |
     #   if rsc_colocation constraint is not configured, then fail
     cibadmin -Q --xpath "//constraints/rsc_colocation" || exit 1
@@ -9,16 +9,16 @@
 
     # Check that following match expected, exit with error if any do not
     XPATH="//constraints/rsc_colocation [contains(@id, 'col_saphana')]"
-    [[ $(cibadmin -Q --xpath "${XPATH}" | grep -oP ' score="\K[^"]+') != "{{ expected[id + '.rsc_colocation_score'] }}" ]] && exit 1
-    [[ $(cibadmin -Q --xpath "${XPATH}" | grep -oP ' rsc="\K[^"]+' | grep -o g_ip) != "{{ expected[id + '.rsc_colocation_rsc'] }}" ]] && exit 1
-    [[ $(cibadmin -Q --xpath "${XPATH}" | grep -oP ' rsc-role="\K[^"]+') != "{{ expected[id + '.rsc_colocation_rsc_role'] }}" ]] && exit 1
-    [[ $(cibadmin -Q --xpath "${XPATH}" | grep -oP ' with-rsc="\K[^"]+' | grep -o msl_SAPHana) != "{{ expected[id + '.rsc_colocation_with_rsc'] }}" ]] && exit 1
-    [[ $(cibadmin -Q --xpath "${XPATH}" | grep -oP ' with-rsc-role="\K[^"]+') != "{{ expected[id + '.rsc_colocation_with_rsc_role'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "${XPATH}" | grep -oP ' score="\K[^"]+') != "{{ expected[name + '.rsc_colocation_score'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "${XPATH}" | grep -oP ' rsc="\K[^"]+' | grep -o g_ip) != "{{ expected[name + '.rsc_colocation_rsc'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "${XPATH}" | grep -oP ' rsc-role="\K[^"]+') != "{{ expected[name + '.rsc_colocation_rsc_role'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "${XPATH}" | grep -oP ' with-rsc="\K[^"]+' | grep -o msl_SAPHana) != "{{ expected[name + '.rsc_colocation_with_rsc'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "${XPATH}" | grep -oP ' with-rsc-role="\K[^"]+') != "{{ expected[name + '.rsc_colocation_with_rsc_role'] }}" ]] && exit 1
 
     XPATH="//constraints/rsc_order [contains(@id, 'ord_SAPHana')]"
-    [[ $(cibadmin -Q --xpath "${XPATH}" | grep -oP ' kind="\K[^"]+') != "{{ expected[id + '.rsc_order_kind'] }}" ]] && exit 1
-    [[ $(cibadmin -Q --xpath "${XPATH}" | grep -oP ' first="\K[^"]+' | grep -o cln_SAPHanaTopology) != "{{ expected[id + '.rsc_order_first'] }}" ]] && exit 1
-    [[ $(cibadmin -Q --xpath "${XPATH}" | grep -oP ' then="\K[^"]+' | grep -o msl_SAPHana) != "{{ expected[id + '.rsc_order_then'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "${XPATH}" | grep -oP ' kind="\K[^"]+') != "{{ expected[name + '.rsc_order_kind'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "${XPATH}" | grep -oP ' first="\K[^"]+' | grep -o cln_SAPHanaTopology) != "{{ expected[name + '.rsc_order_first'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "${XPATH}" | grep -oP ' then="\K[^"]+' | grep -o msl_SAPHana) != "{{ expected[name + '.rsc_order_then'] }}" ]] && exit 1
     exit 0
   check_mode: false
   register: config_updated

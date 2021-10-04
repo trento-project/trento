@@ -1,7 +1,6 @@
 ---
 
-id: 1.5.2
-name: hacluster password is changed from default 'linux'
+name: 1.5.2
 group: Miscellaneous
 labels: generic
 description: |
@@ -16,8 +15,8 @@ remediation: |
 
   ## References
   - section 9.1.2 https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
-implementation: "{{ lookup('file', 'roles/checks/'+id+'/tasks/main.yml') }}"
+implementation: "{{ lookup('file', 'roles/checks/'+name+'/tasks/main.yml') }}"
 on_failure: warning
 
-# check external_id. This value must not be changed over the life of this check
-external_id: 790926
+# check id. This value must not be changed over the life of this check
+id: 790926

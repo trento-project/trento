@@ -1,7 +1,6 @@
 ---
 
-id: 1.2.1
-name: Fencing is enabled
+name: 1.2.1
 group: Pacemaker
 labels: generic
 description: |
@@ -17,7 +16,7 @@ remediation: |
   ```
   ## References
   - T.B.D.
-implementation: "{{ lookup('file', 'roles/checks/'+id+'/tasks/main.yml') }}"
+implementation: "{{ lookup('file', 'roles/checks/'+name+'/tasks/main.yml') }}"
 
-# check external_id. This value must not be changed over the life of this check
-external_id: 205AF7
+# check id. This value must not be changed over the life of this check
+id: 205AF7

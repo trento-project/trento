@@ -35,10 +35,10 @@
                           {{- if $checksResult }}
                           {{- range .ChecksCatalog }}
                               {{- range $checkMeta := .Checks }}
-                                  {{- $checkResultData := index $checksResult.Checks $checkMeta.ExternalID }}
+                                  {{- $checkResultData := index $checksResult.Checks $checkMeta.ID }}
                                   {{- if $checkResultData }}
                                   <tr>
-                                      <td>{{ $checkMeta.ExternalID }}</td>
+                                      <td>{{ $checkMeta.ID }}</td>
                                       <td>{{ $checkMeta.Description }}</td>
                                       {{- range $node := $nodes }}
                                       {{- $result := index $checkResultData.Hosts $node.Name }}

@@ -514,9 +514,9 @@ func getChecksCatalogWithSelected(s services.ChecksService, clusterId, selectedC
 		return checksCatalog, err
 	}
 
-	for _, groupedCheckList := range checksCatalog.OrderById() {
+	for _, groupedCheckList := range checksCatalog.OrderByName() {
 		for _, check := range groupedCheckList.Checks {
-			if internal.Contains(strings.Split(selectedChecks, ","), check.ExternalID) {
+			if internal.Contains(strings.Split(selectedChecks, ","), check.ID) {
 				check.Selected = true
 			}
 		}
@@ -621,7 +621,7 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 			"StoppedResources":      stoppedResources(clusterItem),
 			"ClusterType":           clusterType,
 			"HealthContainer":       hContainer,
-			"ChecksCatalog":    checksCatalog,
+			"ChecksCatalog":         checksCatalog,
 			"ConnectionData":        connectionData,
 			"DefaultConnectionData": defaultConnectionData,
 			"ChecksResult":          checksResult,

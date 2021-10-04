@@ -1,6 +1,6 @@
 ---
 
-- name: "{{ id }}.check"
+- name: "{{ name }}.check"
   shell: |
     INTERFACE_COUNT=$(cat /etc/corosync/corosync.conf | grep interface | wc -l)
     [[ $INTERFACE_COUNT -ge "2" ]] && exit 0

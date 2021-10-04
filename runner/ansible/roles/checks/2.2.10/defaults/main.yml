@@ -1,7 +1,6 @@
 ---
 
-id: 2.2.10
-name: HANA's autostart is disabled
+name: 2.2.10
 group: OS and package versions
 labels: hana
 description: |
@@ -19,7 +18,7 @@ remediation: |
 
   ## References
   - Section 2 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/#cha.hana-sr.scenario
-implementation: "{{ lookup('file', 'roles/checks/'+id+'/tasks/main.yml') }}"
+implementation: "{{ lookup('file', 'roles/checks/'+name+'/tasks/main.yml') }}"
 
-# check external_id. This value must not be changed over the life of this check
-external_id: C35E72
+# check id. This value must not be changed over the life of this check
+id: C35E72

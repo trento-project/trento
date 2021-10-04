@@ -90,11 +90,11 @@
                                               <tr>
                                                   <td class="row-status">
                                                       <div class='form-check'>
-                                                         <input class='parent-{{ $groupNumber }} form-check-input eos-checkbox' type='checkbox' name="check_ids[]" value="{{ .ExternalID }}" id='{{ $groupNumber }}-{{ .ExternalID }}' {{ if .Selected }}checked="checked"{{ end }}>
-                                                         <label class='form-check-label' for='{{ $groupNumber }}-{{ .ExternalID }}'>{{ .ExternalID }}</label>
+                                                         <input class='parent-{{ $groupNumber }} form-check-input eos-checkbox' type='checkbox' name="check_ids[]" value="{{ .ID }}" id='{{ $groupNumber }}-{{ .ID }}' {{ if .Selected }}checked="checked"{{ end }}>
+                                                         <label class='form-check-label' for='{{ $groupNumber }}-{{ .ID }}'>{{ .ID }}</label>
                                                      </div>
                                                   </td>
-                                                  <td>{{ .ExternalID }}</td>
+                                                  <td>{{ .ID }}</td>
                                                   <td>{{ .Description}}</td>
                                               </tr>
                                               {{- else }}

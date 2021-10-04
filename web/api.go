@@ -4,11 +4,13 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+
 	"github.com/trento-project/trento/internal/cluster"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/internal/sapsystem"
 	"github.com/trento-project/trento/internal/tags"
+	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
 )
 
@@ -347,12 +349,17 @@ func ApiClusterCheckResultsHandler(client consul.Client, s services.ChecksServic
 			return
 		}
 
+		resultSet := []models.ClusterCheckResults{}
 		for checkId, check := range checkResults.Checks {
-			check.Group = checksCatalog[checkId].Group
-			check.Description = checksCatalog[checkId].Description
-			check.ID = checksCatalog[checkId].ID
+			current := models.ClusterCheckResults{
+				Group:       checksCatalog[checkId].Group,
+				Description: checksCatalog[checkId].Description,
+				Hosts:       check.Hosts,
+				ID:          checksCatalog[checkId].ID,
+			}
+			resultSet = append(resultSet, current)
 		}
 
-		c.JSON(http.StatusOK, checkResults)
+		c.JSON(http.StatusOK, resultSet)
 	}
 }

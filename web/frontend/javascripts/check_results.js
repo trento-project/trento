@@ -8,14 +8,12 @@ import ChecksTable from '@components/ChecksTable';
 const clusterId = window.location.pathname.split('/').pop();
 
 const groupChecks = (checks) => {
-  const groups = Object.keys(checks)
-    .map((key) => checks[key])
-    .reduce((accumulator, current) => {
-      const { group } = current;
-      return accumulator[group]
-        ? { ...accumulator, [group]: [...accumulator[group], current] }
-        : { ...accumulator, [group]: [current] };
-    }, {});
+  const groups = checks.reduce((accumulator, current) => {
+    const { group } = current;
+    return accumulator[group]
+      ? { ...accumulator, [group]: [...accumulator[group], current] }
+      : { ...accumulator, [group]: [current] };
+  }, {});
 
   return Object.keys(groups).map((key) => {
     return { name: key, checks: groups[key] };
@@ -26,8 +24,8 @@ const ClustersChecks = ({ clusterId }) => {
   const [results, setResults] = useState([]);
 
   useEffect(() => {
-    get(`/api/clusters/${clusterId}/results`).then(({ data: { checks } }) => {
-      const groupedChecks = groupChecks(checks);
+    get(`/api/clusters/${clusterId}/results`).then(({ data }) => {
+      const groupedChecks = groupChecks(data);
       setResults(groupedChecks);
     });
   }, []);

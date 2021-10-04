@@ -21,7 +21,7 @@ except ModuleNotFoundError:
         "yaml package not found. To install it run `pip install PyYAML`")
 
 
-CHECKS_FOLDER = "../roles/checks"
+CHECKS_FOLDER = "../runner/ansible/roles/checks"
 HEXDIGITS = "0123456789ABCDEF"
 ID_LENGTH = 6
 CHECK_ID = "id"

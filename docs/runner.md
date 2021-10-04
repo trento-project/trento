@@ -1,6 +1,6 @@
 # Ansible runner
 
-Place to store Ansible playbooks that are executed by the Trento runner
+The Trento runner is responsible of running the Trento checks among the installed Trento Agents.
 
 ## Implementing a check
 
@@ -24,7 +24,7 @@ is that the labels are used for control purpose (select all the checks with this
 - `description`: A longer description about the check purpose. It can be written using markdown
 - `implementation`: Usually the task `main.yml` content
 
-## Creating a new id
+### Creating a new id
 
 The `id` must be unique in the check collection. It must be 6 hexadecimal digits string.
 In order to create a new unique identifier, and to check if there are any duplicated entries, the
@@ -33,10 +33,10 @@ In order to create a new unique identifier, and to check if there are any duplic
 To use it:
 ```
 # Check if the checks include all the required metadata values and if there is any duplicated id
-python3 support/id_checker.py
+python3 hack/id_checker.py
 ```
 
 To add a new unique `id`:
 ```
-python3 support/id_checker.py --generate
+python3 hack/id_checker.py --generate
 ```

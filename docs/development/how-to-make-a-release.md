@@ -11,6 +11,19 @@ gem install github_changelog_generator
 
 ## Update the changelog and create a new tag
 
+The automatic changelog generation leverages GitHub labels very heavily to produce a meaningful output following the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) specification, grouping pull requests and issues in sections.
+
+Use the labels as follows:
+- `enhancement` or `addition` items go in the `Added` section;
+- `bug` or `fix` items go in the `Fixed` section;
+- `removal` items go in the `Removed` section;
+- unlabelled pull requests go in the `Other Changes` section;
+- unlabelled closed issues are ignored.
+
+You don't have to label everything: the intent of the changelog is to communicate highlights to end-users, while also being comprehensive; this is why the `Other changes` section catches all the unlabelled items and is rendered last.
+
+Once you do a quick round of issues/PR triaging to apply labels in a meaningful way, follow these steps:
+
 ```bash
 # always create a dedicated release branch
 git switch -c release-x.y.z

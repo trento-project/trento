@@ -152,9 +152,9 @@ func (r *LayoutRender) addFileFromFS(templatesFS fs.FS, file string) {
 		"sum": func(a int, b int) int {
 			return a + b
 		},
-		"markdown":      markdownToHTML,
-		"split":         strings.Split,
-		"includeBundle": includeBundle,
+		"markdown": markdownToHTML,
+		"split":    strings.Split,
+		"script":   script,
 	})
 	patterns := append([]string{r.root, file}, r.blocks...)
 	tmpl = template.Must(tmpl.ParseFS(templatesFS, patterns...))
@@ -162,7 +162,7 @@ func (r *LayoutRender) addFileFromFS(templatesFS fs.FS, file string) {
 	r.addTemplate(name, tmpl)
 }
 
-func includeBundle(filename string) template.HTML {
+func script(filename string) template.HTML {
 	scriptTag := fmt.Sprintf("<script src=\"/static/frontend/assets/js/%s\"></script>", filename)
 	return template.HTML(scriptTag)
 }

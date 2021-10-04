@@ -9,7 +9,6 @@ import (
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/internal/sapsystem"
-	"github.com/trento-project/trento/internal/tags"
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
 )
@@ -30,14 +29,12 @@ type JSONTag struct {
 // @Success 200 {object} []string
 // @Failure 500 {object} map[string]string
 // @Router /api/tags [get]
-func ApiListTag(client consul.Client) gin.HandlerFunc {
+func ApiListTag(tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		query := c.Request.URL.Query()
 		resourceTypeFilter := query["resource_type"]
 
-		t := tags.NewTags(client)
-
-		tags, err := t.GetAll(resourceTypeFilter...)
+		tags, err := tagsService.GetAll(resourceTypeFilter...)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -63,7 +60,7 @@ func ApiListTag(client consul.Client) gin.HandlerFunc {
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/hosts/{name}/tags [post]
-func ApiHostCreateTagHandler(client consul.Client) gin.HandlerFunc {
+func ApiHostCreateTagHandler(client consul.Client, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		name := c.Param("name")
 
@@ -86,8 +83,7 @@ func ApiHostCreateTagHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		t := tags.NewTags(client)
-		err = t.Create(r.Tag, tags.HostResourceType, name)
+		err = tagsService.Create(r.Tag, models.TagHostResourceType, name)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -105,7 +101,7 @@ func ApiHostCreateTagHandler(client consul.Client) gin.HandlerFunc {
 // @Param tag path string true "Tag"
 // @Success 204 {object} map[string]interface{}
 // @Router /api/hosts/{name}/tags/{tag} [delete]
-func ApiHostDeleteTagHandler(client consul.Client) gin.HandlerFunc {
+func ApiHostDeleteTagHandler(client consul.Client, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		name := c.Param("name")
 		tag := c.Param("tag")
@@ -121,9 +117,7 @@ func ApiHostDeleteTagHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		t := tags.NewTags(client)
-		err = t.Delete(tag, tags.HostResourceType, name)
-
+		err = tagsService.Delete(tag, models.TagHostResourceType, name)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -144,7 +138,7 @@ func ApiHostDeleteTagHandler(client consul.Client) gin.HandlerFunc {
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/clusters/{id}/tags [post]
-func ApiClusterCreateTagHandler(client consul.Client) gin.HandlerFunc {
+func ApiClusterCreateTagHandler(client consul.Client, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 
@@ -167,8 +161,7 @@ func ApiClusterCreateTagHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		t := tags.NewTags(client)
-		err = t.Create(r.Tag, tags.ClusterResourceType, id)
+		err = tagsService.Create(r.Tag, models.TagClusterResourceType, id)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -186,7 +179,7 @@ func ApiClusterCreateTagHandler(client consul.Client) gin.HandlerFunc {
 // @Param tag path string true "Tag"
 // @Success 204 {object} map[string]interface{}
 // @Router /api/clusters/{name}/tags/{tag} [delete]
-func ApiClusterDeleteTagHandler(client consul.Client) gin.HandlerFunc {
+func ApiClusterDeleteTagHandler(client consul.Client, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 		tag := c.Param("tag")
@@ -202,8 +195,7 @@ func ApiClusterDeleteTagHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		t := tags.NewTags(client)
-		err = t.Delete(tag, tags.ClusterResourceType, id)
+		err = tagsService.Delete(tag, models.TagClusterResourceType, id)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -224,12 +216,12 @@ func ApiClusterDeleteTagHandler(client consul.Client) gin.HandlerFunc {
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/sapsystems/{id}/tags [post]
-func ApiSAPSystemCreateTagHandler(client consul.Client) gin.HandlerFunc {
+func ApiSAPSystemCreateTagHandler(client consul.Client, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		sid := c.Param("sid")
 
 		// TODO: store sapsystem outside hosts
-		hostList, err := hosts.Load(client, "", nil, nil)
+		hostList, err := hosts.Load(client, "", nil)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -264,8 +256,7 @@ func ApiSAPSystemCreateTagHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		t := tags.NewTags(client)
-		err = t.Create(r.Tag, tags.SAPSystemResourceType, sid)
+		err = tagsService.Create(r.Tag, models.TagSAPSystemResourceType, sid)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -283,13 +274,13 @@ func ApiSAPSystemCreateTagHandler(client consul.Client) gin.HandlerFunc {
 // @Param tag path string true "Tag"
 // @Success 204 {object} map[string]interface{}
 // @Router /api/sapsystems/{name}/tags/{tag} [delete]
-func ApiSAPSystemDeleteTagHandler(client consul.Client) gin.HandlerFunc {
+func ApiSAPSystemDeleteTagHandler(client consul.Client, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		sid := c.Param("sid")
 		tag := c.Param("tag")
 
 		// TODO: store sapsystem outside hosts
-		hostList, err := hosts.Load(client, "", nil, nil)
+		hostList, err := hosts.Load(client, "", nil)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -316,8 +307,7 @@ func ApiSAPSystemDeleteTagHandler(client consul.Client) gin.HandlerFunc {
 			return
 		}
 
-		t := tags.NewTags(client)
-		err = t.Delete(tag, tags.SAPSystemResourceType, sid)
+		err = tagsService.Delete(tag, models.TagSAPSystemResourceType, sid)
 		if err != nil {
 			_ = c.Error(err)
 			return

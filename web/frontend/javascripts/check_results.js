@@ -33,10 +33,10 @@ const ClustersChecks = ({ clusterId }) => {
   return (
     <div>
       {results.map((section) => {
-
         return (
           <Accordion
             className="checks-results-accordion"
+            key={section.name}
             title={section.name}
           >
             <ChecksTable checks={section.checks} />

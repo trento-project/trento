@@ -4,6 +4,7 @@ import (
 	"embed"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-contrib/sessions"
@@ -48,6 +49,9 @@ func DefaultDependencies() Dependencies {
 	consulClient, _ := consul.DefaultClient()
 	engine := gin.Default()
 	store := cookie.NewStore([]byte("secret"))
+	mode := os.Getenv(gin.EnvGinMode)
+
+	gin.SetMode(mode)
 
 	araService := ara.NewAraService(araAddrDefault)
 	checksService := services.NewChecksService(araService)

@@ -56,7 +56,7 @@ mod-tidy:
 	go mod tidy
 
 test: generate web-assets
-	go test -v ./...
+	GIN_MODE=test go test -v ./...
 
 test-coverage:
 	@mkdir -p build

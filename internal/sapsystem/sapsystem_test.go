@@ -526,6 +526,51 @@ func TestNewSAPInstanceApp(t *testing.T) {
 	assert.Equal(t, expectedInstance, sapInstance)
 }
 
+func TestGetSIDsString(t *testing.T) {
+	sysList := SAPSystemsList{
+		&SAPSystem{
+			SID: "PRD",
+		},
+	}
+
+	assert.Equal(t, "PRD", sysList.GetSIDsString())
+
+	sysList = SAPSystemsList{
+		&SAPSystem{
+			SID: "PRD",
+		},
+		&SAPSystem{
+			SID: "QAS",
+		},
+	}
+
+	assert.Equal(t, "PRD,QAS", sysList.GetSIDsString())
+}
+
+func TestGetTypesString(t *testing.T) {
+	sysList := SAPSystemsList{
+		&SAPSystem{
+			Type: Database,
+		},
+	}
+
+	assert.Equal(t, "Database", sysList.GetTypesString())
+
+	sysList = SAPSystemsList{
+		&SAPSystem{
+			Type: Database,
+		},
+		&SAPSystem{
+			Type: 0,
+		},
+		&SAPSystem{
+			Type: Application,
+		},
+	}
+
+	assert.Equal(t, "Database,Unknown,Application", sysList.GetTypesString())
+}
+
 func TestFindSystemsNotFound(t *testing.T) {
 	appFS := afero.NewMemMapFs()
 	// create test files and directories

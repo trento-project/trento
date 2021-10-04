@@ -39,7 +39,8 @@ func TestStoreSAPSystemTags(t *testing.T) {
 	mockWebService.On("GetSystemInstanceList").Return(&sapcontrol.GetSystemInstanceListResponse{}, nil)
 
 	expectedHostMetadata := map[string]interface{}{
-		"sap-systems": "DEV",
+		"sap-systems":      "DEV",
+		"sap-systems-type": "Database",
 	}
 
 	catalog.On("Nodes", mock.Anything).Return([]*consulApi.Node{}, nil, nil)

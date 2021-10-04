@@ -5,7 +5,7 @@
 {{ define "content" }}
     <div class="row">
         <div class="col">
-            <h1>SAP Systems</h1>
+            <h1>{{ .Title }}</h1>
         </div>
         <div class="col text-right">
             <i class="eos-icons eos-dark eos-18 ">schedule</i> Updated at:
@@ -42,5 +42,5 @@
             {{- end}}
         </select>
     </div>
-    {{ template "sapsystems_table" .SAPSystemsTable }}
+    {{ template "sapsystems_table" . }}
 {{ end }}

@@ -40,6 +40,8 @@ type Dependencies struct {
 	store                cookie.Store
 	checksService        services.ChecksService
 	subscriptionsService services.SubscriptionsService
+	hostsService         services.HostsService
+	sapSystemsService    services.SAPSystemsService
 }
 
 func DefaultDependencies() Dependencies {
@@ -50,8 +52,12 @@ func DefaultDependencies() Dependencies {
 	araService := ara.NewAraService(araAddrDefault)
 	checksService := services.NewChecksService(araService)
 	subscriptionsService := services.NewSubscriptionsService(consulClient)
+	hostsService := services.NewHostsService(consulClient)
+	sapSystemsService := services.NewSAPSystemsService(consulClient)
 
-	return Dependencies{consulClient, engine, store, checksService, subscriptionsService}
+	return Dependencies{
+		consulClient, engine, store, checksService,
+		subscriptionsService, hostsService, sapSystemsService}
 }
 
 func (d *Dependencies) SetAraAddr(araAddr string) {
@@ -98,8 +104,10 @@ func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
 	engine.GET("/clusters", NewClusterListHandler(deps.consul, deps.checksService))
 	engine.GET("/clusters/:id", NewClusterHandler(deps.consul, deps.checksService))
 	engine.POST("/clusters/:id/settings", NewSaveClusterSettingsHandler(deps.consul))
-	engine.GET("/sapsystems", NewSAPSystemListHandler(deps.consul))
-	engine.GET("/sapsystems/:sid", NewSAPSystemHandler(deps.consul))
+	engine.GET("/sapsystems", NewSAPSystemListHandler(deps.consul, deps.hostsService, deps.sapSystemsService))
+	engine.GET("/sapsystems/:sid", NewSAPResourceHandler(deps.hostsService, deps.sapSystemsService))
+	engine.GET("/databases", NewHanaDatabaseListHandler(deps.consul, deps.hostsService, deps.sapSystemsService))
+	engine.GET("/databases/:sid", NewSAPResourceHandler(deps.hostsService, deps.sapSystemsService))
 	engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	apiGroup := engine.Group("/api")

@@ -64,7 +64,7 @@ jobs:
             runner/ansible/* runner/ansible/roles/* \
             runner/ansible/roles/checks/* runner/ansible/vars/*
       - name: trento checks sanity test
-        run:
+        run: |
           pip install PyYAML
           python3 hack/id_checker.py
 

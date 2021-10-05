@@ -109,9 +109,9 @@ func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
 	engine.GET("/clusters/:id", NewClusterHandler(deps.consul, deps.checksService))
 	engine.POST("/clusters/:id/settings", NewSaveClusterSettingsHandler(deps.consul))
 	engine.GET("/sapsystems", NewSAPSystemListHandler(deps.consul, deps.hostsService, deps.sapSystemsService))
-	engine.GET("/sapsystems/:sid", NewSAPResourceHandler(deps.hostsService, deps.sapSystemsService))
+	engine.GET("/sapsystems/:id", NewSAPResourceHandler(deps.hostsService, deps.sapSystemsService))
 	engine.GET("/databases", NewHanaDatabaseListHandler(deps.consul, deps.hostsService, deps.sapSystemsService))
-	engine.GET("/databases/:sid", NewSAPResourceHandler(deps.hostsService, deps.sapSystemsService))
+	engine.GET("/databases/:id", NewSAPResourceHandler(deps.hostsService, deps.sapSystemsService))
 	engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	apiGroup := engine.Group("/api")
@@ -124,8 +124,8 @@ func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
 		apiGroup.POST("/clusters/:id/tags", ApiClusterCreateTagHandler(deps.consul))
 		apiGroup.DELETE("/clusters/:id/tags/:tag", ApiClusterDeleteTagHandler(deps.consul))
 		apiGroup.GET("/clusters/:cluster_id/results", ApiClusterCheckResultsHandler(deps.consul, deps.checksService))
-		apiGroup.POST("/sapsystems/:sid/tags", ApiSAPSystemCreateTagHandler(deps.consul))
-		apiGroup.DELETE("/sapsystems/:sid/tags/:tag", ApiSAPSystemDeleteTagHandler(deps.consul))
+		apiGroup.POST("/sapsystems/:id/tags", ApiSAPSystemCreateTagHandler(deps.consul))
+		apiGroup.DELETE("/sapsystems/:id/tags/:tag", ApiSAPSystemDeleteTagHandler(deps.consul))
 	}
 
 	return app, nil

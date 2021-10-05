@@ -16,9 +16,11 @@ import (
 )
 
 type SAPSystemRow struct {
-	SID            string
-	Tags           []string
-	InstancesTable []*InstanceRow
+	Id                string
+	SID               string
+	Tags              []string
+	InstancesTable    []*InstanceRow
+	HasDuplicatedSid  bool
 }
 
 type InstanceRow struct {
@@ -38,23 +40,27 @@ func NewSAPSystemsTable(
 	client consul.Client) (SAPSystemsTable, error) {
 
 	var sapSystemsTable SAPSystemsTable
+	sids := make(map[string]int)
 	rowsBySID := make(map[string]*SAPSystemRow)
 
 	for _, s := range sapSystemsList {
 
-		sapSystem, ok := rowsBySID[s.SID]
+		sapSystem, ok := rowsBySID[s.Id]
 		if !ok {
 			t := tags.NewTags(client)
-			sapsystemTags, err := t.GetAllByResource(tags.SAPSystemResourceType, s.SID)
+			sapsystemTags, err := t.GetAllByResource(tags.SAPSystemResourceType, s.Id)
 			if err != nil {
 				return nil, err
 			}
 
+			sids[s.SID] += 1
+
 			sapSystem = &SAPSystemRow{
+				Id:   s.Id,
 				SID:  s.SID,
 				Tags: sapsystemTags,
 			}
-			rowsBySID[s.SID] = sapSystem
+			rowsBySID[s.Id] = sapSystem
 		}
 
 		for _, i := range s.Instances {
@@ -91,6 +97,12 @@ func NewSAPSystemsTable(
 
 	for _, row := range rowsBySID {
 		sapSystemsTable = append(sapSystemsTable, row)
+	}
+
+	for _, s := range sapSystemsTable {
+		if sids[s.SID] > 1 {
+			s.HasDuplicatedSid = true
+		}
 	}
 
 	sort.Slice(sapSystemsTable, func(i, j int) bool {
@@ -226,9 +238,9 @@ func NewSAPResourceHandler(hostsService services.HostsService, sapSystemsService
 		var systemHosts hosts.HostList
 		var err error
 
-		sid := c.Param("sid")
+		id := c.Param("id")
 
-		systemList, err = sapSystemsService.GetSAPSystemsBySid(sid)
+		systemList, err = sapSystemsService.GetSAPSystemsById(id)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -239,7 +251,7 @@ func NewSAPResourceHandler(hostsService services.HostsService, sapSystemsService
 			return
 		}
 
-		systemHosts, err = hostsService.GetHostsBySid(sid)
+		systemHosts, err = hostsService.GetHostsBySystemId(id)
 		if err != nil {
 			_ = c.Error(err)
 			return

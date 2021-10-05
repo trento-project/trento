@@ -11,7 +11,7 @@ import (
 
 type HostsService interface {
 	GetHostMetadata(host string) (map[string]string, error)
-	GetHostsBySid(sid string) (hosts.HostList, error)
+	GetHostsBySystemId(id string) (hosts.HostList, error)
 }
 
 type hostsService struct {
@@ -35,8 +35,8 @@ func (h *hostsService) GetHostMetadata(host string) (map[string]string, error) {
 	return hostList[0].TrentoMeta(), nil
 }
 
-func (h *hostsService) GetHostsBySid(sid string) (hosts.HostList, error) {
-	hostList, err := hosts.Load(h.consul, fmt.Sprintf("Meta[\"trento-sap-systems\"] == %s", sid), nil, nil)
+func (h *hostsService) GetHostsBySystemId(id string) (hosts.HostList, error) {
+	hostList, err := hosts.Load(h.consul, fmt.Sprintf("Meta[\"trento-sap-systems-id\"] contains \"%s\"", id), nil, nil)
 	if err != nil {
 		return nil, err
 	}

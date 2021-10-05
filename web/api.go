@@ -226,7 +226,7 @@ func ApiClusterDeleteTagHandler(client consul.Client) gin.HandlerFunc {
 // @Router /api/sapsystems/{id}/tags [post]
 func ApiSAPSystemCreateTagHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		sid := c.Param("sid")
+		id := c.Param("id")
 
 		// TODO: store sapsystem outside hosts
 		hostList, err := hosts.Load(client, "", nil, nil)
@@ -244,7 +244,7 @@ func ApiSAPSystemCreateTagHandler(client consul.Client) gin.HandlerFunc {
 			}
 
 			for _, s := range sapSystems {
-				if s.SID == sid {
+				if s.Id == id {
 					system = s
 					break
 				}
@@ -265,7 +265,7 @@ func ApiSAPSystemCreateTagHandler(client consul.Client) gin.HandlerFunc {
 		}
 
 		t := tags.NewTags(client)
-		err = t.Create(r.Tag, tags.SAPSystemResourceType, sid)
+		err = t.Create(r.Tag, tags.SAPSystemResourceType, id)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -285,7 +285,7 @@ func ApiSAPSystemCreateTagHandler(client consul.Client) gin.HandlerFunc {
 // @Router /api/sapsystems/{name}/tags/{tag} [delete]
 func ApiSAPSystemDeleteTagHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		sid := c.Param("sid")
+		id := c.Param("id")
 		tag := c.Param("tag")
 
 		// TODO: store sapsystem outside hosts
@@ -304,7 +304,7 @@ func ApiSAPSystemDeleteTagHandler(client consul.Client) gin.HandlerFunc {
 			}
 
 			for _, s := range sapSystems {
-				if s.SID == sid {
+				if s.Id == id {
 					system = s
 					break
 				}
@@ -317,7 +317,7 @@ func ApiSAPSystemDeleteTagHandler(client consul.Client) gin.HandlerFunc {
 		}
 
 		t := tags.NewTags(client)
-		err = t.Delete(tag, tags.SAPSystemResourceType, sid)
+		err = t.Delete(tag, tags.SAPSystemResourceType, id)
 		if err != nil {
 			_ = c.Error(err)
 			return

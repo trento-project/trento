@@ -10,7 +10,7 @@ import (
 
 type SAPSystemsService interface {
 	GetSAPSystems() (sapsystem.SAPSystemsList, error)
-	GetSAPSystemsBySid(sid string) (sapsystem.SAPSystemsList, error)
+	GetSAPSystemsById(id string) (sapsystem.SAPSystemsList, error)
 	GetSAPSystemsByType(systemType int) (sapsystem.SAPSystemsList, error)
 }
 
@@ -44,7 +44,7 @@ func (s *sapSystemsService) GetSAPSystems() (sapsystem.SAPSystemsList, error) {
 	return sapSystemsList, nil
 }
 
-func (s *sapSystemsService) GetSAPSystemsBySid(sid string) (sapsystem.SAPSystemsList, error) {
+func (s *sapSystemsService) GetSAPSystemsById(id string) (sapsystem.SAPSystemsList, error) {
 	var sapSystemsListBySid sapsystem.SAPSystemsList
 
 	sapSystemsList, err := s.GetSAPSystems()
@@ -53,7 +53,7 @@ func (s *sapSystemsService) GetSAPSystemsBySid(sid string) (sapsystem.SAPSystems
 	}
 
 	for _, s := range sapSystemsList {
-		if s.SID == sid {
+		if s.Id == id {
 			sapSystemsListBySid = append(sapSystemsListBySid, s)
 		}
 	}

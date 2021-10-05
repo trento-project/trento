@@ -17,13 +17,13 @@
                 <td class="row-status">{{ template "health_icon" "unknown" }}</td>
                 <td class="row-status"><a class="eos-icons eos-18  collapse-toggle clickable collapsed text-dark"
                                           data-toggle="collapse" data-target="#inner_{{ $index }}"></a></td>
-                <td><a href="/{{ $resource }}/{{ .SID }}">{{ .SID }}</a></td>
+                <td>{{- if .HasDuplicatedSid }}<i class="eos-icons eos-18 text-warning" data-toggle="tooltip" data-original-title="This SAP system SID exists multiple times">warning</i>{{- end }}<a href="/{{ $resource }}/{{ .Id }}">{{ .SID }}</a></td>
                 <td></td>
                 <td>
                     <input class="tags-input"
                         value="{{- range .Tags }}{{ . }},{{- end }}"
                         data-resource-type="{{ $resource }}"
-                        data-resource-id="{{ .SID }}"
+                        data-resource-id="{{ .Id }}"
                         autocomplete="off">
                     </input>
                 </td>

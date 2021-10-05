@@ -23,8 +23,11 @@ All of the above variables belong to this environment.
 #### `SSH_CONFIG`
 Configuration file for the SSH client used to reach the agents
 ```
-Host *
+Host hostname01
+    User user
+    IdentityFile /path/to/ssh/id_rsa
     StrictHostKeyChecking no
+    ...
 ```
 
 #### `SSH_KEY` 

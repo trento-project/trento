@@ -11,8 +11,9 @@ to set new IDs if they don't exist
 
 import os
 import logging
-import random
 import argparse
+import string
+import uuid
 
 try:
     import yaml
@@ -22,7 +23,6 @@ except ModuleNotFoundError:
 
 
 CHECKS_FOLDER = "../runner/ansible/roles/checks"
-HEXDIGITS = "0123456789ABCDEF"
 ID_LENGTH = 6
 CHECK_ID = "id"
 REQUIRED_FIELDS = ["id", "name", "group", "labels", "description", "remediation", "implementation"]
@@ -50,8 +50,7 @@ def create_id():
     """
     Create ID with specified lenght based on HEX digits
     """
-    generated_id = "".join([random.choice(HEXDIGITS) for _ in range(ID_LENGTH)])
-    return generated_id
+    return uuid.uuid4().hex[:ID_LENGTH].upper()
 
 
 def id_sanity_check(check_id):
@@ -62,11 +61,7 @@ def id_sanity_check(check_id):
     if len(str_check_id) != ID_LENGTH:
         return False
 
-    for char in str_check_id:
-        if char not in HEXDIGITS:
-            return False
-
-    return True
+    return all(char in string.hexdigits for char in str_check_id)
 
 def sanity_check(check_data, check_file, logger):
     """

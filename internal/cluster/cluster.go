@@ -75,7 +75,7 @@ func NewCluster() (Cluster, error) {
 }
 
 func getCorosyncAuthkeyMd5(corosyncKeyPath string) (string, error) {
-	kp, err := internal.Md5sum(corosyncKeyPath)
+	kp, err := internal.Md5sumFile(corosyncKeyPath)
 	return kp, err
 }
 

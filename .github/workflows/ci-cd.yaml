@@ -231,7 +231,7 @@ jobs:
   obs-commit:
     needs: test
     runs-on: ubuntu-18.04
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.event_name == 'release'
     container:
       image: ghcr.io/trento-project/continuous-delivery:master
       env:

@@ -23,8 +23,11 @@ All of the above variables belong to this environment.
 #### `SSH_CONFIG`
 Configuration file for the SSH client used to reach the agents
 ```
-Host *
+Host hostname01
+    User user
+    IdentityFile /path/to/ssh/id_rsa
     StrictHostKeyChecking no
+    ...
 ```
 
 #### `SSH_KEY` 
@@ -43,14 +46,14 @@ The user that will run the CI code to deploy trento in the target machines
 cloudadmin
 ```
 
-#### `TRENTO_SERVER_IP` 
+#### `TRENTO_SERVER_HOST` 
 The IP of the machine where we should run install-server.sh on
 ```
 10.x.x.x
 ```
 
 
-#### `TRENTO_TARGET_AGENTS`
+#### `TRENTO_AGENT_HOSTS`
 A comma-separated list of hosts where to run install-agent.sh on (cluster nodes)
 ```
 10.x.x.x,10.x.x.x,10.x.x.x

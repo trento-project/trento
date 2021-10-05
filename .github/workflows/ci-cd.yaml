@@ -63,6 +63,10 @@ jobs:
           ansible-lint -vv -x role-name,risky-shell-pipe,no-tabs -w yaml \
             runner/ansible/* runner/ansible/roles/* \
             runner/ansible/roles/checks/* runner/ansible/vars/*
+      - name: trento checks sanity test
+        run: |
+          pip install PyYAML
+          python3 hack/id_checker.py
 
   build-static-binary:
     runs-on: ubuntu-20.04

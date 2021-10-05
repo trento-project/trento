@@ -33,14 +33,11 @@ const ClustersChecks = ({ clusterId }) => {
   return (
     <div>
       {results.map((section) => {
-        const sectionId = section.checks[0].id.substring(0, 3);
-        const accordionTitle = `${sectionId} - ${section.name}`;
-
         return (
           <Accordion
             className="checks-results-accordion"
             key={section.name}
-            title={accordionTitle}
+            title={section.name}
           >
             <ChecksTable checks={section.checks} />
           </Accordion>

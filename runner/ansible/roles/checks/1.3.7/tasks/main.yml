@@ -1,6 +1,6 @@
 ---
 
-- name: "{{ id }}.check"
+- name: "{{ name }}.check"
   shell: |
     if [[ $(crm_node -l | wc -l) != "2" ]]; then
       exit 0

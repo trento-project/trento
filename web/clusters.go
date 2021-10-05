@@ -508,14 +508,14 @@ func NewClusterListHandler(client consul.Client, s services.ChecksService) gin.H
 	}
 }
 
-func getChecksCatalogModalData(s services.ChecksService, clusterId, selectedChecks string) (map[string]map[string]*models.Check, error) {
+func getChecksCatalogWithSelected(s services.ChecksService, clusterId, selectedChecks string) (models.GroupedCheckList, error) {
 	checksCatalog, err := s.GetChecksCatalogByGroup()
 	if err != nil {
 		return checksCatalog, err
 	}
 
-	for _, checkList := range checksCatalog {
-		for _, check := range checkList {
+	for _, groupedCheckList := range checksCatalog.OrderByName() {
+		for _, check := range groupedCheckList.Checks {
 			if internal.Contains(strings.Split(selectedChecks, ","), check.ID) {
 				check.Selected = true
 			}
@@ -587,11 +587,10 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 			StoreAlert(c, AlertConnectionDataNotFound())
 		}
 
-		checksCatalog, errCatalog := s.GetChecksCatalog()
-		checksCatalogModalData, errCatalogByGroup := getChecksCatalogModalData(
+		checksCatalog, errCatalog := getChecksCatalogWithSelected(
 			s, clusterId, selectedChecks)
 		checksResult, errResult := s.GetChecksResultByCluster(clusterItem.Id)
-		if errCatalog != nil || errCatalogByGroup != nil {
+		if errCatalog != nil {
 			StoreAlert(c, AlertCatalogNotFound())
 		} else if errResult != nil {
 			StoreAlert(c, CheckResultsNotFound())
@@ -623,7 +622,6 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 			"ClusterType":           clusterType,
 			"HealthContainer":       hContainer,
 			"ChecksCatalog":         checksCatalog,
-			"ChecksCatalogModal":    checksCatalogModalData,
 			"ConnectionData":        connectionData,
 			"DefaultConnectionData": defaultConnectionData,
 			"ChecksResult":          checksResult,

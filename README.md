@@ -127,10 +127,10 @@ Please refer to the [Helm chart](#helm-chart) section for more information about
 ## Trento Agent installation
 
 After the server installation, you might want to install Trento agents in a running cluster.
-Please add the public key to the ssh authorized_keys to enable the runner checks in the agent host, 
+Please add the public key to the ssh authorized_keys to enable the runner checks in the agent host,
 as mentioned in the server installation above.
 
-As for the server component an installation script is provided, 
+As for the server component an installation script is provided,
 you can `curl | bash` it if you want to live on the edge.
 
 ```
@@ -351,6 +351,8 @@ To start the trento agent:
 
 The Trento Runner is responsible for running the health checks. It is based on [Ansible](https://docs.ansible.com/ansible/latest/index.html) and [ARA](https://ara.recordsansible.org/).
 These 2 components (the Runner and ARA) can be executed in the same machine as the Web UI, but it is not mandatory, they can be executed in any other machine that has network access to the agents (the Runner and ARA can be even executed in different machines too, as long as the network connection is available between them).
+
+Find more information about how to create more Trento health checks [here](docs/runner.md).
 
 In order to start them, some packages must be installed and started. Here a quick go through:
 

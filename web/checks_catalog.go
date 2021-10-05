@@ -19,7 +19,7 @@ func NewChecksCatalogHandler(s services.ChecksService) gin.HandlerFunc {
 		}
 
 		c.HTML(http.StatusOK, "checks_catalog.html.tmpl", gin.H{
-			"Checks": checkList,
+			"ChecksCatalog": checkList.OrderByName(),
 		})
 	}
 }

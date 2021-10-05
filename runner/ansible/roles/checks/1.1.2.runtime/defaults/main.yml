@@ -1,7 +1,6 @@
 ---
 
-id: 1.1.2.runtime
-name: Corosync consensus is set to {{ expected['1.1.2'] }} (runtime)
+name: 1.1.2.runtime
 group: Corosync
 labels: generic
 description: |
@@ -15,4 +14,7 @@ remediation: |
 
   ## References
   - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker
-implementation: "{{ lookup('file', 'roles/checks/'+id+'/tasks/main.yml') }}"
+implementation: "{{ lookup('file', 'roles/checks/'+name+'/tasks/main.yml') }}"
+
+# check id. This value must not be changed over the life of this check
+id: FB0E0D

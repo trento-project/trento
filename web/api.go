@@ -350,12 +350,12 @@ func ApiClusterCheckResultsHandler(client consul.Client, s services.ChecksServic
 		}
 
 		resultSet := []models.ClusterCheckResults{}
-		for checkId, check := range checkResults.Checks {
+		for _, check := range checksCatalog {
 			current := models.ClusterCheckResults{
-				Group:       checksCatalog[checkId].Group,
-				Description: checksCatalog[checkId].Description,
-				Hosts:       check.Hosts,
-				ID:          checksCatalog[checkId].ID,
+				Group:       check.Group,
+				Description: check.Description,
+				Hosts:       checkResults.Checks[check.ID].Hosts,
+				ID:          check.ID,
 			}
 			resultSet = append(resultSet, current)
 		}

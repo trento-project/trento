@@ -13,6 +13,7 @@ https://github.com/ansible-community/ara/blob/master/ara/plugins/action/ara_reco
 """
 
 import os
+import yaml
 
 from ansible.plugins.callback import CallbackBase
 from ara.clients.http import AraHttpClient
@@ -22,6 +23,7 @@ TRENTO_TEST_LABEL = "test"
 TRENTO_RECORD_KEY = "trento-results"
 TEST_RESULT_TASK_NAME = "set_test_result"
 TEST_INCLUDE_TASK_NAME = "run_checks"
+CHECK_ID = "id"
 
 
 class Results(object):
@@ -33,10 +35,10 @@ class Results(object):
     "results": {
         "clusterId": {
             "checks": {
-                "1.1.1": {
+                "ABCDEF": {
                     "hosts": {
                         "host1": {
-                            "result": true
+                            "result": "passing"
                         }
                     }
                 }
@@ -122,7 +124,7 @@ class CallbackModule(CallbackBase):
 
         test_result = result._task_fields["args"]["test_result"]
         for group in task_vars["group_names"]:
-            self.results.add_result(group, task_vars["id"], host, test_result)
+            self.results.add_result(group, task_vars[CHECK_ID], host, test_result)
 
     def v2_runner_on_failed(self, result):
         """
@@ -135,7 +137,7 @@ class CallbackModule(CallbackBase):
         task_vars = self._all_vars(host=result._host, task=result._task)
 
         for group in task_vars["group_names"]:
-            self.results.add_result(group, task_vars["id"], host, False)
+            self.results.add_result(group, task_vars[CHECK_ID], host, False)
 
     def v2_playbook_on_stats(self, _stats):
         """
@@ -212,7 +214,11 @@ class CallbackModule(CallbackBase):
         for check_result in result._result["results"]:
             skipped = check_result.get("skipped", False)
             if skipped:
-                check_id = os.path.basename(check_result["check_item"]["path"])
+                with open(os.path.join(
+                    check_result["check_item"]["path"], "defaults/main.yml")) as file_ptr:
+
+                    data = yaml.load(file_ptr, Loader=yaml.Loader)
+                    check_id = data[CHECK_ID]
 
                 for group in task_vars["group_names"]:
                     self.results.add_result(group, check_id, host, "skipped")

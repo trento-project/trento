@@ -1,6 +1,6 @@
 ---
 
-- name: "{{ id }}.check"
+- name: "{{ name }}.check"
   shell: |
     # SAPHanaTopology is not configured, then fail
     cibadmin -Q --xpath "//primitive[@type='SAPHanaTopology']/@type" || exit 1
@@ -8,12 +8,12 @@
     cibadmin -Q --xpath "//clone/primitive[@type='SAPHanaTopology']/@type" || exit 1
     # check the following values, if any do not match expected fail.
     XPATH="//primitive[@type='SAPHanaTopology']/operations/op"
-    [[ $(cibadmin -Q --xpath "${XPATH} [@name='monitor']" | grep -oP 'interval="\K[^"]+') != "{{ expected[id + '.monitor_interval'] }}" ]] && exit 1
-    [[ $(cibadmin -Q --xpath "${XPATH} [@name='monitor']" | grep -oP 'timeout="\K[^"]+') != "{{ expected[id + '.monitor_timeout'] }}" ]] && exit 1
-    [[ $(cibadmin -Q --xpath "${XPATH} [@name='start']" | grep -oP 'interval="\K[^"]+') != "{{ expected[id + '.start_interval'] }}" ]] && exit 1
-    [[ $(cibadmin -Q --xpath "${XPATH} [@name='start']" | grep -oP 'timeout="\K[^"]+') != "{{ expected[id + '.start_timeout'] }}" ]] && exit 1
-    [[ $(cibadmin -Q --xpath "${XPATH} [@name='stop']" | grep -oP 'interval="\K[^"]+') != "{{ expected[id + '.stop_interval'] }}" ]] && exit 1
-    [[ $(cibadmin -Q --xpath "${XPATH} [@name='stop']" | grep -oP 'timeout="\K[^"]+') != "{{ expected[id + '.stop_timeout'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "${XPATH} [@name='monitor']" | grep -oP 'interval="\K[^"]+') != "{{ expected[name + '.monitor_interval'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "${XPATH} [@name='monitor']" | grep -oP 'timeout="\K[^"]+') != "{{ expected[name + '.monitor_timeout'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "${XPATH} [@name='start']" | grep -oP 'interval="\K[^"]+') != "{{ expected[name + '.start_interval'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "${XPATH} [@name='start']" | grep -oP 'timeout="\K[^"]+') != "{{ expected[name + '.start_timeout'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "${XPATH} [@name='stop']" | grep -oP 'interval="\K[^"]+') != "{{ expected[name + '.stop_interval'] }}" ]] && exit 1
+    [[ $(cibadmin -Q --xpath "${XPATH} [@name='stop']" | grep -oP 'timeout="\K[^"]+') != "{{ expected[name + '.stop_timeout'] }}" ]] && exit 1
     exit 0
   check_mode: false
   register: config_updated

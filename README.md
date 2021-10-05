@@ -127,10 +127,10 @@ Please refer to the [Helm chart](#helm-chart) section for more information about
 ## Trento Agent installation
 
 After the server installation, you might want to install Trento agents in a running cluster.
-Please add the public key to the ssh authorized_keys to enable the runner checks in the agent host, 
+Please add the public key to the ssh authorized_keys to enable the runner checks in the agent host,
 as mentioned in the server installation above.
 
-As for the server component an installation script is provided, 
+As for the server component an installation script is provided,
 you can `curl | bash` it if you want to live on the edge.
 
 ```
@@ -409,6 +409,25 @@ Please consult the `help` CLI command for more insights on the various options.
 
 # Development
 
+## Set-up a development environment
+
+A development Helm chart is available at [./hack/helm/trento-dev](./hack/helm/trento-dev).
+The chart is based on the official Helm chart package and overrides certain values to provide a development environment.
+
+```shell
+# Update dependencies in the official Helm chart
+cd ./packaging/helm/trento-server
+helm dep update
+
+# Install the development Helm chart
+cd ./hack/helm/trento-dev
+helm dep update
+helm install trento-dev .
+```
+
+Since integration tests require a running PostgreSQL instance, please make sure the chart is installed prior to running the integration tests.
+The PostgreSQL instance will be accesible at port `localhost:32432`.
+
 ## Build system
 
 We use GNU Make as a task manager; here are some common targets:
@@ -447,7 +466,7 @@ docker build -t trento-web . # same as specifying --target trento-web
 ```
 
 > Please note that the `trento agent` component requires to be running on
-> the OS (_not_ inside a container) so, while it is technically possible to run `trento agent` 
+> the OS (_not_ inside a container) so, while it is technically possible to run `trento agent`
 > commands in the container, it makes little sense because most of its internals
 > require direct access to the host of the HA Cluster components.
 

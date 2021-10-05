@@ -19,25 +19,38 @@ of existing clusters, rather than deploying new one.
 # Table of contents
 
 - [Features](#features)
-- [Requirements](#requirements)
-  - [Runtime dependencies](#runtime-dependencies)
-  - [Build dependencies](#build-dependencies)
-  - [Development dependencies](#development-dependencies)
-- [Quick-start installation](#quick-start-installation)
-  - [Trento Server installation](#trento-server-installation)
-  - [Trento Agent installation](#trento-agent-installation)
-- [Manual installation](#manual-installation)
-  - [Pre-built binaries](#pre-built-binaries)
-  - [Compile from source](#compile-from-source)
-  - [Helm chart](#helm-chart)
-- [Running Trento](#running-trento)
-  - [Consul](#consul)
-  - [Trento Agents](#trento-agents)
-  - [Trento Runner](#trento-runner)
-  - [Trento Web UI](#trento-web-ui)
+- [Introduction](#introduction)
+- [Installation](#installation)
+  * [Requirements](#requirements)
+  * [Quick-Start installation](#quick-start-installation)
+    + [Trento Server installation](#trento-server-installation)
+    + [Trento Agent installation](#trento-agent-installation)
+      - [Starting Trento Agent service](#starting-trento-agent-service)
+  * [Manual installation](#manual-installation)
+    + [Pre-built binaries](#pre-built-binaries)
+    + [Compile from source](#compile-from-source)
+  * [Docker images](#docker-images)
+  * [RPM Packages](#rpm-packages)
+  * [Helm chart](#helm-chart)
+    + [Install K3S](#install-k3s)
+    + [Install Helm and chart dependencies](#install-helm-and-chart-dependencies)
+    + [Install the Trento Server Helm chart](#install-the-trento-server-helm-chart)
+    + [Other Helm chart usage examples:](#other-helm-chart-usage-examples-)
+  * [Manually running Trento](#manually-running-trento)
+    + [Consul](#consul)
+      - [Server Consul Agent](#server-consul-agent)
+      - [Client Consul Agent](#client-consul-agent)
+    + [Trento Agents](#trento-agents)
+    + [Trento Runner](#trento-runner)
+      - [Setting up and starting ARA](#setting-up-and-starting-ara)
+      - [Starting the Trento Runner](#starting-the-trento-runner)
+    + [Trento Web UI](#trento-web-ui)
 - [Development](#development)
-  - [Build system](#build-system)
-  - [Mockery](#mockery)
+  * [Build dependencies](#build-dependencies)
+  * [Build system](#build-system)
+  * [Development dependencies](#development-dependencies)
+  * [Docker](#docker)
+  * [SAPControl web service](#sapcontrol-web-service)
 - [Support](#support)
 - [Contributing](#contributing)
 - [License](#license)
@@ -46,59 +59,46 @@ of existing clusters, rather than deploying new one.
 
 - Automated discovery of SAP HANA HA clusters;
 - SAP Systems and Instances overview;
-- Configuration validation for Pacemaker, Corosync, SBD, SAPHanaSR and other generic _SUSE Linux Enterprise for SAP Application_ OS settings (a.k.a. the _HA Checks_);
+- Configuration validation for Pacemaker, Corosync, SBD, SAPHanaSR and other generic _SUSE Linux Enterprise for SAP Application_ OS settings (a.k.a. the _HA Config Checks_);
 - Specific configuration audits for SAP HANA Scale-Up Performance-Optimized scenarios deployed on MS Azure cloud.
 
-# Base concepts
+# Introduction
 
-The entire Trento application is composed of the following parts:
+_Trento_ is a comprehensive monitoring solution made by two main components, the _Trento Server_ and the _Trento Agent_.
 
-- One or more Consul Agents in server mode;
-- The Trento Web UI (`trento web`);
-- A Consul Agent in client mode for each target node;
-- A Trento Agent (`trento agent`) for each target node.
+The _Trento Server_ is an independent, cloud-native, distributed system and should run on dedicated infrastructure resources. It is in turn composed by the following sub-systems:
 
-> See the [architecture document](./docs/trento-architecture.md) for additional details.
+- The `trento web` application;
+- The `trento runner` worker;
+- A [Consul] data-plane;
+- An [ARA] service.
 
-# Requirements
+The _Trento Agent_ is a single background processes (`trento agent`) running in each host of the target infrastructure the user desires to monitor.
 
-While the `trento web` component has only been tested on openSUSE 15.2
-and SLES 15SP2 so far, it should be able to run on most modern Linux distributions.
+See the [architecture document](./docs/trento-architecture.md) for additional details.
 
-The `trento agent` component could in theory also run on openSUSE, but it does not make much sense as it
-needs to interact with different low-level SAP applications components
-which are expected to be run in a
-[SLES for SAP](https://www.suse.com/products/sles-for-sap/) installation.
+> Being the project in development, all of the above might be subject to change!
 
-## Runtime dependencies
+# Installation
 
-Running the application will require:
+## Requirements
 
-- A running [Consul](https://www.consul.io/downloads) cluster.
+The _Trento Server_ is intended to run in many ways, depending on users' already existing infrastructure, but it's designed to be cloud-native and OS agnostic.
+As such, our default installation method provisions a minimal, single node, [K3S] Kubernetes cluster to run its various components in Linux containers.  
+The suggested physical resources for running all the _Trento Server_ components are 2GB of RAM and 2 CPU cores.
+The _Trento Server_ needs to reach the target infrastructure.
 
-> We have only tested version Consul version `1.9.x` and, while it _should_ work with any version implementing Consul Protocol version 3, we can´t make any guarantee in that regard.
+The `trento agent` component, on the other hand, needs to interact with a number of low-level system components
+which are part of the [SUSE Linux Enterprise Server for SAP Applications](https://www.suse.com/products/sles-for-sap/) Linux distribution. 
+These could in theory also installed and configured on other distributions providing the same functionalities, but this use case is not within the scope of the active development.
+The resource footprint of the _Trento Agent_ should not impact the performance of the host it runs on.
 
-## Build dependencies
-
-To build the entire application you will need the following dependencies:
-
-- [`Go`](https://golang.org/) ^1.16
-- [`Node.js`](https://nodejs.org/es/) ^15.x
-
-## Development dependencies
-
-Additionally, for the development we use:
-
-- [`Mockery`](https://github.com/vektra/mockery) ^2
-
-> See the [Development](#development) section for details on how to install `mockery`.
-
-# Quick-Start installation
+## Quick-Start installation
 
 Installation scripts are provided to automatically install and update the latest version of Trento.
-Please follow the installation in the given order
+Please follow the instructions in the given order.
 
-## Trento Server installation
+### Trento Server installation
 
 The script installs a single node K3s cluster and uses the [trento-server Helm chart](packaging/helm/trento-server)
 to bootstrap a complete Trento server component.
@@ -124,7 +124,7 @@ _Note: if a Trento server is already installed in the host, it will be updated._
 Please refer to the [Trento Runner](#trento-runner) section for more information.
 Please refer to the [Helm chart](#helm-chart) section for more information about the Helm chart.
 
-## Trento Agent installation
+### Trento Agent installation
 
 After the server installation, you might want to install Trento agents in a running cluster.
 Please add the public key to the ssh authorized_keys to enable the runner checks in the agent host,
@@ -163,31 +163,27 @@ curl -sfL https://raw.githubusercontent.com/trento-project/trento/main/install-a
 AGENT_BIND_IP=192.168.33.10 SERVER_IP=192.168.33.1 sudo ./install-agent.sh
 ```
 
-### Start Trento Agent
+#### Starting Trento Agent service
 
 The installation script does not start the agent automatically.
 
-You can start it by simply:
+You can enable boot startup and launch it with systemd:
 
 ```
-sudo systemctl start trento-agent
+sudo systemctl enable --now trento-agent
 ```
 
-Please make sure the server is running before starting the agent
+Please, make sure the server is running before starting the agent.
 
-To enable the service execute:
+That's it! You can now reach the Trento web UI and start using it.
 
-```
-sudo systemctl enable trento-agent
-```
+## Manual installation
 
-# Manual Installation
-
-## Pre-built binaries
+### Pre-built binaries
 
 Pre-built statically linked binaries are made available via [GitHub releases](https://github.com/trento-project/trento/releases).
 
-## Compile from source
+### Compile from source
 
 You clone also clone and build it manually:
 
@@ -196,6 +192,8 @@ git clone https://github.com/trento-project/trento.git
 cd trento
 make build
 ```
+
+See the section below to know more about the build dependencies.
 
 ## Docker images
 
@@ -209,7 +207,7 @@ T.B.D.
 
 The [packaging/helm](packaging/helm) directory contains the Helm chart for installing Trento Server in a Kubernetes cluster.
 
-### Install K3s
+### Install K3S
 
 If installing as root:
 
@@ -229,7 +227,7 @@ Export KUBECONFIG env variable:
 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 ```
 
-Please refer to the [K3s official documentation](https://rancher.com/docs/k3s/latest/en/installation/) for more information about the installation.
+Please refer to the [K3S official documentation](https://rancher.com/docs/k3s/latest/en/installation/) for more information about the installation.
 
 ### Install Helm and chart dependencies
 
@@ -257,12 +255,12 @@ cd packaging/helm/trento-server/
 helm dependency update
 ```
 
-The runner component of Trento server needs ssh access to the agent nodes to perform the checks.
+The Runner component of Trento server needs ssh access to the agent nodes to perform the checks.
 You need to pass a valid private key used for ssh authentication to the Helm chart, and it will be stored
 in the K3s cluster as a secret.
 Please refer to the [Trento Runner](#trento-runner) section for more information.
 
-Install Trento server chart:
+Install the Trento Server chart:
 
 ```
 helm install trento . --set-file trento-runner.privateKey=/your/path/id_rsa_runner
@@ -278,27 +276,31 @@ Now you can connect to the web server via `http://localhost` and point the agent
 
 ### Other Helm chart usage examples:
 
-Use a different container image:
+Use a different container image (e.g. the `rolling` one):
 
 ```
-helm install trento . --set trento-web.tag="runner" --set trento-runner.tag="runner" --set-file trento-runner.privateKey=id_rsa_runner
+helm install trento . --set trento-web.image.tag="rolling" --set trento-runner.image.tag="rolling" --set-file trento-runner.privateKey=id_rsa_runner
 ```
 
 Use a different container registry:
 
 ```
-helm install trento . --set trento-web.image.repository="ghcr.io/myrepo/trento" --set trento-runner.image.repository="ghcr.io/myrepo/trento" --set-file trento-runner.privateKey=id_rsa_runner
+helm install trento . --set trento-web.image.repository="ghcr.io/myrepo/trento-web" --set trento-runner.image.repository="ghcr.io/myrepo/trento-runner" --set-file trento-runner.privateKey=id_rsa_runner
 ```
 
 Please refer to the the subcharts `values.yaml` for an advanced usage.
 
-# Running Trento
+## Manually running Trento
 
-## Consul
+What follows are explicit instructions on how to run all the various components without any automated orchestration.
 
-The Trento application needs to be paired with a [Consul](https://consul.io/) deployment, which is leveraged for service discovery and persistent data storage.
+### Consul
+
+The Trento system needs leverages a [Consul] data-plane for service discovery and persistent data storage.
 
 Consul processes are all called "agents", and they can run either in server mode or in client mode.
+
+> We have only tested version Consul version `1.9.x` and, while it _should_ work with any version implementing Consul Protocol version 3, we can´t make any guarantee in that regard.
 
 #### Server Consul Agent
 
@@ -332,7 +334,7 @@ Since the client Consul Agent will most likely run on a machine with multiple IP
 
 > For development purposes, when running everything on a single host machine, no Client Consul Agent is required: the Server Agent exposes the same API and can be consumed by both `trento web` and `trento agent`.
 
-## Trento Agents
+### Trento Agents
 
 Trento Agents are responsible for discovering SAP systems, HA clusters and some additional data. These Agents need to run in the same systems hosting the HA
 Cluster services, so running them in isolated environments (e.g. serverless,
@@ -347,16 +349,18 @@ To start the trento agent:
 > If the discovery loop is being executed too frequently, and this impacts the Web interface performance, the agent
 > has the option to configure the discovery loop mechanism using the `--discovery-period` flag. Increasing this value improves the overall performance of the application
 
-## Trento Runner
+### Trento Runner
 
-The Trento Runner is responsible for running the health checks. It is based on [Ansible](https://docs.ansible.com/ansible/latest/index.html) and [ARA](https://ara.recordsansible.org/).
-These 2 components (the Runner and ARA) can be executed in the same machine as the Web UI, but it is not mandatory, they can be executed in any other machine that has network access to the agents (the Runner and ARA can be even executed in different machines too, as long as the network connection is available between them).
+The Trento Runner is a worker process responsible for driving automated configuration audits. It is based on [Ansible](https://docs.ansible.com/ansible/latest/index.html) and [ARA](https://ara.recordsansible.org/).
+These 2 components (the Runner and ARA) can be executed in the same host as the Web UI, but it is not mandatory: they can be executed in any other host with network access to the Trento Agents.
+
+The Runner itself and ARA can be even executed in different hosts too, as long as the network connection is available between them.
 
 Find more information about how to create more Trento health checks [here](docs/runner.md).
 
 In order to start them, some packages must be installed and started. Here a quick go through:
 
-### ARA server
+#### Setting up and starting ARA
 
 ```shell
 # Install ARA with server dependencies
@@ -382,22 +386,24 @@ export ARA_ALLOWED_HOSTS="['10.74.1.5']"
 export ARA_ALLOWED_HOSTS=['*']
 ```
 
-### Runner
+#### Starting the Trento Runner
+
+Independently where you decide to run ARA, the Runner needs the `ansible` and `ara` Python packages available locally:
 
 ```shell
-# Install ansible and ARA. Tested with version 2.11.2
 pip install ansible ara
-
-# Start the Trento runner
-./trento runner start --ara-server http://araIP:port --consul-addr consulIP:port -i 5
-# Find additional help with the -h flag
-./trento runner start -h
 ```
 
-**In order to use the runner component, the machine running it must have ssh authorization to all the
-agents with a passwordless ssh key pair. Otherwise, the checks result is set as unreachable.**
+Once dependencies are in place, you can start the Runner itself:
 
-## Trento Web UI
+```shell
+./trento runner start --ara-server http://$ARA_IP:$ARA_PORT --consul-addr $CONSUL_IP:$CONSUL_PORT -i 5
+```
+
+> *Note:* The Trento Runner component must have SSH access to all the agents via a password-less SSH key pair.
+
+
+### Trento Web UI
 
 At this point, we can start the web application as follows:
 
@@ -446,9 +452,9 @@ make generate # refresh automatically generated code (e.g. static Go mocks)
 
 Feel free to peek at the [Makefile](Makefile) to know more.
 
-## Mockery
+## Development dependencies
 
-As stated above, we use [`mockery`](https://github.com/vektra/mockery) for the `generate` target, which in turn is required for the `test` target.
+Additionally, for the development we use [`mockery`](https://github.com/vektra/mockery) for the `generate` target, which in turn is required for the `test` target.
 You can install it with `go install github.com/vektra/mockery/v2`.
 
 > Be sure to add the `mockery` binary to your `$PATH` environment variable so that `make` can find it. That usually comes with configuring `$GOPATH`, `$GOBIN`, and adding the latter to your `$PATH`.
@@ -501,3 +507,7 @@ Unless required by applicable law or agreed to in writing, software distributed
 under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
+
+[Consul]: https://www.consul.io
+[ARA]: https://ara.recordsansible.org
+[K3S]: https://k3s.io

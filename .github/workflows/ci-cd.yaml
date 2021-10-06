@@ -251,7 +251,7 @@ jobs:
         /scripts/init_osc_creds.sh
         mkdir -p $HOME/.config/osc
         cp /root/.config/osc/oscrc $HOME/.config/osc
-    - name: prepare tranto.changes file
+    - name: Prepare trento.changes file
       run: |
         VERSION=$(./hack/get_version_from_git.sh)
         TAG=$(echo $VERSION | cut -f1 -d+)
@@ -271,7 +271,7 @@ jobs:
     if: github.event.release
     container:
       image: ghcr.io/trento-project/continuous-delivery:master
-    steps:
+    steps: 
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0

@@ -1,0 +1,17 @@
+---
+
+name: 1.1.10
+group: Corosync
+labels: generic
+description: |
+  Test if corosync.conf files are identical across all nodes
+remediation: |
+  ## Abstract
+  It is required that the corosync.conf files are identical across all nodes in the cluster.
+
+  ## References
+  - T.B.D
+implementation: "{{ lookup('file', 'roles/checks/'+name+'/tasks/main.yml') }}"
+
+# check id. This value must not be changed over the life of this check
+id: BA215C

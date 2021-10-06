@@ -8,46 +8,44 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/hashicorp/consul/api"
-
 	"github.com/gin-gonic/gin"
 
 	"github.com/trento-project/trento/internal/consul"
-	"github.com/trento-project/trento/internal/tags"
 
 	"github.com/stretchr/testify/mock"
+	consulMocks "github.com/trento-project/trento/internal/consul/mocks"
+	servicesMocks "github.com/trento-project/trento/web/services/mocks"
 
-	"github.com/trento-project/trento/internal/consul/mocks"
+	"github.com/trento-project/trento/web/models"
 
 	consulApi "github.com/hashicorp/consul/api"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestApiListTag(t *testing.T) {
-	tagsMap := map[string]interface{}{
-		tags.HostResourceType: map[string]interface{}{
-			"hostname2": map[string]interface{}{
-				"tag4": struct{}{},
-				"tag5": struct{}{},
-				"tag6": struct{}{},
-			},
-		},
-		tags.ClusterResourceType: map[string]interface{}{
-			"cluster_id": map[string]interface{}{
-				"tag1": struct{}{},
-				"tag2": struct{}{},
-				"tag3": struct{}{},
-			},
-		},
+	tagsSAPSystems := []string{}
+
+	tagsClusters := []string{
+		"tag1",
+		"tag2",
+		"tag3",
 	}
 
-	consulInst := new(mocks.Client)
-	kv := new(mocks.KV)
-	kv.On("ListMap", "trento/v0/tags/", "trento/v0/tags/").Return(tagsMap, nil)
-	consulInst.On("KV").Return(kv)
+	tagsHosts := []string{
+		"tag4",
+		"tag5",
+		"tag6",
+	}
 
-	deps := DefaultDependencies()
-	deps.consul = consulInst
+	tags := append(tagsSAPSystems, tagsClusters...)
+	tags = append(tags, tagsHosts...)
+
+	mockTagsService := new(servicesMocks.TagsService)
+	mockTagsService.On("GetAll").Return(tags, nil)
+	mockTagsService.On("GetAll", "sapsystems").Return(tagsSAPSystems, nil)
+	mockTagsService.On("GetAll", "hosts").Return(tagsHosts, nil)
+	deps := testDependencies()
+	deps.tagsService = mockTagsService
 
 	app, err := NewAppWithDeps("", 80, deps)
 	if err != nil {
@@ -58,14 +56,7 @@ func TestApiListTag(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/api/tags", nil)
 	app.ServeHTTP(resp, req)
 
-	expectedBody, _ := json.Marshal([]string{
-		"tag1",
-		"tag2",
-		"tag3",
-		"tag4",
-		"tag5",
-		"tag6",
-	})
+	expectedBody, _ := json.Marshal(tags)
 	assert.Equal(t, 200, resp.Code)
 	assert.Equal(t, expectedBody, resp.Body.Bytes())
 
@@ -95,21 +86,20 @@ func setupTestApiHostTag() Dependencies {
 		Node: "suse",
 	}
 
-	consulInst := new(mocks.Client)
-
-	kv := new(mocks.KV)
-	kv.On("PutMap", "trento/v0/tags/hosts/suse/cool_rabbit/", map[string]interface{}(nil)).Return(nil)
-	kv.On("DeleteTree", "trento/v0/tags/hosts/suse/cool_rabbit/", (*api.WriteOptions)(nil)).Return(nil, nil)
-	consulInst.On("KV").Return(kv)
-
-	catalog := new(mocks.Catalog)
+	consulInst := new(consulMocks.Client)
+	catalog := new(consulMocks.Catalog)
 	catalogNode := &consulApi.CatalogNode{Node: node}
 	catalog.On("Node", "suse", (*consulApi.QueryOptions)(nil)).Return(catalogNode, nil, nil)
 	catalog.On("Node", mock.Anything, (*consulApi.QueryOptions)(nil)).Return(nil, nil, nil)
 	consulInst.On("Catalog").Return(catalog)
 
-	deps := DefaultDependencies()
+	mockTagsService := new(servicesMocks.TagsService)
+	mockTagsService.On("Create", "cool_rabbit", models.TagHostResourceType, "suse").Return(nil)
+	mockTagsService.On("Delete", "cool_rabbit", models.TagHostResourceType, "suse").Return(nil)
+
+	deps := testDependencies()
 	deps.consul = consulInst
+	deps.tagsService = mockTagsService
 
 	return deps
 }
@@ -179,12 +169,12 @@ func TestApiHostCreateTagHandler400(t *testing.T) {
 }
 
 func TestApiHostCreateTagHandler500(t *testing.T) {
-	consulInst := new(mocks.Client)
-	catalog := new(mocks.Catalog)
+	consulInst := new(consulMocks.Client)
+	catalog := new(consulMocks.Catalog)
 	catalog.On("Node", "suse", mock.Anything).Return(nil, nil, fmt.Errorf("kaboom"))
 	consulInst.On("Catalog").Return(catalog)
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.consul = consulInst
 
 	var err error
@@ -245,12 +235,12 @@ func TestApiHostDeleteTagHandler404(t *testing.T) {
 }
 
 func TestApiHostDeleteTagHandler500(t *testing.T) {
-	consulInst := new(mocks.Client)
-	catalog := new(mocks.Catalog)
+	consulInst := new(consulMocks.Client)
+	catalog := new(consulMocks.Catalog)
 	catalog.On("Node", "suse", mock.Anything).Return(nil, nil, fmt.Errorf("kaboom"))
 	consulInst.On("Catalog").Return(catalog)
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.consul = consulInst
 
 	var err error
@@ -276,16 +266,19 @@ func setupTestApiClusterTag() Dependencies {
 		"47d1190ffb4f781974c8356d7f863b03": map[string]interface{}{},
 	}
 
-	consulInst := new(mocks.Client)
-	kv := new(mocks.KV)
+	consulInst := new(consulMocks.Client)
+	kv := new(consulMocks.KV)
 	consulInst.On("KV").Return(kv)
 	consulInst.On("WaitLock", mock.Anything).Return(nil)
 	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap, nil)
-	kv.On("PutMap", "trento/v0/tags/clusters/47d1190ffb4f781974c8356d7f863b03/cool_rabbit/", map[string]interface{}(nil)).Return(nil)
-	kv.On("DeleteTree", "trento/v0/tags/clusters/47d1190ffb4f781974c8356d7f863b03/cool_rabbit/", (*api.WriteOptions)(nil)).Return(nil, nil)
 
-	deps := DefaultDependencies()
+	mockTagsService := new(servicesMocks.TagsService)
+	mockTagsService.On("Create", "cool_rabbit", models.TagClusterResourceType, "47d1190ffb4f781974c8356d7f863b03").Return(nil)
+	mockTagsService.On("Delete", "cool_rabbit", models.TagClusterResourceType, "47d1190ffb4f781974c8356d7f863b03").Return(nil)
+
+	deps := testDependencies()
 	deps.consul = consulInst
+	deps.tagsService = mockTagsService
 
 	return deps
 }
@@ -355,12 +348,12 @@ func TestApiClusterCreateTagHandler400(t *testing.T) {
 }
 
 func TestApiClusterCreateTagHandler500(t *testing.T) {
-	consulInst := new(mocks.Client)
-	kv := new(mocks.KV)
+	consulInst := new(consulMocks.Client)
+	kv := new(consulMocks.KV)
 	consulInst.On("KV").Return(kv)
 	consulInst.On("WaitLock", mock.Anything).Return(fmt.Errorf("kaboom"))
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.consul = consulInst
 
 	var err error
@@ -421,12 +414,12 @@ func TestApiClusterDeleteTagHandler404(t *testing.T) {
 }
 
 func TestApiClusterDeleteTagHandler500(t *testing.T) {
-	consulInst := new(mocks.Client)
-	kv := new(mocks.KV)
+	consulInst := new(consulMocks.Client)
+	kv := new(consulMocks.KV)
 	consulInst.On("KV").Return(kv)
 	consulInst.On("WaitLock", mock.Anything).Return(fmt.Errorf("kaboom"))
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.consul = consulInst
 
 	var err error
@@ -460,22 +453,25 @@ func setupTestApiSAPSystemTag() Dependencies {
 		},
 	}
 
-	consulInst := new(mocks.Client)
+	consulInst := new(consulMocks.Client)
 	consulInst.On("WaitLock", mock.Anything).Return(nil)
 
-	catalog := new(mocks.Catalog)
+	catalog := new(consulMocks.Catalog)
 	catalog.On("Nodes", mock.Anything).Return(nodes, nil, nil)
 	consulInst.On("Catalog").Return(catalog)
 
-	kv := new(mocks.KV)
+	kv := new(consulMocks.KV)
 	path := fmt.Sprintf(consul.KvHostsSAPSystemPath, "test_host")
 	kv.On("ListMap", path, path).Return(sapSystemMap, nil)
-	kv.On("PutMap", "trento/v0/tags/sapsystems/HA1/cool_rabbit/", map[string]interface{}(nil)).Return(nil)
-	kv.On("DeleteTree", "trento/v0/tags/sapsystems/HA1/cool_rabbit/", (*api.WriteOptions)(nil)).Return(nil, nil)
 	consulInst.On("KV").Return(kv)
 
-	deps := DefaultDependencies()
+	mockTagsService := new(servicesMocks.TagsService)
+	mockTagsService.On("Create", "cool_rabbit", models.TagSAPSystemResourceType, "HA1").Return(nil)
+	mockTagsService.On("Delete", "cool_rabbit", models.TagSAPSystemResourceType, "HA1").Return(nil)
+
+	deps := testDependencies()
 	deps.consul = consulInst
+	deps.tagsService = mockTagsService
 
 	return deps
 }
@@ -545,12 +541,12 @@ func TestApiSAPSystemCreateTagHandler400(t *testing.T) {
 }
 
 func TestApiSAPSystemCreateTagHandler500(t *testing.T) {
-	consulInst := new(mocks.Client)
-	catalog := new(mocks.Catalog)
+	consulInst := new(consulMocks.Client)
+	catalog := new(consulMocks.Catalog)
 	catalog.On("Nodes", mock.Anything).Return(nil, nil, fmt.Errorf("kaboom"))
 	consulInst.On("Catalog").Return(catalog)
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.consul = consulInst
 
 	var err error
@@ -611,12 +607,12 @@ func TestApiSAPSystemDeleteTagHandler404(t *testing.T) {
 }
 
 func TestApiSAPSystemDeleteTagHandler500(t *testing.T) {
-	consulInst := new(mocks.Client)
-	catalog := new(mocks.Catalog)
+	consulInst := new(consulMocks.Client)
+	catalog := new(consulMocks.Catalog)
 	catalog.On("Nodes", mock.Anything).Return(nil, nil, fmt.Errorf("kaboom"))
 	consulInst.On("Catalog").Return(catalog)
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.consul = consulInst
 
 	var err error

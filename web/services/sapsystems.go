@@ -25,7 +25,7 @@ func NewSAPSystemsService(client consul.Client) SAPSystemsService {
 func (s *sapSystemsService) GetSAPSystems() (sapsystem.SAPSystemsList, error) {
 	var sapSystemsList sapsystem.SAPSystemsList
 
-	hostList, err := hosts.Load(s.consul, "", nil, nil)
+	hostList, err := hosts.Load(s.consul, "", nil)
 	if err != nil {
 		return nil, err
 	}

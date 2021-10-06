@@ -18,7 +18,6 @@ import (
 	"github.com/trento-project/trento/internal/cluster/cib"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
-	"github.com/trento-project/trento/internal/tags"
 	"github.com/trento-project/trento/runner"
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
@@ -296,7 +295,7 @@ type ClustersRow struct {
 
 type ClustersTable []*ClustersRow
 
-func NewClustersTable(s services.ChecksService, client consul.Client, clusters map[string]*cluster.Cluster) (ClustersTable, error) {
+func NewClustersTable(s services.ChecksService, t services.TagsService, clusters map[string]*cluster.Cluster) (ClustersTable, error) {
 	var clusterTable ClustersTable
 	names := make(map[string]int)
 
@@ -311,8 +310,7 @@ func NewClustersTable(s services.ChecksService, client consul.Client, clusters m
 			health = aCheckData.String()
 		}
 
-		t := tags.NewTags(client)
-		clusterTags, err := t.GetAllByResource(tags.ClusterResourceType, c.Id)
+		clusterTags, err := t.GetAllByResource(models.TagClusterResourceType, c.Id)
 		if err != nil {
 			return nil, err
 		}
@@ -468,7 +466,7 @@ func NewClustersHealthContainer(t ClustersTable) *HealthContainer {
 	return h
 }
 
-func NewClusterListHandler(client consul.Client, s services.ChecksService) gin.HandlerFunc {
+func NewClusterListHandler(client consul.Client, s services.ChecksService, t services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		query := c.Request.URL.Query()
 
@@ -484,7 +482,7 @@ func NewClusterListHandler(client consul.Client, s services.ChecksService) gin.H
 			return
 		}
 
-		clustersTable, err := NewClustersTable(s, client, clusters)
+		clustersTable, err := NewClustersTable(s, t, clusters)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -561,7 +559,7 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 		}
 
 		filterQuery := fmt.Sprintf("Meta[\"trento-ha-cluster-id\"] == \"%s\"", clusterId)
-		hosts, err := hosts.Load(client, filterQuery, nil, nil)
+		hosts, err := hosts.Load(client, filterQuery, nil)
 		if err != nil {
 			_ = c.Error(err)
 			return

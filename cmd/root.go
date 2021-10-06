@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -62,7 +63,7 @@ func initConfig() {
 
 	internal.SetLogLevel(logLevel)
 	internal.SetLogFormatter("2006-01-02 15:04:05")
-
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.

@@ -10,8 +10,7 @@ import (
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/internal/sapsystem"
-	"github.com/trento-project/trento/internal/tags"
-
+	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
 )
 
@@ -32,11 +31,7 @@ type InstanceRow struct {
 
 type SAPSystemsTable []*SAPSystemRow
 
-func NewSAPSystemsTable(
-	sapSystemsList sapsystem.SAPSystemsList,
-	hostsService services.HostsService,
-	client consul.Client) (SAPSystemsTable, error) {
-
+func NewSAPSystemsTable(sapSystemsList sapsystem.SAPSystemsList, hostsService services.HostsService, tagsService services.TagsService) (SAPSystemsTable, error) {
 	var sapSystemsTable SAPSystemsTable
 	rowsBySID := make(map[string]*SAPSystemRow)
 
@@ -44,8 +39,7 @@ func NewSAPSystemsTable(
 
 		sapSystem, ok := rowsBySID[s.SID]
 		if !ok {
-			t := tags.NewTags(client)
-			sapsystemTags, err := t.GetAllByResource(tags.SAPSystemResourceType, s.SID)
+			sapsystemTags, err := tagsService.GetAllByResource(models.TagSAPSystemResourceType, s.SID)
 			if err != nil {
 				return nil, err
 			}
@@ -160,9 +154,7 @@ func (t SAPSystemsTable) GetAllTags() []string {
 	return tags
 }
 
-func NewSAPSystemListHandler(
-	client consul.Client, hostsService services.HostsService,
-	sapSystemsService services.SAPSystemsService) gin.HandlerFunc {
+func NewSAPSystemListHandler(client consul.Client, hostsService services.HostsService, sapSystemsService services.SAPSystemsService, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		query := c.Request.URL.Query()
 		sidFilter := query["sid"]
@@ -174,7 +166,7 @@ func NewSAPSystemListHandler(
 			return
 		}
 
-		sapSystemsTable, err := NewSAPSystemsTable(saps, hostsService, client)
+		sapSystemsTable, err := NewSAPSystemsTable(saps, hostsService, tagsService)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -192,7 +184,7 @@ func NewSAPSystemListHandler(
 
 func NewHanaDatabaseListHandler(
 	client consul.Client, hostsService services.HostsService,
-	sapSystemsService services.SAPSystemsService) gin.HandlerFunc {
+	sapSystemsService services.SAPSystemsService, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		query := c.Request.URL.Query()
 		sidFilter := query["sid"]
@@ -204,7 +196,7 @@ func NewHanaDatabaseListHandler(
 			return
 		}
 
-		sapDatabasesTable, err := NewSAPSystemsTable(saps, hostsService, client)
+		sapDatabasesTable, err := NewSAPSystemsTable(saps, hostsService, tagsService)
 		if err != nil {
 			_ = c.Error(err)
 			return

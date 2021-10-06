@@ -11,5 +11,8 @@ dependencies:
 - name: consul
   repository: https://helm.releases.hashicorp.com
   version: 0.32.1
-digest: sha256:bff2dfdc3c192b2b4c9bdb928d23f0fa9a587135d2083232db67b87fbc4994fc
-generated: "2021-09-14T17:46:57.219498157+02:00"
+- name: postgresql
+  repository: https://charts.bitnami.com/bitnami/
+  version: 10.1.4
+digest: sha256:0475d9be95993889cbee798076ac01010d02ef2385ce4f15ec758d56c58a3cd4
+generated: "2021-10-04T14:57:11.460983913+02:00"

@@ -23,7 +23,7 @@ func NewHostsService(client consul.Client) HostsService {
 }
 
 func (h *hostsService) GetHostMetadata(host string) (map[string]string, error) {
-	hostList, err := hosts.Load(h.consul, fmt.Sprintf("Node == %s", host), nil, nil)
+	hostList, err := hosts.Load(h.consul, fmt.Sprintf("Node == %s", host), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +36,7 @@ func (h *hostsService) GetHostMetadata(host string) (map[string]string, error) {
 }
 
 func (h *hostsService) GetHostsBySid(sid string) (hosts.HostList, error) {
-	hostList, err := hosts.Load(h.consul, fmt.Sprintf("Meta[\"trento-sap-systems\"] == %s", sid), nil, nil)
+	hostList, err := hosts.Load(h.consul, fmt.Sprintf("Meta[\"trento-sap-systems\"] == %s", sid), nil)
 	if err != nil {
 		return nil, err
 	}

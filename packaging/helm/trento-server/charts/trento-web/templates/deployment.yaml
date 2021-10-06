@@ -34,6 +34,8 @@ spec:
             - serve
             - --ara-addr
             - {{ .Release.Name }}-ara:8000
+            - --db-host
+            - {{ .Release.Name }}-postgresql
             - -p
             - "{{ .Values.service.port }}"
           env:

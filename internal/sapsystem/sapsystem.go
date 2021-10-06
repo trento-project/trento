@@ -18,7 +18,8 @@ import (
 )
 
 const (
-	Database = iota + 1
+	Unknown = iota
+	Database
 	Application
 )
 
@@ -175,22 +176,9 @@ func NewSAPSystem(fs afero.Fs, sysPath string) (*SAPSystem, error) {
 		system.Instances[instance.Name] = instance
 	}
 
-	// Set system ID
-	switch system.Type {
-	case Database:
-		databaseId, err := getUniqueIdHana(fs, system.SID)
-		if err != nil {
-			return system, err
-		}
-		system.Id = databaseId
-	case Application:
-		applicationId, err := getUniqueIdApplication(system.SID)
-		if err != nil {
-			return system, err
-		}
-		system.Id = applicationId
-	default:
-		system.Id = "-"
+	system, err = setSystemId(fs, system)
+	if err != nil {
+		return system, err
 	}
 
 	return system, nil
@@ -266,6 +254,66 @@ func getProfileData(fs afero.Fs, profilePath string) (map[string]interface{}, er
 	configMap := internal.FindMatches(`([\w\/]+)\s=\s(.+)`, profileRaw)
 
 	return configMap, nil
+}
+
+func setSystemId(fs afero.Fs, system *SAPSystem) (*SAPSystem, error) {
+	// Set system ID
+	switch system.Type {
+	case Database:
+		databaseId, err := getUniqueIdHana(fs, system.SID)
+		if err != nil {
+			return system, err
+		}
+		system.Id = databaseId
+	case Application:
+		applicationId, err := getUniqueIdApplication(system.SID)
+		if err != nil {
+			return system, err
+		}
+		system.Id = applicationId
+	default:
+		system.Id = "-"
+	}
+
+	return system, nil
+}
+
+func getUniqueIdHana(fs afero.Fs, sid string) (string, error) {
+	nameserverConfigPath := fmt.Sprintf(
+		"/usr/sap/%s/SYS/global/hdb/custom/config/nameserver.ini", sid)
+	nameserver, err := fs.Open(nameserverConfigPath)
+	if err != nil {
+		return "", fmt.Errorf("could not open the nameserver configuration file file %s", err)
+	}
+
+	defer nameserver.Close()
+
+	nameserverRaw, err := ioutil.ReadAll(nameserver)
+
+	if err != nil {
+		return "", fmt.Errorf("could not read the nameserver configuration file %s", err)
+	}
+
+	configMap := internal.FindMatches(`([\w\/]+)\s=\s(.+)`, nameserverRaw)
+	hanaId, found := configMap["id"]
+	if !found {
+		return "", fmt.Errorf("could not find the landscape id in the configuraiton file")
+	}
+
+	hanaIdMd5 := internal.Md5sum(fmt.Sprintf("%v", hanaId))
+	return hanaIdMd5, nil
+}
+
+func getUniqueIdApplication(sid string) (string, error) {
+	user := fmt.Sprintf("%sadm", strings.ToLower(sid))
+	cmd := fmt.Sprintf(sappfparCmd, sid)
+	sappfpar, err := customExecCommand("su", "-lc", cmd, user).Output()
+	if err != nil {
+		return "", fmt.Errorf("error running sappfpar command with sid %s", sid)
+	}
+
+	appIdMd5 := internal.Md5sum(string(sappfpar))
+	return appIdMd5, nil
 }
 
 func NewSAPInstance(w sapcontrol.WebService) (*SAPInstance, error) {
@@ -364,42 +412,4 @@ func NewSAPControl(w sapcontrol.WebService) (*SAPControl, error) {
 	}
 
 	return scontrol, nil
-}
-
-func getUniqueIdHana(fs afero.Fs, sid string) (string, error) {
-	nameserverConfigPath := fmt.Sprintf(
-		"/usr/sap/%s/SYS/global/hdb/custom/config/nameserver.ini", sid)
-	nameserver, err := fs.Open(nameserverConfigPath)
-	if err != nil {
-		return "", fmt.Errorf("could not open the nameserver configuration file file %s", err)
-	}
-
-	defer nameserver.Close()
-
-	nameserverRaw, err := ioutil.ReadAll(nameserver)
-
-	if err != nil {
-		return "", fmt.Errorf("could not read the nameserver configuration file %s", err)
-	}
-
-	configMap := internal.FindMatches(`([\w\/]+)\s=\s(.+)`, nameserverRaw)
-	hanaId, found := configMap["id"]
-	if !found {
-		return "", fmt.Errorf("could not find the landscape id in the configuraiton file")
-	}
-
-	hanaIdMd5 := internal.Md5sum(fmt.Sprintf("%v", hanaId))
-	return hanaIdMd5, nil
-}
-
-func getUniqueIdApplication(sid string) (string, error) {
-	user := fmt.Sprintf("%sadm", strings.ToLower(sid))
-	cmd := fmt.Sprintf(sappfparCmd, sid)
-	sappfpar, err := customExecCommand("su", "-lc", cmd, user).Output()
-	if err != nil {
-		return "", fmt.Errorf("error running sappfpar command with sid %s", sid)
-	}
-
-	appIdMd5:= internal.Md5sum(string(sappfpar))
-	return appIdMd5, nil
 }

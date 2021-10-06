@@ -35,13 +35,13 @@ func (_m *HostsService) GetHostMetadata(host string) (map[string]string, error) 
 	return r0, r1
 }
 
-// GetHostsBySid provides a mock function with given fields: sid
-func (_m *HostsService) GetHostsBySid(sid string) (hosts.HostList, error) {
-	ret := _m.Called(sid)
+// GetHostsBySystemId provides a mock function with given fields: id
+func (_m *HostsService) GetHostsBySystemId(id string) (hosts.HostList, error) {
+	ret := _m.Called(id)
 
 	var r0 hosts.HostList
 	if rf, ok := ret.Get(0).(func(string) hosts.HostList); ok {
-		r0 = rf(sid)
+		r0 = rf(id)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(hosts.HostList)
@@ -50,7 +50,7 @@ func (_m *HostsService) GetHostsBySid(sid string) (hosts.HostList, error) {
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(sid)
+		r1 = rf(id)
 	} else {
 		r1 = ret.Error(1)
 	}

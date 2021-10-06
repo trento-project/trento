@@ -1,14 +1,14 @@
 package internal
 
 import (
-	"io"
-	"os"
-	"fmt"
-	"regexp"
-	"strings"
 	"crypto/md5"
 	"encoding/hex"
+	"fmt"
 	"hash/crc32"
+	"io"
+	"os"
+	"regexp"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 )

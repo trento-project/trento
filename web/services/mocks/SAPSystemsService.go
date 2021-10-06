@@ -35,13 +35,13 @@ func (_m *SAPSystemsService) GetSAPSystems() (sapsystem.SAPSystemsList, error) {
 	return r0, r1
 }
 
-// GetSAPSystemsBySid provides a mock function with given fields: sid
-func (_m *SAPSystemsService) GetSAPSystemsBySid(sid string) (sapsystem.SAPSystemsList, error) {
-	ret := _m.Called(sid)
+// GetSAPSystemsById provides a mock function with given fields: id
+func (_m *SAPSystemsService) GetSAPSystemsById(id string) (sapsystem.SAPSystemsList, error) {
+	ret := _m.Called(id)
 
 	var r0 sapsystem.SAPSystemsList
 	if rf, ok := ret.Get(0).(func(string) sapsystem.SAPSystemsList); ok {
-		r0 = rf(sid)
+		r0 = rf(id)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(sapsystem.SAPSystemsList)
@@ -50,7 +50,7 @@ func (_m *SAPSystemsService) GetSAPSystemsBySid(sid string) (sapsystem.SAPSystem
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(sid)
+		r1 = rf(id)
 	} else {
 		r1 = ret.Error(1)
 	}

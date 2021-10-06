@@ -20,6 +20,7 @@ import (
 
 var sapSystemsList = sapsystem.SAPSystemsList{
 	&sapsystem.SAPSystem{
+		Id:   "systemId1",
 		SID:  "HA1",
 		Type: sapsystem.Application,
 		Instances: map[string]*sapsystem.SAPInstance{
@@ -54,6 +55,7 @@ var sapSystemsList = sapsystem.SAPSystemsList{
 		},
 	},
 	&sapsystem.SAPSystem{
+		Id:   "systemId1",
 		SID:  "HA1",
 		Type: sapsystem.Application,
 		Instances: map[string]*sapsystem.SAPInstance{
@@ -83,10 +85,22 @@ var sapSystemsList = sapsystem.SAPSystemsList{
 			},
 		},
 	},
+	// Test duplicated icon
+	&sapsystem.SAPSystem{
+		Id:   "systemId2",
+		SID:  "DEV",
+		Type: sapsystem.Application,
+	},
+	&sapsystem.SAPSystem{
+		Id:   "systemId3",
+		SID:  "DEV",
+		Type: sapsystem.Application,
+	},
 }
 
 var sapDatabasesList = sapsystem.SAPSystemsList{
 	&sapsystem.SAPSystem{
+		Id:   "systemId2",
 		SID:  "PRD",
 		Type: sapsystem.Database,
 		Instances: map[string]*sapsystem.SAPInstance{
@@ -122,7 +136,9 @@ func TestSAPSystemsListHandler(t *testing.T) {
 	tags := map[string]interface{}{
 		"tag1": struct{}{},
 	}
-	kv.On("ListMap", "trento/v0/tags/sapsystems/HA1/", "trento/v0/tags/sapsystems/HA1/").Return(tags, nil)
+	kv.On("ListMap", "trento/v0/tags/sapsystems/systemId1/", "trento/v0/tags/sapsystems/systemId1/").Return(tags, nil)
+	kv.On("ListMap", "trento/v0/tags/sapsystems/systemId2/", "trento/v0/tags/sapsystems/systemId2/").Return(nil, nil)
+	kv.On("ListMap", "trento/v0/tags/sapsystems/systemId3/", "trento/v0/tags/sapsystems/systemId3/").Return(nil, nil)
 	consulInst.On("KV").Return(kv)
 
 	sapSystemsService.On("GetSAPSystemsByType", sapsystem.Application).Return(sapSystemsList, nil)
@@ -164,9 +180,11 @@ func TestSAPSystemsListHandler(t *testing.T) {
 
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, responseBody, "SAP Systems")
-	assert.Regexp(t, regexp.MustCompile("<td><a href=/sapsystems/HA1>HA1</a></td><td></td><td>.*<input.*value=tag1.*>.*</td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<td><a href=/sapsystems/systemId1>HA1</a></td><td></td><td>.*<input.*value=tag1.*>.*</td>"), responseBody)
 	assert.Regexp(t, regexp.MustCompile("<td>HA1</td><td>MESSAGESERVER|ENQUEENQREP</td><td>00</td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>netweaver_cluster</a></td><td><a href=/hosts/netweaver01>netweaver01</a></td>"), responseBody)
 	assert.Regexp(t, regexp.MustCompile("<td>HA1</td><td>ENQREP</td><td>10</td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>netweaver_cluster</a></td><td><a href=/hosts/netweaver02>netweaver02</a></td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<td><i .*This SAP system SID exists multiple times.*warning.*<a href=/sapsystems/systemId2>DEV</a></td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<td><i .*This SAP system SID exists multiple times.*warning.*<a href=/sapsystems/systemId3>DEV</a></td>"), responseBody)
 }
 
 func TestSAPDatabaseListHandler(t *testing.T) {
@@ -178,7 +196,7 @@ func TestSAPDatabaseListHandler(t *testing.T) {
 	tags := map[string]interface{}{
 		"tag1": struct{}{},
 	}
-	kv.On("ListMap", "trento/v0/tags/sapsystems/PRD/", "trento/v0/tags/sapsystems/PRD/").Return(tags, nil)
+	kv.On("ListMap", "trento/v0/tags/sapsystems/systemId2/", "trento/v0/tags/sapsystems/systemId2/").Return(tags, nil)
 	consulInst.On("KV").Return(kv)
 
 	sapSystemsService.On("GetSAPSystemsByType", sapsystem.Database).Return(sapDatabasesList, nil)
@@ -215,7 +233,7 @@ func TestSAPDatabaseListHandler(t *testing.T) {
 
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, responseBody, "HANA Databases")
-	assert.Regexp(t, regexp.MustCompile("<td><a href=/databases/PRD>PRD</a></td><td></td><td>.*<input.*value=tag1.*>.*</td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<td><a href=/databases/systemId2>PRD</a></td><td></td><td>.*<input.*value=tag1.*>.*</td>"), responseBody)
 	assert.Regexp(t, regexp.MustCompile("<td>PRD</td><td>HDB_WORKER</td><td>00</td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>hana_cluster</a></td><td><a href=/hosts/hana01>hana01</a></td>"), responseBody)
 }
 
@@ -237,6 +255,7 @@ func TestSAPResourceHandler(t *testing.T) {
 		Meta: map[string]string{
 			"trento-sap-systems":      "foobar",
 			"trento-sap-systems-type": "Application",
+			"trento-sap-systems-id":   "systemId",
 			"trento-cloud-provider":   "azure",
 			"trento-agent-version":    "0",
 			"trento-ha-cluster-id":    "e2f2eb50aef748e586a7baa85e0162cf",
@@ -255,8 +274,8 @@ func TestSAPResourceHandler(t *testing.T) {
 	}
 
 	health.On("Node", "netweaver01", (*consulApi.QueryOptions)(nil)).Return(passHealthChecks, nil, nil)
-	sapSystemsService.On("GetSAPSystemsBySid", "foobar").Return(sapSystemsList, nil)
-	hostsService.On("GetHostsBySid", "foobar").Return(hostList, nil)
+	sapSystemsService.On("GetSAPSystemsById", "systemId").Return(sapSystemsList, nil)
+	hostsService.On("GetHostsBySystemId", "systemId").Return(hostList, nil)
 
 	var err error
 	app, err := NewAppWithDeps("", 80, deps)
@@ -265,7 +284,7 @@ func TestSAPResourceHandler(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/sapsystems/foobar", nil)
+	req, err := http.NewRequest("GET", "/sapsystems/systemId", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -282,7 +301,7 @@ func TestSAPResourceHandler(t *testing.T) {
 	// Layout
 	assert.Regexp(t, regexp.MustCompile("<tr><td>netweaver01</td><td>00</td><td>MESSAGESERVER|ENQUEENQREP</td><td>50013</td><td>50014</td><td>0.5</td><td><span.*primary.*>SAPControl-GREEN</span></td></tr>"), responseBody)
 	// Host
-	assert.Regexp(t, regexp.MustCompile("<tr><td>.*check_circle.*</td><td><a href=/hosts/netweaver01>netweaver01</a></td><td>192.168.10.10</td><td>azure</td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>banana</a></td><td><a href=/sapsystems/foobar>foobar</a></td><td>v0</td></tr>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<tr><td>.*check_circle.*</td><td><a href=/hosts/netweaver01>netweaver01</a></td><td>192.168.10.10</td><td>azure</td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>banana</a></td><td><a href=/sapsystems/systemId>foobar</a></td><td>v0</td></tr>"), responseBody)
 }
 
 func TestSAPResourceHandler404Error(t *testing.T) {
@@ -291,7 +310,7 @@ func TestSAPResourceHandler404Error(t *testing.T) {
 	deps := DefaultDependencies()
 	deps.sapSystemsService = sapSystemsService
 
-	sapSystemsService.On("GetSAPSystemsBySid", "foobar").Return(sapsystem.SAPSystemsList{}, nil)
+	sapSystemsService.On("GetSAPSystemsById", "foobar").Return(sapsystem.SAPSystemsList{}, nil)
 
 	var err error
 	app, err := NewAppWithDeps("", 80, deps)

@@ -46,7 +46,7 @@ func TestGetHostMetadata(t *testing.T) {
 	assert.Equal(t, expectedMeta, meta)
 }
 
-func TestGetHostsBySid(t *testing.T) {
+func TestGetHostsBySystemId(t *testing.T) {
 	consulInst := new(mocks.Client)
 	catalog := new(mocks.Catalog)
 
@@ -54,28 +54,28 @@ func TestGetHostsBySid(t *testing.T) {
 		{
 			Node: "node1",
 			Meta: map[string]string{
-				"trento-sap-systems": "PRD",
+				"trento-sap-systems-id": "systemdId",
 			},
 		},
 		{
 			Node: "node2",
 			Meta: map[string]string{
-				"trento-sap-systems": "PRD",
+				"trento-sap-systems-id": "systemdId",
 			},
 		},
 	}
 
 	consulInst.On("Catalog").Return(catalog)
-	catalog.On("Nodes", &consulApi.QueryOptions{Filter: "Meta[\"trento-sap-systems\"] == PRD"}).Return(nodes, nil, nil)
+	catalog.On("Nodes", &consulApi.QueryOptions{Filter: "Meta[\"trento-sap-systems-id\"] contains \"systemdId1\""}).Return(nodes, nil, nil)
 
 	hostsService := NewHostsService(consulInst)
-	hostsBySid, err := hostsService.GetHostsBySid("PRD")
+	hostsBySid, err := hostsService.GetHostsBySystemId("systemdId1")
 
 	host1 := hosts.NewHost(
 		consulApi.Node{
 			Node: "node1",
 			Meta: map[string]string{
-				"trento-sap-systems": "PRD",
+				"trento-sap-systems-id": "systemdId",
 			},
 		},
 		consulInst,
@@ -85,7 +85,7 @@ func TestGetHostsBySid(t *testing.T) {
 		consulApi.Node{
 			Node: "node2",
 			Meta: map[string]string{
-				"trento-sap-systems": "PRD",
+				"trento-sap-systems-id": "systemdId",
 			},
 		},
 		consulInst,

@@ -449,8 +449,9 @@ func TestApiClusterDeleteTagHandler500(t *testing.T) {
 
 func setupTestApiSAPSystemTag() Dependencies {
 	sapSystemMap := map[string]interface{}{
-		"HA1": map[string]interface{}{
-			"sid": "HA1",
+		"systemId": map[string]interface{}{
+			"id":  "systemId",
+			"sid": "DEV",
 		},
 	}
 
@@ -470,8 +471,8 @@ func setupTestApiSAPSystemTag() Dependencies {
 	kv := new(mocks.KV)
 	path := fmt.Sprintf(consul.KvHostsSAPSystemPath, "test_host")
 	kv.On("ListMap", path, path).Return(sapSystemMap, nil)
-	kv.On("PutMap", "trento/v0/tags/sapsystems/HA1/cool_rabbit/", map[string]interface{}(nil)).Return(nil)
-	kv.On("DeleteTree", "trento/v0/tags/sapsystems/HA1/cool_rabbit/", (*api.WriteOptions)(nil)).Return(nil, nil)
+	kv.On("PutMap", "trento/v0/tags/sapsystems/systemId/cool_rabbit/", map[string]interface{}(nil)).Return(nil)
+	kv.On("DeleteTree", "trento/v0/tags/sapsystems/systemId/cool_rabbit/", (*api.WriteOptions)(nil)).Return(nil, nil)
 	consulInst.On("KV").Return(kv)
 
 	deps := DefaultDependencies()
@@ -490,7 +491,7 @@ func TestApiSAPSystemCreateTagHandler(t *testing.T) {
 	resp := httptest.NewRecorder()
 
 	body, _ := json.Marshal(&JSONTag{"cool_rabbit"})
-	req, err := http.NewRequest("POST", "/api/sapsystems/HA1/tags", bytes.NewBuffer(body))
+	req, err := http.NewRequest("POST", "/api/sapsystems/systemId/tags", bytes.NewBuffer(body))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -534,7 +535,7 @@ func TestApiSAPSystemCreateTagHandler400(t *testing.T) {
 	resp := httptest.NewRecorder()
 
 	invalidJSON := []byte("ABC€")
-	req, err := http.NewRequest("POST", "/api/sapsystems/HA1/tags", bytes.NewBuffer(invalidJSON))
+	req, err := http.NewRequest("POST", "/api/sapsystems/systemId/tags", bytes.NewBuffer(invalidJSON))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -562,7 +563,7 @@ func TestApiSAPSystemCreateTagHandler500(t *testing.T) {
 	resp := httptest.NewRecorder()
 
 	body, _ := json.Marshal(&JSONTag{"cool_rabbit"})
-	req, err := http.NewRequest("POST", "/api/sapsystems/HA1/tags", bytes.NewBuffer(body))
+	req, err := http.NewRequest("POST", "/api/sapsystems/systemId/tags", bytes.NewBuffer(body))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -581,7 +582,7 @@ func TestApiSAPSystemDeleteTagHandler(t *testing.T) {
 
 	resp := httptest.NewRecorder()
 
-	req, err := http.NewRequest("DELETE", "/api/sapsystems/HA1/tags/cool_rabbit", nil)
+	req, err := http.NewRequest("DELETE", "/api/sapsystems/systemId/tags/cool_rabbit", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -627,7 +628,7 @@ func TestApiSAPSystemDeleteTagHandler500(t *testing.T) {
 
 	resp := httptest.NewRecorder()
 
-	req, err := http.NewRequest("DELETE", "/api/sapsystems/HA1/tags/cool_rabbit", nil)
+	req, err := http.NewRequest("DELETE", "/api/sapsystems/systemId/tags/cool_rabbit", nil)
 	if err != nil {
 		t.Fatal(err)
 	}

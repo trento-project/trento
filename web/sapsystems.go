@@ -16,11 +16,11 @@ import (
 )
 
 type SAPSystemRow struct {
-	Id                string
-	SID               string
-	Tags              []string
-	InstancesTable    []*InstanceRow
-	HasDuplicatedSid  bool
+	Id               string
+	SID              string
+	Tags             []string
+	InstancesTable   []*InstanceRow
+	HasDuplicatedSid bool
 }
 
 type InstanceRow struct {

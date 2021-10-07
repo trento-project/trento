@@ -4,6 +4,7 @@ const (
 	TagHostResourceType      = "hosts"
 	TagClusterResourceType   = "clusters"
 	TagSAPSystemResourceType = "sapsystems"
+	TagDatabaseResourceType  = "databases"
 )
 
 type Tag struct {

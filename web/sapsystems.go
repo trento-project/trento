@@ -31,6 +31,11 @@ type InstanceRow struct {
 
 type SAPSystemsTable []*SAPSystemRow
 
+var systemTypeToTag = map[int]string{
+	sapsystem.Application: models.TagSAPSystemResourceType,
+	sapsystem.Database:    models.TagDatabaseResourceType,
+}
+
 func NewSAPSystemsTable(sapSystemsList sapsystem.SAPSystemsList, hostsService services.HostsService, tagsService services.TagsService) (SAPSystemsTable, error) {
 	var sapSystemsTable SAPSystemsTable
 	rowsBySID := make(map[string]*SAPSystemRow)
@@ -39,7 +44,7 @@ func NewSAPSystemsTable(sapSystemsList sapsystem.SAPSystemsList, hostsService se
 
 		sapSystem, ok := rowsBySID[s.SID]
 		if !ok {
-			sapsystemTags, err := tagsService.GetAllByResource(models.TagSAPSystemResourceType, s.SID)
+			sapsystemTags, err := tagsService.GetAllByResource(systemTypeToTag[s.Type], s.SID)
 			if err != nil {
 				return nil, err
 			}

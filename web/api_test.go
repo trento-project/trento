@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/trento-project/trento/internal/consul"
+	"github.com/trento-project/trento/internal/sapsystem"
 
 	"github.com/stretchr/testify/mock"
 	consulMocks "github.com/trento-project/trento/internal/consul/mocks"
@@ -440,44 +441,31 @@ func TestApiClusterDeleteTagHandler500(t *testing.T) {
 	assert.Equal(t, 500, resp.Code)
 }
 
-func setupTestApiSAPSystemTag() Dependencies {
-	sapSystemMap := map[string]interface{}{
-		"HA1": map[string]interface{}{
-			"sid": "HA1",
+func setupTestApiSAPSystemTag(systemType string) Dependencies {
+	systemList := sapsystem.SAPSystemsList{
+		&sapsystem.SAPSystem{
+			SID: "HA1",
 		},
 	}
-
-	nodes := []*consulApi.Node{
-		{
-			Node: "test_host",
-		},
-	}
-
-	consulInst := new(consulMocks.Client)
-	consulInst.On("WaitLock", mock.Anything).Return(nil)
-
-	catalog := new(consulMocks.Catalog)
-	catalog.On("Nodes", mock.Anything).Return(nodes, nil, nil)
-	consulInst.On("Catalog").Return(catalog)
-
-	kv := new(consulMocks.KV)
-	path := fmt.Sprintf(consul.KvHostsSAPSystemPath, "test_host")
-	kv.On("ListMap", path, path).Return(sapSystemMap, nil)
-	consulInst.On("KV").Return(kv)
 
 	mockTagsService := new(servicesMocks.TagsService)
-	mockTagsService.On("Create", "cool_rabbit", models.TagSAPSystemResourceType, "HA1").Return(nil)
-	mockTagsService.On("Delete", "cool_rabbit", models.TagSAPSystemResourceType, "HA1").Return(nil)
+	mockTagsService.On("Create", "cool_rabbit", systemType, "HA1").Return(nil)
+	mockTagsService.On("Delete", "cool_rabbit", systemType, "HA1").Return(nil)
+
+	mockSAPSystemsService := new(servicesMocks.SAPSystemsService)
+	mockSAPSystemsService.On("GetSAPSystemsBySid", "HA1").Return(systemList, nil)
+	mockSAPSystemsService.On(
+		"GetSAPSystemsBySid", "non-existing-sid").Return(sapsystem.SAPSystemsList{}, nil)
 
 	deps := testDependencies()
-	deps.consul = consulInst
+	deps.sapSystemsService = mockSAPSystemsService
 	deps.tagsService = mockTagsService
 
 	return deps
 }
 
 func TestApiSAPSystemCreateTagHandler(t *testing.T) {
-	deps := setupTestApiSAPSystemTag()
+	deps := setupTestApiSAPSystemTag(models.TagSAPSystemResourceType)
 	app, err := NewAppWithDeps("", 80, deps)
 	if err != nil {
 		t.Fatal(err)
@@ -501,7 +489,7 @@ func TestApiSAPSystemCreateTagHandler(t *testing.T) {
 }
 
 func TestApiSAPSystemCreateTagHandler404(t *testing.T) {
-	deps := setupTestApiSAPSystemTag()
+	deps := setupTestApiSAPSystemTag(models.TagSAPSystemResourceType)
 	app, err := NewAppWithDeps("", 80, deps)
 	if err != nil {
 		t.Fatal(err)
@@ -521,7 +509,7 @@ func TestApiSAPSystemCreateTagHandler404(t *testing.T) {
 }
 
 func TestApiSAPSystemCreateTagHandler400(t *testing.T) {
-	deps := setupTestApiSAPSystemTag()
+	deps := setupTestApiSAPSystemTag(models.TagSAPSystemResourceType)
 	app, err := NewAppWithDeps("", 80, deps)
 	if err != nil {
 		t.Fatal(err)
@@ -541,13 +529,12 @@ func TestApiSAPSystemCreateTagHandler400(t *testing.T) {
 }
 
 func TestApiSAPSystemCreateTagHandler500(t *testing.T) {
-	consulInst := new(consulMocks.Client)
-	catalog := new(consulMocks.Catalog)
-	catalog.On("Nodes", mock.Anything).Return(nil, nil, fmt.Errorf("kaboom"))
-	consulInst.On("Catalog").Return(catalog)
+	mockSAPSystemsService := new(servicesMocks.SAPSystemsService)
+	mockSAPSystemsService.On(
+		"GetSAPSystemsBySid", "HA1").Return(sapsystem.SAPSystemsList{}, fmt.Errorf("kaboom"))
 
 	deps := testDependencies()
-	deps.consul = consulInst
+	deps.sapSystemsService = mockSAPSystemsService
 
 	var err error
 	app, err := NewAppWithDeps("", 80, deps)
@@ -569,7 +556,7 @@ func TestApiSAPSystemCreateTagHandler500(t *testing.T) {
 }
 
 func TestApiSAPSystemDeleteTagHandler(t *testing.T) {
-	deps := setupTestApiSAPSystemTag()
+	deps := setupTestApiSAPSystemTag(models.TagSAPSystemResourceType)
 	app, err := NewAppWithDeps("", 80, deps)
 	if err != nil {
 		t.Fatal(err)
@@ -588,7 +575,7 @@ func TestApiSAPSystemDeleteTagHandler(t *testing.T) {
 }
 
 func TestApiSAPSystemDeleteTagHandler404(t *testing.T) {
-	deps := setupTestApiSAPSystemTag()
+	deps := setupTestApiSAPSystemTag(models.TagSAPSystemResourceType)
 	app, err := NewAppWithDeps("", 80, deps)
 	if err != nil {
 		t.Fatal(err)
@@ -596,7 +583,7 @@ func TestApiSAPSystemDeleteTagHandler404(t *testing.T) {
 
 	resp := httptest.NewRecorder()
 
-	req, err := http.NewRequest("DELETE", "/api/sapsystems/non-existing-id/tags/cool_rabbit", nil)
+	req, err := http.NewRequest("DELETE", "/api/sapsystems/non-existing-sid/tags/cool_rabbit", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -607,13 +594,12 @@ func TestApiSAPSystemDeleteTagHandler404(t *testing.T) {
 }
 
 func TestApiSAPSystemDeleteTagHandler500(t *testing.T) {
-	consulInst := new(consulMocks.Client)
-	catalog := new(consulMocks.Catalog)
-	catalog.On("Nodes", mock.Anything).Return(nil, nil, fmt.Errorf("kaboom"))
-	consulInst.On("Catalog").Return(catalog)
+	mockSAPSystemsService := new(servicesMocks.SAPSystemsService)
+	mockSAPSystemsService.On(
+		"GetSAPSystemsBySid", "HA1").Return(sapsystem.SAPSystemsList{}, fmt.Errorf("kaboom"))
 
 	deps := testDependencies()
-	deps.consul = consulInst
+	deps.sapSystemsService = mockSAPSystemsService
 
 	var err error
 	app, err := NewAppWithDeps("", 80, deps)
@@ -624,6 +610,161 @@ func TestApiSAPSystemDeleteTagHandler500(t *testing.T) {
 	resp := httptest.NewRecorder()
 
 	req, err := http.NewRequest("DELETE", "/api/sapsystems/HA1/tags/cool_rabbit", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	app.ServeHTTP(resp, req)
+
+	assert.Equal(t, 500, resp.Code)
+}
+
+func TestApiDatabaseCreateTagHandler(t *testing.T) {
+	deps := setupTestApiSAPSystemTag(models.TagDatabaseResourceType)
+	app, err := NewAppWithDeps("", 80, deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp := httptest.NewRecorder()
+
+	body, _ := json.Marshal(&JSONTag{"cool_rabbit"})
+	req, err := http.NewRequest("POST", "/api/databases/HA1/tags", bytes.NewBuffer(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	app.ServeHTTP(resp, req)
+
+	expectedBody, _ := json.Marshal(gin.H{
+		"tag": "cool_rabbit",
+	})
+	assert.Equal(t, expectedBody, resp.Body.Bytes())
+	assert.Equal(t, 201, resp.Code)
+}
+
+func TestApiDatabaseCreateTagHandler404(t *testing.T) {
+	deps := setupTestApiSAPSystemTag(models.TagDatabaseResourceType)
+	app, err := NewAppWithDeps("", 80, deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp := httptest.NewRecorder()
+
+	body, _ := json.Marshal(&JSONTag{"cool_rabbit"})
+	req, err := http.NewRequest("POST", "/api/databases/non-existing-sid/tags", bytes.NewBuffer(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	app.ServeHTTP(resp, req)
+
+	assert.Equal(t, 404, resp.Code)
+}
+
+func TestApiDatabaseCreateTagHandler400(t *testing.T) {
+	deps := setupTestApiSAPSystemTag(models.TagDatabaseResourceType)
+	app, err := NewAppWithDeps("", 80, deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp := httptest.NewRecorder()
+
+	invalidJSON := []byte("ABC€")
+	req, err := http.NewRequest("POST", "/api/databases/HA1/tags", bytes.NewBuffer(invalidJSON))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	app.ServeHTTP(resp, req)
+
+	assert.Equal(t, 400, resp.Code)
+}
+
+func TestApiDatabaseCreateTagHandler500(t *testing.T) {
+	mockSAPSystemsService := new(servicesMocks.SAPSystemsService)
+	mockSAPSystemsService.On(
+		"GetSAPSystemsBySid", "HA1").Return(sapsystem.SAPSystemsList{}, fmt.Errorf("kaboom"))
+
+	deps := testDependencies()
+	deps.sapSystemsService = mockSAPSystemsService
+
+	var err error
+	app, err := NewAppWithDeps("", 80, deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp := httptest.NewRecorder()
+
+	body, _ := json.Marshal(&JSONTag{"cool_rabbit"})
+	req, err := http.NewRequest("POST", "/api/databases/HA1/tags", bytes.NewBuffer(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	app.ServeHTTP(resp, req)
+
+	assert.Equal(t, 500, resp.Code)
+}
+
+func TestApiDatabaseDeleteTagHandler(t *testing.T) {
+	deps := setupTestApiSAPSystemTag(models.TagDatabaseResourceType)
+	app, err := NewAppWithDeps("", 80, deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp := httptest.NewRecorder()
+
+	req, err := http.NewRequest("DELETE", "/api/databases/HA1/tags/cool_rabbit", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	app.ServeHTTP(resp, req)
+
+	assert.Equal(t, 204, resp.Code)
+}
+
+func TestApiDatabaseDeleteTagHandler404(t *testing.T) {
+	deps := setupTestApiSAPSystemTag(models.TagDatabaseResourceType)
+	app, err := NewAppWithDeps("", 80, deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp := httptest.NewRecorder()
+
+	req, err := http.NewRequest("DELETE", "/api/databases/non-existing-sid/tags/cool_rabbit", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	app.ServeHTTP(resp, req)
+
+	assert.Equal(t, 404, resp.Code)
+}
+
+func TestApiDatabaseDeleteTagHandler500(t *testing.T) {
+	mockSAPSystemsService := new(servicesMocks.SAPSystemsService)
+	mockSAPSystemsService.On(
+		"GetSAPSystemsBySid", "HA1").Return(sapsystem.SAPSystemsList{}, fmt.Errorf("kaboom"))
+
+	deps := testDependencies()
+	deps.sapSystemsService = mockSAPSystemsService
+
+	var err error
+	app, err := NewAppWithDeps("", 80, deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp := httptest.NewRecorder()
+
+	req, err := http.NewRequest("DELETE", "/api/databases/HA1/tags/cool_rabbit", nil)
 	if err != nil {
 		t.Fatal(err)
 	}

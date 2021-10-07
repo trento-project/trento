@@ -7,8 +7,6 @@ import (
 
 	"github.com/trento-project/trento/internal/cluster"
 	"github.com/trento-project/trento/internal/consul"
-	"github.com/trento-project/trento/internal/hosts"
-	"github.com/trento-project/trento/internal/sapsystem"
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
 )
@@ -216,34 +214,17 @@ func ApiClusterDeleteTagHandler(client consul.Client, tagsService services.TagsS
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/sapsystems/{id}/tags [post]
-func ApiSAPSystemCreateTagHandler(client consul.Client, tagsService services.TagsService) gin.HandlerFunc {
+func ApiSAPSystemCreateTagHandler(sapSystemsService services.SAPSystemsService, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		sid := c.Param("sid")
 
-		// TODO: store sapsystem outside hosts
-		hostList, err := hosts.Load(client, "", nil)
+		systemList, err := sapSystemsService.GetSAPSystemsBySid(sid)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 
-		var system *sapsystem.SAPSystem
-		for _, h := range hostList {
-			sapSystems, err := h.GetSAPSystems()
-			if err != nil {
-				_ = c.Error(err)
-				return
-			}
-
-			for _, s := range sapSystems {
-				if s.SID == sid {
-					system = s
-					break
-				}
-			}
-		}
-
-		if system == nil {
+		if len(systemList) == 0 {
 			_ = c.Error(NotFoundError("could not find system"))
 			return
 		}
@@ -270,39 +251,22 @@ func ApiSAPSystemCreateTagHandler(client consul.Client, tagsService services.Tag
 // @Summary Delete a specific tag that belongs to a SAPSystem
 // @Accept json
 // @Produce json
-// @Param cluster path string true "SAPSystem id"
+// @Param id path string true "SAPSystem id"
 // @Param tag path string true "Tag"
 // @Success 204 {object} map[string]interface{}
 // @Router /api/sapsystems/{name}/tags/{tag} [delete]
-func ApiSAPSystemDeleteTagHandler(client consul.Client, tagsService services.TagsService) gin.HandlerFunc {
+func ApiSAPSystemDeleteTagHandler(sapSystemsService services.SAPSystemsService, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		sid := c.Param("sid")
 		tag := c.Param("tag")
 
-		// TODO: store sapsystem outside hosts
-		hostList, err := hosts.Load(client, "", nil)
+		systemList, err := sapSystemsService.GetSAPSystemsBySid(sid)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 
-		var system *sapsystem.SAPSystem
-		for _, h := range hostList {
-			sapSystems, err := h.GetSAPSystems()
-			if err != nil {
-				_ = c.Error(err)
-				return
-			}
-
-			for _, s := range sapSystems {
-				if s.SID == sid {
-					system = s
-					break
-				}
-			}
-		}
-
-		if system == nil {
+		if len(systemList) == 0 {
 			_ = c.Error(NotFoundError("could not find system"))
 			return
 		}
@@ -317,12 +281,90 @@ func ApiSAPSystemDeleteTagHandler(client consul.Client, tagsService services.Tag
 	}
 }
 
+// ApiDatabaseCreateTagHandler godoc
+// @Summary Add tag to a HANA database
+// @Accept json
+// @Produce json
+// @Param id path string true "Database id"
+// @Param Body body JSONTag true "The tag to create"
+// @Success 201 {object} JSONTag
+// @Failure 404 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/databases/{id}/tags [post]
+func ApiDatabaseCreateTagHandler(sapSystemsService services.SAPSystemsService, tagsService services.TagsService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		sid := c.Param("sid")
+
+		systemList, err := sapSystemsService.GetSAPSystemsBySid(sid)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
+		if len(systemList) == 0 {
+			_ = c.Error(NotFoundError("could not find database"))
+			return
+		}
+
+		var r JSONTag
+
+		err = c.BindJSON(&r)
+		if err != nil {
+			_ = c.Error(BadRequestError("problems parsing JSON"))
+			return
+		}
+
+		err = tagsService.Create(r.Tag, models.TagDatabaseResourceType, sid)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
+		c.JSON(http.StatusCreated, &r)
+	}
+}
+
+// ApiDatabaseDeleteTagHandler godoc
+// @Summary Delete a specific tag that belongs to a HANA database
+// @Accept json
+// @Produce json
+// @Param id path string true "Database id"
+// @Param tag path string true "Tag"
+// @Success 204 {object} map[string]interface{}
+// @Router /api/databases/{name}/tags/{tag} [delete]
+func ApiDatabaseDeleteTagHandler(sapSystemsService services.SAPSystemsService, tagsService services.TagsService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		sid := c.Param("sid")
+		tag := c.Param("tag")
+
+		systemList, err := sapSystemsService.GetSAPSystemsBySid(sid)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
+		if len(systemList) == 0 {
+			_ = c.Error(NotFoundError("could not find database"))
+			return
+		}
+
+		err = tagsService.Delete(tag, models.TagDatabaseResourceType, sid)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
+		c.JSON(http.StatusNoContent, nil)
+	}
+}
+
 // ApiCheckResultsHandler godoc
 // @Summary Get a specific cluster's check results
 // @Produce json
 // @Success 200 {object} map[string]interface{}
 // @Error 500
-// @Router /api/clusters/{id}/results
+// @Router /api/clusters/{id}/results [get]
 func ApiClusterCheckResultsHandler(client consul.Client, s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		clusterId := c.Param("cluster_id")

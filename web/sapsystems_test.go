@@ -172,7 +172,7 @@ func TestSAPDatabaseListHandler(t *testing.T) {
 	sapSystemsService := new(servicesMocks.SAPSystemsService)
 	hostsService := new(servicesMocks.HostsService)
 	tagsService := new(servicesMocks.TagsService)
-	tagsService.On("GetAllByResource", models.TagSAPSystemResourceType, "PRD").Return([]string{"tag1"}, nil)
+	tagsService.On("GetAllByResource", models.TagDatabaseResourceType, "PRD").Return([]string{"tag1"}, nil)
 
 	sapSystemsService.On("GetSAPSystemsByType", sapsystem.Database).Return(sapDatabasesList, nil)
 

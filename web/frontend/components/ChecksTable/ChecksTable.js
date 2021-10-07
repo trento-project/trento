@@ -1,14 +1,30 @@
 import React from 'react';
-import CheckResultIcon from './CheckResultIcon';
+
+import RowGroup from './RowGroup';
+
+const groupChecks = (checks) => {
+  const groups = checks.reduce((accumulator, current) => {
+    const { group } = current;
+    return accumulator[group]
+      ? { ...accumulator, [group]: [...accumulator[group], current] }
+      : { ...accumulator, [group]: [current] };
+  }, {});
+
+  return Object.keys(groups).map((key) => {
+    return { name: key, checks: groups[key] };
+  });
+};
 
 const ChecksTable = ({ checks, clusterHosts }) => {
+  const checkGroups = groupChecks(checks);
+
   return (
     <div className="table-responsive">
       <table className="table eos-table">
         <thead>
           <tr>
-            <th>Test ID</th>
             <th>Description</th>
+            <th>Test ID</th>
             {Object.keys(clusterHosts).map((label) => (
               <th key={label} scope="col" style={{ textAlign: 'center' }}>
                 {label}
@@ -17,19 +33,15 @@ const ChecksTable = ({ checks, clusterHosts }) => {
           </tr>
         </thead>
         <tbody>
-          {checks.map(({ id, description, hosts }) => {
-            return (
-              <tr key={id}>
-                <td>{id}</td>
-                <td>{description}</td>
-                {Object.keys(clusterHosts).map((hostname) => (
-                  <td key={hostname} className="align-center">
-                    <CheckResultIcon result={hosts[hostname].result} />
-                  </td>
-                ))}
-              </tr>
-            );
-          })}
+          {checkGroups.map(({ name, checks }) => (
+            <RowGroup
+              key={name}
+              id={name}
+              name={name}
+              checks={checks}
+              hosts={clusterHosts}
+            />
+          ))}
         </tbody>
       </table>
     </div>

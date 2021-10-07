@@ -159,3 +159,13 @@ td i.critical {
 .header-check-selection {
   padding-left: 0 !important;
 }
+
+.checks-table-row-group {
+  cursor: pointer;
+  background-color: #f2f2f2;
+}
+
+.checks-table-row-group-label {
+  font-weight: bold;
+  font-size: 16px;
+}

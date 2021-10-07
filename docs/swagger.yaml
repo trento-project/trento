@@ -9,8 +9,14 @@ definitions:
 info:
   contact: {}
 paths:
-  /api/clusters/{id}/results:
+  /api/clusters/{cluster_id}/results:
     get:
+      parameters:
+      - description: Cluster Id
+        in: path
+        name: cluster_id
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -62,14 +68,14 @@ paths:
               type: string
             type: object
       summary: Add tag to Cluster
-  /api/clusters/{name}/tags/{tag}:
+  /api/clusters/{id}/tags/{tag}:
     delete:
       consumes:
       - application/json
       parameters:
       - description: Cluster id
         in: path
-        name: cluster
+        name: id
         required: true
         type: string
       - description: Tag
@@ -86,14 +92,14 @@ paths:
             additionalProperties: true
             type: object
       summary: Delete a specific tag that belongs to a cluster
-  /api/databases/{id}/tags:
+  /api/databases/{sid}/tags:
     post:
       consumes:
       - application/json
       parameters:
       - description: Database id
         in: path
-        name: id
+        name: sid
         required: true
         type: string
       - description: The tag to create
@@ -128,14 +134,14 @@ paths:
               type: string
             type: object
       summary: Add tag to a HANA database
-  /api/databases/{name}/tags/{tag}:
+  /api/databases/{sid}/tags/{tag}:
     delete:
       consumes:
       - application/json
       parameters:
       - description: Database id
         in: path
-        name: id
+        name: sid
         required: true
         type: string
       - description: Tag
@@ -218,14 +224,14 @@ paths:
             additionalProperties: true
             type: object
       summary: Delete a specific tag that belongs to a host
-  /api/sapsystems/{id}/tags:
+  /api/sapsystems/{sid}/tags:
     post:
       consumes:
       - application/json
       parameters:
       - description: SAPSystem id
         in: path
-        name: id
+        name: sid
         required: true
         type: string
       - description: The tag to create
@@ -260,14 +266,14 @@ paths:
               type: string
             type: object
       summary: Add tag to SAPSystem
-  /api/sapsystems/{name}/tags/{tag}:
+  /api/sapsystems/{sid}/tags/{tag}:
     delete:
       consumes:
       - application/json
       parameters:
       - description: SAPSystem id
         in: path
-        name: id
+        name: sid
         required: true
         type: string
       - description: Tag
@@ -291,7 +297,7 @@ paths:
       parameters:
       - description: Filter by resource type
         in: query
-        name: resourceType
+        name: resource_type
         type: string
       produces:
       - application/json

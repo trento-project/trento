@@ -23,7 +23,7 @@ type JSONTag struct {
 // @Summary List all the tags in the system
 // @Accept json
 // @Produce json
-// @Param resourceType query string false "Filter by resource type"
+// @Param resource_type query string false "Filter by resource type"
 // @Success 200 {object} []string
 // @Failure 500 {object} map[string]string
 // @Router /api/tags [get]
@@ -173,10 +173,10 @@ func ApiClusterCreateTagHandler(client consul.Client, tagsService services.TagsS
 // @Summary Delete a specific tag that belongs to a cluster
 // @Accept json
 // @Produce json
-// @Param cluster path string true "Cluster id"
+// @Param id path string true "Cluster id"
 // @Param tag path string true "Tag"
 // @Success 204 {object} map[string]interface{}
-// @Router /api/clusters/{name}/tags/{tag} [delete]
+// @Router /api/clusters/{id}/tags/{tag} [delete]
 func ApiClusterDeleteTagHandler(client consul.Client, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
@@ -207,13 +207,13 @@ func ApiClusterDeleteTagHandler(client consul.Client, tagsService services.TagsS
 // @Summary Add tag to SAPSystem
 // @Accept json
 // @Produce json
-// @Param id path string true "SAPSystem id"
+// @Param sid path string true "SAPSystem id"
 // @Param Body body JSONTag true "The tag to create"
 // @Success 201 {object} JSONTag
 // @Failure 404 {object} map[string]string
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router /api/sapsystems/{id}/tags [post]
+// @Router /api/sapsystems/{sid}/tags [post]
 func ApiSAPSystemCreateTagHandler(sapSystemsService services.SAPSystemsService, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		sid := c.Param("sid")
@@ -251,10 +251,10 @@ func ApiSAPSystemCreateTagHandler(sapSystemsService services.SAPSystemsService, 
 // @Summary Delete a specific tag that belongs to a SAPSystem
 // @Accept json
 // @Produce json
-// @Param id path string true "SAPSystem id"
+// @Param sid path string true "SAPSystem id"
 // @Param tag path string true "Tag"
 // @Success 204 {object} map[string]interface{}
-// @Router /api/sapsystems/{name}/tags/{tag} [delete]
+// @Router /api/sapsystems/{sid}/tags/{tag} [delete]
 func ApiSAPSystemDeleteTagHandler(sapSystemsService services.SAPSystemsService, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		sid := c.Param("sid")
@@ -285,13 +285,13 @@ func ApiSAPSystemDeleteTagHandler(sapSystemsService services.SAPSystemsService, 
 // @Summary Add tag to a HANA database
 // @Accept json
 // @Produce json
-// @Param id path string true "Database id"
+// @Param sid path string true "Database id"
 // @Param Body body JSONTag true "The tag to create"
 // @Success 201 {object} JSONTag
 // @Failure 404 {object} map[string]string
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router /api/databases/{id}/tags [post]
+// @Router /api/databases/{sid}/tags [post]
 func ApiDatabaseCreateTagHandler(sapSystemsService services.SAPSystemsService, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		sid := c.Param("sid")
@@ -329,10 +329,10 @@ func ApiDatabaseCreateTagHandler(sapSystemsService services.SAPSystemsService, t
 // @Summary Delete a specific tag that belongs to a HANA database
 // @Accept json
 // @Produce json
-// @Param id path string true "Database id"
+// @Param sid path string true "Database id"
 // @Param tag path string true "Tag"
 // @Success 204 {object} map[string]interface{}
-// @Router /api/databases/{name}/tags/{tag} [delete]
+// @Router /api/databases/{sid}/tags/{tag} [delete]
 func ApiDatabaseDeleteTagHandler(sapSystemsService services.SAPSystemsService, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		sid := c.Param("sid")
@@ -362,9 +362,10 @@ func ApiDatabaseDeleteTagHandler(sapSystemsService services.SAPSystemsService, t
 // ApiCheckResultsHandler godoc
 // @Summary Get a specific cluster's check results
 // @Produce json
+// @Param cluster_id path string true "Cluster Id"
 // @Success 200 {object} map[string]interface{}
 // @Error 500
-// @Router /api/clusters/{id}/results [get]
+// @Router /api/clusters/{cluster_id}/results [get]
 func ApiClusterCheckResultsHandler(client consul.Client, s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		clusterId := c.Param("cluster_id")

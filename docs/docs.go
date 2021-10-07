@@ -24,12 +24,21 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/clusters/{id}/results": {
+        "/api/clusters/{cluster_id}/results": {
             "get": {
                 "produces": [
                     "application/json"
                 ],
                 "summary": "Get a specific cluster's check results",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cluster Id",
+                        "name": "cluster_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -105,7 +114,7 @@ var doc = `{
                 }
             }
         },
-        "/api/clusters/{name}/tags/{tag}": {
+        "/api/clusters/{id}/tags/{tag}": {
             "delete": {
                 "consumes": [
                     "application/json"
@@ -118,7 +127,7 @@ var doc = `{
                     {
                         "type": "string",
                         "description": "Cluster id",
-                        "name": "cluster",
+                        "name": "id",
                         "in": "path",
                         "required": true
                     },
@@ -141,7 +150,7 @@ var doc = `{
                 }
             }
         },
-        "/api/databases/{id}/tags": {
+        "/api/databases/{sid}/tags": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -154,7 +163,7 @@ var doc = `{
                     {
                         "type": "string",
                         "description": "Database id",
-                        "name": "id",
+                        "name": "sid",
                         "in": "path",
                         "required": true
                     },
@@ -205,7 +214,7 @@ var doc = `{
                 }
             }
         },
-        "/api/databases/{name}/tags/{tag}": {
+        "/api/databases/{sid}/tags/{tag}": {
             "delete": {
                 "consumes": [
                     "application/json"
@@ -218,7 +227,7 @@ var doc = `{
                     {
                         "type": "string",
                         "description": "Database id",
-                        "name": "id",
+                        "name": "sid",
                         "in": "path",
                         "required": true
                     },
@@ -341,7 +350,7 @@ var doc = `{
                 }
             }
         },
-        "/api/sapsystems/{id}/tags": {
+        "/api/sapsystems/{sid}/tags": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -354,7 +363,7 @@ var doc = `{
                     {
                         "type": "string",
                         "description": "SAPSystem id",
-                        "name": "id",
+                        "name": "sid",
                         "in": "path",
                         "required": true
                     },
@@ -405,7 +414,7 @@ var doc = `{
                 }
             }
         },
-        "/api/sapsystems/{name}/tags/{tag}": {
+        "/api/sapsystems/{sid}/tags/{tag}": {
             "delete": {
                 "consumes": [
                     "application/json"
@@ -418,7 +427,7 @@ var doc = `{
                     {
                         "type": "string",
                         "description": "SAPSystem id",
-                        "name": "id",
+                        "name": "sid",
                         "in": "path",
                         "required": true
                     },
@@ -454,7 +463,7 @@ var doc = `{
                     {
                         "type": "string",
                         "description": "Filter by resource type",
-                        "name": "resourceType",
+                        "name": "resource_type",
                         "in": "query"
                     }
                 ],

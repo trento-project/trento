@@ -63,7 +63,7 @@ func (r *tagsService) Delete(value string, resourceType string, resourceId strin
 
 func getTags(db *gorm.DB) ([]string, error) {
 	var tags []models.Tag
-	result := db.Find(&tags)
+	result := db.Distinct("value").Find(&tags)
 
 	if result.Error != nil {
 		return nil, result.Error

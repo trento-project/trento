@@ -91,8 +91,13 @@ func TestTagsService_Delete(t *testing.T) {
 	var tags []models.Tag
 	tx.Find(&tags)
 
-	assert.Equal(t, 2, len(tags))
+	assert.Equal(t, 3, len(tags))
 	assert.ElementsMatch(t, []models.Tag{
+		{
+			ResourceType: models.TagSAPSystemResourceType,
+			ResourceId:   "HA2",
+			Value:        "tag1",
+		},
 		{
 			ResourceType: models.TagClusterResourceType,
 			ResourceId:   "cluster_id",
@@ -109,6 +114,11 @@ func loadTagsFixtures(db *gorm.DB) {
 	db.Create(&models.Tag{
 		ResourceType: models.TagSAPSystemResourceType,
 		ResourceId:   "HA1",
+		Value:        "tag1",
+	})
+	db.Create(&models.Tag{
+		ResourceType: models.TagSAPSystemResourceType,
+		ResourceId:   "HA2",
 		Value:        "tag1",
 	})
 	db.Create(&models.Tag{

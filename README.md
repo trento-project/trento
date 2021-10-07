@@ -73,7 +73,9 @@ The _Trento Server_ is an independent, cloud-native, distributed system and shou
 - A [Consul] data-plane;
 - An [ARA] service.
 
-The _Trento Agent_ is a single background processes (`trento agent`) running in each host of the target infrastructure the user desires to monitor.
+The _Trento Agent_ is a single background process (`trento agent`) running in each host of the target infrastructure the user desires to monitor.
+
+Please note that, except for the third-party ones like Consul and ARA, all the components are embedded within one single `trento` binary.
 
 See the [architecture document](./docs/trento-architecture.md) for additional details.
 
@@ -88,9 +90,9 @@ As such, our default installation method provisions a minimal, single node, [K3S
 The suggested physical resources for running all the _Trento Server_ components are 2GB of RAM and 2 CPU cores.
 The _Trento Server_ needs to reach the target infrastructure.
 
-The `trento agent` component, on the other hand, needs to interact with a number of low-level system components
+The _Trento Agent_ component, on the other hand, needs to interact with a number of low-level system components
 which are part of the [SUSE Linux Enterprise Server for SAP Applications](https://www.suse.com/products/sles-for-sap/) Linux distribution. 
-These could in theory also installed and configured on other distributions providing the same functionalities, but this use case is not within the scope of the active development.
+These could in theory also be installed and configured on other distributions providing the same functionalities, but this use case is not within the scope of the active development.
 The resource footprint of the _Trento Agent_ should not impact the performance of the host it runs on.
 
 ## Quick-Start installation

@@ -46,7 +46,7 @@ of existing clusters, rather than deploying new one.
       - [Starting the Trento Runner](#starting-the-trento-runner)
     + [Trento Web UI](#trento-web-ui)
 - [Development](#development)
-  * [Build dependencies](#build-dependencies)
+  * [Helm development chart](#helm-development-chart)
   * [Build system](#build-system)
   * [Development dependencies](#development-dependencies)
   * [Docker](#docker)
@@ -419,7 +419,7 @@ Please consult the `help` CLI command for more insights on the various options.
 
 # Development
 
-## Set-up a development environment
+## Helm development chart
 
 A development Helm chart is available at [./hack/helm/trento-dev](./hack/helm/trento-dev).
 The chart is based on the official Helm chart package and overrides certain values to provide a development environment.
@@ -436,7 +436,7 @@ helm install trento-dev .
 ```
 
 Since integration tests require a running PostgreSQL instance, please make sure the chart is installed prior to running the integration tests.
-The PostgreSQL instance will be accesible at port `localhost:32432`.
+The PostgreSQL instance will be accessible at port `localhost:32432`.
 
 ## Build system
 

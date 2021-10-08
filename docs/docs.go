@@ -24,6 +24,32 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/clusters/{cluster_id}/results": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get a specific cluster's check results",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cluster Id",
+                        "name": "cluster_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/api/clusters/{id}/tags": {
             "post": {
                 "consumes": [
@@ -88,7 +114,7 @@ var doc = `{
                 }
             }
         },
-        "/api/clusters/{name}/tags/{tag}": {
+        "/api/clusters/{id}/tags/{tag}": {
             "delete": {
                 "consumes": [
                     "application/json"
@@ -101,7 +127,107 @@ var doc = `{
                     {
                         "type": "string",
                         "description": "Cluster id",
-                        "name": "cluster",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tag",
+                        "name": "tag",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/databases/{sid}/tags": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Add tag to a HANA database",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Database id",
+                        "name": "sid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "The tag to create",
+                        "name": "Body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/web.JSONTag"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/web.JSONTag"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/databases/{sid}/tags/{tag}": {
+            "delete": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Delete a specific tag that belongs to a HANA database",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Database id",
+                        "name": "sid",
                         "in": "path",
                         "required": true
                     },
@@ -224,7 +350,7 @@ var doc = `{
                 }
             }
         },
-        "/api/sapsystems/{id}/tags": {
+        "/api/sapsystems/{sid}/tags": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -237,7 +363,7 @@ var doc = `{
                     {
                         "type": "string",
                         "description": "SAPSystem id",
-                        "name": "id",
+                        "name": "sid",
                         "in": "path",
                         "required": true
                     },
@@ -288,7 +414,7 @@ var doc = `{
                 }
             }
         },
-        "/api/sapsystems/{name}/tags/{tag}": {
+        "/api/sapsystems/{sid}/tags/{tag}": {
             "delete": {
                 "consumes": [
                     "application/json"
@@ -301,7 +427,7 @@ var doc = `{
                     {
                         "type": "string",
                         "description": "SAPSystem id",
-                        "name": "cluster",
+                        "name": "sid",
                         "in": "path",
                         "required": true
                     },
@@ -337,7 +463,7 @@ var doc = `{
                     {
                         "type": "string",
                         "description": "Filter by resource type",
-                        "name": "resourceType",
+                        "name": "resource_type",
                         "in": "query"
                     }
                 ],

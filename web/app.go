@@ -161,8 +161,10 @@ func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
 		apiGroup.POST("/clusters/:id/tags", ApiClusterCreateTagHandler(deps.consul, deps.tagsService))
 		apiGroup.DELETE("/clusters/:id/tags/:tag", ApiClusterDeleteTagHandler(deps.consul, deps.tagsService))
 		apiGroup.GET("/clusters/:cluster_id/results", ApiClusterCheckResultsHandler(deps.consul, deps.checksService))
-		apiGroup.POST("/sapsystems/:sid/tags", ApiSAPSystemCreateTagHandler(deps.consul, deps.tagsService))
-		apiGroup.DELETE("/sapsystems/:sid/tags/:tag", ApiSAPSystemDeleteTagHandler(deps.consul, deps.tagsService))
+		apiGroup.POST("/sapsystems/:sid/tags", ApiSAPSystemCreateTagHandler(deps.sapSystemsService, deps.tagsService))
+		apiGroup.DELETE("/sapsystems/:sid/tags/:tag", ApiSAPSystemDeleteTagHandler(deps.sapSystemsService, deps.tagsService))
+		apiGroup.POST("/databases/:sid/tags", ApiDatabaseCreateTagHandler(deps.sapSystemsService, deps.tagsService))
+		apiGroup.DELETE("/databases/:sid/tags/:tag", ApiDatabaseDeleteTagHandler(deps.sapSystemsService, deps.tagsService))
 	}
 
 	return app, nil

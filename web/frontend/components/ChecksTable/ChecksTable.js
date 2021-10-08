@@ -1,9 +1,7 @@
 import React from 'react';
 import CheckResultIcon from './CheckResultIcon';
 
-const ChecksTable = ({ checks }) => {
-  const hostnames = Object.keys(checks[0].hosts);
-
+const ChecksTable = ({ checks, clusterHosts }) => {
   return (
     <div className="table-responsive">
       <table className="table eos-table">
@@ -11,7 +9,7 @@ const ChecksTable = ({ checks }) => {
           <tr>
             <th>Test ID</th>
             <th>Description</th>
-            {hostnames.map((label) => (
+            {Object.keys(clusterHosts).map((label) => (
               <th key={label} scope="col" style={{ textAlign: 'center' }}>
                 {label}
               </th>
@@ -24,7 +22,7 @@ const ChecksTable = ({ checks }) => {
               <tr key={id}>
                 <td>{id}</td>
                 <td>{description}</td>
-                {Object.keys(hosts).map((hostname) => (
+                {Object.keys(clusterHosts).map((hostname) => (
                   <td key={hostname} className="align-center">
                     <CheckResultIcon result={hosts[hostname].result} />
                   </td>

@@ -129,6 +129,29 @@ func (_m *ChecksService) GetChecksResult() (map[string]*models.Results, error) {
 	return r0, r1
 }
 
+// GetChecksResultAndMetadataByCluster provides a mock function with given fields: clusterId
+func (_m *ChecksService) GetChecksResultAndMetadataByCluster(clusterId string) (*models.ClusterCheckResults, error) {
+	ret := _m.Called(clusterId)
+
+	var r0 *models.ClusterCheckResults
+	if rf, ok := ret.Get(0).(func(string) *models.ClusterCheckResults); ok {
+		r0 = rf(clusterId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.ClusterCheckResults)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(clusterId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetChecksResultByCluster provides a mock function with given fields: clusterId
 func (_m *ChecksService) GetChecksResultByCluster(clusterId string) (*models.Results, error) {
 	ret := _m.Called(clusterId)

@@ -32,6 +32,7 @@ type Metadata struct {
 }
 
 type Results struct {
+	Hosts  map[string]*Host         `json:"hosts,omitempty" mapstructure:"hosts,omitempty"`
 	Checks map[string]*ChecksByHost `json:"checks,omitempty" mapstructure:"checks,omitempty"`
 }
 
@@ -40,11 +41,9 @@ type ChecksByHost struct {
 	Hosts map[string]*Check `json:"hosts,omitempty" mapstructure:"hosts,omitempty"`
 }
 
-type ClusterCheckResults struct {
-	ID          string            `json:"id,omitempty" mapstructure:"id,omitempty"`
-	Hosts       map[string]*Check `json:"hosts,omitempty" mapstructure:"hosts,omitempty"`
-	Group       string            `json:"group,omitempty" mapstructure:"group,omitempty"`
-	Description string            `json:"description,omitempty" mapstructure:"description,omitempty"`
+type Host struct {
+	Reachable bool   `json:"reachable" mapstructure:"reachable"`
+	Msg       string `json:"msg" mapstructure:"msg"`
 }
 
 type Check struct {
@@ -57,6 +56,19 @@ type Check struct {
 	Labels         string `json:"labels,omitempty" mapstructure:"labels,omitempty"`
 	Selected       bool   `json:"selected,omitempty" mapstructure:"selected,omitempty"`
 	Result         string `json:"result,omitempty" mapstructure:"result,omitempty"`
+}
+
+// Simplified models for the frontend
+type ClusterCheckResults struct {
+	Hosts  map[string]*Host     `json:"hosts,omitempty" mapstructure:"hosts,omitempty"`
+	Checks []ClusterCheckResult `json:"checks,omitempty" mapstructure:"checks,omitempty"`
+}
+
+type ClusterCheckResult struct {
+	ID          string            `json:"id,omitempty" mapstructure:"id,omitempty"`
+	Hosts       map[string]*Check `json:"hosts,omitempty" mapstructure:"hosts,omitempty"`
+	Group       string            `json:"group,omitempty" mapstructure:"group,omitempty"`
+	Description string            `json:"description,omitempty" mapstructure:"description,omitempty"`
 }
 
 func (c *Results) GetHostNames() []string {

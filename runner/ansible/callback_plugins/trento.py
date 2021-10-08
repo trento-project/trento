@@ -34,6 +34,16 @@ class Results(object):
 
     "results": {
         "clusterId": {
+            "hosts": {
+                "host1": {
+                    "reachable": true,
+                    "msg": ""
+                },
+                "host2": {
+                    "reachable": false,
+                    "msg": "Failed to connect to the host via ssh: ..."
+                },
+            }
             "checks": {
                 "ABCDEF": {
                     "hosts": {
@@ -55,6 +65,7 @@ class Results(object):
         """
         if group not in self.results["results"]:
             self.results["results"][group] = {}
+            self.results["results"][group]["hosts"] = {}
             self.results["results"][group]["checks"] = {}
 
     def add_result(self, group, test, host, result):
@@ -76,6 +87,22 @@ class Results(object):
             hosts[host] = {}
 
         hosts[host]["result"] = result
+
+    def set_host_state(self, group, host, state, msg=""):
+        """
+        Set the host state. Reachable or Unreachable
+        """
+        # Add the group just in case it doesn't exist
+        if group not in self.results["results"]:
+            self.results["results"][group] = {}
+            self.results["results"][group]["hosts"] = {}
+
+        hosts = self.results["results"][group]["hosts"]
+        if host not in hosts:
+            hosts[host] = {}
+
+        hosts[host]["reachable"] = state
+        hosts[host]["msg"] = msg
 
 
 class CallbackModule(CallbackBase):
@@ -124,6 +151,7 @@ class CallbackModule(CallbackBase):
 
         test_result = result._task_fields["args"]["test_result"]
         for group in task_vars["group_names"]:
+            self.results.set_host_state(group, host, True)
             self.results.add_result(group, task_vars[CHECK_ID], host, test_result)
 
     def v2_runner_on_failed(self, result):
@@ -137,7 +165,19 @@ class CallbackModule(CallbackBase):
         task_vars = self._all_vars(host=result._host, task=result._task)
 
         for group in task_vars["group_names"]:
+            self.results.set_host_state(group, host, True)
             self.results.add_result(group, task_vars[CHECK_ID], host, False)
+
+    def v2_runner_on_unreachable(self, result):
+        """
+        On task Unreachable
+        """
+        host = result._host.get_name()
+        task_vars = self._all_vars(host=result._host, task=result._task)
+        msg = result._check_key("msg")
+
+        for group in task_vars["group_names"]:
+            self.results.set_host_state(group, host, False, msg)
 
     def v2_playbook_on_stats(self, _stats):
         """

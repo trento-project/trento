@@ -370,29 +370,12 @@ func ApiClusterCheckResultsHandler(client consul.Client, s services.ChecksServic
 	return func(c *gin.Context) {
 		clusterId := c.Param("cluster_id")
 
-		checkResults, err := s.GetChecksResultByCluster(clusterId)
+		checkResults, err := s.GetChecksResultAndMetadataByCluster(clusterId)
 		if err != nil {
 			c.Error(err)
 			return
 		}
 
-		checksCatalog, err := s.GetChecksCatalog()
-		if err != nil {
-			c.Error(err)
-			return
-		}
-
-		resultSet := []models.ClusterCheckResults{}
-		for _, check := range checksCatalog {
-			current := models.ClusterCheckResults{
-				Group:       check.Group,
-				Description: check.Description,
-				Hosts:       checkResults.Checks[check.ID].Hosts,
-				ID:          check.ID,
-			}
-			resultSet = append(resultSet, current)
-		}
-
-		c.JSON(http.StatusOK, resultSet)
+		c.JSON(http.StatusOK, checkResults)
 	}
 }

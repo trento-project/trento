@@ -35,6 +35,7 @@ type ChecksService interface {
 	GetChecksCatalogByGroup() (models.GroupedCheckList, error)
 	GetChecksResult() (map[string]*models.Results, error)
 	GetChecksResultByCluster(clusterId string) (*models.Results, error)
+	GetChecksResultAndMetadataByCluster(clusterId string) (*models.ClusterCheckResults, error)
 	GetAggregatedChecksResultByHost(clusterId string) (map[string]*AggregatedCheckData, error)
 	GetAggregatedChecksResultByCluster(clusterId string) (*AggregatedCheckData, error)
 }
@@ -132,6 +133,38 @@ func (c *checksService) GetChecksResultByCluster(clusterId string) (*models.Resu
 	return cResultByCluster, nil
 }
 
+func (c *checksService) GetChecksResultAndMetadataByCluster(clusterId string) (*models.ClusterCheckResults, error) {
+	cResultByCluster, err := c.GetChecksResultByCluster(clusterId)
+	if err != nil {
+		return nil, err
+	}
+
+	checkList, err := c.GetChecksCatalog()
+	if err != nil {
+		return nil, err
+	}
+
+	resultSet := &models.ClusterCheckResults{}
+	resultSet.Hosts = cResultByCluster.Hosts
+
+	for _, checkMeta := range checkList {
+		for checkId, checkByHost := range cResultByCluster.Checks {
+			if checkId == checkMeta.ID {
+				current := models.ClusterCheckResult{
+					Group:       checkMeta.Group,
+					Description: checkMeta.Description,
+					Hosts:       checkByHost.Hosts,
+					ID:          checkId,
+				}
+				resultSet.Checks = append(resultSet.Checks, current)
+				continue
+			}
+		}
+	}
+
+	return resultSet, nil
+}
+
 func (c *checksService) GetAggregatedChecksResultByHost(clusterId string) (map[string]*AggregatedCheckData, error) {
 	cResultByCluster, err := c.GetChecksResultByCluster(clusterId)
 	if err != nil {
@@ -145,11 +178,12 @@ func (c *checksService) GetAggregatedChecksResultByHost(clusterId string) (map[s
 			if _, ok := aCheckDataByHost[hostName]; !ok {
 				aCheckDataByHost[hostName] = &AggregatedCheckData{}
 			}
-			if host.Result == models.CheckCritical {
+			switch host.Result {
+			case models.CheckCritical:
 				aCheckDataByHost[hostName].CriticalCount += 1
-			} else if host.Result == models.CheckWarning {
+			case models.CheckWarning:
 				aCheckDataByHost[hostName].WarningCount += 1
-			} else if host.Result == models.CheckPassing {
+			case models.CheckPassing:
 				aCheckDataByHost[hostName].PassingCount += 1
 			}
 		}

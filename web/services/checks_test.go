@@ -662,6 +662,159 @@ func TestGetChecksResultByCluster(t *testing.T) {
 	mockAra.AssertExpectations(t)
 }
 
+func TestGetChecksResultAndMetadataByCluster(t *testing.T) {
+	mockAra := new(araMocks.AraService)
+
+	rList := &ara.RecordList{
+		Count: 1,
+		Results: []*ara.RecordListResult{
+			&ara.RecordListResult{
+				ID:       1,
+				Playbook: 1,
+				Key:      "results",
+				Type:     "json",
+			},
+		},
+	}
+
+	rMetaList := &ara.RecordList{
+		Count: 1,
+		Results: []*ara.RecordListResult{
+			&ara.RecordListResult{
+				ID:       2,
+				Playbook: 1,
+				Key:      "metadata",
+				Type:     "json",
+			},
+		},
+	}
+
+	mockAra.On("GetRecordList", "key=trento-results&order=-id").Return(rList, nil)
+	mockAra.On("GetRecordList", "key=trento-metadata&order=-id").Return(rMetaList, nil)
+
+	araResultRecord := &ara.Record{
+		ID: 1,
+		Value: map[string]interface{}{
+			"results": map[string]interface{}{
+				"myClusterId": map[string]interface{}{
+					"hosts": map[string]interface{}{
+						"host1": map[string]interface{}{
+							"reachable": true,
+							"msg":       "",
+						},
+						"host2": map[string]interface{}{
+							"reachable": false,
+							"msg":       "error connecting",
+						},
+					},
+					"checks": map[string]interface{}{
+						"ABCDEF": map[string]interface{}{
+							"hosts": map[string]interface{}{
+								"host1": map[string]interface{}{
+									"result": "passing",
+								},
+								"host2": map[string]interface{}{
+									"result": "passing",
+								},
+							},
+						},
+						"123456": map[string]interface{}{
+							"hosts": map[string]interface{}{
+								"host1": map[string]interface{}{
+									"result": "warning",
+								},
+								"host2": map[string]interface{}{
+									"result": "critical",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	araMetaRecord := &ara.Record{
+		ID: 2,
+		Value: map[string]interface{}{
+			"metadata": map[string]interface{}{
+				"checks": []interface{}{
+					map[string]interface{}{
+						"id":             "ABCDEF",
+						"name":           "1.1.1",
+						"group":          "group 1",
+						"description":    "description 1",
+						"remediation":    "remediation 1",
+						"labels":         "labels 1",
+						"implementation": "implementation 1",
+					},
+					map[string]interface{}{
+						"id":             "123456",
+						"name":           "1.1.2",
+						"group":          "group 1",
+						"description":    "description 2",
+						"remediation":    "remediation 2",
+						"labels":         "labels 2",
+						"implementation": "implementation 2",
+					},
+				},
+			},
+		},
+		Key:  "metadata",
+		Type: "json",
+	}
+
+	mockAra.On("GetRecord", 1).Return(araResultRecord, nil)
+	mockAra.On("GetRecord", 2).Return(araMetaRecord, nil)
+
+	checksService := NewChecksService(mockAra)
+	results, err := checksService.GetChecksResultAndMetadataByCluster("myClusterId")
+
+	expectedResults := &models.ClusterCheckResults{
+		Hosts: map[string]*models.Host{
+			"host1": &models.Host{
+				Reachable: true,
+				Msg:       "",
+			},
+			"host2": &models.Host{
+				Reachable: false,
+				Msg:       "error connecting",
+			},
+		},
+		Checks: []models.ClusterCheckResult{
+			models.ClusterCheckResult{
+				ID:          "ABCDEF",
+				Group:       "group 1",
+				Description: "description 1",
+				Hosts: map[string]*models.Check{
+					"host1": &models.Check{
+						Result: models.CheckPassing,
+					},
+					"host2": &models.Check{
+						Result: models.CheckPassing,
+					},
+				},
+			},
+			models.ClusterCheckResult{
+				ID:          "123456",
+				Group:       "group 1",
+				Description: "description 2",
+				Hosts: map[string]*models.Check{
+					"host1": &models.Check{
+						Result: models.CheckWarning,
+					},
+					"host2": &models.Check{
+						Result: models.CheckCritical,
+					},
+				},
+			},
+		},
+	}
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedResults, results)
+}
+
 func TestGetAggregatedChecksResultByHost(t *testing.T) {
 
 	mockAra := new(araMocks.AraService)

@@ -22,11 +22,13 @@ const groupChecks = (checks) => {
 
 const ClustersChecks = ({ clusterId }) => {
   const [results, setResults] = useState([]);
+  const [hosts, setHosts] = useState({});
 
   useEffect(() => {
     get(`/api/clusters/${clusterId}/results`).then(({ data }) => {
-      const groupedChecks = groupChecks(data);
+      const groupedChecks = groupChecks(data.checks);
       setResults(groupedChecks);
+      setHosts(data.hosts);
     });
   }, []);
 
@@ -39,7 +41,7 @@ const ClustersChecks = ({ clusterId }) => {
             key={section.name}
             title={section.name}
           >
-            <ChecksTable checks={section.checks} />
+            <ChecksTable checks={section.checks} clusterHosts={hosts} />
           </Accordion>
         );
       })}

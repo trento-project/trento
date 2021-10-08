@@ -4,20 +4,18 @@
 - name: Set metadata {{ id }}
   set_fact:
     metadata: |
-      {{ (metadata | default({})) | combine(
-        {
-          'metadata': {
-            'checks': {
-              id: {
-                'id': id,
-                'name': name,
-                'group': group,
-                'description': description,
-                'remediation': remediation,
-                'labels': labels,
-                'implementation': implementation
-              }
-            }
+      {{ (metadata|default({})) | combine(
+        {'metadata':
+          {
+            'checks': [{
+              'id': id|string,
+              'name': name,
+              'group': group,
+              'description': description,
+              'remediation': remediation,
+              'labels': labels,
+              'implementation': implementation
+            }]
           }
-        }, recursive=True)
+        }, recursive=True, list_merge='append')
       }}

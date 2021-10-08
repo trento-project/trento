@@ -20,6 +20,7 @@ require (
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/afero v1.1.2
 	github.com/spf13/cobra v1.1.3
+	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
 	github.com/swaggo/files v0.0.0-20210815190702-a29dd2bc99b2
@@ -28,8 +29,9 @@ require (
 	github.com/tdewolff/minify/v2 v2.9.16
 	github.com/vektra/mockery/v2 v2.9.0
 	golang.org/x/sys v0.0.0-20210809222454-d867a43fc93e // indirect
-	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/tools v0.1.5 // indirect
+	gorm.io/driver/postgres v1.1.2
+	gorm.io/gorm v1.21.15
 )
 
 replace github.com/trento-project/trento => ./

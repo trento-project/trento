@@ -16,39 +16,45 @@ import (
 func TestChecksCatalogHandler(t *testing.T) {
 	checksMocks := new(mocks.ChecksService)
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.checksService = checksMocks
 
-	checks := map[string]map[string]*models.Check{
-		"group 1": {
-			"1.1.1": &models.Check{
-				ID:             "1.1.1",
-				Name:           "check 1",
-				Group:          "group 1",
-				Description:    "description 1",
-				Remediation:    "remediation 1",
-				Implementation: "implementation 1",
-				Labels:         "labels 1",
-			},
-			"1.1.2": &models.Check{
-				ID:             "1.1.2",
-				Name:           "check 2",
-				Group:          "group 1",
-				Description:    "description 2",
-				Remediation:    "remediation 2",
-				Implementation: "implementation 2",
-				Labels:         "labels 2",
+	checks := models.GroupedCheckList{
+		&models.GroupedChecks{
+			Group: "group 1",
+			Checks: models.CheckList{
+				&models.Check{
+					ID:             "ABCDEF",
+					Name:           "1.1.1",
+					Group:          "group 1",
+					Description:    "description 1",
+					Remediation:    "remediation 1",
+					Implementation: "implementation 1",
+					Labels:         "labels 1",
+				},
+				&models.Check{
+					ID:             "123456",
+					Name:           "1.1.2",
+					Group:          "group 1",
+					Description:    "description 2",
+					Remediation:    "remediation 2",
+					Implementation: "implementation 2",
+					Labels:         "labels 2",
+				},
 			},
 		},
-		"group 2": {
-			"1.2.3": &models.Check{
-				ID:             "1.2.3",
-				Name:           "check 3",
-				Group:          "group 2",
-				Description:    "description 3",
-				Remediation:    "remediation 3",
-				Implementation: "implementation 3",
-				Labels:         "labels 3",
+		&models.GroupedChecks{
+			Group: "group 2",
+			Checks: models.CheckList{
+				&models.Check{
+					ID:             "123ABC",
+					Name:           "1.2.1",
+					Group:          "group 2",
+					Description:    "description 3",
+					Remediation:    "remediation 3",
+					Implementation: "implementation 3",
+					Labels:         "labels 3",
+				},
 			},
 		},
 	}
@@ -76,9 +82,9 @@ func TestChecksCatalogHandler(t *testing.T) {
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, responseBody, "Checks catalog")
 
-	assert.Regexp(t, regexp.MustCompile("<h4.*>group 1</h4>.*<td.*>1.1.1</td><td.*>description 1<div.*id=info-1-1-1.*><p>remediation 1</p></div><div.*implementation 1.*</div>.*</td>"), responseBody)
-	assert.Regexp(t, regexp.MustCompile("<h4.*>group 1</h4>.*<td.*>1.1.2</td><td.*>description 2<div.*id=info-1-1-2.*><p>remediation 2</p></div><div.*implementation 2.*</div>.*</td>"), responseBody)
-	assert.Regexp(t, regexp.MustCompile("<h4.*>group 2</h4>.*<td.*>1.2.3</td><td.*>description 3<div.*id=info-1-2-3.*><p>remediation 3</p></div><div.*implementation 3.*</div>.*</td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<h4.*>group 1</h4>.*<td.*>ABCDEF</td><td.*>description 1<div.*id=info-ABCDEF.*><p>remediation 1</p></div><div.*implementation 1.*</div>.*</td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<h4.*>group 1</h4>.*<td.*>123456</td><td.*>description 2<div.*id=info-123456.*><p>remediation 2</p></div><div.*implementation 2.*</div>.*</td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<h4.*>group 2</h4>.*<td.*>123ABC</td><td.*>description 3<div.*id=info-123ABC.*><p>remediation 3</p></div><div.*implementation 3.*</div>.*</td>"), responseBody)
 	assert.Equal(t, 2, strings.Count(responseBody, "<h4"))
 	assert.Equal(t, 5, strings.Count(responseBody, "<tr>"))
 
@@ -89,7 +95,7 @@ func TestChecksCatalogHandlerError(t *testing.T) {
 
 	checksMocks := new(mocks.ChecksService)
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.checksService = checksMocks
 
 	checksMocks.On("GetChecksCatalogByGroup").Return(

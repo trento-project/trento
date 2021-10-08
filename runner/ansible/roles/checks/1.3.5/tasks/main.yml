@@ -1,8 +1,8 @@
 ---
 
-- name: "{{ id }}.check"
+- name: "{{ name }}.check"
   shell: |
-    DEF_WDTIMEOUT={{ expected[id] }}
+    DEF_WDTIMEOUT={{ expected[name] }}
     result_wdtimeout=${DEF_WDTIMEOUT}
     sbdarray=$(grep -E '^SBD_DEVICE=' /etc/sysconfig/sbd  | grep -oP 'SBD_DEVICE=\K[^.]+' | sed 's/\"//g')
     IFS=';' sbdarray=( $sbdarray )
@@ -16,7 +16,7 @@
     echo "${result_wdtimeout}"
   check_mode: false
   register: config_updated
-  changed_when: config_updated.stdout != expected[id]
+  changed_when: config_updated.stdout != expected[name]
 
 - block:
     - name: Post results

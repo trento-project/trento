@@ -10,15 +10,17 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/tdewolff/minify/v2"
 	"github.com/tdewolff/minify/v2/html"
-	"github.com/trento-project/trento/internal/consul/mocks"
+	consulMocks "github.com/trento-project/trento/internal/consul/mocks"
 	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/internal/subscription"
+	"github.com/trento-project/trento/web/models"
 	serviceMocks "github.com/trento-project/trento/web/services/mocks"
+	servicesMocks "github.com/trento-project/trento/web/services/mocks"
 )
 
 func TestNewHostsHealthContainer(t *testing.T) {
-	consulInst := new(mocks.Client)
-	health := new(mocks.Health)
+	consulInst := new(consulMocks.Client)
+	health := new(consulMocks.Health)
 	consulInst.On("Health").Return(health)
 
 	host1 := hosts.NewHost(consulApi.Node{Node: "node1"}, consulInst)
@@ -126,14 +128,12 @@ func TestHostsListHandler(t *testing.T) {
 		},
 	}
 
-	consulInst := new(mocks.Client)
-	catalog := new(mocks.Catalog)
-	health := new(mocks.Health)
-	kv := new(mocks.KV)
+	consulInst := new(consulMocks.Client)
+	catalog := new(consulMocks.Catalog)
+	health := new(consulMocks.Health)
 
 	consulInst.On("Catalog").Return(catalog)
 	consulInst.On("Health").Return(health)
-	consulInst.On("KV").Return(kv)
 
 	query := &consulApi.QueryOptions{Filter: ""}
 	catalog.On("Nodes", (*consulApi.QueryOptions)(query)).Return(nodes, nil, nil)
@@ -142,14 +142,14 @@ func TestHostsListHandler(t *testing.T) {
 	health.On("Node", "bar", (*consulApi.QueryOptions)(nil)).Return(barHealthChecks, nil, nil)
 	health.On("Node", "buzz", (*consulApi.QueryOptions)(nil)).Return(buzzHealthChecks, nil, nil)
 
-	kv.On("ListMap", "trento/v0/tags/hosts/foo/", "trento/v0/tags/hosts/foo/").Return(map[string]interface{}{
-		"tag1": struct{}{},
-	}, nil)
-	kv.On("ListMap", "trento/v0/tags/hosts/bar/", "trento/v0/tags/hosts/bar/").Return(nil, nil)
-	kv.On("ListMap", "trento/v0/tags/hosts/buzz/", "trento/v0/tags/hosts/buzz/").Return(nil, nil)
+	mockTagsService := new(servicesMocks.TagsService)
+	mockTagsService.On("GetAllByResource", models.TagHostResourceType, "foo").Return([]string{"tag1"}, nil)
+	mockTagsService.On("GetAllByResource", models.TagHostResourceType, "bar").Return([]string{}, nil)
+	mockTagsService.On("GetAllByResource", models.TagHostResourceType, "buzz").Return([]string{}, nil)
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.consul = consulInst
+	deps.tagsService = mockTagsService
 
 	var err error
 	app, err := NewAppWithDeps("", 80, deps)
@@ -193,10 +193,10 @@ func TestHostsListHandler(t *testing.T) {
 }
 
 func TestHostHandler(t *testing.T) {
-	consulInst := new(mocks.Client)
-	catalog := new(mocks.Catalog)
-	health := new(mocks.Health)
-	kv := new(mocks.KV)
+	consulInst := new(consulMocks.Client)
+	catalog := new(consulMocks.Catalog)
+	health := new(consulMocks.Health)
+	kv := new(consulMocks.KV)
 	subscriptionsMocks := new(serviceMocks.SubscriptionsService)
 
 	consulInst.On("Catalog").Return(catalog)
@@ -306,7 +306,7 @@ func TestHostHandler(t *testing.T) {
 
 	subscriptionsMocks.On("GetHostSubscriptions", "test_host").Return(subscriptionsList, nil)
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.consul = consulInst
 	deps.subscriptionsService = subscriptionsMocks
 
@@ -361,10 +361,10 @@ func TestHostHandler(t *testing.T) {
 }
 
 func TestHostHandlerAzure(t *testing.T) {
-	consulInst := new(mocks.Client)
-	catalog := new(mocks.Catalog)
-	health := new(mocks.Health)
-	kv := new(mocks.KV)
+	consulInst := new(consulMocks.Client)
+	catalog := new(consulMocks.Catalog)
+	health := new(consulMocks.Health)
+	kv := new(consulMocks.KV)
 	subscriptionsMocks := new(serviceMocks.SubscriptionsService)
 
 	consulInst.On("Catalog").Return(catalog)
@@ -426,7 +426,7 @@ func TestHostHandlerAzure(t *testing.T) {
 	subscriptionsMocks.On(
 		"GetHostSubscriptions", "test_host").Return(subscription.Subscriptions{}, nil)
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.consul = consulInst
 	deps.subscriptionsService = subscriptionsMocks
 
@@ -466,12 +466,12 @@ func TestHostHandlerAzure(t *testing.T) {
 }
 
 func TestHostHandler404Error(t *testing.T) {
-	consulInst := new(mocks.Client)
-	catalog := new(mocks.Catalog)
+	consulInst := new(consulMocks.Client)
+	catalog := new(consulMocks.Catalog)
 	catalog.On("Node", "foobar", (*consulApi.QueryOptions)(nil)).Return((*consulApi.CatalogNode)(nil), nil, nil)
 	consulInst.On("Catalog").Return(catalog)
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.consul = consulInst
 
 	app, err := NewAppWithDeps("", 80, deps)

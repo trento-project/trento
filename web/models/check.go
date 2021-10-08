@@ -1,8 +1,7 @@
 package models
 
 import (
-	"fmt"
-	"strings"
+	"sort"
 )
 
 const (
@@ -18,8 +17,18 @@ type CheckData struct {
 	Groups   map[string]*Results `json:"results,omitempty" mapstructure:"results,omitempty"`
 }
 
+// List is used instead of a map as it guarantees order
+type CheckList []*Check
+
+type GroupedChecks struct {
+	Group  string
+	Checks CheckList
+}
+
+type GroupedCheckList []*GroupedChecks
+
 type Metadata struct {
-	Checks map[string]*Check `json:"checks,omitempty" mapstructure:"checks,omitempty"`
+	Checks CheckList `json:"checks,omitempty" mapstructure:"checks,omitempty"`
 }
 
 type Results struct {
@@ -72,11 +81,21 @@ func (c *Results) HostResultPresent(host string) bool {
 	return false
 }
 
-func (c *Check) NormalizeID() string {
-	return strings.Replace(c.ID, ".", "-", -1)
+// Sorting methods for GroupedCheckList
+
+func (g GroupedCheckList) Len() int {
+	return len(g)
 }
 
-func (c *Check) ExtendedGroupName() string {
-	item := strings.Split(c.ID, ".")
-	return fmt.Sprintf("%s.%s - %s", item[0], item[1], c.Group)
+func (g GroupedCheckList) Less(i, j int) bool {
+	return g[i].Checks[0].Name < g[j].Checks[0].Name
+}
+
+func (g GroupedCheckList) Swap(i, j int) {
+	g[i], g[j] = g[j], g[i]
+}
+
+func (g GroupedCheckList) OrderByName() GroupedCheckList {
+	sort.Sort(g)
+	return g
 }

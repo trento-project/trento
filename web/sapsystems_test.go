@@ -15,6 +15,7 @@ import (
 	"github.com/trento-project/trento/internal/sapsystem/sapcontrol"
 
 	consulMocks "github.com/trento-project/trento/internal/consul/mocks"
+	"github.com/trento-project/trento/web/models"
 	servicesMocks "github.com/trento-project/trento/web/services/mocks"
 )
 
@@ -132,16 +133,14 @@ func TestSAPSystemsListHandler(t *testing.T) {
 	kv := new(consulMocks.KV)
 	sapSystemsService := new(servicesMocks.SAPSystemsService)
 	hostsService := new(servicesMocks.HostsService)
-
-	tags := map[string]interface{}{
-		"tag1": struct{}{},
-	}
-	kv.On("ListMap", "trento/v0/tags/sapsystems/systemId1/", "trento/v0/tags/sapsystems/systemId1/").Return(tags, nil)
-	kv.On("ListMap", "trento/v0/tags/sapsystems/systemId2/", "trento/v0/tags/sapsystems/systemId2/").Return(nil, nil)
-	kv.On("ListMap", "trento/v0/tags/sapsystems/systemId3/", "trento/v0/tags/sapsystems/systemId3/").Return(nil, nil)
-	consulInst.On("KV").Return(kv)
-
 	sapSystemsService.On("GetSAPSystemsByType", sapsystem.Application).Return(sapSystemsList, nil)
+	tagsService := new(servicesMocks.TagsService)
+	tagsService.On(
+		"GetAllByResource", models.TagSAPSystemResourceType, "systemId1").Return([]string{"tag1"}, nil)
+	tagsService.On(
+		"GetAllByResource", models.TagSAPSystemResourceType, "systemId2").Return([]string{"tag2"}, nil)
+	tagsService.On(
+		"GetAllByResource", models.TagSAPSystemResourceType, "systemId3").Return([]string{"tag3"}, nil)
 
 	hostsService.On("GetHostMetadata", "netweaver01").Return(map[string]string{
 		"trento-ha-cluster":    "netweaver_cluster",
@@ -153,10 +152,11 @@ func TestSAPSystemsListHandler(t *testing.T) {
 		"trento-ha-cluster-id": "e2f2eb50aef748e586a7baa85e0162cf",
 	}, nil)
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.consul = consulInst
 	deps.hostsService = hostsService
 	deps.sapSystemsService = sapSystemsService
+	deps.tagsService = tagsService
 
 	var err error
 	app, err := NewAppWithDeps("", 80, deps)
@@ -192,12 +192,9 @@ func TestSAPDatabaseListHandler(t *testing.T) {
 	kv := new(consulMocks.KV)
 	sapSystemsService := new(servicesMocks.SAPSystemsService)
 	hostsService := new(servicesMocks.HostsService)
-
-	tags := map[string]interface{}{
-		"tag1": struct{}{},
-	}
-	kv.On("ListMap", "trento/v0/tags/sapsystems/systemId2/", "trento/v0/tags/sapsystems/systemId2/").Return(tags, nil)
-	consulInst.On("KV").Return(kv)
+	tagsService := new(servicesMocks.TagsService)
+	tagsService.On(
+		"GetAllByResource", models.TagDatabaseResourceType, "systemId2").Return([]string{"tag1"}, nil)
 
 	sapSystemsService.On("GetSAPSystemsByType", sapsystem.Database).Return(sapDatabasesList, nil)
 
@@ -206,10 +203,11 @@ func TestSAPDatabaseListHandler(t *testing.T) {
 		"trento-ha-cluster-id": "e2f2eb50aef748e586a7baa85e0162cf",
 	}, nil)
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.consul = consulInst
 	deps.hostsService = hostsService
 	deps.sapSystemsService = sapSystemsService
+	deps.tagsService = tagsService
 
 	var err error
 	app, err := NewAppWithDeps("", 80, deps)
@@ -244,7 +242,7 @@ func TestSAPResourceHandler(t *testing.T) {
 	sapSystemsService := new(servicesMocks.SAPSystemsService)
 	hostsService := new(servicesMocks.HostsService)
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.consul = consulInst
 	deps.sapSystemsService = sapSystemsService
 	deps.hostsService = hostsService
@@ -307,7 +305,7 @@ func TestSAPResourceHandler(t *testing.T) {
 func TestSAPResourceHandler404Error(t *testing.T) {
 	sapSystemsService := new(servicesMocks.SAPSystemsService)
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.sapSystemsService = sapSystemsService
 
 	sapSystemsService.On("GetSAPSystemsById", "foobar").Return(sapsystem.SAPSystemsList{}, nil)

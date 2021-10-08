@@ -1,6 +1,6 @@
 ---
 
-- name: "{{ id }}.check"
+- name: "{{ name }}.check"
   shell: |
     for i in $(crm_node -l | cut -d' ' -f2); do
       if ! cat /etc/hosts |grep -q $i; then exit 1; fi

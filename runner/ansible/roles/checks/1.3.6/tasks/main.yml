@@ -1,8 +1,8 @@
 ---
 
-- name: "{{ id }}.check"
+- name: "{{ name }}.check"
   shell: |
-    DEF_MSGWAIT={{ expected[id] }}
+    DEF_MSGWAIT={{ expected[name] }}
     result_msgwait=${DEF_MSGWAIT}
     sbdarray=$(grep -E '^SBD_DEVICE=' /etc/sysconfig/sbd  | grep -oP 'SBD_DEVICE=\K[^.]+' | sed 's/\"//g')
     IFS=';' sbdarray=( $sbdarray )
@@ -16,7 +16,7 @@
     echo $result_msgwait
   register: config_updated
   check_mode: false
-  changed_when: config_updated.stdout != expected[id]
+  changed_when: config_updated.stdout != expected[name]
 
 - block:
     - name: Post results

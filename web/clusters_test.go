@@ -18,10 +18,11 @@ import (
 	"github.com/tdewolff/minify/v2/html"
 	"github.com/trento-project/trento/internal/cloud"
 	"github.com/trento-project/trento/internal/consul"
-	"github.com/trento-project/trento/internal/consul/mocks"
+	consulMocks "github.com/trento-project/trento/internal/consul/mocks"
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
 	serviceMocks "github.com/trento-project/trento/web/services/mocks"
+	servicesMocks "github.com/trento-project/trento/web/services/mocks"
 )
 
 func clustersListMap() map[string]interface{} {
@@ -285,127 +286,71 @@ func clustersListMap() map[string]interface{} {
 	return listMap
 }
 
-func checksCatalog() map[string]*models.Check {
+func checksCatalogByGroup() models.GroupedCheckList {
 
-	checksByGroup := map[string]*models.Check{
-		"1.1.1": &models.Check{
-			ID:             "1.1.1",
-			Name:           "check 1",
-			Group:          "group 1",
-			Description:    "description 1",
-			Remediation:    "remediation 1",
-			Implementation: "implementation 1",
-			Labels:         "labels 1",
-		},
-		"1.1.1.runtime": &models.Check{
-			ID:             "1.1.1.runtime",
-			Name:           "check 1 (runtime)",
-			Group:          "group 1",
-			Description:    "description 1",
-			Remediation:    "remediation 1",
-			Implementation: "implementation 1",
-			Labels:         "labels 1",
-		},
-		"1.1.2": &models.Check{
-			ID:             "1.1.2",
-			Name:           "check 2",
-			Group:          "group 1",
-			Description:    "description 2",
-			Remediation:    "remediation 2",
-			Implementation: "implementation 2",
-			Labels:         "labels 2",
-		},
-		"1.2.3": &models.Check{
-			ID:             "1.2.3",
-			Name:           "check 3",
-			Group:          "group 2",
-			Description:    "description 3",
-			Remediation:    "remediation 3",
-			Implementation: "implementation 3",
-			Labels:         "labels 3",
-		},
-		"1.1.3": &models.Check{
-			ID:             "1.1.3",
-			Name:           "check 3",
-			Group:          "group 1",
-			Description:    "description 3",
-			Remediation:    "remediation 3",
-			Implementation: "implementation 3",
-			Labels:         "labels 2",
-		},
-		"1.1.4": &models.Check{
-			ID:             "1.1.4",
-			Name:           "check 4",
-			Group:          "group 1",
-			Description:    "description 4",
-			Remediation:    "remediation 4",
-			Implementation: "implementation 4",
-			Labels:         "labels 2",
-		},
-	}
-
-	return checksByGroup
-}
-
-func checksCatalogByGroup() map[string]map[string]*models.Check {
-
-	checksByGroup := map[string]map[string]*models.Check{
-		"group 1": {
-			"1.1.1": &models.Check{
-				ID:             "1.1.1",
-				Name:           "check 1",
-				Group:          "group 1",
-				Description:    "description 1",
-				Remediation:    "remediation 1",
-				Implementation: "implementation 1",
-				Labels:         "labels 1",
-			},
-			"1.1.1.runtime": &models.Check{
-				ID:             "1.1.1.runtime",
-				Name:           "check 1 (runtime)",
-				Group:          "group 1",
-				Description:    "description 1",
-				Remediation:    "remediation 1",
-				Implementation: "implementation 1",
-				Labels:         "labels 1",
-			},
-			"1.1.2": &models.Check{
-				ID:             "1.1.2",
-				Name:           "check 2",
-				Group:          "group 1",
-				Description:    "description 2",
-				Remediation:    "remediation 2",
-				Implementation: "implementation 2",
-				Labels:         "labels 2",
-			},
-			"1.1.3": &models.Check{
-				ID:             "1.1.3",
-				Name:           "check 3",
-				Group:          "group 1",
-				Description:    "description 3",
-				Remediation:    "remediation 3",
-				Implementation: "implementation 3",
-				Labels:         "labels 2",
-			},
-			"1.1.4": &models.Check{
-				ID:             "1.1.4",
-				Name:           "check 4",
-				Group:          "group 1",
-				Description:    "description 4",
-				Remediation:    "remediation 4",
-				Implementation: "implementation 4",
-				Labels:         "labels 2",
+	checksByGroup := models.GroupedCheckList{
+		&models.GroupedChecks{
+			Group: "group 1",
+			Checks: models.CheckList{
+				&models.Check{
+					ID:             "ABCDEF",
+					Name:           "1.1.1",
+					Group:          "group 1",
+					Description:    "description 1",
+					Remediation:    "remediation 1",
+					Implementation: "implementation 1",
+					Labels:         "labels 1",
+				},
+				&models.Check{
+					ID:             "1ABCDE",
+					Name:           "1.1.1.runtime",
+					Group:          "group 1",
+					Description:    "description 1",
+					Remediation:    "remediation 1",
+					Implementation: "implementation 1",
+					Labels:         "labels 1",
+				},
+				&models.Check{
+					ID:             "12ABCD",
+					Name:           "1.1.2",
+					Group:          "group 1",
+					Description:    "description 2",
+					Remediation:    "remediation 2",
+					Implementation: "implementation 2",
+					Labels:         "labels 2",
+				},
+				&models.Check{
+					ID:             "123ABC",
+					Name:           "1.1.3",
+					Group:          "group 1",
+					Description:    "description 3",
+					Remediation:    "remediation 3",
+					Implementation: "implementation 3",
+					Labels:         "labels 2",
+				},
+				&models.Check{
+					ID:             "1234AB",
+					Name:           "1.1.4",
+					Group:          "group 1",
+					Description:    "description 4",
+					Remediation:    "remediation 4",
+					Implementation: "implementation 4",
+					Labels:         "labels 2",
+				},
 			},
 		},
-		"group 2": {
-			"1.2.3": &models.Check{
-				ID:             "1.2.3",
-				Name:           "check 3",
-				Group:          "group 2",
-				Description:    "description 3",
-				Remediation:    "remediation 3",
-				Implementation: "implementation 3",
-				Labels:         "labels 3",
+		&models.GroupedChecks{
+			Group: "group 2",
+			Checks: models.CheckList{
+				&models.Check{
+					ID:             "12345A",
+					Name:           "1.2.3",
+					Group:          "group 2",
+					Description:    "description 3",
+					Remediation:    "remediation 3",
+					Implementation: "implementation 3",
+					Labels:         "labels 3",
+				},
 			},
 		},
 	}
@@ -548,10 +493,10 @@ func azureMeta(userIndex int) map[string]interface{} {
 }
 
 func TestClustersListHandler(t *testing.T) {
-	consulInst := new(mocks.Client)
+	consulInst := new(consulMocks.Client)
 	checksMocks := new(serviceMocks.ChecksService)
 
-	kv := new(mocks.KV)
+	kv := new(consulMocks.KV)
 	consulInst.On("KV").Return(kv)
 	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
 	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil)
@@ -565,22 +510,16 @@ func TestClustersListHandler(t *testing.T) {
 	checksMocks.On("GetAggregatedChecksResultByCluster", "e27d313a674375b2066777a89ee346b9").Return(
 		aggregatedByClusterEmpty(), nil)
 
-	tags := map[string]interface{}{
-		"tag1": struct{}{},
-	}
+	mockTagsService := new(servicesMocks.TagsService)
+	mockTagsService.On("GetAllByResource", models.TagClusterResourceType, "47d1190ffb4f781974c8356d7f863b03").Return([]string{"tag1"}, nil)
+	mockTagsService.On("GetAllByResource", models.TagClusterResourceType, "a615a35f65627be5a757319a0741127f").Return([]string{"tag1"}, nil)
+	mockTagsService.On("GetAllByResource", models.TagClusterResourceType, "e2f2eb50aef748e586a7baa85e0162cf").Return([]string{"tag1"}, nil)
+	mockTagsService.On("GetAllByResource", models.TagClusterResourceType, "e27d313a674375b2066777a89ee346b9").Return(nil, nil)
 
-	tagsPath := "trento/v0/tags/clusters/47d1190ffb4f781974c8356d7f863b03/"
-	kv.On("ListMap", tagsPath, tagsPath).Return(tags, nil)
-	tagsPath = "trento/v0/tags/clusters/a615a35f65627be5a757319a0741127f/"
-	kv.On("ListMap", tagsPath, tagsPath).Return(tags, nil)
-	tagsPath = "trento/v0/tags/clusters/e2f2eb50aef748e586a7baa85e0162cf/"
-	kv.On("ListMap", tagsPath, tagsPath).Return(tags, nil)
-	tagsPath = "trento/v0/tags/clusters/e27d313a674375b2066777a89ee346b9/"
-	kv.On("ListMap", tagsPath, tagsPath).Return(nil, nil)
-
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.consul = consulInst
 	deps.checksService = checksMocks
+	deps.tagsService = mockTagsService
 
 	var err error
 	app, err := NewAppWithDeps("", 80, deps)
@@ -633,21 +572,21 @@ func TestClusterHandlerHANA(t *testing.T) {
 		},
 	}
 
-	consulInst := new(mocks.Client)
+	consulInst := new(consulMocks.Client)
 	checksMocks := new(serviceMocks.ChecksService)
 
-	kv := new(mocks.KV)
+	kv := new(consulMocks.KV)
 	consulInst.On("KV").Return(kv)
 	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
 	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil).Times(3)
 
-	catalog := new(mocks.Catalog)
+	catalog := new(consulMocks.Catalog)
 	filter := &consulApi.QueryOptions{Filter: "Meta[\"trento-ha-cluster-id\"] == \"" + clusterId + "\""}
 	catalog.On("Nodes", filter).Return(nodes, nil, nil)
 	consulInst.On("Catalog").Return(catalog)
 
 	selectedChecksPath := fmt.Sprintf(consul.KvClustersChecksPath, clusterId)
-	selectedChecksValue := &consulApi.KVPair{Value: []byte("1.1.1,1.1.2")}
+	selectedChecksValue := &consulApi.KVPair{Value: []byte("ABCDEF,12ABCD")}
 	kv.On("Get", selectedChecksPath, (*consulApi.QueryOptions)(nil)).Return(selectedChecksValue, nil, nil)
 
 	connData := map[string]interface{}{
@@ -665,7 +604,6 @@ func TestClusterHandlerHANA(t *testing.T) {
 	consulInst.On("WaitLock", path.Join(consul.KvHostsPath, "test_node_2")+"/").Return(nil)
 	kv.On("ListMap", cloudPath2, cloudPath2).Return(azureMeta(2), nil)
 
-	checksMocks.On("GetChecksCatalog").Return(checksCatalog(), nil)
 	checksMocks.On("GetChecksCatalogByGroup").Return(checksCatalogByGroup(), nil)
 	checksMocks.On("GetChecksResultByCluster", clusterId).Return(
 		checksResult(), nil)
@@ -674,7 +612,7 @@ func TestClusterHandlerHANA(t *testing.T) {
 	checksMocks.On("GetAggregatedChecksResultByHost", clusterId).Return(
 		checksResultByHost(), nil)
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.consul = consulInst
 	deps.checksService = checksMocks
 
@@ -733,14 +671,14 @@ func TestClusterHandlerHANA(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("<td>test_node_1</td>.*<td><input.*id=username-test_node_1.*value=myuser1.*<td>defuser1"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td>test_node_2</td>.*<td><input.*id=username-test_node_2.*value=myuser2.*<td>defuser2"), minified)
 	// Selected checks
-	assert.Regexp(t, regexp.MustCompile("id=0-1-1-1 checked>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td>1.1.1</td><td>description 1</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("id=0-1-1-1-runtime>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td>1.1.1.runtime</td><td>description 1</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("id=0-1-1-2 checked>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td>1.1.2</td><td>description 2</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("id=1-1-2-3>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td>1.2.3</td><td>description 3</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("id=0-ABCDEF checked>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td>ABCDEF</td><td>description 1</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("id=0-1ABCDE"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td>1ABCDE</td><td>description 1</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("id=0-12ABCD checked>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td>12ABCD</td><td>description 2</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("id=1-12345A>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td>12345A</td><td>description 3</td>"), minified)
 }
 
 func TestClusterHandlerUnreachableNodes(t *testing.T) {
@@ -757,15 +695,15 @@ func TestClusterHandlerUnreachableNodes(t *testing.T) {
 		},
 	}
 
-	consulInst := new(mocks.Client)
+	consulInst := new(consulMocks.Client)
 	checksMocks := new(serviceMocks.ChecksService)
 
-	kv := new(mocks.KV)
+	kv := new(consulMocks.KV)
 	consulInst.On("KV").Return(kv)
 	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
 	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil).Times(3)
 
-	catalog := new(mocks.Catalog)
+	catalog := new(consulMocks.Catalog)
 	filter := &consulApi.QueryOptions{Filter: "Meta[\"trento-ha-cluster-id\"] == \"" + clusterId + "\""}
 	catalog.On("Nodes", filter).Return(nodes, nil, nil)
 	consulInst.On("Catalog").Return(catalog)
@@ -789,7 +727,6 @@ func TestClusterHandlerUnreachableNodes(t *testing.T) {
 	consulInst.On("WaitLock", path.Join(consul.KvHostsPath, "test_node_2")+"/").Return(nil)
 	kv.On("ListMap", cloudPath2, cloudPath2).Return(azureMeta(2), nil)
 
-	checksMocks.On("GetChecksCatalog").Return(checksCatalog(), nil)
 	checksMocks.On("GetChecksCatalogByGroup").Return(checksCatalogByGroup(), nil)
 	checksMocks.On("GetChecksResultByCluster", clusterId).Return(checksResultUnreachable(), nil)
 	checksMocks.On("GetAggregatedChecksResultByCluster", clusterId).Return(
@@ -797,7 +734,7 @@ func TestClusterHandlerUnreachableNodes(t *testing.T) {
 	checksMocks.On("GetAggregatedChecksResultByHost", clusterId).Return(
 		checksResultByHost(), nil)
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.consul = consulInst
 	deps.checksService = checksMocks
 
@@ -844,15 +781,15 @@ func TestClusterHandlerAlert(t *testing.T) {
 		},
 	}
 
-	consulInst := new(mocks.Client)
+	consulInst := new(consulMocks.Client)
 	checksMocks := new(serviceMocks.ChecksService)
 
-	kv := new(mocks.KV)
+	kv := new(consulMocks.KV)
 	consulInst.On("KV").Return(kv)
 	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
 	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil).Times(3)
 
-	catalog := new(mocks.Catalog)
+	catalog := new(consulMocks.Catalog)
 	filter := &consulApi.QueryOptions{Filter: "Meta[\"trento-ha-cluster-id\"] == \"" + clusterId + "\""}
 	catalog.On("Nodes", filter).Return(nodes, nil, nil)
 	consulInst.On("Catalog").Return(catalog)
@@ -876,7 +813,6 @@ func TestClusterHandlerAlert(t *testing.T) {
 	consulInst.On("WaitLock", path.Join(consul.KvHostsPath, "test_node_2")+"/").Return(nil)
 	kv.On("ListMap", cloudPath2, cloudPath2).Return(azureMeta(2), nil)
 
-	checksMocks.On("GetChecksCatalog").Return(nil, fmt.Errorf("catalog error"))
 	checksMocks.On("GetChecksCatalogByGroup").Return(nil, fmt.Errorf("catalog error"))
 	checksMocks.On("GetChecksResultByCluster", clusterId).Return(nil, fmt.Errorf("catalog error"))
 	checksMocks.On("GetAggregatedChecksResultByCluster", clusterId).Return(
@@ -884,7 +820,7 @@ func TestClusterHandlerAlert(t *testing.T) {
 	checksMocks.On("GetAggregatedChecksResultByHost", clusterId).Return(
 		checksResultByHost(), nil)
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.consul = consulInst
 	deps.checksService = checksMocks
 
@@ -926,20 +862,20 @@ func TestClusterHandlerAlert(t *testing.T) {
 }
 
 func TestClusterHandlerGeneric(t *testing.T) {
-	consulInst := new(mocks.Client)
+	consulInst := new(consulMocks.Client)
 
-	kv := new(mocks.KV)
+	kv := new(consulMocks.KV)
 	consulInst.On("KV").Return(kv)
 
 	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
 	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil)
 
-	catalog := new(mocks.Catalog)
+	catalog := new(consulMocks.Catalog)
 	filter := &consulApi.QueryOptions{Filter: "Meta[\"trento-ha-cluster-id\"] == \"e2f2eb50aef748e586a7baa85e0162cf\""}
 	catalog.On("Nodes", filter).Return(nil, nil, nil)
 	consulInst.On("Catalog").Return(catalog)
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.consul = consulInst
 
 	app, err := NewAppWithDeps("", 80, deps)
@@ -967,14 +903,14 @@ func TestClusterHandlerGeneric(t *testing.T) {
 func TestClusterHandler404Error(t *testing.T) {
 	var err error
 
-	kv := new(mocks.KV)
+	kv := new(consulMocks.KV)
 	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
 
-	consulInst := new(mocks.Client)
+	consulInst := new(consulMocks.Client)
 	consulInst.On("KV").Return(kv)
 	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil)
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.consul = consulInst
 
 	app, err := NewAppWithDeps("", 80, deps)
@@ -1004,16 +940,16 @@ func TestSaveChecksHandler(t *testing.T) {
 		"host2": "myuser2",
 	}
 
-	kv := new(mocks.KV)
+	kv := new(consulMocks.KV)
 	kv.On("PutTyped", fmt.Sprintf(consul.KvClustersChecksPath, "foobar"), "1.2.3").Return(nil)
 	kv.On("PutMap", fmt.Sprintf(consul.KvClustersConnectionPath, "foobar"), expectedConnections).Return(nil)
 
-	consulInst := new(mocks.Client)
+	consulInst := new(consulMocks.Client)
 	consulInst.On("KV").Return(kv)
 	testLock := consulApi.Lock{}
 	consulInst.On("AcquireLockKey", consul.KvClustersPath).Return(&testLock, nil).Times(2)
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.consul = consulInst
 
 	app, err := NewAppWithDeps("", 80, deps)

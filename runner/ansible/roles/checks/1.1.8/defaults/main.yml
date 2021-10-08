@@ -1,11 +1,10 @@
 ---
 
-id: 1.1.8
-name: Corosync two_node parameter is set to {{ expected[id] }}
+name: 1.1.8
 group: Corosync
 labels: generic
 description: |
-  Test if the configured corosync two_node parameter has the correct value: {{ expected[id] }}
+  Test if the configured corosync two_node parameter has the correct value: {{ expected[name] }}
 remediation: |
   ## Abstract
   The runtime value of the corosync `two_node` parameter is not set as recommended.
@@ -15,7 +14,10 @@ remediation: |
 
   ## References
   - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker
-implementation: "{{ lookup('file', 'roles/checks/'+id+'/tasks/main.yml') }}"
+implementation: "{{ lookup('file', 'roles/checks/'+name+'/tasks/main.yml') }}"
 
 # Test data
 key_name: two_node
+
+# check id. This value must not be changed over the life of this check
+id: 6E9B82

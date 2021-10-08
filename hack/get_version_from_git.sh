@@ -1,8 +1,5 @@
 #!/bin/sh
-TAG=$(git describe --tags --abbrev=0 2>/dev/null)
-if [[ "$TAG" == "rolling" ]]; then
-  TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null)
-fi
+TAG=$( git tag | grep -E "[0-9]\.[0-9]\.[0-9]" | sort -rn | head -n1 )
 
 if [ -n "${TAG}" ]; then
   COMMITS_SINCE_TAG=$(git rev-list "${TAG}".. --count)

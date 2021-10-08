@@ -1,6 +1,6 @@
 ---
 
-- name: "{{ id }}.check"
+- name: "{{ name }}.check"
   shell: |
     sid=$(crm configure show | grep -m1 SID= | sed -e "s/.*SID=\(...\).*/\1/" | tr '[:lower:]' '[:upper:]')
     inst=$(crm configure show | grep -m1 InstanceNumber= | sed -e "s/.*InstanceNumber=\(..\).*/\1/")

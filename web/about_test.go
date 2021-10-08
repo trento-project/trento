@@ -20,7 +20,7 @@ func TestAboutHandlerPremium(t *testing.T) {
 	subscriptionsMocks.On("GetSubscriptionData").Return(
 		&services.SubscriptionData{Type: services.Premium, SubscribedCount: 2}, nil)
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.subscriptionsService = subscriptionsMocks
 
 	var err error
@@ -62,7 +62,7 @@ func TestAboutHandlerFree(t *testing.T) {
 	subscriptionsMocks.On("GetSubscriptionData").Return(
 		&services.SubscriptionData{Type: services.Free, SubscribedCount: 0}, nil)
 
-	deps := DefaultDependencies()
+	deps := testDependencies()
 	deps.subscriptionsService = subscriptionsMocks
 
 	var err error

@@ -20,3 +20,7 @@ dependencies:
     version: "~0.32.1"
     repository: https://helm.releases.hashicorp.com
     condition: consul.enabled
+  - name: postgresql
+    version: ~10.1.4
+    repository: https://charts.bitnami.com/bitnami/
+    condition: postgresql.enabled

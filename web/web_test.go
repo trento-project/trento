@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func testDependencies() Dependencies {
+func setupTestDependencies() Dependencies {
 	return Dependencies{
 		engine: gin.Default(),
 		store:  cookie.NewStore([]byte("secret")),

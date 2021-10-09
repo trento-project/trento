@@ -16,7 +16,7 @@ import (
 func TestChecksCatalogHandler(t *testing.T) {
 	checksMocks := new(mocks.ChecksService)
 
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	deps.checksService = checksMocks
 
 	checks := models.GroupedCheckList{
@@ -95,7 +95,7 @@ func TestChecksCatalogHandlerError(t *testing.T) {
 
 	checksMocks := new(mocks.ChecksService)
 
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	deps.checksService = checksMocks
 
 	checksMocks.On("GetChecksCatalogByGroup").Return(

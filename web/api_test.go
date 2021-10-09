@@ -45,7 +45,7 @@ func TestApiListTag(t *testing.T) {
 	mockTagsService.On("GetAll").Return(tags, nil)
 	mockTagsService.On("GetAll", "sapsystems").Return(tagsSAPSystems, nil)
 	mockTagsService.On("GetAll", "hosts").Return(tagsHosts, nil)
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	deps.tagsService = mockTagsService
 
 	app, err := NewAppWithDeps("", 80, deps)
@@ -98,7 +98,7 @@ func setupTestApiHostTag() Dependencies {
 	mockTagsService.On("Create", "cool_rabbit", models.TagHostResourceType, "suse").Return(nil)
 	mockTagsService.On("Delete", "cool_rabbit", models.TagHostResourceType, "suse").Return(nil)
 
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	deps.consul = consulInst
 	deps.tagsService = mockTagsService
 
@@ -175,7 +175,7 @@ func TestApiHostCreateTagHandler500(t *testing.T) {
 	catalog.On("Node", "suse", mock.Anything).Return(nil, nil, fmt.Errorf("kaboom"))
 	consulInst.On("Catalog").Return(catalog)
 
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	deps.consul = consulInst
 
 	var err error
@@ -241,7 +241,7 @@ func TestApiHostDeleteTagHandler500(t *testing.T) {
 	catalog.On("Node", "suse", mock.Anything).Return(nil, nil, fmt.Errorf("kaboom"))
 	consulInst.On("Catalog").Return(catalog)
 
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	deps.consul = consulInst
 
 	var err error
@@ -277,7 +277,7 @@ func setupTestApiClusterTag() Dependencies {
 	mockTagsService.On("Create", "cool_rabbit", models.TagClusterResourceType, "47d1190ffb4f781974c8356d7f863b03").Return(nil)
 	mockTagsService.On("Delete", "cool_rabbit", models.TagClusterResourceType, "47d1190ffb4f781974c8356d7f863b03").Return(nil)
 
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	deps.consul = consulInst
 	deps.tagsService = mockTagsService
 
@@ -354,7 +354,7 @@ func TestApiClusterCreateTagHandler500(t *testing.T) {
 	consulInst.On("KV").Return(kv)
 	consulInst.On("WaitLock", mock.Anything).Return(fmt.Errorf("kaboom"))
 
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	deps.consul = consulInst
 
 	var err error
@@ -420,7 +420,7 @@ func TestApiClusterDeleteTagHandler500(t *testing.T) {
 	consulInst.On("KV").Return(kv)
 	consulInst.On("WaitLock", mock.Anything).Return(fmt.Errorf("kaboom"))
 
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	deps.consul = consulInst
 
 	var err error
@@ -458,7 +458,7 @@ func setupTestApiSAPSystemTag(systemType string) Dependencies {
 	mockSAPSystemsService.On(
 		"GetSAPSystemsById", "non-existing-sid").Return(sapsystem.SAPSystemsList{}, nil)
 
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	deps.sapSystemsService = mockSAPSystemsService
 	deps.tagsService = mockTagsService
 
@@ -534,7 +534,7 @@ func TestApiSAPSystemCreateTagHandler500(t *testing.T) {
 	mockSAPSystemsService.On(
 		"GetSAPSystemsById", "systemId").Return(sapsystem.SAPSystemsList{}, fmt.Errorf("kaboom"))
 
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	deps.sapSystemsService = mockSAPSystemsService
 
 	var err error
@@ -599,7 +599,7 @@ func TestApiSAPSystemDeleteTagHandler500(t *testing.T) {
 	mockSAPSystemsService.On(
 		"GetSAPSystemsById", "systemId").Return(sapsystem.SAPSystemsList{}, fmt.Errorf("kaboom"))
 
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	deps.sapSystemsService = mockSAPSystemsService
 
 	var err error
@@ -689,7 +689,7 @@ func TestApiDatabaseCreateTagHandler500(t *testing.T) {
 	mockSAPSystemsService.On(
 		"GetSAPSystemsById", "systemId").Return(sapsystem.SAPSystemsList{}, fmt.Errorf("kaboom"))
 
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	deps.sapSystemsService = mockSAPSystemsService
 
 	var err error
@@ -754,7 +754,7 @@ func TestApiDatabaseDeleteTagHandler500(t *testing.T) {
 	mockSAPSystemsService.On(
 		"GetSAPSystemsById", "systemId").Return(sapsystem.SAPSystemsList{}, fmt.Errorf("kaboom"))
 
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	deps.sapSystemsService = mockSAPSystemsService
 
 	var err error
@@ -821,7 +821,7 @@ func TestApiClusterCheckResultsHandler(t *testing.T) {
 	mockChecksService.On(
 		"GetChecksResultAndMetadataByCluster", "47d1190ffb4f781974c8356d7f863b03").Return(results, nil)
 
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	deps.checksService = mockChecksService
 
 	var err error
@@ -889,7 +889,7 @@ func TestApiClusterCheckResultsHandler500(t *testing.T) {
 		"GetChecksResultAndMetadataByCluster", "47d1190ffb4f781974c8356d7f863b03").Return(
 		&models.ClusterCheckResults{}, fmt.Errorf("kaboom"))
 
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	deps.checksService = mockChecksService
 
 	var err error

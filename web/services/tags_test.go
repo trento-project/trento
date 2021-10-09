@@ -3,111 +3,41 @@ package services
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 	"github.com/trento-project/trento/web/models"
 
 	"gorm.io/gorm"
 )
 
-func setupTestTagsService() *gorm.DB {
-	db := setupTestDatabase()
-	db.AutoMigrate(models.Tag{})
-
-	db = db.Exec("TRUNCATE TABLE tags")
-	if db.Error != nil {
-		panic(db.Error)
-	}
-
-	loadTagsFixtures(db)
-	return db
+type TagsServiceTestSuite struct {
+	suite.Suite
+	db          *gorm.DB
+	tx          *gorm.DB
+	tagsService *tagsService
 }
 
-func tearDownTestTagsService(db *gorm.DB) {
-	db.Exec("TRUNCATE TABLE tags")
+func TestTagsServiceTestSuite(t *testing.T) {
+	suite.Run(t, new(TagsServiceTestSuite))
 }
 
-func TestTagsService_GetAll(t *testing.T) {
-	db := setupTestTagsService()
-	defer tearDownTestTagsService(db)
+func (suite *TagsServiceTestSuite) SetupSuite() {
+	suite.db = setupTestDatabase()
 
-	tagsService := NewTagsService(db)
-	tags, _ := tagsService.GetAll()
-
-	assert.ElementsMatch(t, []string{"tag1", "tag2", "tag3"}, tags)
+	suite.db.AutoMigrate(models.Tag{})
+	loadTagsFixtures(suite.db)
 }
 
-func TestTagsService_GetAll_Filter(t *testing.T) {
-	db := setupTestTagsService()
-	defer tearDownTestTagsService(db)
-
-	tagsService := NewTagsService(db)
-	tags, _ := tagsService.GetAll(models.TagClusterResourceType, models.TagHostResourceType)
-
-	assert.ElementsMatch(t, []string{"tag2", "tag3"}, tags)
+func (suite *TagsServiceTestSuite) TearDownSuite() {
+	suite.db.Migrator().DropTable(models.Tag{})
 }
 
-func TestTagsService_GetAllByResource(t *testing.T) {
-	db := setupTestTagsService()
-	defer tearDownTestTagsService(db)
-
-	tagsService := NewTagsService(db)
-	tags, _ := tagsService.GetAllByResource(models.TagHostResourceType, "suse")
-
-	assert.ElementsMatch(t, []string{"tag3"}, tags)
+func (suite *TagsServiceTestSuite) SetupTest() {
+	suite.tx = suite.db.Begin()
+	suite.tagsService = NewTagsService(suite.tx)
 }
 
-func TestTagsService_Create(t *testing.T) {
-	db := setupTestTagsService()
-	tx := db.Begin()
-
-	defer func() {
-		tx.Rollback()
-		tearDownTestTagsService(db)
-	}()
-
-	tagsService := NewTagsService(tx)
-	tagsService.Create("newtag", models.TagHostResourceType, "suse")
-
-	expectedTag := models.Tag{Value: "newtag", ResourceType: models.TagHostResourceType, ResourceId: "suse"}
-
-	var tags []models.Tag
-	tx.Where(&expectedTag).Find(&tags)
-
-	assert.ElementsMatch(t, []models.Tag{expectedTag}, tags)
-}
-
-func TestTagsService_Delete(t *testing.T) {
-	db := setupTestTagsService()
-	tx := db.Begin()
-
-	defer func() {
-		tx.Rollback()
-		tearDownTestTagsService(db)
-	}()
-
-	tagsService := NewTagsService(tx)
-	tagsService.Delete("tag1", models.TagSAPSystemResourceType, "HA1")
-
-	var tags []models.Tag
-	tx.Find(&tags)
-
-	assert.Equal(t, 3, len(tags))
-	assert.ElementsMatch(t, []models.Tag{
-		{
-			ResourceType: models.TagSAPSystemResourceType,
-			ResourceId:   "HA2",
-			Value:        "tag1",
-		},
-		{
-			ResourceType: models.TagClusterResourceType,
-			ResourceId:   "cluster_id",
-			Value:        "tag2",
-		},
-		{
-			ResourceType: models.TagHostResourceType,
-			ResourceId:   "suse",
-			Value:        "tag3",
-		}}, tags)
+func (suite *TagsServiceTestSuite) TearDownTest() {
+	suite.tx.Rollback()
 }
 
 func loadTagsFixtures(db *gorm.DB) {
@@ -131,4 +61,58 @@ func loadTagsFixtures(db *gorm.DB) {
 		ResourceId:   "suse",
 		Value:        "tag3",
 	})
+}
+
+func (suite *TagsServiceTestSuite) TestTagsService_GetAll() {
+	tags, _ := suite.tagsService.GetAll()
+
+	suite.ElementsMatch([]string{"tag1", "tag2", "tag3"}, tags)
+}
+
+func (suite *TagsServiceTestSuite) TestTagsService_GetAll_Filter() {
+	tags, _ := suite.tagsService.GetAll(models.TagClusterResourceType, models.TagHostResourceType)
+
+	suite.ElementsMatch([]string{"tag2", "tag3"}, tags)
+}
+
+func (suite *TagsServiceTestSuite) TestTagsService_GetAllByResource() {
+	tags, _ := suite.tagsService.GetAllByResource(models.TagHostResourceType, "suse")
+
+	suite.ElementsMatch([]string{"tag3"}, tags)
+}
+
+func (suite *TagsServiceTestSuite) TestTagsService_Create() {
+	suite.tagsService.Create("newtag", models.TagHostResourceType, "suse")
+
+	expectedTag := models.Tag{Value: "newtag", ResourceType: models.TagHostResourceType, ResourceId: "suse"}
+
+	var tags []models.Tag
+	suite.tx.Where(&expectedTag).Find(&tags)
+
+	suite.ElementsMatch([]models.Tag{expectedTag}, tags)
+}
+
+func (suite *TagsServiceTestSuite) TestTagsService_Delete() {
+	suite.tagsService.Delete("tag1", models.TagSAPSystemResourceType, "HA1")
+
+	var tags []models.Tag
+	suite.tx.Find(&tags)
+
+	suite.Equal(3, len(tags))
+	suite.ElementsMatch([]models.Tag{
+		{
+			ResourceType: models.TagSAPSystemResourceType,
+			ResourceId:   "HA2",
+			Value:        "tag1",
+		},
+		{
+			ResourceType: models.TagClusterResourceType,
+			ResourceId:   "cluster_id",
+			Value:        "tag2",
+		},
+		{
+			ResourceType: models.TagHostResourceType,
+			ResourceId:   "suse",
+			Value:        "tag3",
+		}}, tags)
 }

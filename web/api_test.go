@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	consulApi "github.com/hashicorp/consul/api"
 
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/sapsystem"
@@ -19,7 +20,6 @@ import (
 
 	"github.com/trento-project/trento/web/models"
 
-	consulApi "github.com/hashicorp/consul/api"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -82,189 +82,27 @@ func TestApiListTag(t *testing.T) {
 	assert.Equal(t, expectedBody, resp.Body.Bytes())
 }
 
-func setupTestApiHostTag() Dependencies {
+func setupTestApiHostTag(resourceId string) Dependencies {
 	node := &consulApi.Node{
-		Node: "suse",
+		Node: resourceId,
 	}
 
 	consulInst := new(consulMocks.Client)
 	catalog := new(consulMocks.Catalog)
 	catalogNode := &consulApi.CatalogNode{Node: node}
-	catalog.On("Node", "suse", (*consulApi.QueryOptions)(nil)).Return(catalogNode, nil, nil)
+	catalog.On("Node", resourceId, (*consulApi.QueryOptions)(nil)).Return(catalogNode, nil, nil)
 	catalog.On("Node", mock.Anything, (*consulApi.QueryOptions)(nil)).Return(nil, nil, nil)
 	consulInst.On("Catalog").Return(catalog)
 
-	mockTagsService := new(servicesMocks.TagsService)
-	mockTagsService.On("Create", "cool_rabbit", models.TagHostResourceType, "suse").Return(nil)
-	mockTagsService.On("Delete", "cool_rabbit", models.TagHostResourceType, "suse").Return(nil)
-
 	deps := setupTestDependencies()
 	deps.consul = consulInst
-	deps.tagsService = mockTagsService
 
 	return deps
 }
 
-func TestApiHostCreateTagHandler(t *testing.T) {
-	deps := setupTestApiHostTag()
-	app, err := NewAppWithDeps("", 80, deps)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp := httptest.NewRecorder()
-
-	body, _ := json.Marshal(&JSONTag{"cool_rabbit"})
-	req, err := http.NewRequest("POST", "/api/hosts/suse/tags", bytes.NewBuffer(body))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	app.ServeHTTP(resp, req)
-
-	expectedBody, _ := json.Marshal(gin.H{
-		"tag": "cool_rabbit",
-	})
-	assert.Equal(t, expectedBody, resp.Body.Bytes())
-	assert.Equal(t, 201, resp.Code)
-}
-
-func TestApiHostCreateTagHandler404(t *testing.T) {
-	deps := setupTestApiHostTag()
-	app, err := NewAppWithDeps("", 80, deps)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp := httptest.NewRecorder()
-
-	body, _ := json.Marshal(&JSONTag{"cool_rabbit"})
-	req, err := http.NewRequest("POST", "/api/hosts/non-existing-host/tags", bytes.NewBuffer(body))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	app.ServeHTTP(resp, req)
-
-	assert.Equal(t, 404, resp.Code)
-}
-
-func TestApiHostCreateTagHandler400(t *testing.T) {
-	deps := setupTestApiHostTag()
-	app, err := NewAppWithDeps("", 80, deps)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp := httptest.NewRecorder()
-
-	invalidJSON := []byte("ABC€")
-	req, err := http.NewRequest("POST", "/api/hosts/suse/tags", bytes.NewBuffer(invalidJSON))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	app.ServeHTTP(resp, req)
-
-	assert.Equal(t, 400, resp.Code)
-}
-
-func TestApiHostCreateTagHandler500(t *testing.T) {
-	consulInst := new(consulMocks.Client)
-	catalog := new(consulMocks.Catalog)
-	catalog.On("Node", "suse", mock.Anything).Return(nil, nil, fmt.Errorf("kaboom"))
-	consulInst.On("Catalog").Return(catalog)
-
-	deps := setupTestDependencies()
-	deps.consul = consulInst
-
-	var err error
-	app, err := NewAppWithDeps("", 80, deps)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp := httptest.NewRecorder()
-
-	body, _ := json.Marshal(&JSONTag{"cool_rabbit"})
-	req, err := http.NewRequest("POST", "/api/hosts/suse/tags", bytes.NewBuffer(body))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	app.ServeHTTP(resp, req)
-
-	assert.Equal(t, 500, resp.Code)
-}
-
-func TestApiHostDeleteTagHandler(t *testing.T) {
-	deps := setupTestApiHostTag()
-	app, err := NewAppWithDeps("", 80, deps)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp := httptest.NewRecorder()
-
-	req, err := http.NewRequest("DELETE", "/api/hosts/suse/tags/cool_rabbit", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	app.ServeHTTP(resp, req)
-
-	assert.Equal(t, 204, resp.Code)
-}
-
-func TestApiHostDeleteTagHandler404(t *testing.T) {
-	deps := setupTestApiHostTag()
-	app, err := NewAppWithDeps("", 80, deps)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp := httptest.NewRecorder()
-
-	req, err := http.NewRequest("DELETE", "/api/hosts/non-existing-host/tags/cool_rabbit", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	app.ServeHTTP(resp, req)
-
-	assert.Equal(t, 404, resp.Code)
-}
-
-func TestApiHostDeleteTagHandler500(t *testing.T) {
-	consulInst := new(consulMocks.Client)
-	catalog := new(consulMocks.Catalog)
-	catalog.On("Node", "suse", mock.Anything).Return(nil, nil, fmt.Errorf("kaboom"))
-	consulInst.On("Catalog").Return(catalog)
-
-	deps := setupTestDependencies()
-	deps.consul = consulInst
-
-	var err error
-	app, err := NewAppWithDeps("", 80, deps)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp := httptest.NewRecorder()
-
-	req, err := http.NewRequest("DELETE", "/api/hosts/suse/tags/cool_rabbit", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	app.ServeHTTP(resp, req)
-
-	assert.Equal(t, 500, resp.Code)
-}
-
-func setupTestApiClusterTag() Dependencies {
+func setupTestApiClusterTag(resourceID string) Dependencies {
 	clustersListMap := map[string]interface{}{
-		"47d1190ffb4f781974c8356d7f863b03": map[string]interface{}{},
+		resourceID: map[string]interface{}{},
 	}
 
 	consulInst := new(consulMocks.Client)
@@ -273,506 +111,170 @@ func setupTestApiClusterTag() Dependencies {
 	consulInst.On("WaitLock", mock.Anything).Return(nil)
 	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap, nil)
 
-	mockTagsService := new(servicesMocks.TagsService)
-	mockTagsService.On("Create", "cool_rabbit", models.TagClusterResourceType, "47d1190ffb4f781974c8356d7f863b03").Return(nil)
-	mockTagsService.On("Delete", "cool_rabbit", models.TagClusterResourceType, "47d1190ffb4f781974c8356d7f863b03").Return(nil)
-
 	deps := setupTestDependencies()
 	deps.consul = consulInst
-	deps.tagsService = mockTagsService
 
 	return deps
 }
 
-func TestApiClusterCreateTagHandler(t *testing.T) {
-	deps := setupTestApiClusterTag()
-	app, err := NewAppWithDeps("", 80, deps)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp := httptest.NewRecorder()
-
-	body, _ := json.Marshal(&JSONTag{"cool_rabbit"})
-	req, err := http.NewRequest("POST", "/api/clusters/47d1190ffb4f781974c8356d7f863b03/tags", bytes.NewBuffer(body))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	app.ServeHTTP(resp, req)
-
-	expectedBody, _ := json.Marshal(gin.H{
-		"tag": "cool_rabbit",
-	})
-	assert.Equal(t, expectedBody, resp.Body.Bytes())
-	assert.Equal(t, 201, resp.Code)
-}
-
-func TestApiClusterCreateTagHandler404(t *testing.T) {
-	deps := setupTestApiClusterTag()
-	app, err := NewAppWithDeps("", 80, deps)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp := httptest.NewRecorder()
-
-	body, _ := json.Marshal(&JSONTag{"cool_rabbit"})
-	req, err := http.NewRequest("POST", "/api/clusters/non-existing-id/tags", bytes.NewBuffer(body))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	app.ServeHTTP(resp, req)
-
-	assert.Equal(t, 404, resp.Code)
-}
-
-func TestApiClusterCreateTagHandler400(t *testing.T) {
-	deps := setupTestApiClusterTag()
-	app, err := NewAppWithDeps("", 80, deps)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp := httptest.NewRecorder()
-
-	invalidJSON := []byte("ABC€")
-	req, err := http.NewRequest("POST", "/api/clusters/47d1190ffb4f781974c8356d7f863b03/tags", bytes.NewBuffer(invalidJSON))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	app.ServeHTTP(resp, req)
-
-	assert.Equal(t, 400, resp.Code)
-}
-
-func TestApiClusterCreateTagHandler500(t *testing.T) {
-	consulInst := new(consulMocks.Client)
-	kv := new(consulMocks.KV)
-	consulInst.On("KV").Return(kv)
-	consulInst.On("WaitLock", mock.Anything).Return(fmt.Errorf("kaboom"))
-
-	deps := setupTestDependencies()
-	deps.consul = consulInst
-
-	var err error
-	app, err := NewAppWithDeps("", 80, deps)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp := httptest.NewRecorder()
-
-	body, _ := json.Marshal(&JSONTag{"cool_rabbit"})
-	req, err := http.NewRequest("POST", "/api/clusters/47d1190ffb4f781974c8356d7f863b03/tags", bytes.NewBuffer(body))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	app.ServeHTTP(resp, req)
-
-	assert.Equal(t, 500, resp.Code)
-}
-
-func TestApiClusterDeleteTagHandler(t *testing.T) {
-	deps := setupTestApiClusterTag()
-	app, err := NewAppWithDeps("", 80, deps)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp := httptest.NewRecorder()
-
-	req, err := http.NewRequest("DELETE", "/api/clusters/47d1190ffb4f781974c8356d7f863b03/tags/cool_rabbit", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	app.ServeHTTP(resp, req)
-
-	assert.Equal(t, 204, resp.Code)
-}
-
-func TestApiClusterDeleteTagHandler404(t *testing.T) {
-	deps := setupTestApiClusterTag()
-	app, err := NewAppWithDeps("", 80, deps)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp := httptest.NewRecorder()
-
-	req, err := http.NewRequest("DELETE", "/api/clusters/non-existing-id/tags/cool_rabbit", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	app.ServeHTTP(resp, req)
-
-	assert.Equal(t, 404, resp.Code)
-}
-
-func TestApiClusterDeleteTagHandler500(t *testing.T) {
-	consulInst := new(consulMocks.Client)
-	kv := new(consulMocks.KV)
-	consulInst.On("KV").Return(kv)
-	consulInst.On("WaitLock", mock.Anything).Return(fmt.Errorf("kaboom"))
-
-	deps := setupTestDependencies()
-	deps.consul = consulInst
-
-	var err error
-	app, err := NewAppWithDeps("", 80, deps)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp := httptest.NewRecorder()
-
-	req, err := http.NewRequest("DELETE", "/api/clusters/47d1190ffb4f781974c8356d7f863b03/tags/cool_rabbit", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	app.ServeHTTP(resp, req)
-
-	assert.Equal(t, 500, resp.Code)
-}
-
-func setupTestApiSAPSystemTag(systemType string) Dependencies {
+func setupTestApiSAPSystemTag(resourceID string) Dependencies {
 	systemList := sapsystem.SAPSystemsList{
 		&sapsystem.SAPSystem{
-			Id:  "systemId",
-			SID: "HA1",
+			SID: resourceID,
 		},
 	}
 
-	mockTagsService := new(servicesMocks.TagsService)
-	mockTagsService.On("Create", "cool_rabbit", systemType, "systemId").Return(nil)
-	mockTagsService.On("Delete", "cool_rabbit", systemType, "systemId").Return(nil)
-
 	mockSAPSystemsService := new(servicesMocks.SAPSystemsService)
-	mockSAPSystemsService.On("GetSAPSystemsById", "systemId").Return(systemList, nil)
-	mockSAPSystemsService.On(
-		"GetSAPSystemsById", "non-existing-sid").Return(sapsystem.SAPSystemsList{}, nil)
+	mockSAPSystemsService.On("GetSAPSystemsById", resourceID).Return(systemList, nil)
+	mockSAPSystemsService.On("GetSAPSystemsById", mock.Anything).Return(sapsystem.SAPSystemsList{}, nil)
 
 	deps := setupTestDependencies()
 	deps.sapSystemsService = mockSAPSystemsService
-	deps.tagsService = mockTagsService
 
 	return deps
 }
 
-func TestApiSAPSystemCreateTagHandler(t *testing.T) {
-	deps := setupTestApiSAPSystemTag(models.TagSAPSystemResourceType)
-	app, err := NewAppWithDeps("", 80, deps)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp := httptest.NewRecorder()
-
-	body, _ := json.Marshal(&JSONTag{"cool_rabbit"})
-	req, err := http.NewRequest("POST", "/api/sapsystems/systemId/tags", bytes.NewBuffer(body))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	app.ServeHTTP(resp, req)
-
-	expectedBody, _ := json.Marshal(gin.H{
-		"tag": "cool_rabbit",
-	})
-	assert.Equal(t, expectedBody, resp.Body.Bytes())
-	assert.Equal(t, 201, resp.Code)
+func setupTestApiDatabaseTag(resourceID string) Dependencies {
+	return setupTestApiSAPSystemTag(resourceID)
 }
 
-func TestApiSAPSystemCreateTagHandler404(t *testing.T) {
-	deps := setupTestApiSAPSystemTag(models.TagSAPSystemResourceType)
-	app, err := NewAppWithDeps("", 80, deps)
-	if err != nil {
-		t.Fatal(err)
+func TestApiResourceTag(t *testing.T) {
+	cases := []struct {
+		setupTest    func(resourceId string) Dependencies
+		resourceType string
+	}{
+		{setupTestApiHostTag, models.TagHostResourceType},
+		{setupTestApiClusterTag, models.TagClusterResourceType},
+		{setupTestApiSAPSystemTag, models.TagSAPSystemResourceType},
+		{setupTestApiDatabaseTag, models.TagDatabaseResourceType},
 	}
 
-	resp := httptest.NewRecorder()
+	const tag = "tag"
+	const errorTag = "guru_meditation"
+	const resourceID = "resource_id"
+	const notFoundResourceID = "not_found"
 
-	body, _ := json.Marshal(&JSONTag{"cool_rabbit"})
-	req, err := http.NewRequest("POST", "/api/sapsystems/non-existing-sid/tags", bytes.NewBuffer(body))
-	if err != nil {
-		t.Fatal(err)
+	for _, tc := range cases {
+		deps := tc.setupTest(resourceID)
+
+		mockTagsService := new(servicesMocks.TagsService)
+		mockTagsService.On("Create", tag, tc.resourceType, resourceID).Return(nil)
+		mockTagsService.On("Delete", tag, tc.resourceType, resourceID).Return(nil)
+		mockTagsService.On("Create", errorTag, tc.resourceType, resourceID).Return(fmt.Errorf("guru meditation"))
+		mockTagsService.On("Delete", errorTag, tc.resourceType, resourceID).Return(fmt.Errorf("guru meditation"))
+		deps.tagsService = mockTagsService
+
+		app, err := NewAppWithDeps("", 80, deps)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		t.Run(fmt.Sprintf("Create %s tag", tc.resourceType), func(t *testing.T) {
+			resp := httptest.NewRecorder()
+
+			body, _ := json.Marshal(&JSONTag{tag})
+			url := fmt.Sprintf("/api/%s/%s/tags", tc.resourceType, resourceID)
+			req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			app.ServeHTTP(resp, req)
+
+			expectedBody, _ := json.Marshal(gin.H{
+				"tag": tag,
+			})
+			assert.Equal(t, expectedBody, resp.Body.Bytes())
+			assert.Equal(t, 201, resp.Code)
+		})
+
+		t.Run(fmt.Sprintf("Create %s tag 404", tc.resourceType), func(t *testing.T) {
+			resp := httptest.NewRecorder()
+
+			body, _ := json.Marshal(&JSONTag{tag})
+			url := fmt.Sprintf("/api/%s/%s/tags", tc.resourceType, notFoundResourceID)
+			req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			app.ServeHTTP(resp, req)
+
+			assert.Equal(t, 404, resp.Code)
+		})
+
+		t.Run(fmt.Sprintf("Create %s tag 400", tc.resourceType), func(t *testing.T) {
+			resp := httptest.NewRecorder()
+
+			invalidJSON := []byte("ABC€")
+			url := fmt.Sprintf("/api/%s/%s/tags", tc.resourceType, resourceID)
+			req, err := http.NewRequest("POST", url, bytes.NewBuffer(invalidJSON))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			app.ServeHTTP(resp, req)
+
+			assert.Equal(t, 400, resp.Code)
+		})
+
+		t.Run(fmt.Sprintf("Create %s tag 500", tc.resourceType), func(t *testing.T) {
+			resp := httptest.NewRecorder()
+
+			body, _ := json.Marshal(&JSONTag{errorTag})
+			url := fmt.Sprintf("/api/%s/%s/tags", tc.resourceType, resourceID)
+			req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			app.ServeHTTP(resp, req)
+
+			assert.Equal(t, 500, resp.Code)
+		})
+
+		t.Run(fmt.Sprintf("Delete %s tag", tc.resourceType), func(t *testing.T) {
+			resp := httptest.NewRecorder()
+
+			url := fmt.Sprintf("/api/%s/%s/tags/%s", tc.resourceType, resourceID, tag)
+			req, err := http.NewRequest("DELETE", url, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			app.ServeHTTP(resp, req)
+
+			assert.Equal(t, 204, resp.Code)
+		})
+
+		t.Run(fmt.Sprintf("Delete %s tag 404", tc.resourceType), func(t *testing.T) {
+			resp := httptest.NewRecorder()
+
+			url := fmt.Sprintf("/api/%s/%s/tags/%s", tc.resourceType, notFoundResourceID, tag)
+			req, err := http.NewRequest("DELETE", url, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			app.ServeHTTP(resp, req)
+
+			assert.Equal(t, 404, resp.Code)
+		})
+
+		t.Run(fmt.Sprintf("Delete %s tag 500", tc.resourceType), func(t *testing.T) {
+			resp := httptest.NewRecorder()
+
+			url := fmt.Sprintf("/api/%s/%s/tags/%s", tc.resourceType, resourceID, errorTag)
+			req, err := http.NewRequest("DELETE", url, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			app.ServeHTTP(resp, req)
+
+			assert.Equal(t, 500, resp.Code)
+		})
 	}
-
-	app.ServeHTTP(resp, req)
-
-	assert.Equal(t, 404, resp.Code)
-}
-
-func TestApiSAPSystemCreateTagHandler400(t *testing.T) {
-	deps := setupTestApiSAPSystemTag(models.TagSAPSystemResourceType)
-	app, err := NewAppWithDeps("", 80, deps)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp := httptest.NewRecorder()
-
-	invalidJSON := []byte("ABC€")
-	req, err := http.NewRequest("POST", "/api/sapsystems/systemId/tags", bytes.NewBuffer(invalidJSON))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	app.ServeHTTP(resp, req)
-
-	assert.Equal(t, 400, resp.Code)
-}
-
-func TestApiSAPSystemCreateTagHandler500(t *testing.T) {
-	mockSAPSystemsService := new(servicesMocks.SAPSystemsService)
-	mockSAPSystemsService.On(
-		"GetSAPSystemsById", "systemId").Return(sapsystem.SAPSystemsList{}, fmt.Errorf("kaboom"))
-
-	deps := setupTestDependencies()
-	deps.sapSystemsService = mockSAPSystemsService
-
-	var err error
-	app, err := NewAppWithDeps("", 80, deps)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp := httptest.NewRecorder()
-
-	body, _ := json.Marshal(&JSONTag{"cool_rabbit"})
-	req, err := http.NewRequest("POST", "/api/sapsystems/systemId/tags", bytes.NewBuffer(body))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	app.ServeHTTP(resp, req)
-
-	assert.Equal(t, 500, resp.Code)
-}
-
-func TestApiSAPSystemDeleteTagHandler(t *testing.T) {
-	deps := setupTestApiSAPSystemTag(models.TagSAPSystemResourceType)
-	app, err := NewAppWithDeps("", 80, deps)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp := httptest.NewRecorder()
-
-	req, err := http.NewRequest("DELETE", "/api/sapsystems/systemId/tags/cool_rabbit", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	app.ServeHTTP(resp, req)
-
-	assert.Equal(t, 204, resp.Code)
-}
-
-func TestApiSAPSystemDeleteTagHandler404(t *testing.T) {
-	deps := setupTestApiSAPSystemTag(models.TagSAPSystemResourceType)
-	app, err := NewAppWithDeps("", 80, deps)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp := httptest.NewRecorder()
-
-	req, err := http.NewRequest("DELETE", "/api/sapsystems/non-existing-sid/tags/cool_rabbit", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	app.ServeHTTP(resp, req)
-
-	assert.Equal(t, 404, resp.Code)
-}
-
-func TestApiSAPSystemDeleteTagHandler500(t *testing.T) {
-	mockSAPSystemsService := new(servicesMocks.SAPSystemsService)
-	mockSAPSystemsService.On(
-		"GetSAPSystemsById", "systemId").Return(sapsystem.SAPSystemsList{}, fmt.Errorf("kaboom"))
-
-	deps := setupTestDependencies()
-	deps.sapSystemsService = mockSAPSystemsService
-
-	var err error
-	app, err := NewAppWithDeps("", 80, deps)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp := httptest.NewRecorder()
-
-	req, err := http.NewRequest("DELETE", "/api/sapsystems/systemId/tags/cool_rabbit", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	app.ServeHTTP(resp, req)
-
-	assert.Equal(t, 500, resp.Code)
-}
-
-func TestApiDatabaseCreateTagHandler(t *testing.T) {
-	deps := setupTestApiSAPSystemTag(models.TagDatabaseResourceType)
-	app, err := NewAppWithDeps("", 80, deps)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp := httptest.NewRecorder()
-
-	body, _ := json.Marshal(&JSONTag{"cool_rabbit"})
-	req, err := http.NewRequest("POST", "/api/databases/systemId/tags", bytes.NewBuffer(body))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	app.ServeHTTP(resp, req)
-
-	expectedBody, _ := json.Marshal(gin.H{
-		"tag": "cool_rabbit",
-	})
-	assert.Equal(t, expectedBody, resp.Body.Bytes())
-	assert.Equal(t, 201, resp.Code)
-}
-
-func TestApiDatabaseCreateTagHandler404(t *testing.T) {
-	deps := setupTestApiSAPSystemTag(models.TagDatabaseResourceType)
-	app, err := NewAppWithDeps("", 80, deps)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp := httptest.NewRecorder()
-
-	body, _ := json.Marshal(&JSONTag{"cool_rabbit"})
-	req, err := http.NewRequest("POST", "/api/databases/non-existing-sid/tags", bytes.NewBuffer(body))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	app.ServeHTTP(resp, req)
-
-	assert.Equal(t, 404, resp.Code)
-}
-
-func TestApiDatabaseCreateTagHandler400(t *testing.T) {
-	deps := setupTestApiSAPSystemTag(models.TagDatabaseResourceType)
-	app, err := NewAppWithDeps("", 80, deps)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp := httptest.NewRecorder()
-
-	invalidJSON := []byte("ABC€")
-	req, err := http.NewRequest("POST", "/api/databases/systemId/tags", bytes.NewBuffer(invalidJSON))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	app.ServeHTTP(resp, req)
-
-	assert.Equal(t, 400, resp.Code)
-}
-
-func TestApiDatabaseCreateTagHandler500(t *testing.T) {
-	mockSAPSystemsService := new(servicesMocks.SAPSystemsService)
-	mockSAPSystemsService.On(
-		"GetSAPSystemsById", "systemId").Return(sapsystem.SAPSystemsList{}, fmt.Errorf("kaboom"))
-
-	deps := setupTestDependencies()
-	deps.sapSystemsService = mockSAPSystemsService
-
-	var err error
-	app, err := NewAppWithDeps("", 80, deps)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp := httptest.NewRecorder()
-
-	body, _ := json.Marshal(&JSONTag{"cool_rabbit"})
-	req, err := http.NewRequest("POST", "/api/databases/systemId/tags", bytes.NewBuffer(body))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	app.ServeHTTP(resp, req)
-
-	assert.Equal(t, 500, resp.Code)
-}
-
-func TestApiDatabaseDeleteTagHandler(t *testing.T) {
-	deps := setupTestApiSAPSystemTag(models.TagDatabaseResourceType)
-	app, err := NewAppWithDeps("", 80, deps)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp := httptest.NewRecorder()
-
-	req, err := http.NewRequest("DELETE", "/api/databases/systemId/tags/cool_rabbit", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	app.ServeHTTP(resp, req)
-
-	assert.Equal(t, 204, resp.Code)
-}
-
-func TestApiDatabaseDeleteTagHandler404(t *testing.T) {
-	deps := setupTestApiSAPSystemTag(models.TagDatabaseResourceType)
-	app, err := NewAppWithDeps("", 80, deps)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp := httptest.NewRecorder()
-
-	req, err := http.NewRequest("DELETE", "/api/databases/non-existing-sid/tags/cool_rabbit", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	app.ServeHTTP(resp, req)
-
-	assert.Equal(t, 404, resp.Code)
-}
-
-func TestApiDatabaseDeleteTagHandler500(t *testing.T) {
-	mockSAPSystemsService := new(servicesMocks.SAPSystemsService)
-	mockSAPSystemsService.On(
-		"GetSAPSystemsById", "systemId").Return(sapsystem.SAPSystemsList{}, fmt.Errorf("kaboom"))
-
-	deps := setupTestDependencies()
-	deps.sapSystemsService = mockSAPSystemsService
-
-	var err error
-	app, err := NewAppWithDeps("", 80, deps)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp := httptest.NewRecorder()
-
-	req, err := http.NewRequest("DELETE", "/api/databases/systemId/tags/cool_rabbit", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	app.ServeHTTP(resp, req)
-
-	assert.Equal(t, 500, resp.Code)
 }
 
 func TestApiClusterCheckResultsHandler(t *testing.T) {

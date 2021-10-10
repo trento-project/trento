@@ -32,15 +32,15 @@ cmdline() {
             --private-key)  args="${args}-p ";;
             --rolling)      args="${args}-r ";;
             --help)         args="${args}-h ";;
-
+            
             # pass through anything else
             *) [[ "${arg:0:1}" == "-" ]] || delim="\""
             args="${args}${delim}${arg}${delim} ";;
         esac
     done
-
+    
     eval set -- "$args"
-
+    
     while getopts "p:rh" OPTION
     do
         case $OPTION in
@@ -60,19 +60,25 @@ cmdline() {
             ;;
         esac
     done
-
+    
     if [[ -z "$PRIVATE_KEY" ]]; then
         read -rp "Please provide the path of the runner private key: " PRIVATE_KEY </dev/tty
     fi
-
+    
     if [[ "$ROLLING" == "true" ]]; then
-      TRENTO_VERSION="rolling"
+        TRENTO_VERSION="rolling"
     fi
-
+    
     return 0
 }
 
-check_deps() {
+check_requirements() {
+    local firewalld_status
+    firewalld_status="$(systemctl show -p ActiveState firewalld | cut -d'=' -f2)"
+    if [ "${firewalld_status}" = "active" ]; then
+        echo "firewalld must be turned off to run K3s, please disable it and try again."
+        exit 1
+    fi
     if ! which curl >/dev/null 2>&1; then
         echo "curl is required by this script, please install it and try again."
         exit 1
@@ -109,7 +115,7 @@ install_trento_server_chart() {
     local private_key=${PRIVATE_KEY:-"./id_rsa_runner"}
     local trento_source_zip="${TRENTO_VERSION}"
     local trento_packages_url="https://github.com/${repo_owner}/trento/archive/refs/tags"
-
+    
     echo "Installing trento-server chart..."
     pushd -- /tmp >/dev/null
     rm -rf trento-"${trento_source_zip}"
@@ -117,19 +123,20 @@ install_trento_server_chart() {
     curl -f -sS -O -L "${trento_packages_url}/${trento_source_zip}.zip" >/dev/null
     unzip -o "${trento_source_zip}.zip" >/dev/null
     popd >/dev/null
-
+    
     pushd -- /tmp/trento-"${trento_source_zip}"/packaging/helm/trento-server >/dev/null
     helm dep update >/dev/null
     helm upgrade --install trento-server . \
-        --set-file trento-runner.privateKey="${private_key}" \
-        --set trento-web.image.tag="${TRENTO_VERSION}" \
-        --set trento-runner.image.tag="${TRENTO_VERSION}"
+    --set-file trento-runner.privateKey="${private_key}" \
+    --set trento-web.image.tag="${TRENTO_VERSION}" \
+    --set trento-runner.image.tag="${TRENTO_VERSION}"
     popd >/dev/null
 }
 
 main() {
     cmdline "${ARGS[@]}"
     echo "Installing trento-server on k3s..."
+    check_requirements
     install_k3s
     install_helm
     update_helm_dependencies

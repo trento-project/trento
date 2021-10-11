@@ -19,9 +19,15 @@ RUN ln -s /usr/local/bin/python /usr/bin/python \
 
 ENV PATH="/venv/bin:$PATH"
 ENV PYTHONPATH=/venv/lib/python3.7/site-packages
+
+# Add Tini
+ENV TINI_VERSION v0.19.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+RUN chmod +x /tini
+
 COPY --from=go-build /build/trento /app/trento
 LABEL org.opencontainers.image.source="https://github.com/trento-project/trento"
-ENTRYPOINT ["/app/trento"]
+ENTRYPOINT ["/tini", "--", "/app/trento"]
 
 FROM gcr.io/distroless/base:debug AS trento-web
 COPY --from=go-build /build/trento /app/trento

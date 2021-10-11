@@ -516,7 +516,7 @@ func TestClustersListHandler(t *testing.T) {
 	mockTagsService.On("GetAllByResource", models.TagClusterResourceType, "e2f2eb50aef748e586a7baa85e0162cf").Return([]string{"tag1"}, nil)
 	mockTagsService.On("GetAllByResource", models.TagClusterResourceType, "e27d313a674375b2066777a89ee346b9").Return(nil, nil)
 
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	deps.consul = consulInst
 	deps.checksService = checksMocks
 	deps.tagsService = mockTagsService
@@ -612,7 +612,7 @@ func TestClusterHandlerHANA(t *testing.T) {
 	checksMocks.On("GetAggregatedChecksResultByHost", clusterId).Return(
 		checksResultByHost(), nil)
 
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	deps.consul = consulInst
 	deps.checksService = checksMocks
 
@@ -734,7 +734,7 @@ func TestClusterHandlerUnreachableNodes(t *testing.T) {
 	checksMocks.On("GetAggregatedChecksResultByHost", clusterId).Return(
 		checksResultByHost(), nil)
 
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	deps.consul = consulInst
 	deps.checksService = checksMocks
 
@@ -820,7 +820,7 @@ func TestClusterHandlerAlert(t *testing.T) {
 	checksMocks.On("GetAggregatedChecksResultByHost", clusterId).Return(
 		checksResultByHost(), nil)
 
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	deps.consul = consulInst
 	deps.checksService = checksMocks
 
@@ -875,7 +875,7 @@ func TestClusterHandlerGeneric(t *testing.T) {
 	catalog.On("Nodes", filter).Return(nil, nil, nil)
 	consulInst.On("Catalog").Return(catalog)
 
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	deps.consul = consulInst
 
 	app, err := NewAppWithDeps("", 80, deps)
@@ -910,7 +910,7 @@ func TestClusterHandler404Error(t *testing.T) {
 	consulInst.On("KV").Return(kv)
 	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil)
 
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	deps.consul = consulInst
 
 	app, err := NewAppWithDeps("", 80, deps)
@@ -949,7 +949,7 @@ func TestSaveChecksHandler(t *testing.T) {
 	testLock := consulApi.Lock{}
 	consulInst.On("AcquireLockKey", consul.KvClustersPath).Return(&testLock, nil).Times(2)
 
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	deps.consul = consulInst
 
 	app, err := NewAppWithDeps("", 80, deps)

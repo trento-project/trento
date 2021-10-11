@@ -9,7 +9,7 @@ import (
 )
 
 func TestHomeHandler(t *testing.T) {
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	app, err := NewAppWithDeps("", 80, deps)
 
 	if err != nil {

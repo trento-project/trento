@@ -147,7 +147,7 @@ func TestHostsListHandler(t *testing.T) {
 	mockTagsService.On("GetAllByResource", models.TagHostResourceType, "bar").Return([]string{}, nil)
 	mockTagsService.On("GetAllByResource", models.TagHostResourceType, "buzz").Return([]string{}, nil)
 
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	deps.consul = consulInst
 	deps.tagsService = mockTagsService
 
@@ -306,7 +306,7 @@ func TestHostHandler(t *testing.T) {
 
 	subscriptionsMocks.On("GetHostSubscriptions", "test_host").Return(subscriptionsList, nil)
 
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	deps.consul = consulInst
 	deps.subscriptionsService = subscriptionsMocks
 
@@ -426,7 +426,7 @@ func TestHostHandlerAzure(t *testing.T) {
 	subscriptionsMocks.On(
 		"GetHostSubscriptions", "test_host").Return(subscription.Subscriptions{}, nil)
 
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	deps.consul = consulInst
 	deps.subscriptionsService = subscriptionsMocks
 
@@ -471,7 +471,7 @@ func TestHostHandler404Error(t *testing.T) {
 	catalog.On("Node", "foobar", (*consulApi.QueryOptions)(nil)).Return((*consulApi.CatalogNode)(nil), nil, nil)
 	consulInst.On("Catalog").Return(catalog)
 
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	deps.consul = consulInst
 
 	app, err := NewAppWithDeps("", 80, deps)

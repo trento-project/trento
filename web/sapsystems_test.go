@@ -152,7 +152,7 @@ func TestSAPSystemsListHandler(t *testing.T) {
 		"trento-ha-cluster-id": "e2f2eb50aef748e586a7baa85e0162cf",
 	}, nil)
 
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	deps.consul = consulInst
 	deps.hostsService = hostsService
 	deps.sapSystemsService = sapSystemsService
@@ -203,7 +203,7 @@ func TestSAPDatabaseListHandler(t *testing.T) {
 		"trento-ha-cluster-id": "e2f2eb50aef748e586a7baa85e0162cf",
 	}, nil)
 
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	deps.consul = consulInst
 	deps.hostsService = hostsService
 	deps.sapSystemsService = sapSystemsService
@@ -242,7 +242,7 @@ func TestSAPResourceHandler(t *testing.T) {
 	sapSystemsService := new(servicesMocks.SAPSystemsService)
 	hostsService := new(servicesMocks.HostsService)
 
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	deps.consul = consulInst
 	deps.sapSystemsService = sapSystemsService
 	deps.hostsService = hostsService
@@ -305,7 +305,7 @@ func TestSAPResourceHandler(t *testing.T) {
 func TestSAPResourceHandler404Error(t *testing.T) {
 	sapSystemsService := new(servicesMocks.SAPSystemsService)
 
-	deps := testDependencies()
+	deps := setupTestDependencies()
 	deps.sapSystemsService = sapSystemsService
 
 	sapSystemsService.On("GetSAPSystemsById", "foobar").Return(sapsystem.SAPSystemsList{}, nil)

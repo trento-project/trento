@@ -3,6 +3,7 @@ package internal
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"fmt"
 	"hash/crc32"
 	"io"
 	"os"
@@ -45,7 +46,7 @@ func Contains(s []string, str string) bool {
 	return false
 }
 
-func Md5sum(filePath string) (string, error) {
+func Md5sumFile(filePath string) (string, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return "", err
@@ -57,6 +58,10 @@ func Md5sum(filePath string) (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(hash.Sum(nil)), nil
+}
+
+func Md5sum(data string) string {
+	return fmt.Sprintf("%x", md5.Sum([]byte(data)))
 }
 
 // FindMatches finds regular expression matches in a key/value based

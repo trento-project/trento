@@ -36,10 +36,12 @@ func mockTests(consulInst *mocks.Client, catalog *mocks.Catalog, kv *mocks.KV) {
 	kvPath1 := fmt.Sprintf(consul.KvHostsSAPSystemPath, "node1")
 	listMap1 := map[string]interface{}{
 		"PRD": map[string]interface{}{
+			"id":   "systemId1",
 			"sid":  "PRD",
 			"type": sapsystem.Database,
 		},
 		"DEV": map[string]interface{}{
+			"id":   "systemId2",
 			"sid":  "DEV",
 			"type": sapsystem.Database,
 		},
@@ -51,10 +53,12 @@ func mockTests(consulInst *mocks.Client, catalog *mocks.Catalog, kv *mocks.KV) {
 	kvPath2 := fmt.Sprintf(consul.KvHostsSAPSystemPath, "node2")
 	listMap2 := map[string]interface{}{
 		"QAS": map[string]interface{}{
+			"id":   "systemId3",
 			"sid":  "QAS",
 			"type": sapsystem.Application,
 		},
 		"HA1": map[string]interface{}{
+			"id":   "systemId4",
 			"sid":  "HA1",
 			"type": sapsystem.Application,
 		},
@@ -78,18 +82,22 @@ func TestGetSAPSystems(t *testing.T) {
 
 	expectedSystems := sapsystem.SAPSystemsList{
 		&sapsystem.SAPSystem{
+			Id:   "systemId1",
 			SID:  "PRD",
 			Type: sapsystem.Database,
 		},
 		&sapsystem.SAPSystem{
+			Id:   "systemId2",
 			SID:  "DEV",
 			Type: sapsystem.Database,
 		},
 		&sapsystem.SAPSystem{
+			Id:   "systemId3",
 			SID:  "QAS",
 			Type: sapsystem.Application,
 		},
 		&sapsystem.SAPSystem{
+			Id:   "systemId4",
 			SID:  "HA1",
 			Type: sapsystem.Application,
 		},
@@ -103,7 +111,7 @@ func TestGetSAPSystems(t *testing.T) {
 	assert.ElementsMatch(t, expectedSystems, sapSystems)
 }
 
-func TestGetSAPSystemsBySid(t *testing.T) {
+func TestGetSAPSystemsById(t *testing.T) {
 	consulInst := new(mocks.Client)
 	catalog := new(mocks.Catalog)
 	kv := new(mocks.KV)
@@ -111,10 +119,11 @@ func TestGetSAPSystemsBySid(t *testing.T) {
 	mockTests(consulInst, catalog, kv)
 
 	sapSystemsService := NewSAPSystemsService(consulInst)
-	sapSystems, err := sapSystemsService.GetSAPSystemsBySid("PRD")
+	sapSystems, err := sapSystemsService.GetSAPSystemsById("systemId1")
 
 	expectedSystems := sapsystem.SAPSystemsList{
 		&sapsystem.SAPSystem{
+			Id:   "systemId1",
 			SID:  "PRD",
 			Type: sapsystem.Database,
 		},
@@ -140,10 +149,12 @@ func TestGetSAPSystemsByType(t *testing.T) {
 
 	expectedSystems := sapsystem.SAPSystemsList{
 		&sapsystem.SAPSystem{
+			Id:   "systemId1",
 			SID:  "PRD",
 			Type: sapsystem.Database,
 		},
 		&sapsystem.SAPSystem{
+			Id:   "systemId2",
 			SID:  "DEV",
 			Type: sapsystem.Database,
 		},

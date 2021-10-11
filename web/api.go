@@ -207,18 +207,18 @@ func ApiClusterDeleteTagHandler(client consul.Client, tagsService services.TagsS
 // @Summary Add tag to SAPSystem
 // @Accept json
 // @Produce json
-// @Param sid path string true "SAPSystem id"
+// @Param id path string true "SAPSystem id"
 // @Param Body body JSONTag true "The tag to create"
 // @Success 201 {object} JSONTag
 // @Failure 404 {object} map[string]string
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router /api/sapsystems/{sid}/tags [post]
+// @Router /api/sapsystems/{id}/tags [post]
 func ApiSAPSystemCreateTagHandler(sapSystemsService services.SAPSystemsService, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		sid := c.Param("sid")
+		id := c.Param("id")
 
-		systemList, err := sapSystemsService.GetSAPSystemsBySid(sid)
+		systemList, err := sapSystemsService.GetSAPSystemsById(id)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -237,7 +237,7 @@ func ApiSAPSystemCreateTagHandler(sapSystemsService services.SAPSystemsService, 
 			return
 		}
 
-		err = tagsService.Create(r.Tag, models.TagSAPSystemResourceType, sid)
+		err = tagsService.Create(r.Tag, models.TagSAPSystemResourceType, id)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -251,16 +251,16 @@ func ApiSAPSystemCreateTagHandler(sapSystemsService services.SAPSystemsService, 
 // @Summary Delete a specific tag that belongs to a SAPSystem
 // @Accept json
 // @Produce json
-// @Param sid path string true "SAPSystem id"
+// @Param id path string true "SAPSystem id"
 // @Param tag path string true "Tag"
 // @Success 204 {object} map[string]interface{}
-// @Router /api/sapsystems/{sid}/tags/{tag} [delete]
+// @Router /api/sapsystems/{id}/tags/{tag} [delete]
 func ApiSAPSystemDeleteTagHandler(sapSystemsService services.SAPSystemsService, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		sid := c.Param("sid")
+		id := c.Param("id")
 		tag := c.Param("tag")
 
-		systemList, err := sapSystemsService.GetSAPSystemsBySid(sid)
+		systemList, err := sapSystemsService.GetSAPSystemsById(id)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -271,7 +271,7 @@ func ApiSAPSystemDeleteTagHandler(sapSystemsService services.SAPSystemsService, 
 			return
 		}
 
-		err = tagsService.Delete(tag, models.TagSAPSystemResourceType, sid)
+		err = tagsService.Delete(tag, models.TagSAPSystemResourceType, id)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -285,18 +285,18 @@ func ApiSAPSystemDeleteTagHandler(sapSystemsService services.SAPSystemsService, 
 // @Summary Add tag to a HANA database
 // @Accept json
 // @Produce json
-// @Param sid path string true "Database id"
+// @Param id path string true "Database id"
 // @Param Body body JSONTag true "The tag to create"
 // @Success 201 {object} JSONTag
 // @Failure 404 {object} map[string]string
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router /api/databases/{sid}/tags [post]
+// @Router /api/databases/{id}/tags [post]
 func ApiDatabaseCreateTagHandler(sapSystemsService services.SAPSystemsService, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		sid := c.Param("sid")
+		id := c.Param("id")
 
-		systemList, err := sapSystemsService.GetSAPSystemsBySid(sid)
+		systemList, err := sapSystemsService.GetSAPSystemsById(id)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -315,7 +315,7 @@ func ApiDatabaseCreateTagHandler(sapSystemsService services.SAPSystemsService, t
 			return
 		}
 
-		err = tagsService.Create(r.Tag, models.TagDatabaseResourceType, sid)
+		err = tagsService.Create(r.Tag, models.TagDatabaseResourceType, id)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -329,16 +329,16 @@ func ApiDatabaseCreateTagHandler(sapSystemsService services.SAPSystemsService, t
 // @Summary Delete a specific tag that belongs to a HANA database
 // @Accept json
 // @Produce json
-// @Param sid path string true "Database id"
+// @Param id path string true "Database id"
 // @Param tag path string true "Tag"
 // @Success 204 {object} map[string]interface{}
-// @Router /api/databases/{sid}/tags/{tag} [delete]
+// @Router /api/databases/{id}/tags/{tag} [delete]
 func ApiDatabaseDeleteTagHandler(sapSystemsService services.SAPSystemsService, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		sid := c.Param("sid")
+		id := c.Param("id")
 		tag := c.Param("tag")
 
-		systemList, err := sapSystemsService.GetSAPSystemsBySid(sid)
+		systemList, err := sapSystemsService.GetSAPSystemsById(id)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -349,7 +349,7 @@ func ApiDatabaseDeleteTagHandler(sapSystemsService services.SAPSystemsService, t
 			return
 		}
 
-		err = tagsService.Delete(tag, models.TagDatabaseResourceType, sid)
+		err = tagsService.Delete(tag, models.TagDatabaseResourceType, id)
 		if err != nil {
 			_ = c.Error(err)
 			return

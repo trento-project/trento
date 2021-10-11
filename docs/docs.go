@@ -150,7 +150,7 @@ var doc = `{
                 }
             }
         },
-        "/api/databases/{sid}/tags": {
+        "/api/databases/{id}/tags": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -163,7 +163,7 @@ var doc = `{
                     {
                         "type": "string",
                         "description": "Database id",
-                        "name": "sid",
+                        "name": "id",
                         "in": "path",
                         "required": true
                     },
@@ -214,7 +214,7 @@ var doc = `{
                 }
             }
         },
-        "/api/databases/{sid}/tags/{tag}": {
+        "/api/databases/{id}/tags/{tag}": {
             "delete": {
                 "consumes": [
                     "application/json"
@@ -227,7 +227,7 @@ var doc = `{
                     {
                         "type": "string",
                         "description": "Database id",
-                        "name": "sid",
+                        "name": "id",
                         "in": "path",
                         "required": true
                     },
@@ -350,7 +350,7 @@ var doc = `{
                 }
             }
         },
-        "/api/sapsystems/{sid}/tags": {
+        "/api/sapsystems/{id}/tags": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -363,7 +363,7 @@ var doc = `{
                     {
                         "type": "string",
                         "description": "SAPSystem id",
-                        "name": "sid",
+                        "name": "id",
                         "in": "path",
                         "required": true
                     },
@@ -414,7 +414,7 @@ var doc = `{
                 }
             }
         },
-        "/api/sapsystems/{sid}/tags/{tag}": {
+        "/api/sapsystems/{id}/tags/{tag}": {
             "delete": {
                 "consumes": [
                     "application/json"
@@ -427,7 +427,7 @@ var doc = `{
                     {
                         "type": "string",
                         "description": "SAPSystem id",
-                        "name": "sid",
+                        "name": "id",
                         "in": "path",
                         "required": true
                     },

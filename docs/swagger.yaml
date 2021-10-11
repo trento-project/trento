@@ -92,14 +92,14 @@ paths:
             additionalProperties: true
             type: object
       summary: Delete a specific tag that belongs to a cluster
-  /api/databases/{sid}/tags:
+  /api/databases/{id}/tags:
     post:
       consumes:
       - application/json
       parameters:
       - description: Database id
         in: path
-        name: sid
+        name: id
         required: true
         type: string
       - description: The tag to create
@@ -134,14 +134,14 @@ paths:
               type: string
             type: object
       summary: Add tag to a HANA database
-  /api/databases/{sid}/tags/{tag}:
+  /api/databases/{id}/tags/{tag}:
     delete:
       consumes:
       - application/json
       parameters:
       - description: Database id
         in: path
-        name: sid
+        name: id
         required: true
         type: string
       - description: Tag
@@ -224,14 +224,14 @@ paths:
             additionalProperties: true
             type: object
       summary: Delete a specific tag that belongs to a host
-  /api/sapsystems/{sid}/tags:
+  /api/sapsystems/{id}/tags:
     post:
       consumes:
       - application/json
       parameters:
       - description: SAPSystem id
         in: path
-        name: sid
+        name: id
         required: true
         type: string
       - description: The tag to create
@@ -266,14 +266,14 @@ paths:
               type: string
             type: object
       summary: Add tag to SAPSystem
-  /api/sapsystems/{sid}/tags/{tag}:
+  /api/sapsystems/{id}/tags/{tag}:
     delete:
       consumes:
       - application/json
       parameters:
       - description: SAPSystem id
         in: path
-        name: sid
+        name: id
         required: true
         type: string
       - description: Tag

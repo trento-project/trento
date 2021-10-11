@@ -444,18 +444,19 @@ func TestApiClusterDeleteTagHandler500(t *testing.T) {
 func setupTestApiSAPSystemTag(systemType string) Dependencies {
 	systemList := sapsystem.SAPSystemsList{
 		&sapsystem.SAPSystem{
+			Id:  "systemId",
 			SID: "HA1",
 		},
 	}
 
 	mockTagsService := new(servicesMocks.TagsService)
-	mockTagsService.On("Create", "cool_rabbit", systemType, "HA1").Return(nil)
-	mockTagsService.On("Delete", "cool_rabbit", systemType, "HA1").Return(nil)
+	mockTagsService.On("Create", "cool_rabbit", systemType, "systemId").Return(nil)
+	mockTagsService.On("Delete", "cool_rabbit", systemType, "systemId").Return(nil)
 
 	mockSAPSystemsService := new(servicesMocks.SAPSystemsService)
-	mockSAPSystemsService.On("GetSAPSystemsBySid", "HA1").Return(systemList, nil)
+	mockSAPSystemsService.On("GetSAPSystemsById", "systemId").Return(systemList, nil)
 	mockSAPSystemsService.On(
-		"GetSAPSystemsBySid", "non-existing-sid").Return(sapsystem.SAPSystemsList{}, nil)
+		"GetSAPSystemsById", "non-existing-sid").Return(sapsystem.SAPSystemsList{}, nil)
 
 	deps := testDependencies()
 	deps.sapSystemsService = mockSAPSystemsService
@@ -474,7 +475,7 @@ func TestApiSAPSystemCreateTagHandler(t *testing.T) {
 	resp := httptest.NewRecorder()
 
 	body, _ := json.Marshal(&JSONTag{"cool_rabbit"})
-	req, err := http.NewRequest("POST", "/api/sapsystems/HA1/tags", bytes.NewBuffer(body))
+	req, err := http.NewRequest("POST", "/api/sapsystems/systemId/tags", bytes.NewBuffer(body))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -518,7 +519,7 @@ func TestApiSAPSystemCreateTagHandler400(t *testing.T) {
 	resp := httptest.NewRecorder()
 
 	invalidJSON := []byte("ABC€")
-	req, err := http.NewRequest("POST", "/api/sapsystems/HA1/tags", bytes.NewBuffer(invalidJSON))
+	req, err := http.NewRequest("POST", "/api/sapsystems/systemId/tags", bytes.NewBuffer(invalidJSON))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -531,7 +532,7 @@ func TestApiSAPSystemCreateTagHandler400(t *testing.T) {
 func TestApiSAPSystemCreateTagHandler500(t *testing.T) {
 	mockSAPSystemsService := new(servicesMocks.SAPSystemsService)
 	mockSAPSystemsService.On(
-		"GetSAPSystemsBySid", "HA1").Return(sapsystem.SAPSystemsList{}, fmt.Errorf("kaboom"))
+		"GetSAPSystemsById", "systemId").Return(sapsystem.SAPSystemsList{}, fmt.Errorf("kaboom"))
 
 	deps := testDependencies()
 	deps.sapSystemsService = mockSAPSystemsService
@@ -545,7 +546,7 @@ func TestApiSAPSystemCreateTagHandler500(t *testing.T) {
 	resp := httptest.NewRecorder()
 
 	body, _ := json.Marshal(&JSONTag{"cool_rabbit"})
-	req, err := http.NewRequest("POST", "/api/sapsystems/HA1/tags", bytes.NewBuffer(body))
+	req, err := http.NewRequest("POST", "/api/sapsystems/systemId/tags", bytes.NewBuffer(body))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -564,7 +565,7 @@ func TestApiSAPSystemDeleteTagHandler(t *testing.T) {
 
 	resp := httptest.NewRecorder()
 
-	req, err := http.NewRequest("DELETE", "/api/sapsystems/HA1/tags/cool_rabbit", nil)
+	req, err := http.NewRequest("DELETE", "/api/sapsystems/systemId/tags/cool_rabbit", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -596,7 +597,7 @@ func TestApiSAPSystemDeleteTagHandler404(t *testing.T) {
 func TestApiSAPSystemDeleteTagHandler500(t *testing.T) {
 	mockSAPSystemsService := new(servicesMocks.SAPSystemsService)
 	mockSAPSystemsService.On(
-		"GetSAPSystemsBySid", "HA1").Return(sapsystem.SAPSystemsList{}, fmt.Errorf("kaboom"))
+		"GetSAPSystemsById", "systemId").Return(sapsystem.SAPSystemsList{}, fmt.Errorf("kaboom"))
 
 	deps := testDependencies()
 	deps.sapSystemsService = mockSAPSystemsService
@@ -609,7 +610,7 @@ func TestApiSAPSystemDeleteTagHandler500(t *testing.T) {
 
 	resp := httptest.NewRecorder()
 
-	req, err := http.NewRequest("DELETE", "/api/sapsystems/HA1/tags/cool_rabbit", nil)
+	req, err := http.NewRequest("DELETE", "/api/sapsystems/systemId/tags/cool_rabbit", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -629,7 +630,7 @@ func TestApiDatabaseCreateTagHandler(t *testing.T) {
 	resp := httptest.NewRecorder()
 
 	body, _ := json.Marshal(&JSONTag{"cool_rabbit"})
-	req, err := http.NewRequest("POST", "/api/databases/HA1/tags", bytes.NewBuffer(body))
+	req, err := http.NewRequest("POST", "/api/databases/systemId/tags", bytes.NewBuffer(body))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -673,7 +674,7 @@ func TestApiDatabaseCreateTagHandler400(t *testing.T) {
 	resp := httptest.NewRecorder()
 
 	invalidJSON := []byte("ABC€")
-	req, err := http.NewRequest("POST", "/api/databases/HA1/tags", bytes.NewBuffer(invalidJSON))
+	req, err := http.NewRequest("POST", "/api/databases/systemId/tags", bytes.NewBuffer(invalidJSON))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -686,7 +687,7 @@ func TestApiDatabaseCreateTagHandler400(t *testing.T) {
 func TestApiDatabaseCreateTagHandler500(t *testing.T) {
 	mockSAPSystemsService := new(servicesMocks.SAPSystemsService)
 	mockSAPSystemsService.On(
-		"GetSAPSystemsBySid", "HA1").Return(sapsystem.SAPSystemsList{}, fmt.Errorf("kaboom"))
+		"GetSAPSystemsById", "systemId").Return(sapsystem.SAPSystemsList{}, fmt.Errorf("kaboom"))
 
 	deps := testDependencies()
 	deps.sapSystemsService = mockSAPSystemsService
@@ -700,7 +701,7 @@ func TestApiDatabaseCreateTagHandler500(t *testing.T) {
 	resp := httptest.NewRecorder()
 
 	body, _ := json.Marshal(&JSONTag{"cool_rabbit"})
-	req, err := http.NewRequest("POST", "/api/databases/HA1/tags", bytes.NewBuffer(body))
+	req, err := http.NewRequest("POST", "/api/databases/systemId/tags", bytes.NewBuffer(body))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -719,7 +720,7 @@ func TestApiDatabaseDeleteTagHandler(t *testing.T) {
 
 	resp := httptest.NewRecorder()
 
-	req, err := http.NewRequest("DELETE", "/api/databases/HA1/tags/cool_rabbit", nil)
+	req, err := http.NewRequest("DELETE", "/api/databases/systemId/tags/cool_rabbit", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -751,7 +752,7 @@ func TestApiDatabaseDeleteTagHandler404(t *testing.T) {
 func TestApiDatabaseDeleteTagHandler500(t *testing.T) {
 	mockSAPSystemsService := new(servicesMocks.SAPSystemsService)
 	mockSAPSystemsService.On(
-		"GetSAPSystemsBySid", "HA1").Return(sapsystem.SAPSystemsList{}, fmt.Errorf("kaboom"))
+		"GetSAPSystemsById", "systemId").Return(sapsystem.SAPSystemsList{}, fmt.Errorf("kaboom"))
 
 	deps := testDependencies()
 	deps.sapSystemsService = mockSAPSystemsService
@@ -764,7 +765,7 @@ func TestApiDatabaseDeleteTagHandler500(t *testing.T) {
 
 	resp := httptest.NewRecorder()
 
-	req, err := http.NewRequest("DELETE", "/api/databases/HA1/tags/cool_rabbit", nil)
+	req, err := http.NewRequest("DELETE", "/api/databases/systemId/tags/cool_rabbit", nil)
 	if err != nil {
 		t.Fatal(err)
 	}

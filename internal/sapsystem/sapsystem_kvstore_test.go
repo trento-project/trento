@@ -20,11 +20,12 @@ func TestStore(t *testing.T) {
 	kv := new(consulMocks.KV)
 
 	consulInst.On("KV").Return(kv)
-	kvPath := path.Join(fmt.Sprintf(consul.KvHostsSAPSystemPath, host), "PRD")
+	kvPath := path.Join(fmt.Sprintf(consul.KvHostsSAPSystemPath, host), "systemId")
 
 	mockWebService := new(sapcontrolMocks.WebService)
 
 	expectedPutMap := map[string]interface{}{
+		"id":   "systemId",
 		"sid":  "PRD",
 		"type": Database,
 		"instances": map[string]*SAPInstance{
@@ -118,6 +119,7 @@ func TestStore(t *testing.T) {
 	consulInst.On("AcquireLockKey", fmt.Sprintf(consul.KvHostsSAPSystemPath, host)).Return(&testLock, nil)
 
 	s := SAPSystem{
+		Id:   "systemId",
 		SID:  "PRD",
 		Type: Database,
 		Instances: map[string]*SAPInstance{
@@ -219,7 +221,8 @@ func TestLoad(t *testing.T) {
 	kv := new(consulMocks.KV)
 
 	listMap := map[string]interface{}{
-		"PRD": map[string]interface{}{
+		"systemId": map[string]interface{}{
+			"id":   "systemId",
 			"sid":  "PRD",
 			"type": Database,
 			"instances": map[string]interface{}{
@@ -319,7 +322,8 @@ func TestLoad(t *testing.T) {
 	systems, _ := Load(consulInst, host)
 
 	expectedSystems := map[string]*SAPSystem{
-		"PRD": {
+		"systemId": {
+			Id:   "systemId",
 			SID:  "PRD",
 			Type: Database,
 			Instances: map[string]*SAPInstance{

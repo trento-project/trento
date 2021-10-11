@@ -18,7 +18,8 @@ import (
 )
 
 const (
-	Database = iota + 1
+	Unknown = iota
+	Database
 	Application
 )
 
@@ -27,6 +28,7 @@ const (
 	sapIdentifierPattern string = "^[A-Z][A-Z0-9]{2}$" // PRD, HA1, etc
 	sapInstancePattern   string = "^[A-Z]+([0-9]{2})$" // HDB00, ASCS00, ERS10, etc
 	sapDefaultProfile    string = "DEFAULT.PFL"
+	sappfparCmd          string = "sappfpar SAPSYSTEMNAME SAPGLOBALHOST SAPFQDN SAPDBHOST dbs/hdb/dbname dbs/hdb/schema rdisp/msp/msserv rdisp/msserv_internal name=%s"
 )
 
 var systemTypes = map[int]string{
@@ -42,7 +44,7 @@ type SAPSystemsMap map[string]*SAPSystem
 // It will have application or database type, mutually exclusive
 // The Id parameter is not yet implemented
 type SAPSystem struct {
-	//Id         string                `mapstructure:"id,omitempty"`
+	Id        string                  `mapstructure:"id,omitempty"`
 	SID       string                  `mapstructure:"sid,omitempty"`
 	Type      int                     `mapstructure:"type,omitempty"`
 	Profile   SAPProfile              `mapstructure:"profile,omitempty"`
@@ -116,6 +118,16 @@ func (sl SAPSystemsList) GetSIDsString() string {
 	return strings.Join(sidString, ",")
 }
 
+func (sl SAPSystemsList) GetIDsString() string {
+	var idString []string
+
+	for _, system := range sl {
+		idString = append(idString, system.Id)
+	}
+
+	return strings.Join(idString, ",")
+}
+
 func (sl SAPSystemsList) GetTypesString() string {
 	var typesString []string
 	var systemType string
@@ -162,6 +174,11 @@ func NewSAPSystem(fs afero.Fs, sysPath string) (*SAPSystem, error) {
 
 		system.Type = instance.Type
 		system.Instances[instance.Name] = instance
+	}
+
+	system, err = setSystemId(fs, system)
+	if err != nil {
+		return system, err
 	}
 
 	return system, nil
@@ -237,6 +254,66 @@ func getProfileData(fs afero.Fs, profilePath string) (map[string]interface{}, er
 	configMap := internal.FindMatches(`([\w\/]+)\s=\s(.+)`, profileRaw)
 
 	return configMap, nil
+}
+
+func setSystemId(fs afero.Fs, system *SAPSystem) (*SAPSystem, error) {
+	// Set system ID
+	switch system.Type {
+	case Database:
+		databaseId, err := getUniqueIdHana(fs, system.SID)
+		if err != nil {
+			return system, err
+		}
+		system.Id = databaseId
+	case Application:
+		applicationId, err := getUniqueIdApplication(system.SID)
+		if err != nil {
+			return system, err
+		}
+		system.Id = applicationId
+	default:
+		system.Id = "-"
+	}
+
+	return system, nil
+}
+
+func getUniqueIdHana(fs afero.Fs, sid string) (string, error) {
+	nameserverConfigPath := fmt.Sprintf(
+		"/usr/sap/%s/SYS/global/hdb/custom/config/nameserver.ini", sid)
+	nameserver, err := fs.Open(nameserverConfigPath)
+	if err != nil {
+		return "", fmt.Errorf("could not open the nameserver configuration file file %s", err)
+	}
+
+	defer nameserver.Close()
+
+	nameserverRaw, err := ioutil.ReadAll(nameserver)
+
+	if err != nil {
+		return "", fmt.Errorf("could not read the nameserver configuration file %s", err)
+	}
+
+	configMap := internal.FindMatches(`([\w\/]+)\s=\s(.+)`, nameserverRaw)
+	hanaId, found := configMap["id"]
+	if !found {
+		return "", fmt.Errorf("could not find the landscape id in the configuraiton file")
+	}
+
+	hanaIdMd5 := internal.Md5sum(fmt.Sprintf("%v", hanaId))
+	return hanaIdMd5, nil
+}
+
+func getUniqueIdApplication(sid string) (string, error) {
+	user := fmt.Sprintf("%sadm", strings.ToLower(sid))
+	cmd := fmt.Sprintf(sappfparCmd, sid)
+	sappfpar, err := customExecCommand("su", "-lc", cmd, user).Output()
+	if err != nil {
+		return "", fmt.Errorf("error running sappfpar command with sid %s", sid)
+	}
+
+	appIdMd5 := internal.Md5sum(string(sappfpar))
+	return appIdMd5, nil
 }
 
 func NewSAPInstance(w sapcontrol.WebService) (*SAPInstance, error) {
@@ -335,11 +412,4 @@ func NewSAPControl(w sapcontrol.WebService) (*SAPControl, error) {
 	}
 
 	return scontrol, nil
-}
-
-// This is a unique identifier of a SAP installation.
-// It will be used to create totally independent SAP system data
-// TODO: This method to obtain the ID must be changed, as this file is not always static
-func getUniqueId(sid string) (string, error) {
-	return internal.Md5sum(fmt.Sprintf("/usr/sap/%s/SYS/global/security/rsecssfs/key/SSFS_%s.KEY", sid, sid))
 }

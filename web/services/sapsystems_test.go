@@ -39,6 +39,12 @@ func mockTests(consulInst *mocks.Client, catalog *mocks.Catalog, kv *mocks.KV) {
 			"id":   "systemId1",
 			"sid":  "PRD",
 			"type": sapsystem.Database,
+			"databases": []interface{}{
+				map[string]interface{}{
+					"database": "PRD",
+					"host":     "node1",
+				},
+			},
 		},
 		"DEV": map[string]interface{}{
 			"id":   "systemId2",
@@ -56,11 +62,27 @@ func mockTests(consulInst *mocks.Client, catalog *mocks.Catalog, kv *mocks.KV) {
 			"id":   "systemId3",
 			"sid":  "QAS",
 			"type": sapsystem.Application,
+			"profile": map[string]interface{}{
+				"dbs": map[string]interface{}{
+					"hdb": map[string]interface{}{
+						"dbname": "QAS",
+					},
+				},
+				"SAPDBHOST": "192.168.1.6",
+			},
 		},
 		"HA1": map[string]interface{}{
 			"id":   "systemId4",
 			"sid":  "HA1",
 			"type": sapsystem.Application,
+			"profile": map[string]interface{}{
+				"dbs": map[string]interface{}{
+					"hdb": map[string]interface{}{
+						"dbname": "PRD",
+					},
+				},
+				"SAPDBHOST": "192.168.1.5",
+			},
 		},
 	}
 
@@ -85,6 +107,12 @@ func TestGetSAPSystems(t *testing.T) {
 			Id:   "systemId1",
 			SID:  "PRD",
 			Type: sapsystem.Database,
+			Databases: []*sapsystem.DatabaseData{
+				&sapsystem.DatabaseData{
+					Database: "PRD",
+					Host:     "node1",
+				},
+			},
 		},
 		&sapsystem.SAPSystem{
 			Id:   "systemId2",
@@ -95,11 +123,27 @@ func TestGetSAPSystems(t *testing.T) {
 			Id:   "systemId3",
 			SID:  "QAS",
 			Type: sapsystem.Application,
+			Profile: map[string]interface{}{
+				"dbs": map[string]interface{}{
+					"hdb": map[string]interface{}{
+						"dbname": "QAS",
+					},
+				},
+				"SAPDBHOST": "192.168.1.6",
+			},
 		},
 		&sapsystem.SAPSystem{
 			Id:   "systemId4",
 			SID:  "HA1",
 			Type: sapsystem.Application,
+			Profile: map[string]interface{}{
+				"dbs": map[string]interface{}{
+					"hdb": map[string]interface{}{
+						"dbname": "PRD",
+					},
+				},
+				"SAPDBHOST": "192.168.1.5",
+			},
 		},
 	}
 
@@ -126,6 +170,12 @@ func TestGetSAPSystemsById(t *testing.T) {
 			Id:   "systemId1",
 			SID:  "PRD",
 			Type: sapsystem.Database,
+			Databases: []*sapsystem.DatabaseData{
+				&sapsystem.DatabaseData{
+					Database: "PRD",
+					Host:     "node1",
+				},
+			},
 		},
 	}
 
@@ -152,6 +202,12 @@ func TestGetSAPSystemsByType(t *testing.T) {
 			Id:   "systemId1",
 			SID:  "PRD",
 			Type: sapsystem.Database,
+			Databases: []*sapsystem.DatabaseData{
+				&sapsystem.DatabaseData{
+					Database: "PRD",
+					Host:     "node1",
+				},
+			},
 		},
 		&sapsystem.SAPSystem{
 			Id:   "systemId2",
@@ -166,4 +222,113 @@ func TestGetSAPSystemsByType(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.ElementsMatch(t, expectedSystems, sapSystems)
+}
+
+func TestGetAttachedDatabasesByIdSystemNotFound(t *testing.T) {
+	consulInst := new(mocks.Client)
+	catalog := new(mocks.Catalog)
+	kv := new(mocks.KV)
+
+	mockTests(consulInst, catalog, kv)
+
+	sapSystemsService := NewSAPSystemsService(consulInst)
+	_, err := sapSystemsService.GetAttachedDatabasesById("systemNotFound")
+
+	catalog.AssertExpectations(t)
+	consulInst.AssertExpectations(t)
+	kv.AssertExpectations(t)
+
+	assert.Error(t, err, fmt.Errorf("system with systemNotFound not found"))
+}
+
+func TestGetAttachedDatabasesByIdIpNotFound(t *testing.T) {
+	consulInst := new(mocks.Client)
+	catalog := new(mocks.Catalog)
+	kv := new(mocks.KV)
+
+	mockTests(consulInst, catalog, kv)
+
+	catalog.On("Nodes",
+		&consulApi.QueryOptions{Filter: "Meta[\"trento-host-ip-addresses\"] contains \"192.168.1.5\""}).Return(
+		nil, nil, nil)
+
+	sapSystemsService := NewSAPSystemsService(consulInst)
+	sapAttachedDbs, err := sapSystemsService.GetAttachedDatabasesById("systemId4")
+
+	catalog.AssertExpectations(t)
+	consulInst.AssertExpectations(t)
+	kv.AssertExpectations(t)
+
+	assert.NoError(t, err)
+	assert.ElementsMatch(t, sapsystem.SAPSystemsList{}, sapAttachedDbs)
+}
+
+func TestGetAttachedDatabasesByIdDbNotFound(t *testing.T) {
+	consulInst := new(mocks.Client)
+	catalog := new(mocks.Catalog)
+	kv := new(mocks.KV)
+
+	mockTests(consulInst, catalog, kv)
+
+	nodes := []*consulApi.Node{
+		{
+			Node: "node1",
+		},
+	}
+
+	catalog.On("Nodes",
+		&consulApi.QueryOptions{Filter: "Meta[\"trento-host-ip-addresses\"] contains \"192.168.1.6\""}).Return(
+		nodes, nil, nil)
+
+	sapSystemsService := NewSAPSystemsService(consulInst)
+	sapAttachedDbs, err := sapSystemsService.GetAttachedDatabasesById("systemId3")
+
+	catalog.AssertExpectations(t)
+	consulInst.AssertExpectations(t)
+	kv.AssertExpectations(t)
+
+	assert.NoError(t, err)
+	assert.ElementsMatch(t, sapsystem.SAPSystemsList{}, sapAttachedDbs)
+}
+
+func TestGetAttachedDatabasesById(t *testing.T) {
+	consulInst := new(mocks.Client)
+	catalog := new(mocks.Catalog)
+	kv := new(mocks.KV)
+
+	mockTests(consulInst, catalog, kv)
+
+	nodes := []*consulApi.Node{
+		{
+			Node: "node1",
+		},
+	}
+
+	catalog.On("Nodes",
+		&consulApi.QueryOptions{Filter: "Meta[\"trento-host-ip-addresses\"] contains \"192.168.1.5\""}).Return(
+		nodes, nil, nil)
+
+	sapSystemsService := NewSAPSystemsService(consulInst)
+	sapAttachedDbs, err := sapSystemsService.GetAttachedDatabasesById("systemId4")
+
+	expectedDbs := sapsystem.SAPSystemsList{
+		&sapsystem.SAPSystem{
+			Id:   "systemId1",
+			SID:  "PRD",
+			Type: sapsystem.Database,
+			Databases: []*sapsystem.DatabaseData{
+				&sapsystem.DatabaseData{
+					Database: "PRD",
+					Host:     "node1",
+				},
+			},
+		},
+	}
+
+	catalog.AssertExpectations(t)
+	consulInst.AssertExpectations(t)
+	kv.AssertExpectations(t)
+
+	assert.NoError(t, err)
+	assert.ElementsMatch(t, expectedDbs, sapAttachedDbs)
 }

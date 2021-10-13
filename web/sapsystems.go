@@ -15,11 +15,14 @@ import (
 )
 
 type SAPSystemRow struct {
-	Id               string
-	SID              string
-	Tags             []string
-	InstancesTable   []*InstanceRow
-	HasDuplicatedSid bool
+	Id                  string
+	SID                 string
+	AttachedDatabaseSID string
+	AttachedDatabaseId  string
+	Profile             map[string]interface{}
+	Tags                []string
+	InstancesTable      []*InstanceRow
+	HasDuplicatedSid    bool
 }
 
 type InstanceRow struct {
@@ -38,7 +41,7 @@ var systemTypeToTag = map[int]string{
 	sapsystem.Database:    models.TagDatabaseResourceType,
 }
 
-func NewSAPSystemsTable(sapSystemsList sapsystem.SAPSystemsList, hostsService services.HostsService, tagsService services.TagsService) (SAPSystemsTable, error) {
+func NewSAPSystemsTable(sapSystemsList sapsystem.SAPSystemsList, hostsService services.HostsService, sapSystemsService services.SAPSystemsService, tagsService services.TagsService) (SAPSystemsTable, error) {
 	var sapSystemsTable SAPSystemsTable
 	sids := make(map[string]int)
 	rowsBySID := make(map[string]*SAPSystemRow)
@@ -55,17 +58,40 @@ func NewSAPSystemsTable(sapSystemsList sapsystem.SAPSystemsList, hostsService se
 			sids[s.SID] += 1
 
 			sapSystem = &SAPSystemRow{
-				Id:   s.Id,
-				SID:  s.SID,
-				Tags: sapsystemTags,
+				Id:      s.Id,
+				SID:     s.SID,
+				Tags:    sapsystemTags,
+				Profile: s.Profile,
 			}
+
+			if s.Type == sapsystem.Application {
+				attachedDatabases, err := sapSystemsService.GetAttachedDatabasesById(s.Id)
+				if err != nil {
+					return nil, err
+				}
+				sapSystem.AttachedDatabaseSID = attachedDatabases[0].SID
+				sapSystem.AttachedDatabaseId = attachedDatabases[0].Id
+
+				// Add the database instances to the instaces table
+				for index, database := range attachedDatabases {
+					for _, data := range database.Instances {
+						s.Instances[fmt.Sprint(index)] = data
+					}
+				}
+			}
+
 			rowsBySID[s.Id] = sapSystem
 		}
 
 		for _, i := range s.Instances {
 			var features string
+			var sid string
 			var instanceNumber string
 			var clusterName, clusterId string
+
+			if p, ok := i.SAPControl.Properties["SAPSYSTEMNAME"]; ok {
+				sid = p.Value
+			}
 
 			if p, ok := i.SAPControl.Properties["SAPSYSTEM"]; ok {
 				instanceNumber = p.Value
@@ -82,7 +108,7 @@ func NewSAPSystemsTable(sapSystemsList sapsystem.SAPSystemsList, hostsService se
 			clusterId = metadata["trento-ha-cluster-id"]
 
 			instance := &InstanceRow{
-				SID:            s.SID,
+				SID:            sid,
 				InstanceNumber: instanceNumber,
 				Features:       features,
 				Host:           i.Host,
@@ -92,6 +118,10 @@ func NewSAPSystemsTable(sapSystemsList sapsystem.SAPSystemsList, hostsService se
 
 			sapSystem.InstancesTable = append(sapSystem.InstancesTable, instance)
 		}
+
+		sort.Slice(sapSystem.InstancesTable, func(i, j int) bool {
+			return sapSystem.InstancesTable[i].SID < sapSystem.InstancesTable[j].SID
+		})
 	}
 
 	for _, row := range rowsBySID {
@@ -171,7 +201,8 @@ func (t SAPSystemsTable) GetAllTags() []string {
 	return tags
 }
 
-func NewSAPSystemListHandler(client consul.Client, hostsService services.HostsService, sapSystemsService services.SAPSystemsService, tagsService services.TagsService) gin.HandlerFunc {
+func NewSAPSystemListHandler(client consul.Client, hostsService services.HostsService,
+	sapSystemsService services.SAPSystemsService, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		query := c.Request.URL.Query()
 		sidFilter := query["sid"]
@@ -183,7 +214,7 @@ func NewSAPSystemListHandler(client consul.Client, hostsService services.HostsSe
 			return
 		}
 
-		sapSystemsTable, err := NewSAPSystemsTable(saps, hostsService, tagsService)
+		sapSystemsTable, err := NewSAPSystemsTable(saps, hostsService, sapSystemsService, tagsService)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -213,7 +244,7 @@ func NewHanaDatabaseListHandler(
 			return
 		}
 
-		sapDatabasesTable, err := NewSAPSystemsTable(saps, hostsService, tagsService)
+		sapDatabasesTable, err := NewSAPSystemsTable(saps, hostsService, sapSystemsService, tagsService)
 		if err != nil {
 			_ = c.Error(err)
 			return

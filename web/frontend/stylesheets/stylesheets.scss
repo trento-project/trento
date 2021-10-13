@@ -169,3 +169,13 @@ td i.critical {
   font-weight: bold;
   font-size: 16px;
 }
+
+.checks-filters-row {
+  text-align: right;
+  margin-bottom: 12px;
+}
+
+.dropdown-item.selected {
+  border-left: 0.3rem solid green;
+  padding-left: 1.2rem;
+}

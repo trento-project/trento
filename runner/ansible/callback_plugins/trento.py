@@ -168,6 +168,13 @@ class CallbackModule(CallbackBase):
             self.results.set_host_state(group, host, True)
             self.results.add_result(group, task_vars[CHECK_ID], host, False)
 
+    def v2_runner_on_skipped(self, result):
+        """
+        On task Skipped
+        """
+        if self._is_check_include_loop(result):
+            self._store_skipped(result)
+
     def v2_runner_on_unreachable(self, result):
         """
         On task Unreachable
@@ -261,6 +268,7 @@ class CallbackModule(CallbackBase):
                     check_id = data[CHECK_ID]
 
                 for group in task_vars["group_names"]:
+                    self.results.set_host_state(group, host, True)
                     self.results.add_result(group, check_id, host, "skipped")
 
     def _get_playbook_id(self):

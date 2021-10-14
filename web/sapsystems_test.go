@@ -127,6 +127,7 @@ var sapDatabasesList = sapsystem.SAPSystemsList{
 		Instances: map[string]*sapsystem.SAPInstance{
 			"HDB00": &sapsystem.SAPInstance{
 				Host: "hana01",
+				Type: sapsystem.Database,
 				SAPControl: &sapsystem.SAPControl{
 					Properties: map[string]*sapcontrol.InstanceProperty{
 						"SAPSYSTEMNAME": &sapcontrol.InstanceProperty{
@@ -147,6 +148,15 @@ var sapDatabasesList = sapsystem.SAPSystemsList{
 							Features:   "HDB_WORKER",
 						},
 					},
+				},
+				SystemReplication: sapsystem.SystemReplication{
+					"local_site_id": "1",
+					"site": map[string]interface{}{
+						"1": map[string]interface{}{
+							"REPLICATION_MODE": "PRIMARY",
+						},
+					},
+					"overall_replication_status": "ACTIVE",
 				},
 			},
 		},
@@ -215,9 +225,9 @@ func TestSAPSystemsListHandler(t *testing.T) {
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, responseBody, "SAP Systems")
 	assert.Regexp(t, regexp.MustCompile("<td><a href=/sapsystems/systemId1>HA1</a></td><td></td><td><a href=/databases/systemId2>PRD</a></td><td>PRD</td><td>192.168.1.5</td><td>.*<input.*value=tag1.*>.*</td>"), responseBody)
-	assert.Regexp(t, regexp.MustCompile("<td>HA1</td><td>MESSAGESERVER|ENQUE</td><td>00</td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>netweaver_cluster</a></td><td><a href=/hosts/netweaver01>netweaver01</a></td>"), responseBody)
-	assert.Regexp(t, regexp.MustCompile("<td>HA1</td><td>ENQREP</td><td>10</td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>netweaver_cluster</a></td><td><a href=/hosts/netweaver02>netweaver02</a></td>"), responseBody)
-	assert.Regexp(t, regexp.MustCompile("<td>PRD</td><td>HDB_WORKER</td><td>00</td><td><a href=/clusters/5dfbd28f35cbfb38969f9b99243ae8d4>hana_cluster</a></td><td><a href=/hosts/hana01>hana01</a></td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<td>HA1</td><td>MESSAGESERVER|ENQUE</td><td>00</td><td></td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>netweaver_cluster</a></td><td><a href=/hosts/netweaver01>netweaver01</a></td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<td>HA1</td><td>ENQREP</td><td>10</td><td></td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>netweaver_cluster</a></td><td><a href=/hosts/netweaver02>netweaver02</a></td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("(?s)<td>PRD</td><td>HDB_WORKER</td><td>00</td><td>.*HANA Primary.*SOK.*</td><td><a href=/clusters/5dfbd28f35cbfb38969f9b99243ae8d4>hana_cluster</a></td><td><a href=/hosts/hana01>hana01</a></td>"), responseBody)
 	assert.Regexp(t, regexp.MustCompile("<td><i .*This SAP system SID exists multiple times.*warning.*<a href=/sapsystems/systemId2>DEV</a></td>"), responseBody)
 	assert.Regexp(t, regexp.MustCompile("<td><i .*This SAP system SID exists multiple times.*warning.*<a href=/sapsystems/systemId3>DEV</a></td>"), responseBody)
 }
@@ -267,7 +277,139 @@ func TestSAPDatabaseListHandler(t *testing.T) {
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, responseBody, "HANA Databases")
 	assert.Regexp(t, regexp.MustCompile("<td><a href=/databases/systemId2>PRD</a></td><td></td><td>.*<input.*value=tag1.*>.*</td>"), responseBody)
-	assert.Regexp(t, regexp.MustCompile("<td>PRD</td><td>HDB_WORKER</td><td>00</td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>hana_cluster</a></td><td><a href=/hosts/hana01>hana01</a></td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("(?s)<td>PRD</td><td>HDB_WORKER</td><td>00</td>.*HANA Primary.*SOK.*<td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>hana_cluster</a></td><td><a href=/hosts/hana01>hana01</a></td>"), responseBody)
+}
+
+func TestIsDatabase(t *testing.T) {
+	r := InstanceRow{
+		Type: sapsystem.Database,
+	}
+	assert.Equal(t, true, r.IsDatabase())
+
+	r = InstanceRow{
+		Type: sapsystem.Application,
+	}
+	assert.Equal(t, false, r.IsDatabase())
+}
+
+func TestGetReplicationModePrimary(t *testing.T) {
+	srData := SystemReplication{
+		"local_site_id": "1",
+		"site": map[string]interface{}{
+			"1": map[string]interface{}{
+				"REPLICATION_MODE": "PRIMARY",
+			},
+		},
+		"overall_replication_status": "ACTIVE",
+	}
+
+	mode := srData.GetReplicationMode()
+	assert.Equal(t, "Primary", mode)
+}
+
+func TestGetReplicationModeSecondary(t *testing.T) {
+	srData := SystemReplication{
+		"local_site_id": "1",
+		"site": map[string]interface{}{
+			"1": map[string]interface{}{
+				"REPLICATION_MODE": "SYNC",
+			},
+		},
+		"overall_replication_status": "ACTIVE",
+	}
+
+	mode := srData.GetReplicationMode()
+	assert.Equal(t, "Secondary", mode)
+}
+
+func TestGetReplicationModeEmpty(t *testing.T) {
+	srData := SystemReplication{
+		"site": map[string]interface{}{
+			"1": map[string]interface{}{
+				"REPLICATION_MODE": "SYNC",
+			},
+		},
+		"overall_replication_status": "ACTIVE",
+	}
+
+	mode := srData.GetReplicationMode()
+	assert.Equal(t, "", mode)
+
+	srData = SystemReplication{
+		"local_site_id":              "1",
+		"overall_replication_status": "ACTIVE",
+	}
+
+	mode = srData.GetReplicationMode()
+	assert.Equal(t, "", mode)
+
+	srData = SystemReplication{
+		"local_site_id": "1",
+		"site": map[string]interface{}{
+			"2": map[string]interface{}{
+				"REPLICATION_MODE": "SYNC",
+			},
+		},
+		"overall_replication_status": "ACTIVE",
+	}
+
+	mode = srData.GetReplicationMode()
+	assert.Equal(t, "", mode)
+}
+
+func TestGetReplicationStatus(t *testing.T) {
+	srData := SystemReplication{
+		"local_site_id": "1",
+		"site": map[string]interface{}{
+			"1": map[string]interface{}{
+				"REPLICATION_MODE": "PRIMARY",
+			},
+		},
+		"overall_replication_status": "ACTIVE",
+	}
+
+	mode := srData.GetReplicationStatus()
+	assert.Equal(t, "SOK", mode)
+
+	srData = SystemReplication{
+		"local_site_id": "1",
+		"site": map[string]interface{}{
+			"1": map[string]interface{}{
+				"REPLICATION_MODE": "PRIMARY",
+			},
+		},
+		"overall_replication_status": "ERROR",
+	}
+
+	mode = srData.GetReplicationStatus()
+	assert.Equal(t, "SFAIL", mode)
+}
+
+func TestGetReplicationEmpty(t *testing.T) {
+	srData := SystemReplication{
+		"local_site_id": "1",
+		"site": map[string]interface{}{
+			"1": map[string]interface{}{
+				"REPLICATION_MODE": "PRIMARY",
+			},
+		},
+	}
+
+	mode := srData.GetReplicationStatus()
+	assert.Equal(t, "", mode)
+
+	srData = SystemReplication{
+		"local_site_id": "1",
+		"site": map[string]interface{}{
+			"1": map[string]interface{}{
+				"REPLICATION_MODE": "PRIMARY",
+			},
+		},
+		"overall_replication_status": "Other",
+	}
+
+	mode = srData.GetReplicationStatus()
+	assert.Equal(t, "", mode)
 }
 
 func TestSAPResourceHandler(t *testing.T) {

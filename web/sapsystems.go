@@ -26,13 +26,17 @@ type SAPSystemRow struct {
 }
 
 type InstanceRow struct {
-	SID            string
-	InstanceNumber string
-	Features       string
-	Host           string
-	ClusterName    string
-	ClusterId      string
+	Type              int
+	SID               string
+	InstanceNumber    string
+	Features          string
+	SystemReplication SystemReplication // Only for Database type
+	Host              string
+	ClusterName       string
+	ClusterId         string
 }
+
+type SystemReplication map[string]interface{}
 
 type SAPSystemsTable []*SAPSystemRow
 
@@ -41,7 +45,8 @@ var systemTypeToTag = map[int]string{
 	sapsystem.Database:    models.TagDatabaseResourceType,
 }
 
-func NewSAPSystemsTable(sapSystemsList sapsystem.SAPSystemsList, hostsService services.HostsService, sapSystemsService services.SAPSystemsService, tagsService services.TagsService) (SAPSystemsTable, error) {
+func NewSAPSystemsTable(sapSystemsList sapsystem.SAPSystemsList, hostsService services.HostsService,
+	sapSystemsService services.SAPSystemsService, tagsService services.TagsService) (SAPSystemsTable, error) {
 	var sapSystemsTable SAPSystemsTable
 	sids := make(map[string]int)
 	rowsBySID := make(map[string]*SAPSystemRow)
@@ -108,12 +113,18 @@ func NewSAPSystemsTable(sapSystemsList sapsystem.SAPSystemsList, hostsService se
 			clusterId = metadata["trento-ha-cluster-id"]
 
 			instance := &InstanceRow{
+				Type:           i.Type,
 				SID:            sid,
 				InstanceNumber: instanceNumber,
 				Features:       features,
 				Host:           i.Host,
 				ClusterName:    clusterName,
 				ClusterId:      clusterId,
+			}
+
+			if i.Type == sapsystem.Database {
+				// Cast to local struct to manage the data in this package
+				instance.SystemReplication = SystemReplication(i.SystemReplication)
 			}
 
 			sapSystem.InstancesTable = append(sapSystem.InstancesTable, instance)
@@ -199,6 +210,60 @@ func (t SAPSystemsTable) GetAllTags() []string {
 	}
 
 	return tags
+}
+
+func (r InstanceRow) IsDatabase() bool {
+	return bool(r.Type == sapsystem.Database)
+}
+
+// Find mode information at: https://help.sap.com/viewer/4e9b18c116aa42fc84c7dbfd02111aba/2.0.04/en-US/aefc55a27003440792e34ece2125dc89.html
+func (s SystemReplication) GetReplicationMode() string {
+	localSite, ok := s["local_site_id"]
+	if !ok {
+		return ""
+	}
+
+	var mode string
+
+	site, ok := s["site"]
+	if !ok {
+		return ""
+	}
+
+	for siteId, site := range site.(map[string]interface{}) {
+		if siteId == localSite {
+			mode = fmt.Sprintf("%v", site.(map[string]interface{})["REPLICATION_MODE"])
+			break
+		}
+	}
+
+	switch mode {
+	case "PRIMARY":
+		return "Primary"
+	case "":
+		return ""
+	default: // SYNC, SYNCMEM, ASYNC, UNKNOWN
+		return "Secondary"
+	}
+}
+
+// Find status information at: https://help.sap.com/viewer/4e9b18c116aa42fc84c7dbfd02111aba/2.0.04/en-US/aefc55a27003440792e34ece2125dc89.html
+func (s SystemReplication) GetReplicationStatus() string {
+	status, ok := s["overall_replication_status"]
+	if !ok {
+		return ""
+	}
+
+	status = fmt.Sprintf("%v", status)
+
+	switch status {
+	case "ACTIVE":
+		return "SOK"
+	case "ERROR":
+		return "SFAIL"
+	default: // UNKNOWN, INITIALIZING, SYNCING
+		return ""
+	}
 }
 
 func NewSAPSystemListHandler(client consul.Client, hostsService services.HostsService,

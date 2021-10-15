@@ -7,8 +7,8 @@ const RowGroup = ({ name, checks, clusterHosts }) => {
     .map((key) => <td key={key} />)
     .concat(<td key="emptycell" />);
 
-  const getResult = function(hosts, hostname) {
-    return hostname in hosts ? hosts[hostname].result : "unknown";
+  const getResult = function (hosts, hostname) {
+    return hostname in hosts ? hosts[hostname].result : 'unknown';
   };
 
   return (

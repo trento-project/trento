@@ -1,6 +1,7 @@
 import React from 'react';
 
 import RowGroup from './RowGroup';
+import CheckResultIcon from './CheckResultIcon';
 
 const groupChecks = (checks) => {
   const groups = checks.reduce((accumulator, current) => {
@@ -27,7 +28,8 @@ const ChecksTable = ({ checks, clusterHosts }) => {
             <th>Test ID</th>
             {Object.keys(clusterHosts).map((label) => (
               <th key={label} scope="col" style={{ textAlign: 'center' }}>
-                {label}
+                {!(clusterHosts[label].reachable) &&
+                  <CheckResultIcon result="warning" tooltip={clusterHosts[label].msg}/>}{label}
               </th>
             ))}
           </tr>

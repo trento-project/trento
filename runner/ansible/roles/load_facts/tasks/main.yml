@@ -13,6 +13,10 @@
   set_fact:
     cluster_selected_checks_list: "{{ cluster_selected_checks|default('')|split(',') }}"
 
+- name: Gather the package facts
+  ansible.builtin.package_facts:
+    manager: auto
+
 - name: debug loaded vars
   debug:
     var: expected

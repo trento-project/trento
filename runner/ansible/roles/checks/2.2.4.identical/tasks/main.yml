@@ -5,8 +5,17 @@
     pkg_version: "{{ ansible_facts.packages['corosync'][0].version }}"
   delegate_facts: true
   register: config_updated
-  changed_when: "{{ ansible_facts.packages['corosync'] | length }} > 1"
-  changed_when: "pkg_version is version(expected[name], '<')"
+  changed_when: "{{ ansible_facts.packages['corosync'] | length }} != 1"
+  when: "'corosync' in ansible_facts.packages"
+  
+- name: "{{ name }}.check"
+  assert:
+    that:
+      - "{{ groups[item] | map('extract', hostvars) | map(attribute='pkg_version') | list | unique | length }} == 1"
+    quiet: true
+  loop: "{{ group_names }}"
+  register: config_updated
+  changed_when: config_updated.failed
   when: "'corosync' in ansible_facts.packages"
 
 - name: "{{ name }} corosync is not installed"
@@ -15,7 +24,7 @@
   register: config_updated
   changed_when: true
   when: "'corosync' not in ansible_facts.packages"
-    
+  
 - block:
     - name: Post results
       import_role:

@@ -1,0 +1,20 @@
+---
+
+name: 2.2.1
+group: OS and package versions
+labels: hana
+description: |
+  Test if the used OS is identical on all nodes
+remediation: |
+  ## Abstract
+  SAPHanaSR is only supported on SUSE Linux Enterprise Server for SAP Applications on all nodes of the cluster.
+
+  ## Remediation
+  Please use SUSE Linux Enterprise Server for SAP Applications on all nodes of the cluster
+
+  ## Reference
+  - https://documentation.suse.com/en-us/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
+implementation: "{{ lookup('file', 'roles/checks/'+name+'/tasks/main.yml') }}"
+
+# check id. This value must not be changed over the life of this check
+id: CAEFF2

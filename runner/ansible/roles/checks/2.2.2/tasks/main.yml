@@ -4,7 +4,5 @@
     - name: Post results
       import_role:
         name: post-results
-  when:
-    - ansible_check_mode
   vars:
-    status: "{{  ansible_distribution_version is version(expected[name], '>=') }}"
+    status: "{{ ansible_distribution_version is version(expected[name], '>=') }}"

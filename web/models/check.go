@@ -60,8 +60,8 @@ type Check struct {
 
 // Simplified models for the frontend
 type ClusterCheckResults struct {
-	Hosts  map[string]*Host     `json:"hosts,omitempty" mapstructure:"hosts,omitempty"`
-	Checks []ClusterCheckResult `json:"checks,omitempty" mapstructure:"checks,omitempty"`
+	Hosts  map[string]*Host     `json:"hosts" mapstructure:"hosts,omitempty"`
+	Checks []ClusterCheckResult `json:"checks" mapstructure:"checks,omitempty"`
 }
 
 type ClusterCheckResult struct {

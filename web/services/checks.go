@@ -146,6 +146,7 @@ func (c *checksService) GetChecksResultAndMetadataByCluster(clusterId string) (*
 
 	resultSet := &models.ClusterCheckResults{}
 	resultSet.Hosts = cResultByCluster.Hosts
+	resultSet.Checks = []models.ClusterCheckResult{}
 
 	for _, checkMeta := range checkList {
 		for checkId, checkByHost := range cResultByCluster.Checks {

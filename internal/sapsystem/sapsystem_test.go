@@ -199,6 +199,54 @@ func TestSetSystemIdOther(t *testing.T) {
 	assert.Equal(t, "-", system.Id)
 }
 
+func TestGetDatabases(t *testing.T) {
+	appFS := afero.NewMemMapFs()
+	appFS.MkdirAll("/usr/sap/DEV/SYS/global/hdb/mdc/", 0755)
+
+	nameserverContent := []byte(`
+# DATABASE:CONTAINER:USER:GROUP:USERID:GROUPID:HOST:SQLPORT:ACTIVE
+PRD::::::hana01:30015:yes
+
+DEV::::::hana01:30044:yes
+ERR:::
+`)
+
+	afero.WriteFile(
+		appFS, "/usr/sap/DEV/SYS/global/hdb/mdc/databases.lst",
+		nameserverContent, 0644)
+
+	dbs, err := getDatabases(appFS, "DEV")
+
+	expectedDbs := []*DatabaseData{
+		{
+			Database:  "PRD",
+			Container: "",
+			User:      "",
+			Group:     "",
+			UserId:    "",
+			GroupId:   "",
+			Host:      "hana01",
+			SqlPort:   "30015",
+			Active:    "yes",
+		},
+		{
+			Database:  "DEV",
+			Container: "",
+			User:      "",
+			Group:     "",
+			UserId:    "",
+			GroupId:   "",
+			Host:      "hana01",
+			SqlPort:   "30044",
+			Active:    "yes",
+		},
+	}
+
+	assert.NoError(t, err)
+	assert.Equal(t, len(dbs), 2)
+	assert.ElementsMatch(t, expectedDbs, dbs)
+}
+
 func TestNewSAPInstanceDatabase(t *testing.T) {
 	mockWebService := new(sapControlMocks.WebService)
 	mockCommand := new(sapSystemMocks.CustomCommand)

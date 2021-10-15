@@ -69,6 +69,7 @@ func NewWithConfig(cfg Config) (*Agent, error) {
 			discovery.NewSAPSystemsDiscovery(client),
 			discovery.NewCloudDiscovery(client),
 			discovery.NewSubscriptionDiscovery(client),
+			discovery.NewHostDiscovery(client),
 		},
 		templateRunner: templateRunner,
 	}

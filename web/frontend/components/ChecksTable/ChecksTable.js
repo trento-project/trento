@@ -41,7 +41,7 @@ const ChecksTable = ({ checks, clusterHosts }) => {
               id={name}
               name={name}
               checks={checks}
-              hosts={clusterHosts}
+              clusterHosts={clusterHosts}
             />
           ))}
         </tbody>

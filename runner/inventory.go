@@ -39,6 +39,8 @@ const (
 {{- end }}
 {{- end }}
 `
+  DefaultUser           string = "root"
+  clusterSelectedChecks string = "cluster_selected_checks"
 )
 
 func CreateInventory(destination string, content *InventoryContent) error {
@@ -55,6 +57,41 @@ func CreateInventory(destination string, content *InventoryContent) error {
   f.Close()
 
   return nil
+}
+
+// Local methods created to make the mocking possible
+// These methods will be replaced once we have the new backend, so bear with them
+var getCheckSelection = func(client consul.Client, clusterId string) (string, error) {
+  checks, err := cluster.GetCheckSelection(client, clusterId)
+  if err != nil {
+    return "", err
+  }
+
+  return checks, nil
+}
+
+var getNodeAddress = func(client consul.Client, node string) (string, error) {
+  hostList, err := hosts.Load(client, fmt.Sprintf("Node == \"%s\"", node), []string{})
+  if err == nil && len(hostList) > 0 {
+    return hostList[0].Node.Address, nil
+  }
+
+  return "", err
+}
+
+var getCloudUserName = func(client consul.Client, node string) (string, error) {
+  cloudData, err := cloud.Load(client, node)
+  if err != nil {
+    return "", err
+  }
+
+  switch cloudData.Provider {
+  case cloud.Azure:
+    azureData := cloudData.Metadata.(cloud.AzureMetadata)
+    return azureData.Compute.OsProfile.AdminUserName, nil
+  default:
+    return DefaultUser, nil
+  }
 }
 
 func NewClusterInventoryContent(client consul.Client) (*InventoryContent, error) {
@@ -74,26 +111,19 @@ func NewClusterInventoryContent(client consul.Client) (*InventoryContent, error)
         Variables: make(map[string]interface{}),
       }
 
-      // Get checks
-      checks, err := cluster.GetCheckSelection(client, clusterId)
+      checks, err := getCheckSelection(client, clusterId)
       if err == nil {
         node.Variables[clusterSelectedChecks] = checks
       }
 
-      // Get ansible host
-      hostList, err := hosts.Load(client, fmt.Sprintf("Node == \"%s\"", node.Name), []string{})
-      if err == nil && len(hostList) > 0 {
-        node.AnsibleHost = hostList[0].Node.Address
+      address, err := getNodeAddress(client, node.Name)
+      if err == nil {
+        node.AnsibleHost = address
       }
 
-      // Get ansible user
-      cloudData, err := cloud.Load(client, node.Name)
+      cloudUser, err := getCloudUserName(client, node.Name)
       if err == nil {
-        switch cloudData.Provider {
-        case cloud.Azure:
-          azureData := cloudData.Metadata.(cloud.AzureMetadata)
-          node.AnsibleUser = azureData.Compute.OsProfile.AdminUserName
-        }
+        node.AnsibleUser = cloudUser
       }
 
       nodes = append(nodes, node)

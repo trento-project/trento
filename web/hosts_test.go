@@ -14,8 +14,7 @@ import (
 	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/internal/subscription"
 	"github.com/trento-project/trento/web/models"
-	serviceMocks "github.com/trento-project/trento/web/services/mocks"
-	servicesMocks "github.com/trento-project/trento/web/services/mocks"
+	"github.com/trento-project/trento/web/services"
 )
 
 func TestNewHostsHealthContainer(t *testing.T) {
@@ -142,7 +141,7 @@ func TestHostsListHandler(t *testing.T) {
 	health.On("Node", "bar", (*consulApi.QueryOptions)(nil)).Return(barHealthChecks, nil, nil)
 	health.On("Node", "buzz", (*consulApi.QueryOptions)(nil)).Return(buzzHealthChecks, nil, nil)
 
-	mockTagsService := new(servicesMocks.TagsService)
+	mockTagsService := new(services.MockTagsService)
 	mockTagsService.On("GetAllByResource", models.TagHostResourceType, "foo").Return([]string{"tag1"}, nil)
 	mockTagsService.On("GetAllByResource", models.TagHostResourceType, "bar").Return([]string{}, nil)
 	mockTagsService.On("GetAllByResource", models.TagHostResourceType, "buzz").Return([]string{}, nil)
@@ -163,7 +162,7 @@ func TestHostsListHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	app.ServeHTTP(resp, req)
+	app.webEngine.ServeHTTP(resp, req)
 
 	consulInst.AssertExpectations(t)
 	catalog.AssertExpectations(t)
@@ -197,7 +196,7 @@ func TestHostHandler(t *testing.T) {
 	catalog := new(consulMocks.Catalog)
 	health := new(consulMocks.Health)
 	kv := new(consulMocks.KV)
-	subscriptionsMocks := new(serviceMocks.SubscriptionsService)
+	subscriptionsMocks := new(services.MockSubscriptionsService)
 
 	consulInst.On("Catalog").Return(catalog)
 	consulInst.On("Health").Return(health)
@@ -322,7 +321,7 @@ func TestHostHandler(t *testing.T) {
 	}
 	req.Header.Set("Accept", "text/html")
 
-	app.ServeHTTP(resp, req)
+	app.webEngine.ServeHTTP(resp, req)
 
 	m := minify.New()
 	m.AddFunc("text/html", html.Minify)
@@ -365,7 +364,7 @@ func TestHostHandlerAzure(t *testing.T) {
 	catalog := new(consulMocks.Catalog)
 	health := new(consulMocks.Health)
 	kv := new(consulMocks.KV)
-	subscriptionsMocks := new(serviceMocks.SubscriptionsService)
+	subscriptionsMocks := new(services.MockSubscriptionsService)
 
 	consulInst.On("Catalog").Return(catalog)
 	consulInst.On("Health").Return(health)
@@ -442,7 +441,7 @@ func TestHostHandlerAzure(t *testing.T) {
 	}
 	req.Header.Set("Accept", "text/html")
 
-	app.ServeHTTP(resp, req)
+	app.webEngine.ServeHTTP(resp, req)
 
 	m := minify.New()
 	m.AddFunc("text/html", html.Minify)
@@ -486,7 +485,7 @@ func TestHostHandler404Error(t *testing.T) {
 	}
 	req.Header.Set("Accept", "text/html")
 
-	app.ServeHTTP(resp, req)
+	app.webEngine.ServeHTTP(resp, req)
 
 	assert.NoError(t, err)
 	assert.Equal(t, 404, resp.Code)

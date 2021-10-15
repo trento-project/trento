@@ -91,7 +91,7 @@ The suggested physical resources for running all the _Trento Server_ components 
 The _Trento Server_ needs to reach the target infrastructure.
 
 The _Trento Agent_ component, on the other hand, needs to interact with a number of low-level system components
-which are part of the [SUSE Linux Enterprise Server for SAP Applications](https://www.suse.com/products/sles-for-sap/) Linux distribution. 
+which are part of the [SUSE Linux Enterprise Server for SAP Applications](https://www.suse.com/products/sles-for-sap/) Linux distribution.
 These could in theory also be installed and configured on other distributions providing the same functionalities, but this use case is not within the scope of the active development.
 The resource footprint of the _Trento Agent_ should not impact the performance of the host it runs on.
 
@@ -366,12 +366,14 @@ In order to start them, some packages must be installed and started. Here a quic
 
 ```shell
 # Install ARA with server dependencies
-pip install "ara[server]"
+pip install 'ara[server]~=1.5.7'
 # Setup ARA database
 ara-manage migrate
 # Start ARA server. This process can be started in background or in other shell terminal
 ara-manage runserver ip:port
 ```
+
+> The installed ara version should be at least ara~=1.5.7
 
 If the requests to ARA server fail with a message like the next one, it means that the server address must be allowed:
 
@@ -393,8 +395,10 @@ export ARA_ALLOWED_HOSTS=['*']
 Independently where you decide to run ARA, the Runner needs the `ansible` and `ara` Python packages available locally:
 
 ```shell
-pip install ansible ara
+pip install 'ansible~=4.6.0' 'ara~=1.5.7'
 ```
+
+> The installed ansible components versions should be at least ansible~=4.6.0 and ansible-core~=2.11.5
 
 Once dependencies are in place, you can start the Runner itself:
 

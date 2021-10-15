@@ -7,7 +7,7 @@ import (
 	"github.com/trento-project/trento/internal/hosts"
 )
 
-//go:generate mockery --name=HostsService
+//go:generate mockery --name=HostsService --inpackage  --filename=hosts_mock.go
 
 type HostsService interface {
 	GetHostMetadata(host string) (map[string]string, error)

@@ -10,7 +10,7 @@ import (
 	"github.com/trento-project/trento/internal/sapsystem"
 )
 
-//go:generate mockery --name=SAPSystemsService
+//go:generate mockery --name=SAPSystemsService --inpackage --filename=sapsystems_mock.go
 
 type SAPSystemsService interface {
 	GetSAPSystems() (sapsystem.SAPSystemsList, error)

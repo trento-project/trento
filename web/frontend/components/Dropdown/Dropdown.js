@@ -1,4 +1,4 @@
-import React, { useState, useCallback, cloneElement } from 'react';
+import React, { cloneElement } from 'react';
 import classNames from 'classnames';
 
 const Dropdown = ({
@@ -7,11 +7,8 @@ const Dropdown = ({
   className,
   multi = false,
 }) => {
-  const [isOpen, setOpen] = useState(false);
-  const dropdownClasses = classNames('dropdown', className, { show: isOpen });
-  const menuClasses = classNames('dropdown-menu', { show: isOpen });
-
-  const closeDropdown = useCallback(() => setOpen(false), [setOpen]);
+  const dropdownClasses = classNames('dropdown', className);
+  const menuClasses = classNames('dropdown-menu');
 
   return (
     <div className={dropdownClasses}>
@@ -19,18 +16,13 @@ const Dropdown = ({
         className="btn btn-secondary dropdown-toggle"
         data-toggle="dropdown"
       >
-        <i
-          className="eos-icons eos-18 icon-reset"
-          onClick={() => setOpen(!isOpen)}
-        >
-          keyboard_arrow_down
-        </i>
+        <i className="eos-icons eos-18 icon-reset">keyboard_arrow_down</i>
         {label}
       </button>
       <div className={menuClasses} aria-labelledby="dropdownMenuButton">
         {React.Children.map(children, (childNode) =>
           React.isValidElement(childNode)
-            ? cloneElement(childNode, { closeDropdown, multi })
+            ? cloneElement(childNode, { multi })
             : childNode
         )}
       </div>

@@ -1,15 +1,15 @@
 import React, { Fragment, useState } from 'react';
 import CheckResultIcon from './CheckResultIcon';
 
+const getResult = function (hosts, hostname) {
+  return hostname in hosts ? hosts[hostname].result : 'unknown';
+};
+
 const RowGroup = ({ name, checks, clusterHosts }) => {
   const [open, setOpen] = useState(true);
   const emptyCells = Object.keys(clusterHosts)
     .map((key) => <td key={key} />)
     .concat(<td key="emptycell" />);
-
-  const getResult = function (hosts, hostname) {
-    return hostname in hosts ? hosts[hostname].result : 'unknown';
-  };
 
   return (
     <Fragment>

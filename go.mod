@@ -13,6 +13,7 @@ require (
 	github.com/hashicorp/consul-template v0.25.2
 	github.com/hashicorp/consul/api v1.4.0
 	github.com/hooklift/gowsdl v0.5.0
+	github.com/lib/pq v1.10.2
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.4.1
@@ -28,8 +29,10 @@ require (
 	github.com/swaggo/swag v1.7.0
 	github.com/tdewolff/minify/v2 v2.9.16
 	github.com/vektra/mockery/v2 v2.9.0
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/sys v0.0.0-20210809222454-d867a43fc93e // indirect
 	golang.org/x/tools v0.1.5 // indirect
+	gorm.io/datatypes v1.0.2
 	gorm.io/driver/postgres v1.1.2
 	gorm.io/gorm v1.21.15
 )

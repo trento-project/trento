@@ -10,9 +10,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/trento-project/trento/internal/consul"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"github.com/trento-project/trento/internal/consul"
 )
 
 //go:embed ansible
@@ -58,9 +58,9 @@ func NewWithConfig(cfg Config) (*Runner, error) {
 
 func DefaultConfig() (Config, error) {
 	return Config{
-		AraServer:              "http://127.0.0.1:8000",
-		Interval:               5 * time.Minute,
-		AnsibleFolder:          "/tmp/trento",
+		AraServer:     "http://127.0.0.1:8000",
+		Interval:      5 * time.Minute,
+		AnsibleFolder: "/tmp/trento",
 	}, nil
 }
 

@@ -21,12 +21,25 @@ env:
 jobs:
   test:
     runs-on: ubuntu-20.04
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres 
+          POSTGRES_DB: trento_test
+        ports:
+          - 5432:5432
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
         with:
           go-version: 1.16
-
       - uses: actions/setup-node@v2
         with:
           node-version: "15"
@@ -49,6 +62,8 @@ jobs:
       - name: install-mockery
         run: go install github.com/vektra/mockery/v2
       - name: test
+        env:
+          DB_PORT: 5432
         run: make test
       - name: static analysis
         run: make vet-check
@@ -63,16 +78,21 @@ jobs:
           ansible-lint -vv -x role-name,risky-shell-pipe,no-tabs -w yaml \
             runner/ansible/* runner/ansible/roles/* \
             runner/ansible/roles/checks/* runner/ansible/vars/*
+      - name: trento checks sanity test
+        run: |
+          pip install PyYAML
+          python3 hack/id_checker.py
 
-  build:
+  build-static-binary:
     runs-on: ubuntu-20.04
     needs: test
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - uses: actions/setup-go@v2
         with:
           go-version: 1.16
-
       - uses: actions/setup-node@v2
         with:
           node-version: "15"
@@ -90,28 +110,23 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
-      - name: get git tags
-        run: git fetch --prune --unshallow --tags
       - name: build
         run: make -j4 cross-compiled
       - name: compress
         run: |
           set -x
-          for ARCH in $(ls -1 -d  build/*/ | cut -f2 -d/); do
-            tar -czf build/trento-$ARCH.tgz --directory=./build/$ARCH ../../trento-agent.service ./trento
-          done
+          find ./build -maxdepth 1 -mindepth 1 -type d -exec sh -c 'tar -zcf build/trento-$(basename {}).tgz -C {} trento -C $(pwd) packaging/systemd/trento-agent.service' \;
       - uses: actions/upload-artifact@v2
         with:
           name: trento-binaries
-          path: build
-      - uses: actions/upload-artifact@v2
-        with:
-          name: trento-amd64-binary
-          path: build/trento-amd64.tgz
+          path: |
+                  build/trento-amd64.tgz
+                  build/trento-arm64.tgz
+                  build/trento-ppc64le.tgz
+                  build/trento-s390x.tgz
 
   release-rolling:
-    name: "submit-pre-release"
-    needs: build
+    needs: build-static-binary
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main')
     runs-on: "ubuntu-latest"
     steps:
@@ -123,20 +138,35 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "rolling"
           prerelease: true
-          title: "Development Build"
+          title: "Cutting Edge"
           files: |
             trento-amd64.tgz
             trento-arm64.tgz
             trento-ppc64le.tgz
             trento-s390x.tgz
 
-  install-server:
+  # This job doesn't actually make release, but rather reacts to a manual one, made via the GitHub UI.
+  # In the future, we might want to reuse the same mechanism of the rolling ones to automate everything here as well.
+  release-tag:
+    needs: build-static-binary
+    if: github.event.release
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: trento-binaries
+      - uses: AButler/upload-release-assets@v2.0
+        with:
+          files: "trento-*"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-server:
     runs-on: [ self-hosted, trento-gh-runner ]
-    needs: build-and-push-image
+    needs: [ build-and-push-container-images, release-rolling ]
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
     environment: AZURE_DEMO
     env:
-      TRENTO_SERVER_HOST: ${{ secrets.TRENTO_SERVER_HOST }}      
+      TRENTO_SERVER_HOST: ${{ secrets.TRENTO_SERVER_HOST }}
       TRENTO_USER: ${{ secrets.TRENTO_USER }}
     steps:
       - uses: actions/checkout@v2
@@ -149,14 +179,14 @@ jobs:
           if_key_exists: replace
           config: ${{ secrets.SSH_CONFIG }}
       - name: deploy trento services on K3S cluster
-        run: ssh "$TRENTO_USER@$TRENTO_SERVER_HOST" "sudo bash -s" -- < ./install-server.sh -r -p ~/.ssh/id_rsa
+        run: ssh "$TRENTO_USER@$TRENTO_SERVER_HOST" "sudo --preserve-env=PATH bash -s" -- < ./install-server.sh -r -p ~/.ssh/id_rsa
 
   deploy-agents:
     runs-on: [ self-hosted, trento-gh-runner ]
-    needs: [ install-server, release-rolling ]
+    needs: [ deploy-server ]
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
     environment: AZURE_DEMO
-    env:      
+    env:
       TRENTO_AGENT_HOSTS: ${{ secrets.TRENTO_AGENT_HOSTS }}
       TRENTO_USER: ${{ secrets.TRENTO_USER }}
       TRENTO_SERVER_HOST: ${{ secrets.TRENTO_SERVER_HOST }}
@@ -167,29 +197,21 @@ jobs:
           set -ex
           for target_host in ${TRENTO_AGENT_HOSTS//,/ }
           do
-            ssh "$TRENTO_USER@$target_host" "sudo bash -s" -- < ./install-agent.sh "--rolling" "--use-tgz" "--agent-bind-ip" "$target_host" "--server-ip" "$TRENTO_SERVER_HOST"
+            ssh "$TRENTO_USER@$target_host" "sudo --preserve-env=PATH bash -s" -- < ./install-agent.sh "--rolling" "--use-tgz" "--agent-bind-ip" "$target_host" "--server-ip" "$TRENTO_SERVER_HOST"
             ssh "$TRENTO_USER@$target_host" "sudo systemctl enable --now trento-agent.service"
           done
 
-  upload-release-assets:
-    needs: build
-    if: github.event.release
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/download-artifact@v2
-        with:
-          name: trento-binaries
-      - uses: AButler/upload-release-assets@v2.0
-        with:
-          files: "trento-*"
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-  build-and-push-image:
+  build-and-push-container-images:
     needs: test
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+    strategy:
+      matrix:
+        image-target:
+          - trento-web
+          - trento-runner
     env:
       REGISTRY: ghcr.io
-      IMAGE_NAME: ${{ github.repository }}
+      IMAGE_REPOSITORY: ghcr.io/${{ github.repository_owner }}/${{ matrix.image-target }}
       IMAGE_TAG: "${{ github.event_name == 'release' && github.event.release.tag_name || 'rolling' }}"
     runs-on: ubuntu-latest
     permissions:
@@ -199,6 +221,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       - name: Log in to the Container registry
@@ -207,27 +231,26 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+          images: ${{ env.IMAGE_REPOSITORY }}
+      - name: Build and push container image
+        uses: docker/build-push-action@v2
         with:
           context: .
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          target: ${{ matrix.image-target }}
+          tags: ${{ env.IMAGE_REPOSITORY }}:${{ env.IMAGE_TAG }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  commit-obs:
+  obs-commit:
     needs: test
     runs-on: ubuntu-18.04
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.event_name == 'release'
     container:
       image: ghcr.io/trento-project/continuous-delivery:master
       env:
@@ -243,27 +266,27 @@ jobs:
         /scripts/init_osc_creds.sh
         mkdir -p $HOME/.config/osc
         cp /root/.config/osc/oscrc $HOME/.config/osc
-    - name: prepare tranto.changes file
+    - name: Prepare trento.changes file
       run: |
-        VERSION=$(./get_version_from_git.sh)
+        VERSION=$(./hack/get_version_from_git.sh)
         TAG=$(echo $VERSION | cut -f1 -d+)
-        .ci/gh_release_to_obs_changeset.py $REPOSITORY -a shap-staff@suse.de -t $TAG -f $FOLDER/trento.changes
+        hack/gh_release_to_obs_changeset.py $REPOSITORY -a shap-staff@suse.de -t $TAG -f $FOLDER/trento.changes
     - name: prepare _service file
       run: |
-        VERSION=$(./get_version_from_git.sh)
+        VERSION=$(./hack/get_version_from_git.sh)
         sed -i 's~%%REVISION%%~${{ github.sha }}~' $FOLDER/_service && \
         sed -i 's~%%REPOSITORY%%~${{ github.repository }}~' $FOLDER/_service && \
         sed -i 's~%%VERSION%%~'"${VERSION}"'~' $FOLDER/_service
     - name: commit changes into OBS
       run: cp $FOLDER/_service . && /scripts/upload.sh
 
-  submit-obs:
-    needs: commit-obs
+  obs-submit:
+    needs: obs-commit
     runs-on: ubuntu-18.04
     if: github.event.release
     container:
       image: ghcr.io/trento-project/continuous-delivery:master
-    steps:
+    steps: 
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
@@ -274,7 +297,7 @@ jobs:
         cp /root/.config/osc/oscrc $HOME/.config/osc
     - name: prepare _service file
       run: |
-        VERSION=$(./get_version_from_git.sh)
+        VERSION=$(./hack/get_version_from_git.sh)
         sed -i 's~%%REVISION%%~${{ github.sha }}~' $FOLDER/_service && \
         sed -i 's~%%REPOSITORY%%~${{ github.repository }}~' $FOLDER/_service && \
         sed -i 's~%%VERSION%%~'"${VERSION}"'~' $FOLDER/_service

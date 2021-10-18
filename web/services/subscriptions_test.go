@@ -135,5 +135,5 @@ func TestGetHostSubscriptions(t *testing.T) {
 	}
 
 	assert.NoError(t, err)
-	assert.Equal(t, expectedSubs, subs)
+	assert.ElementsMatch(t, expectedSubs, subs)
 }

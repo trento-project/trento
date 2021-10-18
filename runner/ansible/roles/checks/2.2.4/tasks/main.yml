@@ -1,13 +1,13 @@
 ---
 
-- name: "{{ id }}.check"
+- name: "{{ name }}.check"
   shell: |
     # Check the corosync version IS
     # If not installed, exit with error
     rpm -q --qf "%{VERSION}\n" corosync || exit 2
   check_mode: false
   register: config_updated
-  changed_when: config_updated.stdout is version(expected[id], '<')
+  changed_when: config_updated.stdout is version(expected[name], '<')
   failed_when: config_updated.rc > 1
 
 - block:

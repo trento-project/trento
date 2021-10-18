@@ -4,59 +4,13 @@
         <div class="modal-dialog modal-lg" style="max-width:1250px;" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2 class="modal-title">Checks result</h2>
+                    <h2 class="modal-title">Health details</h2>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                  <div class="table-responsive">
-                      {{- $nodes := .Nodes }}
-                      {{- $checksResult := .ChecksResult }}
-                      <table class="table eos-table">
-                          <thead>
-                          <tr>
-                              <th scope="col">Test ID</th>
-                              <th scope="col">Description</th>
-                              {{- if $checksResult }}
-                              {{- range $node := $nodes }}
-                              <th scope="col">
-                                  {{- $result := $checksResult.HostResultPresent $node.Name }}
-                                  {{- if not $result }}
-                                  <i class="eos-icons eos-18 text-warning" data-toggle="tooltip" title="Node is unreacheable">warning</i>
-                                  {{- end }}
-                                  {{- $node.Name }}
-                              </th>
-                              {{- end }}
-                              {{- end }}
-                          </tr>
-                          </thead>
-                          <tbody>
-                          {{- $checksMetadata := .ChecksCatalog }}
-                          {{- if $checksResult }}
-                          {{- range $checkID, $checkList := $checksResult.Checks }}
-                              {{- $checkMeta := index $checksMetadata $checkID }}
-                              <tr>
-                                  <td>{{ $checkID }}</td>
-                                  <td>{{ if $checkMeta }}{{ $checkMeta.Description }}{{ else }}Test metadata not found{{ end }}</td>
-                                  {{- range $node := $nodes }}
-                                  {{- $result := index $checkList.Hosts $node.Name }}
-                                  {{- if $result }}
-                                  <td class="align-center">{{ template "health_icon" $result.Result }}</td>
-                                  {{- else }}
-                                  <td class="align-center"><i class="eos-icons eos-18 text-muted">sync_problem</i></td>
-                                  {{- end }}
-                                  {{- end }}
-                              </tr>
-                          {{- else }}
-                              {{ template "empty_table_body" (sum 2 (len $nodes )) }}
-                          {{- end }}
-                          {{- else }}
-                              {{ template "empty_table_body" 2 }}
-                          {{- end }}
-                          </tbody>
-                      </table>
-                  </div>
+                  <div id="cluster-checks-results"></div>
                 </div>
             </div>
         </div>

@@ -34,6 +34,8 @@ spec:
             - serve
             - --ara-addr
             - {{ .Release.Name }}-ara:8000
+            - --db-host
+            - {{ .Release.Name }}-postgresql
             - -p
             - "{{ .Values.service.port }}"
           env:
@@ -41,7 +43,7 @@ spec:
               value: {{ .Release.Name }}-consul-server:8500
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http

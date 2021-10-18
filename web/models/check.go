@@ -1,8 +1,7 @@
 package models
 
 import (
-	"fmt"
-	"strings"
+	"sort"
 )
 
 const (
@@ -18,17 +17,33 @@ type CheckData struct {
 	Groups   map[string]*Results `json:"results,omitempty" mapstructure:"results,omitempty"`
 }
 
+// List is used instead of a map as it guarantees order
+type CheckList []*Check
+
+type GroupedChecks struct {
+	Group  string
+	Checks CheckList
+}
+
+type GroupedCheckList []*GroupedChecks
+
 type Metadata struct {
-	Checks map[string]*Check `json:"checks,omitempty" mapstructure:"checks,omitempty"`
+	Checks CheckList `json:"checks,omitempty" mapstructure:"checks,omitempty"`
 }
 
 type Results struct {
+	Hosts  map[string]*Host         `json:"hosts,omitempty" mapstructure:"hosts,omitempty"`
 	Checks map[string]*ChecksByHost `json:"checks,omitempty" mapstructure:"checks,omitempty"`
 }
 
 // The ChecksByHost struct stores the checks list, but the results are grouped by hosts
 type ChecksByHost struct {
 	Hosts map[string]*Check `json:"hosts,omitempty" mapstructure:"hosts,omitempty"`
+}
+
+type Host struct {
+	Reachable bool   `json:"reachable" mapstructure:"reachable"`
+	Msg       string `json:"msg" mapstructure:"msg"`
 }
 
 type Check struct {
@@ -41,6 +56,19 @@ type Check struct {
 	Labels         string `json:"labels,omitempty" mapstructure:"labels,omitempty"`
 	Selected       bool   `json:"selected,omitempty" mapstructure:"selected,omitempty"`
 	Result         string `json:"result,omitempty" mapstructure:"result,omitempty"`
+}
+
+// Simplified models for the frontend
+type ClusterCheckResults struct {
+	Hosts  map[string]*Host     `json:"hosts" mapstructure:"hosts,omitempty"`
+	Checks []ClusterCheckResult `json:"checks" mapstructure:"checks,omitempty"`
+}
+
+type ClusterCheckResult struct {
+	ID          string            `json:"id,omitempty" mapstructure:"id,omitempty"`
+	Hosts       map[string]*Check `json:"hosts,omitempty" mapstructure:"hosts,omitempty"`
+	Group       string            `json:"group,omitempty" mapstructure:"group,omitempty"`
+	Description string            `json:"description,omitempty" mapstructure:"description,omitempty"`
 }
 
 func (c *Results) GetHostNames() []string {
@@ -65,11 +93,21 @@ func (c *Results) HostResultPresent(host string) bool {
 	return false
 }
 
-func (c *Check) NormalizeID() string {
-	return strings.Replace(c.ID, ".", "-", -1)
+// Sorting methods for GroupedCheckList
+
+func (g GroupedCheckList) Len() int {
+	return len(g)
 }
 
-func (c *Check) ExtendedGroupName() string {
-	item := strings.Split(c.ID, ".")
-	return fmt.Sprintf("%s.%s - %s", item[0], item[1], c.Group)
+func (g GroupedCheckList) Less(i, j int) bool {
+	return g[i].Checks[0].Name < g[j].Checks[0].Name
+}
+
+func (g GroupedCheckList) Swap(i, j int) {
+	g[i], g[j] = g[j], g[i]
+}
+
+func (g GroupedCheckList) OrderByName() GroupedCheckList {
+	sort.Sort(g)
+	return g
 }

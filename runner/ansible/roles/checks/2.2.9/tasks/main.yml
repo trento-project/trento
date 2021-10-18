@@ -1,6 +1,6 @@
 ---
 
-- name: "{{ id }}.check"
+- name: "{{ name }}.check"
   shell: |
     /usr/sap/hostctrl/exe/saphostctrl -function Ping || exit 1
     /usr/sap/hostctrl/exe/sapcontrol -nr 99 -function CheckHostAgent || exit 1

@@ -31,10 +31,11 @@ func (a *AggregatedCheckData) String() string {
 }
 
 type ChecksService interface {
-	GetChecksCatalog() (map[string]*models.Check, error)
-	GetChecksCatalogByGroup() (map[string]map[string]*models.Check, error)
+	GetChecksCatalog() (models.CheckList, error)
+	GetChecksCatalogByGroup() (models.GroupedCheckList, error)
 	GetChecksResult() (map[string]*models.Results, error)
 	GetChecksResultByCluster(clusterId string) (*models.Results, error)
+	GetChecksResultAndMetadataByCluster(clusterId string) (*models.ClusterCheckResults, error)
 	GetAggregatedChecksResultByHost(clusterId string) (map[string]*AggregatedCheckData, error)
 	GetAggregatedChecksResultByCluster(clusterId string) (*AggregatedCheckData, error)
 }
@@ -47,7 +48,7 @@ func NewChecksService(araService ara.AraService) ChecksService {
 	return &checksService{araService: araService}
 }
 
-func (c *checksService) GetChecksCatalog() (map[string]*models.Check, error) {
+func (c *checksService) GetChecksCatalog() (models.CheckList, error) {
 	var checkData = models.CheckData{}
 
 	records, err := c.araService.GetRecordList("key=trento-metadata&order=-id")
@@ -71,20 +72,26 @@ func (c *checksService) GetChecksCatalog() (map[string]*models.Check, error) {
 	return checkData.Metadata.Checks, nil
 }
 
-func (c *checksService) GetChecksCatalogByGroup() (map[string]map[string]*models.Check, error) {
-	groupedCheckList := make(map[string]map[string]*models.Check)
+func (c *checksService) GetChecksCatalogByGroup() (models.GroupedCheckList, error) {
+	groupedCheckMap := make(map[string]models.CheckList)
 
 	checkList, err := c.GetChecksCatalog()
 	if err != nil {
-		return groupedCheckList, err
+		return nil, err
 	}
 
-	for cId, c := range checkList {
-		extendedGroup := c.ExtendedGroupName()
-		if _, ok := groupedCheckList[extendedGroup]; !ok {
-			groupedCheckList[extendedGroup] = make(map[string]*models.Check)
+	for _, c := range checkList {
+		if _, ok := groupedCheckMap[c.Group]; !ok {
+			groupedCheckMap[c.Group] = models.CheckList{}
 		}
-		groupedCheckList[extendedGroup][cId] = c
+		groupedCheckMap[c.Group] = append(groupedCheckMap[c.Group], c)
+	}
+
+	groupedCheckList := make(models.GroupedCheckList, 0)
+
+	for group, checks := range groupedCheckMap {
+		g := &models.GroupedChecks{Group: group, Checks: checks}
+		groupedCheckList = append(groupedCheckList, g)
 	}
 
 	return groupedCheckList, nil
@@ -126,6 +133,39 @@ func (c *checksService) GetChecksResultByCluster(clusterId string) (*models.Resu
 	return cResultByCluster, nil
 }
 
+func (c *checksService) GetChecksResultAndMetadataByCluster(clusterId string) (*models.ClusterCheckResults, error) {
+	cResultByCluster, err := c.GetChecksResultByCluster(clusterId)
+	if err != nil {
+		return nil, err
+	}
+
+	checkList, err := c.GetChecksCatalog()
+	if err != nil {
+		return nil, err
+	}
+
+	resultSet := &models.ClusterCheckResults{}
+	resultSet.Hosts = cResultByCluster.Hosts
+	resultSet.Checks = []models.ClusterCheckResult{}
+
+	for _, checkMeta := range checkList {
+		for checkId, checkByHost := range cResultByCluster.Checks {
+			if checkId == checkMeta.ID {
+				current := models.ClusterCheckResult{
+					Group:       checkMeta.Group,
+					Description: checkMeta.Description,
+					Hosts:       checkByHost.Hosts,
+					ID:          checkId,
+				}
+				resultSet.Checks = append(resultSet.Checks, current)
+				continue
+			}
+		}
+	}
+
+	return resultSet, nil
+}
+
 func (c *checksService) GetAggregatedChecksResultByHost(clusterId string) (map[string]*AggregatedCheckData, error) {
 	cResultByCluster, err := c.GetChecksResultByCluster(clusterId)
 	if err != nil {
@@ -139,11 +179,12 @@ func (c *checksService) GetAggregatedChecksResultByHost(clusterId string) (map[s
 			if _, ok := aCheckDataByHost[hostName]; !ok {
 				aCheckDataByHost[hostName] = &AggregatedCheckData{}
 			}
-			if host.Result == models.CheckCritical {
+			switch host.Result {
+			case models.CheckCritical:
 				aCheckDataByHost[hostName].CriticalCount += 1
-			} else if host.Result == models.CheckWarning {
+			case models.CheckWarning:
 				aCheckDataByHost[hostName].WarningCount += 1
-			} else if host.Result == models.CheckPassing {
+			case models.CheckPassing:
 				aCheckDataByHost[hostName].PassingCount += 1
 			}
 		}

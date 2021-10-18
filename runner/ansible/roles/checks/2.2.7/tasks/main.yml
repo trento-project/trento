@@ -1,12 +1,12 @@
 ---
 
-- name: "{{ id }}.check"
+- name: "{{ name }}.check"
   shell: |
     #  Check python version
     python3 --version | cut -d" " -f2
   check_mode: false
   register: config_updated
-  changed_when: config_updated.stdout is version(expected[id], '<')
+  changed_when: config_updated.stdout is version(expected[name], '<')
   failed_when: config_updated.rc !=0
 
 - block:

@@ -41,7 +41,7 @@ ARGUMENT_LIST=(
     "use-tgz"
 )
 
-readonly TRENTO_VERSION=0.4.0
+readonly TRENTO_VERSION=0.4.1
 
 opts=$(
     getopt \
@@ -180,7 +180,7 @@ function install_trento_rpm() {
         TRENTO_REPO_KEY=${TRENTO_REPO_KEY:-"https://download.opensuse.org/repositories/devel:/sap:/trento:/factory/15.3/repodata/repomd.xml.key"}
     else
         TRENTO_REPO=${TRENTO_REPO:-"https://download.opensuse.org/repositories/devel:/sap:/trento/15.3/devel:sap:trento.repo"}
-        TRENTO_REPO_KEY=${TRENTO_REPO_KEY:-"https://download.opensuse.org/repositories/devel:/sap:/trento/15.3/repodata/repomd.xml.key"}        
+        TRENTO_REPO_KEY=${TRENTO_REPO_KEY:-"https://download.opensuse.org/repositories/devel:/sap:/trento/15.3/repodata/repomd.xml.key"}
     fi
 
     rpm --import "${TRENTO_REPO_KEY}" >/dev/null
@@ -205,18 +205,18 @@ function install_trento_tgz() {
     ARCH=$(uname -m | sed "s~x86_64~amd64~" | sed "s~aarch64~arm64~" )
     local bin_dir=${BIN_DIR:-"/usr/bin"}
     local sysd_dir=${SYSD_DIR:-"/usr/lib/systemd/system"}
-    
+
     if [[ -n "$USE_ROLLING" ]] ; then
         TRENTO_TGZ_URL=https://github.com/trento-project/trento/releases/download/rolling/trento-${ARCH}.tgz
     else
         TRENTO_TGZ_URL=https://github.com/trento-project/trento/releases/download/${TRENTO_VERSION}/trento-${ARCH}.tgz
     fi
-  
+
     curl -f -sS -O -L "${TRENTO_TGZ_URL}" >/dev/null
     tar -zxf trento-${ARCH}.tgz
 
     mv trento ${bin_dir}/trento
-    mv trento-agent.service ${sysd_dir}/trento-agent.service
+    mv packaging/systemd/trento-agent.service ${sysd_dir}/trento-agent.service
     systemctl daemon-reload
     systemctl enable --now trento-agent.service
     rm trento-${ARCH}.tgz

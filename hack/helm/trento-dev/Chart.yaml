@@ -1,0 +1,12 @@
+apiVersion: v2
+name: trento-dev
+description: The trento dev chart
+type: application
+# This is the chart version. This version number should be incremented each time you make changes
+# to the chart and its templates
+version: 0.1.0
+
+dependencies:
+  - name: trento-server
+    version: ">0.0.0"
+    repository: file://../../../packaging/helm/trento-server

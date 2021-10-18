@@ -9,6 +9,23 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/clusters/{cluster_id}/results:
+    get:
+      parameters:
+      - description: Cluster Id
+        in: path
+        name: cluster_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get a specific cluster's check results
   /api/clusters/{id}/tags:
     post:
       consumes:
@@ -51,14 +68,14 @@ paths:
               type: string
             type: object
       summary: Add tag to Cluster
-  /api/clusters/{name}/tags/{tag}:
+  /api/clusters/{id}/tags/{tag}:
     delete:
       consumes:
       - application/json
       parameters:
       - description: Cluster id
         in: path
-        name: cluster
+        name: id
         required: true
         type: string
       - description: Tag
@@ -75,6 +92,72 @@ paths:
             additionalProperties: true
             type: object
       summary: Delete a specific tag that belongs to a cluster
+  /api/databases/{id}/tags:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Database id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: The tag to create
+        in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/web.JSONTag'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/web.JSONTag'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Add tag to a HANA database
+  /api/databases/{id}/tags/{tag}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Database id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Tag
+        in: path
+        name: tag
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete a specific tag that belongs to a HANA database
   /api/hosts/{name}/tags:
     post:
       consumes:
@@ -183,14 +266,14 @@ paths:
               type: string
             type: object
       summary: Add tag to SAPSystem
-  /api/sapsystems/{name}/tags/{tag}:
+  /api/sapsystems/{id}/tags/{tag}:
     delete:
       consumes:
       - application/json
       parameters:
       - description: SAPSystem id
         in: path
-        name: cluster
+        name: id
         required: true
         type: string
       - description: Tag
@@ -214,7 +297,7 @@ paths:
       parameters:
       - description: Filter by resource type
         in: query
-        name: resourceType
+        name: resource_type
         type: string
       produces:
       - application/json

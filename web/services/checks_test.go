@@ -138,19 +138,19 @@ func TestGetChecksCatalog(t *testing.T) {
 		ID: 1,
 		Value: map[string]interface{}{
 			"metadata": map[string]interface{}{
-				"checks": map[string]interface{}{
-					"1.1.1": map[string]interface{}{
-						"id":             "1.1.1",
-						"name":           "check 1",
+				"checks": []interface{}{
+					map[string]interface{}{
+						"id":             "ABCDEF",
+						"name":           "1.1.1",
 						"group":          "group 1",
 						"description":    "description 1",
 						"remediation":    "remediation 1",
 						"labels":         "labels 1",
 						"implementation": "implementation 1",
 					},
-					"1.1.2": map[string]interface{}{
-						"id":             "1.1.2",
-						"name":           "check 2",
+					map[string]interface{}{
+						"id":             "123456",
+						"name":           "1.1.2",
 						"group":          "group 2",
 						"description":    "description 2",
 						"remediation":    "remediation 2",
@@ -171,19 +171,19 @@ func TestGetChecksCatalog(t *testing.T) {
 	checksService := NewChecksService(mockAra)
 	c, err := checksService.GetChecksCatalog()
 
-	expectedChecks := map[string]*models.Check{
-		"1.1.1": &models.Check{
-			ID:             "1.1.1",
-			Name:           "check 1",
+	expectedChecks := models.CheckList{
+		&models.Check{
+			ID:             "ABCDEF",
+			Name:           "1.1.1",
 			Group:          "group 1",
 			Description:    "description 1",
 			Remediation:    "remediation 1",
 			Implementation: "implementation 1",
 			Labels:         "labels 1",
 		},
-		"1.1.2": &models.Check{
-			ID:             "1.1.2",
-			Name:           "check 2",
+		&models.Check{
+			ID:             "123456",
+			Name:           "1.1.2",
 			Group:          "group 2",
 			Description:    "description 2",
 			Remediation:    "remediation 2",
@@ -193,7 +193,7 @@ func TestGetChecksCatalog(t *testing.T) {
 	}
 
 	assert.NoError(t, err)
-	assert.Equal(t, expectedChecks, c)
+	assert.ElementsMatch(t, expectedChecks, c)
 
 	mockAra.AssertExpectations(t)
 }
@@ -211,7 +211,7 @@ func TestGetChecksCatalogEmpty(t *testing.T) {
 	checksService := NewChecksService(mockAra)
 	c, err := checksService.GetChecksCatalog()
 
-	expectedChecks := map[string]*models.Check(nil)
+	expectedChecks := models.CheckList(nil)
 
 	assert.EqualError(t, err, "Couldn't find any check catalog record. Check if the runner component is running")
 	assert.Equal(t, expectedChecks, c)
@@ -232,7 +232,7 @@ func TestGetChecksCatalogListError(t *testing.T) {
 	checksService := NewChecksService(mockAra)
 	c, err := checksService.GetChecksCatalog()
 
-	expectedChecks := map[string]*models.Check(nil)
+	expectedChecks := models.CheckList(nil)
 
 	assert.EqualError(t, err, "Some error")
 	assert.Equal(t, expectedChecks, c)
@@ -269,7 +269,7 @@ func TestGetChecksCatalogRecordError(t *testing.T) {
 	checksService := NewChecksService(mockAra)
 	c, err := checksService.GetChecksCatalog()
 
-	expectedChecks := map[string]*models.Check(nil)
+	expectedChecks := models.CheckList(nil)
 
 	assert.EqualError(t, err, "Some other error")
 	assert.Equal(t, expectedChecks, c)
@@ -313,28 +313,28 @@ func TestGetChecksCatalogByGroup(t *testing.T) {
 		ID: 1,
 		Value: map[string]interface{}{
 			"metadata": map[string]interface{}{
-				"checks": map[string]interface{}{
-					"1.1.1": map[string]interface{}{
-						"id":             "1.1.1",
-						"name":           "check 1",
+				"checks": []interface{}{
+					map[string]interface{}{
+						"id":             "ABCDEF",
+						"name":           "1.1.1",
 						"group":          "group 1",
 						"description":    "description 1",
 						"remediation":    "remediation 1",
 						"labels":         "labels 1",
 						"implementation": "implementation 1",
 					},
-					"1.1.2": map[string]interface{}{
-						"id":             "1.1.2",
-						"name":           "check 2",
+					map[string]interface{}{
+						"id":             "123456",
+						"name":           "1.1.2",
 						"group":          "group 1",
 						"description":    "description 2",
 						"remediation":    "remediation 2",
 						"labels":         "labels 2",
 						"implementation": "implementation 2",
 					},
-					"1.2.3": map[string]interface{}{
-						"id":             "1.2.3",
-						"name":           "check 3",
+					map[string]interface{}{
+						"id":             "123ABC",
+						"name":           "1.2.1",
 						"group":          "group 2",
 						"description":    "description 3",
 						"remediation":    "remediation 3",
@@ -355,42 +355,48 @@ func TestGetChecksCatalogByGroup(t *testing.T) {
 	checksService := NewChecksService(mockAra)
 	c, err := checksService.GetChecksCatalogByGroup()
 
-	expectedChecks := map[string]map[string]*models.Check{
-		"1.1 - group 1": {
-			"1.1.1": &models.Check{
-				ID:             "1.1.1",
-				Name:           "check 1",
-				Group:          "group 1",
-				Description:    "description 1",
-				Remediation:    "remediation 1",
-				Implementation: "implementation 1",
-				Labels:         "labels 1",
-			},
-			"1.1.2": &models.Check{
-				ID:             "1.1.2",
-				Name:           "check 2",
-				Group:          "group 1",
-				Description:    "description 2",
-				Remediation:    "remediation 2",
-				Implementation: "implementation 2",
-				Labels:         "labels 2",
+	expectedChecks := models.GroupedCheckList{
+		&models.GroupedChecks{
+			Group: "group 1",
+			Checks: models.CheckList{
+				&models.Check{
+					ID:             "ABCDEF",
+					Name:           "1.1.1",
+					Group:          "group 1",
+					Description:    "description 1",
+					Remediation:    "remediation 1",
+					Implementation: "implementation 1",
+					Labels:         "labels 1",
+				},
+				&models.Check{
+					ID:             "123456",
+					Name:           "1.1.2",
+					Group:          "group 1",
+					Description:    "description 2",
+					Remediation:    "remediation 2",
+					Implementation: "implementation 2",
+					Labels:         "labels 2",
+				},
 			},
 		},
-		"1.2 - group 2": {
-			"1.2.3": &models.Check{
-				ID:             "1.2.3",
-				Name:           "check 3",
-				Group:          "group 2",
-				Description:    "description 3",
-				Remediation:    "remediation 3",
-				Implementation: "implementation 3",
-				Labels:         "labels 3",
+		&models.GroupedChecks{
+			Group: "group 2",
+			Checks: models.CheckList{
+				&models.Check{
+					ID:             "123ABC",
+					Name:           "1.2.1",
+					Group:          "group 2",
+					Description:    "description 3",
+					Remediation:    "remediation 3",
+					Implementation: "implementation 3",
+					Labels:         "labels 3",
+				},
 			},
 		},
 	}
 
 	assert.NoError(t, err)
-	assert.Equal(t, expectedChecks, c)
+	assert.ElementsMatch(t, expectedChecks, c)
 
 	mockAra.AssertExpectations(t)
 }
@@ -654,6 +660,159 @@ func TestGetChecksResultByCluster(t *testing.T) {
 	assert.Equal(t, expectedResults, c)
 
 	mockAra.AssertExpectations(t)
+}
+
+func TestGetChecksResultAndMetadataByCluster(t *testing.T) {
+	mockAra := new(araMocks.AraService)
+
+	rList := &ara.RecordList{
+		Count: 1,
+		Results: []*ara.RecordListResult{
+			&ara.RecordListResult{
+				ID:       1,
+				Playbook: 1,
+				Key:      "results",
+				Type:     "json",
+			},
+		},
+	}
+
+	rMetaList := &ara.RecordList{
+		Count: 1,
+		Results: []*ara.RecordListResult{
+			&ara.RecordListResult{
+				ID:       2,
+				Playbook: 1,
+				Key:      "metadata",
+				Type:     "json",
+			},
+		},
+	}
+
+	mockAra.On("GetRecordList", "key=trento-results&order=-id").Return(rList, nil)
+	mockAra.On("GetRecordList", "key=trento-metadata&order=-id").Return(rMetaList, nil)
+
+	araResultRecord := &ara.Record{
+		ID: 1,
+		Value: map[string]interface{}{
+			"results": map[string]interface{}{
+				"myClusterId": map[string]interface{}{
+					"hosts": map[string]interface{}{
+						"host1": map[string]interface{}{
+							"reachable": true,
+							"msg":       "",
+						},
+						"host2": map[string]interface{}{
+							"reachable": false,
+							"msg":       "error connecting",
+						},
+					},
+					"checks": map[string]interface{}{
+						"ABCDEF": map[string]interface{}{
+							"hosts": map[string]interface{}{
+								"host1": map[string]interface{}{
+									"result": "passing",
+								},
+								"host2": map[string]interface{}{
+									"result": "passing",
+								},
+							},
+						},
+						"123456": map[string]interface{}{
+							"hosts": map[string]interface{}{
+								"host1": map[string]interface{}{
+									"result": "warning",
+								},
+								"host2": map[string]interface{}{
+									"result": "critical",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	araMetaRecord := &ara.Record{
+		ID: 2,
+		Value: map[string]interface{}{
+			"metadata": map[string]interface{}{
+				"checks": []interface{}{
+					map[string]interface{}{
+						"id":             "ABCDEF",
+						"name":           "1.1.1",
+						"group":          "group 1",
+						"description":    "description 1",
+						"remediation":    "remediation 1",
+						"labels":         "labels 1",
+						"implementation": "implementation 1",
+					},
+					map[string]interface{}{
+						"id":             "123456",
+						"name":           "1.1.2",
+						"group":          "group 1",
+						"description":    "description 2",
+						"remediation":    "remediation 2",
+						"labels":         "labels 2",
+						"implementation": "implementation 2",
+					},
+				},
+			},
+		},
+		Key:  "metadata",
+		Type: "json",
+	}
+
+	mockAra.On("GetRecord", 1).Return(araResultRecord, nil)
+	mockAra.On("GetRecord", 2).Return(araMetaRecord, nil)
+
+	checksService := NewChecksService(mockAra)
+	results, err := checksService.GetChecksResultAndMetadataByCluster("myClusterId")
+
+	expectedResults := &models.ClusterCheckResults{
+		Hosts: map[string]*models.Host{
+			"host1": &models.Host{
+				Reachable: true,
+				Msg:       "",
+			},
+			"host2": &models.Host{
+				Reachable: false,
+				Msg:       "error connecting",
+			},
+		},
+		Checks: []models.ClusterCheckResult{
+			models.ClusterCheckResult{
+				ID:          "ABCDEF",
+				Group:       "group 1",
+				Description: "description 1",
+				Hosts: map[string]*models.Check{
+					"host1": &models.Check{
+						Result: models.CheckPassing,
+					},
+					"host2": &models.Check{
+						Result: models.CheckPassing,
+					},
+				},
+			},
+			models.ClusterCheckResult{
+				ID:          "123456",
+				Group:       "group 1",
+				Description: "description 2",
+				Hosts: map[string]*models.Check{
+					"host1": &models.Check{
+						Result: models.CheckWarning,
+					},
+					"host2": &models.Check{
+						Result: models.CheckCritical,
+					},
+				},
+			},
+		},
+	}
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedResults, results)
 }
 
 func TestGetAggregatedChecksResultByHost(t *testing.T) {

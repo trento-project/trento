@@ -1,6 +1,7 @@
 package sapsystem
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -60,6 +61,9 @@ func fakeNewWebService(instNumber string) sapcontrol.WebService {
 
 func TestNewSAPSystem(t *testing.T) {
 
+	mockCommand := new(sapSystemMocks.CustomCommand)
+
+	customExecCommand = mockCommand.Execute
 	newWebService = fakeNewWebService
 
 	appFS := afero.NewMemMapFs()
@@ -103,6 +107,9 @@ func TestNewSAPSystem(t *testing.T) {
 		"vmcj/enable":                                  "off",
 	}
 
+	cmd := fmt.Sprintf(sappfparCmd, "DEV")
+	mockCommand.On("Execute", "su", "-lc", cmd, "devadm").Return(mockSappfpar())
+
 	system, err := NewSAPSystem(appFS, "/usr/sap/DEV")
 
 	assert.Equal(t, Application, system.Type)
@@ -128,6 +135,116 @@ func mockHdbnsutilSrstate() *exec.Cmd {
 	lFile, _ := os.Open("../../test/hdbnsutil_srstate")
 	content, _ := ioutil.ReadAll(lFile)
 	return exec.Command("echo", string(content))
+}
+
+func mockSappfpar() *exec.Cmd {
+	return exec.Command("echo", "-n", "systemId")
+}
+
+func TestSetSystemIdDatabase(t *testing.T) {
+	appFS := afero.NewMemMapFs()
+	appFS.MkdirAll("/usr/sap/DEV/SYS/global/hdb/custom/config/", 0755)
+
+	nameserverContent := []byte(`
+key1 = value1
+id = systemId
+key2 = value2
+`)
+
+	afero.WriteFile(
+		appFS, "/usr/sap/DEV/SYS/global/hdb/custom/config/nameserver.ini",
+		nameserverContent, 0644)
+
+	system := &SAPSystem{
+		Type: Database,
+		SID:  "DEV",
+	}
+
+	system, err := setSystemId(appFS, system)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "089d1a278481b86e821237f8e98e6de7", system.Id)
+}
+
+func TestSetSystemIdApplication(t *testing.T) {
+	appFS := afero.NewMemMapFs()
+	mockCommand := new(sapSystemMocks.CustomCommand)
+
+	customExecCommand = mockCommand.Execute
+	cmd := fmt.Sprintf(sappfparCmd, "DEV")
+	mockCommand.On("Execute", "su", "-lc", cmd, "devadm").Return(mockSappfpar())
+
+	system := &SAPSystem{
+		Type: Application,
+		SID:  "DEV",
+	}
+
+	system, err := setSystemId(appFS, system)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "089d1a278481b86e821237f8e98e6de7", system.Id)
+}
+
+func TestSetSystemIdOther(t *testing.T) {
+	appFS := afero.NewMemMapFs()
+
+	system := &SAPSystem{
+		Type: Unknown,
+		SID:  "DEV",
+	}
+
+	system, err := setSystemId(appFS, system)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "-", system.Id)
+}
+
+func TestGetDatabases(t *testing.T) {
+	appFS := afero.NewMemMapFs()
+	appFS.MkdirAll("/usr/sap/DEV/SYS/global/hdb/mdc/", 0755)
+
+	nameserverContent := []byte(`
+# DATABASE:CONTAINER:USER:GROUP:USERID:GROUPID:HOST:SQLPORT:ACTIVE
+PRD::::::hana01:30015:yes
+
+DEV::::::hana01:30044:yes
+ERR:::
+`)
+
+	afero.WriteFile(
+		appFS, "/usr/sap/DEV/SYS/global/hdb/mdc/databases.lst",
+		nameserverContent, 0644)
+
+	dbs, err := getDatabases(appFS, "DEV")
+
+	expectedDbs := []*DatabaseData{
+		{
+			Database:  "PRD",
+			Container: "",
+			User:      "",
+			Group:     "",
+			UserId:    "",
+			GroupId:   "",
+			Host:      "hana01",
+			SqlPort:   "30015",
+			Active:    "yes",
+		},
+		{
+			Database:  "DEV",
+			Container: "",
+			User:      "",
+			Group:     "",
+			UserId:    "",
+			GroupId:   "",
+			Host:      "hana01",
+			SqlPort:   "30044",
+			Active:    "yes",
+		},
+	}
+
+	assert.NoError(t, err)
+	assert.Equal(t, len(dbs), 2)
+	assert.ElementsMatch(t, expectedDbs, dbs)
 }
 
 func TestNewSAPInstanceDatabase(t *testing.T) {
@@ -524,6 +641,72 @@ func TestNewSAPInstanceApp(t *testing.T) {
 	}
 
 	assert.Equal(t, expectedInstance, sapInstance)
+}
+
+func TestGetSIDsString(t *testing.T) {
+	sysList := SAPSystemsList{
+		&SAPSystem{
+			SID: "PRD",
+		},
+	}
+
+	assert.Equal(t, "PRD", sysList.GetSIDsString())
+
+	sysList = SAPSystemsList{
+		&SAPSystem{
+			SID: "PRD",
+		},
+		&SAPSystem{
+			SID: "QAS",
+		},
+	}
+
+	assert.Equal(t, "PRD,QAS", sysList.GetSIDsString())
+}
+
+func TestGetIDsString(t *testing.T) {
+	sysList := SAPSystemsList{
+		&SAPSystem{
+			Id: "systemId1",
+		},
+	}
+
+	assert.Equal(t, "systemId1", sysList.GetIDsString())
+
+	sysList = SAPSystemsList{
+		&SAPSystem{
+			Id: "systemId1",
+		},
+		&SAPSystem{
+			Id: "systemId2",
+		},
+	}
+
+	assert.Equal(t, "systemId1,systemId2", sysList.GetIDsString())
+}
+
+func TestGetTypesString(t *testing.T) {
+	sysList := SAPSystemsList{
+		&SAPSystem{
+			Type: Database,
+		},
+	}
+
+	assert.Equal(t, "Database", sysList.GetTypesString())
+
+	sysList = SAPSystemsList{
+		&SAPSystem{
+			Type: Database,
+		},
+		&SAPSystem{
+			Type: 0,
+		},
+		&SAPSystem{
+			Type: Application,
+		},
+	}
+
+	assert.Equal(t, "Database,Unknown,Application", sysList.GetTypesString())
 }
 
 func TestFindSystemsNotFound(t *testing.T) {

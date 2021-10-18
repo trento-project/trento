@@ -44,7 +44,7 @@ spec:
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /
+              path: /healthcheck/
               port: ara-http
           readinessProbe:
             httpGet:

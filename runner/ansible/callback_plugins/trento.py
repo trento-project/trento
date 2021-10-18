@@ -13,6 +13,7 @@ https://github.com/ansible-community/ara/blob/master/ara/plugins/action/ara_reco
 """
 
 import os
+import yaml
 
 from ansible.plugins.callback import CallbackBase
 from ara.clients.http import AraHttpClient
@@ -22,6 +23,7 @@ TRENTO_TEST_LABEL = "test"
 TRENTO_RECORD_KEY = "trento-results"
 TEST_RESULT_TASK_NAME = "set_test_result"
 TEST_INCLUDE_TASK_NAME = "run_checks"
+CHECK_ID = "id"
 
 
 class Results(object):
@@ -32,11 +34,21 @@ class Results(object):
 
     "results": {
         "clusterId": {
+            "hosts": {
+                "host1": {
+                    "reachable": true,
+                    "msg": ""
+                },
+                "host2": {
+                    "reachable": false,
+                    "msg": "Failed to connect to the host via ssh: ..."
+                },
+            }
             "checks": {
-                "1.1.1": {
+                "ABCDEF": {
                     "hosts": {
                         "host1": {
-                            "result": true
+                            "result": "passing"
                         }
                     }
                 }
@@ -53,6 +65,7 @@ class Results(object):
         """
         if group not in self.results["results"]:
             self.results["results"][group] = {}
+            self.results["results"][group]["hosts"] = {}
             self.results["results"][group]["checks"] = {}
 
     def add_result(self, group, test, host, result):
@@ -74,6 +87,22 @@ class Results(object):
             hosts[host] = {}
 
         hosts[host]["result"] = result
+
+    def set_host_state(self, group, host, state, msg=""):
+        """
+        Set the host state. Reachable or Unreachable
+        """
+        # Add the group just in case it doesn't exist
+        if group not in self.results["results"]:
+            self.results["results"][group] = {}
+            self.results["results"][group]["hosts"] = {}
+
+        hosts = self.results["results"][group]["hosts"]
+        if host not in hosts:
+            hosts[host] = {}
+
+        hosts[host]["reachable"] = state
+        hosts[host]["msg"] = msg
 
 
 class CallbackModule(CallbackBase):
@@ -122,7 +151,8 @@ class CallbackModule(CallbackBase):
 
         test_result = result._task_fields["args"]["test_result"]
         for group in task_vars["group_names"]:
-            self.results.add_result(group, task_vars["id"], host, test_result)
+            self.results.set_host_state(group, host, True)
+            self.results.add_result(group, task_vars[CHECK_ID], host, test_result)
 
     def v2_runner_on_failed(self, result):
         """
@@ -135,7 +165,26 @@ class CallbackModule(CallbackBase):
         task_vars = self._all_vars(host=result._host, task=result._task)
 
         for group in task_vars["group_names"]:
-            self.results.add_result(group, task_vars["id"], host, False)
+            self.results.set_host_state(group, host, True)
+            self.results.add_result(group, task_vars[CHECK_ID], host, False)
+
+    def v2_runner_on_skipped(self, result):
+        """
+        On task Skipped
+        """
+        if self._is_check_include_loop(result):
+            self._store_skipped(result)
+
+    def v2_runner_on_unreachable(self, result):
+        """
+        On task Unreachable
+        """
+        host = result._host.get_name()
+        task_vars = self._all_vars(host=result._host, task=result._task)
+        msg = result._check_key("msg")
+
+        for group in task_vars["group_names"]:
+            self.results.set_host_state(group, host, False, msg)
 
     def v2_playbook_on_stats(self, _stats):
         """
@@ -212,9 +261,14 @@ class CallbackModule(CallbackBase):
         for check_result in result._result["results"]:
             skipped = check_result.get("skipped", False)
             if skipped:
-                check_id = os.path.basename(check_result["check_item"]["path"])
+                with open(os.path.join(
+                    check_result["check_item"]["path"], "defaults/main.yml")) as file_ptr:
+
+                    data = yaml.load(file_ptr, Loader=yaml.Loader)
+                    check_id = data[CHECK_ID]
 
                 for group in task_vars["group_names"]:
+                    self.results.set_host_state(group, host, True)
                     self.results.add_result(group, check_id, host, "skipped")
 
     def _get_playbook_id(self):

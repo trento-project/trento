@@ -1,6 +1,6 @@
 ---
 
-- name: "{{ id }}.check"
+- name: "{{ name }}.check"
   shell: 'corosync-cmapctl | grep "totem.transport (str) = " | sed "s/.*= //"'
   check_mode: false
   register: config_updated

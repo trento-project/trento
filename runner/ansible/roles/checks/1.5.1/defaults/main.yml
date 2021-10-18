@@ -1,7 +1,6 @@
 ---
 
-id: 1.5.1
-name: /etc/hosts contains all cluster nodes
+name: 1.5.1
 group: Miscellaneous
 labels: generic
 description: |
@@ -18,5 +17,8 @@ remediation: |
 
   ## References
   - Cluster installation in https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker
-implementation: "{{ lookup('file', 'roles/checks/'+id+'/tasks/main.yml') }}"
+implementation: "{{ lookup('file', 'roles/checks/'+name+'/tasks/main.yml') }}"
 on_failure: warning
+
+# check id. This value must not be changed over the life of this check
+id: 438525

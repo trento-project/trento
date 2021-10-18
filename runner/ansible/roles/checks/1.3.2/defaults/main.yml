@@ -1,7 +1,6 @@
 ---
 
-id: 1.3.2
-name: SBD start mode is set to always
+name: 1.3.2
 group: SBD
 labels: generic
 description: |
@@ -30,4 +29,7 @@ remediation: |
 
   ## References
   - T.B.D.
-implementation: "{{ lookup('file', 'roles/checks/'+id+'/tasks/main.yml') }}"
+implementation: "{{ lookup('file', 'roles/checks/'+name+'/tasks/main.yml') }}"
+
+# check id. This value must not be changed over the life of this check
+id: 49591F

@@ -1,4 +1,4 @@
-VERSION ?= $(shell ./get_version_from_git.sh)
+VERSION ?= $(shell ./hack/get_version_from_git.sh)
 LDFLAGS = -X github.com/trento-project/trento/version.Version="$(VERSION)"
 ARCHS ?= amd64 arm64 ppc64le s390x
 DEBUG ?= 0
@@ -56,7 +56,7 @@ mod-tidy:
 	go mod tidy
 
 test: generate web-assets
-	go test -v ./...
+	GIN_MODE=test go test -v ./...
 
 test-coverage:
 	@mkdir -p build
@@ -93,6 +93,7 @@ web/frontend/assets/js: web/frontend/node_modules
 	cp web/frontend/node_modules/bootstrap-select/dist/js/bootstrap-select.min.js web/frontend/assets/js/
 	cp web/frontend/node_modules/@yaireo/tagify/dist/tagify.min.js web/frontend/assets/js/
 	cp web/frontend/node_modules/@yaireo/tagify/dist/tagify.polyfills.min.js web/frontend/assets/js/
+	cd web/frontend; npx webpack
 
 web/frontend/assets/stylesheets: web/frontend/node_modules
 	mkdir -p web/frontend/assets/stylesheets/eos-icons

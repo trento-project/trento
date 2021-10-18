@@ -1,7 +1,6 @@
 ---
 
-id: 1.3.7
-name: 2-nodes cluster must either have disk-based sbd or qdevice
+name: 1.3.7
 group: SBD
 labels: generic
 description: |
@@ -12,4 +11,7 @@ remediation: |
 
   ## References
   - section 2 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
-implementation: "{{ lookup('file', 'roles/checks/'+id+'/tasks/main.yml') }}"
+implementation: "{{ lookup('file', 'roles/checks/'+name+'/tasks/main.yml') }}"
+
+# check id. This value must not be changed over the life of this check
+id: A2EF8C

@@ -1,6 +1,6 @@
 ---
 
-- name: "{{ id }}.check"
+- name: "{{ name }}.check"
   shell: 'corosync-cmapctl | grep "runtime.votequorum.two_node (u8) = " | sed "s/^.*= //"'
   check_mode: false
   register: config_updated

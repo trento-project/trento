@@ -1,6 +1,6 @@
 ---
 
-- name: "{{ id }}.check"
+- name: "{{ name }}.check"
   shell: |
     # make sure sudoers is set up
     grep -E "[a-z][a-z0-9]{2}adm +ALL=\(ALL\) +NOPASSWD: +/usr/sbin/crm_attribute +-n +hana_[a-z][a-z0-9]{2}_site_srHook_\*" /etc/sudoers && exit 0

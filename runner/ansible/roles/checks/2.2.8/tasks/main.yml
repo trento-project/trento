@@ -1,10 +1,10 @@
 ---
 
-- name: "{{ id }}.check"
+- name: "{{ name }}.check"
   shell: |
     #  HANA and SPS versions are compatible
-    sid=$(sudo crm configure show | grep -m1 SID= | sed -e "s/.*SID=\(...\).*/\1/" | tr '[:upper:]' '[:lower:]')
-    full_version=$(sudo -i -u ${sid}adm HDB version | grep "version:" | sed -e "s/^.*:[\ ]*//")
+    sid=$(crm configure show | grep -m1 SID= | sed -e "s/.*SID=\(...\).*/\1/" | tr '[:upper:]' '[:lower:]')
+    full_version=$(su -lc "HDB version" ${sid}adm | grep "version:" | sed -e "s/^.*:[\ ]*//")
     if [[ "$full_version" = "" ]]; then
       echo "0"
     else
@@ -12,7 +12,7 @@
     fi
   check_mode: false
   register: config_updated
-  changed_when: config_updated.stdout is version(expected[id], '<')
+  changed_when: config_updated.stdout is version(expected[name], '<')
   failed_when: config_updated.rc > 0
 
 - block:

@@ -117,7 +117,7 @@ td i.critical {
   color: $eos-bc-red-500;
 }
 
-#checksAccordion .card .card-body {
+.checks-results-accordion .card-body {
   background: white;
 }
 
@@ -158,4 +158,25 @@ td i.critical {
 
 .header-check-selection {
   padding-left: 0 !important;
+}
+
+.checks-table-row-group {
+  cursor: pointer;
+  background-color: #f2f2f2;
+}
+
+.checks-table-row-group-label {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.checks-filters-row {
+  text-align: right;
+  margin-bottom: 12px;
+}
+
+.dropdown-item.selected {
+  background-color: #e4f6ee;
+  border-left: 0.3rem solid #30ba78;
+  padding-left: 1.2rem;
 }

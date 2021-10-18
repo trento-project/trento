@@ -7,10 +7,9 @@ replicaCount: 1
 privateKey: ""
 
 image:
-  repository: ghcr.io/trento-project/trento
-  pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  repository: ghcr.io/trento-project/trento-runner
+  pullPolicy: Always
+  tag: "rolling"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -37,10 +36,6 @@ securityContext: {}
   # readOnlyRootFilesystem: true
   # runAsNonRoot: true
   # runAsUser: 1000
-
-service:
-  type: ClusterIP
-  port: 80
 
 ingress:
   enabled: false

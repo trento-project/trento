@@ -10,15 +10,17 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/tdewolff/minify/v2"
 	"github.com/tdewolff/minify/v2/html"
-	"github.com/trento-project/trento/internal/consul/mocks"
+	consulMocks "github.com/trento-project/trento/internal/consul/mocks"
 	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/internal/subscription"
+	"github.com/trento-project/trento/web/models"
 	serviceMocks "github.com/trento-project/trento/web/services/mocks"
+	servicesMocks "github.com/trento-project/trento/web/services/mocks"
 )
 
 func TestNewHostsHealthContainer(t *testing.T) {
-	consulInst := new(mocks.Client)
-	health := new(mocks.Health)
+	consulInst := new(consulMocks.Client)
+	health := new(consulMocks.Health)
 	consulInst.On("Health").Return(health)
 
 	host1 := hosts.NewHost(consulApi.Node{Node: "node1"}, consulInst)
@@ -75,9 +77,11 @@ func TestHostsListHandler(t *testing.T) {
 			Datacenter: "dc1",
 			Address:    "192.168.1.1",
 			Meta: map[string]string{
-				"trento-sap-systems":    "sys1",
-				"trento-cloud-provider": "azure",
-				"trento-agent-version":  "1",
+				"trento-sap-systems":      "sys1",
+				"trento-sap-systems-type": "Database",
+				"trento-sap-systems-id":   "systemId",
+				"trento-cloud-provider":   "azure",
+				"trento-agent-version":    "1",
 			},
 		},
 		{
@@ -85,9 +89,11 @@ func TestHostsListHandler(t *testing.T) {
 			Datacenter: "dc",
 			Address:    "192.168.1.2",
 			Meta: map[string]string{
-				"trento-sap-systems":    "sys2",
-				"trento-cloud-provider": "aws",
-				"trento-agent-version":  "1",
+				"trento-sap-systems":      "sys2",
+				"trento-sap-systems-type": "Database",
+				"trento-sap-systems-id":   "systemId",
+				"trento-cloud-provider":   "aws",
+				"trento-agent-version":    "1",
 			},
 		},
 		{
@@ -95,9 +101,11 @@ func TestHostsListHandler(t *testing.T) {
 			Datacenter: "dc",
 			Address:    "192.168.1.3",
 			Meta: map[string]string{
-				"trento-sap-systems":    "sys3",
-				"trento-cloud-provider": "gcp",
-				"trento-agent-version":  "1",
+				"trento-sap-systems":      "sys3",
+				"trento-sap-systems-type": "Application",
+				"trento-sap-systems-id":   "systemId",
+				"trento-cloud-provider":   "gcp",
+				"trento-agent-version":    "1",
 			},
 		},
 	}
@@ -120,14 +128,12 @@ func TestHostsListHandler(t *testing.T) {
 		},
 	}
 
-	consulInst := new(mocks.Client)
-	catalog := new(mocks.Catalog)
-	health := new(mocks.Health)
-	kv := new(mocks.KV)
+	consulInst := new(consulMocks.Client)
+	catalog := new(consulMocks.Catalog)
+	health := new(consulMocks.Health)
 
 	consulInst.On("Catalog").Return(catalog)
 	consulInst.On("Health").Return(health)
-	consulInst.On("KV").Return(kv)
 
 	query := &consulApi.QueryOptions{Filter: ""}
 	catalog.On("Nodes", (*consulApi.QueryOptions)(query)).Return(nodes, nil, nil)
@@ -136,14 +142,14 @@ func TestHostsListHandler(t *testing.T) {
 	health.On("Node", "bar", (*consulApi.QueryOptions)(nil)).Return(barHealthChecks, nil, nil)
 	health.On("Node", "buzz", (*consulApi.QueryOptions)(nil)).Return(buzzHealthChecks, nil, nil)
 
-	kv.On("ListMap", "trento/v0/tags/hosts/foo/", "trento/v0/tags/hosts/foo/").Return(map[string]interface{}{
-		"tag1": struct{}{},
-	}, nil)
-	kv.On("ListMap", "trento/v0/tags/hosts/bar/", "trento/v0/tags/hosts/bar/").Return(nil, nil)
-	kv.On("ListMap", "trento/v0/tags/hosts/buzz/", "trento/v0/tags/hosts/buzz/").Return(nil, nil)
+	mockTagsService := new(servicesMocks.TagsService)
+	mockTagsService.On("GetAllByResource", models.TagHostResourceType, "foo").Return([]string{"tag1"}, nil)
+	mockTagsService.On("GetAllByResource", models.TagHostResourceType, "bar").Return([]string{}, nil)
+	mockTagsService.On("GetAllByResource", models.TagHostResourceType, "buzz").Return([]string{}, nil)
 
-	deps := DefaultDependencies()
+	deps := setupTestDependencies()
 	deps.consul = consulInst
+	deps.tagsService = mockTagsService
 
 	var err error
 	app, err := NewAppWithDeps("", 80, deps)
@@ -181,16 +187,16 @@ func TestHostsListHandler(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("<div.*alert-danger.*<i.*error.*</i>.*Critical.*1"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td.*<i.*success.*check_circle.*</i></td><td>.*foo.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*sys1.*</td><td>v1</td><td>.*<input.*value=tag1.*>.*</td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<select name=trento-sap-systems.*>.*sys1.*sys2.*sys3.*</select>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*<i.*success.*check_circle.*</i></td><td>.*foo.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*sys1.*</td><td>v1</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*<i.*danger.*error.*</i></td><td>.*bar.*</td><td>192.168.1.2</td><td>.*aws.*</td><td>.*sys2.*</td><td>v1</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*<i.*warning.*warning.*</i></td><td>.*buzz.*</td><td>192.168.1.3</td><td>.*gcp.*</td><td>.*sys3.*</td><td>v1</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*<i.*success.*check_circle.*</i></td><td>.*foo.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*databases/systemId.*sys1.*</td><td>v1</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*<i.*danger.*error.*</i></td><td>.*bar.*</td><td>192.168.1.2</td><td>.*aws.*</td><td>.*databases/systemId.*sys2.*</td><td>v1</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*<i.*warning.*warning.*</i></td><td>.*buzz.*</td><td>192.168.1.3</td><td>.*gcp.*</td><td>.*systems/systemId.*sys3.*</td><td>v1</td>"), minified)
 }
 
 func TestHostHandler(t *testing.T) {
-	consulInst := new(mocks.Client)
-	catalog := new(mocks.Catalog)
-	health := new(mocks.Health)
-	kv := new(mocks.KV)
+	consulInst := new(consulMocks.Client)
+	catalog := new(consulMocks.Catalog)
+	health := new(consulMocks.Health)
+	kv := new(consulMocks.KV)
 	subscriptionsMocks := new(serviceMocks.SubscriptionsService)
 
 	consulInst.On("Catalog").Return(catalog)
@@ -300,7 +306,7 @@ func TestHostHandler(t *testing.T) {
 
 	subscriptionsMocks.On("GetHostSubscriptions", "test_host").Return(subscriptionsList, nil)
 
-	deps := DefaultDependencies()
+	deps := setupTestDependencies()
 	deps.consul = consulInst
 	deps.subscriptionsService = subscriptionsMocks
 
@@ -355,10 +361,10 @@ func TestHostHandler(t *testing.T) {
 }
 
 func TestHostHandlerAzure(t *testing.T) {
-	consulInst := new(mocks.Client)
-	catalog := new(mocks.Catalog)
-	health := new(mocks.Health)
-	kv := new(mocks.KV)
+	consulInst := new(consulMocks.Client)
+	catalog := new(consulMocks.Catalog)
+	health := new(consulMocks.Health)
+	kv := new(consulMocks.KV)
 	subscriptionsMocks := new(serviceMocks.SubscriptionsService)
 
 	consulInst.On("Catalog").Return(catalog)
@@ -420,7 +426,7 @@ func TestHostHandlerAzure(t *testing.T) {
 	subscriptionsMocks.On(
 		"GetHostSubscriptions", "test_host").Return(subscription.Subscriptions{}, nil)
 
-	deps := DefaultDependencies()
+	deps := setupTestDependencies()
 	deps.consul = consulInst
 	deps.subscriptionsService = subscriptionsMocks
 
@@ -460,12 +466,12 @@ func TestHostHandlerAzure(t *testing.T) {
 }
 
 func TestHostHandler404Error(t *testing.T) {
-	consulInst := new(mocks.Client)
-	catalog := new(mocks.Catalog)
+	consulInst := new(consulMocks.Client)
+	catalog := new(consulMocks.Catalog)
 	catalog.On("Node", "foobar", (*consulApi.QueryOptions)(nil)).Return((*consulApi.CatalogNode)(nil), nil, nil)
 	consulInst.On("Catalog").Return(catalog)
 
-	deps := DefaultDependencies()
+	deps := setupTestDependencies()
 	deps.consul = consulInst
 
 	app, err := NewAppWithDeps("", 80, deps)

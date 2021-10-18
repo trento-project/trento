@@ -61,15 +61,15 @@ func (_m *ChecksService) GetAggregatedChecksResultByHost(clusterId string) (map[
 }
 
 // GetChecksCatalog provides a mock function with given fields:
-func (_m *ChecksService) GetChecksCatalog() (map[string]*models.Check, error) {
+func (_m *ChecksService) GetChecksCatalog() (models.CheckList, error) {
 	ret := _m.Called()
 
-	var r0 map[string]*models.Check
-	if rf, ok := ret.Get(0).(func() map[string]*models.Check); ok {
+	var r0 models.CheckList
+	if rf, ok := ret.Get(0).(func() models.CheckList); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]*models.Check)
+			r0 = ret.Get(0).(models.CheckList)
 		}
 	}
 
@@ -84,15 +84,15 @@ func (_m *ChecksService) GetChecksCatalog() (map[string]*models.Check, error) {
 }
 
 // GetChecksCatalogByGroup provides a mock function with given fields:
-func (_m *ChecksService) GetChecksCatalogByGroup() (map[string]map[string]*models.Check, error) {
+func (_m *ChecksService) GetChecksCatalogByGroup() (models.GroupedCheckList, error) {
 	ret := _m.Called()
 
-	var r0 map[string]map[string]*models.Check
-	if rf, ok := ret.Get(0).(func() map[string]map[string]*models.Check); ok {
+	var r0 models.GroupedCheckList
+	if rf, ok := ret.Get(0).(func() models.GroupedCheckList); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]map[string]*models.Check)
+			r0 = ret.Get(0).(models.GroupedCheckList)
 		}
 	}
 
@@ -122,6 +122,29 @@ func (_m *ChecksService) GetChecksResult() (map[string]*models.Results, error) {
 	var r1 error
 	if rf, ok := ret.Get(1).(func() error); ok {
 		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetChecksResultAndMetadataByCluster provides a mock function with given fields: clusterId
+func (_m *ChecksService) GetChecksResultAndMetadataByCluster(clusterId string) (*models.ClusterCheckResults, error) {
+	ret := _m.Called(clusterId)
+
+	var r0 *models.ClusterCheckResults
+	if rf, ok := ret.Get(0).(func(string) *models.ClusterCheckResults); ok {
+		r0 = rf(clusterId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.ClusterCheckResults)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(clusterId)
 	} else {
 		r1 = ret.Error(1)
 	}

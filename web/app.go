@@ -3,14 +3,20 @@ package web
 import (
 	"embed"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 
 	"github.com/trento-project/trento/internal/consul"
+	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
 	"github.com/trento-project/trento/web/services/ara"
 
@@ -26,8 +32,6 @@ var assetsFS embed.FS
 //go:embed templates
 var templatesFS embed.FS
 
-const araAddrDefault = "127.0.0.1:8000"
-
 type App struct {
 	host string
 	port int
@@ -40,23 +44,66 @@ type Dependencies struct {
 	store                cookie.Store
 	checksService        services.ChecksService
 	subscriptionsService services.SubscriptionsService
+	hostsService         services.HostsService
+	sapSystemsService    services.SAPSystemsService
+	tagsService          services.TagsService
 }
 
 func DefaultDependencies() Dependencies {
 	consulClient, _ := consul.DefaultClient()
 	engine := gin.Default()
 	store := cookie.NewStore([]byte("secret"))
+	mode := os.Getenv(gin.EnvGinMode)
 
-	araService := ara.NewAraService(araAddrDefault)
+	gin.SetMode(mode)
+
+	db, err := InitDB()
+	if err != nil {
+		log.Fatalf("failed to connect database: %s", err)
+	}
+
+	if err := MigrateDB(db); err != nil {
+		log.Fatalf("failed to migrate database: %s", err)
+	}
+
+	tagsService := services.NewTagsService(db)
+	araService := ara.NewAraService(viper.GetString("ara-addr"))
 	checksService := services.NewChecksService(araService)
 	subscriptionsService := services.NewSubscriptionsService(consulClient)
+	hostsService := services.NewHostsService(consulClient)
+	sapSystemsService := services.NewSAPSystemsService(consulClient)
 
-	return Dependencies{consulClient, engine, store, checksService, subscriptionsService}
+	return Dependencies{
+		consulClient, engine, store,
+		checksService, subscriptionsService, hostsService, sapSystemsService, tagsService,
+	}
 }
 
-func (d *Dependencies) SetAraAddr(araAddr string) {
-	araService := ara.NewAraService(araAddr)
-	d.checksService = services.NewChecksService(araService)
+func InitDB() (*gorm.DB, error) {
+	// TODO: refactor this in a common infrastructure init package
+	host := viper.GetString("db-host")
+	port := viper.GetString("db-port")
+	user := viper.GetString("db-user")
+	password := viper.GetString("db-password")
+	dbName := viper.GetString("db-name")
+
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbName)
+
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
+}
+
+func MigrateDB(db *gorm.DB) error {
+	err := db.AutoMigrate(models.Tag{})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // shortcut to use default dependencies
@@ -92,27 +139,32 @@ func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
 	engine.StaticFS("/static", http.FS(assetsFS))
 	engine.GET("/", HomeHandler)
 	engine.GET("/about", NewAboutHandler(deps.subscriptionsService))
-	engine.GET("/hosts", NewHostListHandler(deps.consul))
+	engine.GET("/hosts", NewHostListHandler(deps.consul, deps.tagsService))
 	engine.GET("/hosts/:name", NewHostHandler(deps.consul, deps.subscriptionsService))
 	engine.GET("/catalog", NewChecksCatalogHandler(deps.checksService))
-	engine.GET("/clusters", NewClusterListHandler(deps.consul, deps.checksService))
+	engine.GET("/clusters", NewClusterListHandler(deps.consul, deps.checksService, deps.tagsService))
 	engine.GET("/clusters/:id", NewClusterHandler(deps.consul, deps.checksService))
 	engine.POST("/clusters/:id/settings", NewSaveClusterSettingsHandler(deps.consul))
-	engine.GET("/sapsystems", NewSAPSystemListHandler(deps.consul))
-	engine.GET("/sapsystems/:sid", NewSAPSystemHandler(deps.consul))
+	engine.GET("/sapsystems", NewSAPSystemListHandler(deps.consul, deps.hostsService, deps.sapSystemsService, deps.tagsService))
+	engine.GET("/sapsystems/:id", NewSAPResourceHandler(deps.hostsService, deps.sapSystemsService))
+	engine.GET("/databases", NewHanaDatabaseListHandler(deps.consul, deps.hostsService, deps.sapSystemsService, deps.tagsService))
+	engine.GET("/databases/:id", NewSAPResourceHandler(deps.hostsService, deps.sapSystemsService))
 	engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	apiGroup := engine.Group("/api")
 	{
 		apiGroup.GET("/ping", ApiPingHandler)
 
-		apiGroup.GET("/tags", ApiListTag(deps.consul))
-		apiGroup.POST("/hosts/:name/tags", ApiHostCreateTagHandler(deps.consul))
-		apiGroup.DELETE("/hosts/:name/tags/:tag", ApiHostDeleteTagHandler(deps.consul))
-		apiGroup.POST("/clusters/:id/tags", ApiClusterCreateTagHandler(deps.consul))
-		apiGroup.DELETE("/clusters/:id/tags/:tag", ApiClusterDeleteTagHandler(deps.consul))
-		apiGroup.POST("/sapsystems/:sid/tags", ApiSAPSystemCreateTagHandler(deps.consul))
-		apiGroup.DELETE("/sapsystems/:sid/tags/:tag", ApiSAPSystemDeleteTagHandler(deps.consul))
+		apiGroup.GET("/tags", ApiListTag(deps.tagsService))
+		apiGroup.POST("/hosts/:name/tags", ApiHostCreateTagHandler(deps.consul, deps.tagsService))
+		apiGroup.DELETE("/hosts/:name/tags/:tag", ApiHostDeleteTagHandler(deps.consul, deps.tagsService))
+		apiGroup.POST("/clusters/:id/tags", ApiClusterCreateTagHandler(deps.consul, deps.tagsService))
+		apiGroup.DELETE("/clusters/:id/tags/:tag", ApiClusterDeleteTagHandler(deps.consul, deps.tagsService))
+		apiGroup.GET("/clusters/:cluster_id/results", ApiClusterCheckResultsHandler(deps.consul, deps.checksService))
+		apiGroup.POST("/sapsystems/:id/tags", ApiSAPSystemCreateTagHandler(deps.sapSystemsService, deps.tagsService))
+		apiGroup.DELETE("/sapsystems/:id/tags/:tag", ApiSAPSystemDeleteTagHandler(deps.sapSystemsService, deps.tagsService))
+		apiGroup.POST("/databases/:id/tags", ApiDatabaseCreateTagHandler(deps.sapSystemsService, deps.tagsService))
+		apiGroup.DELETE("/databases/:id/tags/:tag", ApiDatabaseDeleteTagHandler(deps.sapSystemsService, deps.tagsService))
 	}
 
 	return app, nil

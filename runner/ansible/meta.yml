@@ -22,7 +22,7 @@
         tasks_from: store
       vars:
         metadata_path: "{{ item.path }}/defaults/main.yml"
-      loop: "{{ checks.files }}"
+      loop: "{{ checks.files|sort(attribute='path') }}"
 
     - name: Post metadata
       import_role:

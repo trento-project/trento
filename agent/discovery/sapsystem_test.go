@@ -39,13 +39,15 @@ func TestStoreSAPSystemTags(t *testing.T) {
 	mockWebService.On("GetSystemInstanceList").Return(&sapcontrol.GetSystemInstanceListResponse{}, nil)
 
 	expectedHostMetadata := map[string]interface{}{
-		"sap-systems": "DEV",
+		"sap-systems":      "DEV",
+		"sap-systems-type": "Database",
+		"sap-systems-id":   "systemId",
 	}
 
 	catalog.On("Nodes", mock.Anything).Return([]*consulApi.Node{}, nil, nil)
 	kv.On("PutMap", fmt.Sprintf(consul.KvHostsMetadataPath, host), expectedHostMetadata).Return(nil, nil)
 
-	sapSystem := &sapsystem.SAPSystem{SID: "DEV", Type: sapsystem.Database}
+	sapSystem := &sapsystem.SAPSystem{Id: "systemId", SID: "DEV", Type: sapsystem.Database}
 
 	err := storeSAPSystemTags(client, []*sapsystem.SAPSystem{sapSystem})
 	assert.NoError(t, err)

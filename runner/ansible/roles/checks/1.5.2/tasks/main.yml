@@ -1,6 +1,6 @@
 ---
 
-- name: "{{ id }}.check"
+- name: "{{ name }}.check"
   shell: |
     # if hacluster passwd is linux, fail
     salt=$(sudo getent shadow hacluster | cut -d$ -f3)

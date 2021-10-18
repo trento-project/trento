@@ -7,29 +7,40 @@
                 <th scope='col'></th>
                 <th scope='col'>SID</th>
                 <th scope='col'>Description</th>
+                {{- if eq .ResourcePath "sapsystems" }}
+                <th scope='col'>Attached RDBMS</th>
+                <th scope='col'>Tenant</th>
+                <th scope='col'>DB address</th>
+                {{- end }}
                 <th scope='col'>Tags</th>
             </tr>
             </thead>
             <tbody>
-            {{- range $index, $value := . }}
+            {{- $resource := .ResourcePath }}
+            {{- range $index, $value := .SAPSystemsTable }}
                 <tr>
                 <td class="row-status">{{ template "health_icon" "unknown" }}</td>
                 <td class="row-status"><a class="eos-icons eos-18  collapse-toggle clickable collapsed text-dark"
                                           data-toggle="collapse" data-target="#inner_{{ $index }}"></a></td>
-                <td><a href="/sapsystems/{{ .SID }}">{{ .SID }}</a></td>
+                <td>{{- if .HasDuplicatedSid }}<i class="eos-icons eos-18 text-warning" data-toggle="tooltip" data-original-title="This SAP system SID exists multiple times">warning</i>{{- end }}<a href="/{{ $resource }}/{{ .Id }}">{{ .SID }}</a></td>
                 <td></td>
+                {{- if eq $resource "sapsystems" }}
+                <td><a href="/databases/{{ $value.AttachedDatabaseId }}">{{ $value.AttachedDatabaseSID }}</a></td>
+                <td>{{ $value.Profile.dbs.hdb.dbname }}</td>
+                <td>{{ $value.Profile.SAPDBHOST }}</td>
+                {{- end }}
                 <td>
-                    <input class="tags-input" 
-                        value="{{- range .Tags }}{{ . }},{{- end }}" 
-                        data-resource-type="sapsystems" 
-                        data-resource-id="{{ .SID }}"
+                    <input class="tags-input"
+                        value="{{- range .Tags }}{{ . }},{{- end }}"
+                        data-resource-type="{{ $resource }}"
+                        data-resource-id="{{ .Id }}"
                         autocomplete="off">
                     </input>
                 </td>
                 {{- if ne (len .InstancesTable) 0 }}
                     <tr id="inner_{{ $index }}" class="collapse">
                         <td colspan="2"></td>
-                        <td colspan="3">
+                        <td colspan="{{ if eq $resource "sapsystems" }}6{{ else }}3{{ end }}">
                             <table class='table eos-table'>
                                 <thead>
                                 <tr>

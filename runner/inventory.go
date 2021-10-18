@@ -79,6 +79,20 @@ var getNodeAddress = func(client consul.Client, node string) (string, error) {
   return "", err
 }
 
+var getConnectionName = func(client consul.Client, clusterId string, node string) (string, error) {
+  connectionData, err := cluster.GetConnectionSettings(client, clusterId)
+  if err != nil {
+    return "", err
+  }
+
+  user, found := connectionData[node]
+  if !found {
+    return "", fmt.Errorf("connection data for %s node not found", node)
+  }
+
+  return user.(string), nil
+}
+
 var getCloudUserName = func(client consul.Client, node string) (string, error) {
   cloudData, err := cloud.Load(client, node)
   if err != nil {
@@ -121,9 +135,17 @@ func NewClusterInventoryContent(client consul.Client) (*InventoryContent, error)
         node.AnsibleHost = address
       }
 
-      cloudUser, err := getCloudUserName(client, node.Name)
+      userName, err := getConnectionName(client, clusterId, node.Name)
       if err == nil {
-        node.AnsibleUser = cloudUser
+        node.AnsibleUser = userName
+      }
+
+      // if the node user name is not provided by the user, get the cloud data
+      if err != nil || len(userName) == 0 {
+        cloudUser, err := getCloudUserName(client, node.Name)
+        if err == nil {
+          node.AnsibleUser = cloudUser
+        }
       }
 
       nodes = append(nodes, node)

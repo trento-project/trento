@@ -31,7 +31,7 @@ func TestApiCollectDataHandler(t *testing.T) {
 		DiscoveryType: "discovery",
 		Payload:       []byte("{}"),
 	})
-	req, err := http.NewRequest("POST", "/api/collect_data", bytes.NewBuffer(body))
+	req, err := http.NewRequest("POST", "/api/collect", bytes.NewBuffer(body))
 	if err != nil {
 		t.Fatal(err)
 	}

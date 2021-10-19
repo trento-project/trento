@@ -186,7 +186,7 @@ func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
 	}
 
 	collectorEngine := deps.collectorEngine
-	collectorEngine.POST("/api/collect_data", ApiCollectDataHandler(deps.collectorService))
+	collectorEngine.POST("/api/collect", ApiCollectDataHandler(deps.collectorService))
 
 	return app, nil
 }

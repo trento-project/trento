@@ -24,6 +24,7 @@ func ApiCollectDataHandler(collectorService services.CollectorService) gin.Handl
 			_ = c.Error(err)
 			return
 		}
-		c.JSON(http.StatusAccepted, gin.H{"stored": "ok"})
+
+		c.Writer.WriteHeader(http.StatusAccepted)
 	}
 }

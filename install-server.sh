@@ -88,9 +88,9 @@ check_requirements() {
         exit 1
     fi
     if grep -q "Y" /sys/module/apparmor/parameters/enabled; then
-        if ! command -v apparmor_parser >/dev/null 1>&1; then
-            echo "apparmor-parser is required by k3s when using AppArmor, please install it and try again."
-            exit 0
+        if ! command -v /sbin/apparmor_parser >/dev/null 1>&1; then
+            echo "apparmor_parser is required by k3s when using AppArmor, please install it and try again."
+            exit 1
         fi
     fi
 }

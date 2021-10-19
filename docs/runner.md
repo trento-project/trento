@@ -1,6 +1,6 @@
 # Ansible runner
 
-This health checks are written in ansible following a pre-defined files structure. Find how to write a new check in the next chapters
+These health checks are written in ansible following a pre-defined files structure. Find how to write a new check in the next chapters
 
 ## Implementing a check
 
@@ -16,7 +16,7 @@ This health checks are written in ansible following a pre-defined files structur
 ## Check structure
 
 The checks folder is in `runner/ansible/roles/checks`. Each check is stored in an individual folder, which gives the name to the check (e.g. 1.1.1). The name refers to its place in the queue (1.1.2 will be 
-executed after 1.1.1 etc.).These check folders contain other two subfolders. Both of these each has one file in them named `main.yml`:
+executed after 1.1.1 etc.). These check folders contain other two subfolders. Both of these each has one file in them named `main.yml`:
 - `defaults`
    The `main.yml`file in the `defaults` directory contains all the required [metadata](#metadata-files) for the check. 
 
@@ -24,7 +24,7 @@ executed after 1.1.1 etc.).These check folders contain other two subfolders. Bot
   The `main.yml` file in the `tasks` directory contains the [check](#check-files). 
 
 
-## Metadata files
+## Metadata files:
 
 The metadata files provide information about the check's themselves. They are used to get information
 from the Trento Web GUI and render properly everything related with the Ansible tasks.

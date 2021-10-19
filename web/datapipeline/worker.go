@@ -8,9 +8,8 @@ import (
 	"gorm.io/gorm"
 )
 
-// TODO: tune bufferSize and workersNumber
+// TODO:  workersNumber
 var workersNumber int64 = 100
-var bufferSize int64 = workersNumber * 100
 
 func initProjectorsRegistry(db *gorm.DB) []*Projector {
 	clusterListProjector := NewProjector("cluster_list", db)
@@ -23,7 +22,7 @@ func initProjectorsRegistry(db *gorm.DB) []*Projector {
 
 // StartProjectorsWorkerPool starts a pool of workers to process events
 func StartProjectorsWorkerPool(db *gorm.DB) chan *DataCollectedEvent {
-	ch := make(chan *DataCollectedEvent, bufferSize)
+	ch := make(chan *DataCollectedEvent)
 	projectorsRegistry := initProjectorsRegistry(db)
 
 	log.Infof("Starting projector pool. Workers limit: %d", workersNumber)
@@ -40,7 +39,8 @@ func workerPool(ch chan *DataCollectedEvent, projectorsRegistry []*Projector) {
 
 	for event := range ch {
 		if err := sem.Acquire(ctx, 1); err != nil {
-			log.Printf("Failed to acquire semaphore: %v", err)
+			log.Errorf("Failed to acquire semaphore: %v", err)
+			break
 		}
 		log.Debugf("Semaphore acquired, starting projector worker")
 

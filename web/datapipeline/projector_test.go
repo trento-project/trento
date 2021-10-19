@@ -114,3 +114,29 @@ func (suite *ProjectorTestSuite) TestProjector_Concurrency() {
 
 	suite.Equal(int64(2), subscription.LastProjectedEventID)
 }
+
+// TestProjector_SkipPastEvent tests that a projector does not project and update the subscription
+// if the event is older than the last projected one
+func (suite *ProjectorTestSuite) TestProjector_SkipPastEvent() {
+	projector := NewProjector("dummy_projector", suite.tx)
+	projected := false
+
+	projector.AddHandler("dummy_discovery_type", func(dataCollectedEvent *DataCollectedEvent, _ *gorm.DB) error {
+		projected = true
+		return nil
+	})
+
+	suite.tx.Create(&Subscription{
+		LastProjectedEventID: 123,
+		ProjectorID:          "dummy_projector",
+		AgentID:              "345",
+	})
+
+	projector.Project(&DataCollectedEvent{ID: 120, DiscoveryType: "dummy_discovery_type", AgentID: "345"})
+
+	var subscription Subscription
+	suite.tx.First(&subscription)
+
+	suite.False(projected)
+	suite.Equal(int64(123), subscription.LastProjectedEventID)
+}

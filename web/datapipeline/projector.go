@@ -34,12 +34,25 @@ func (p *Projector) Project(dataCollectedEvent *DataCollectedEvent) error {
 	handler, ok := p.handlers[dataCollectedEvent.DiscoveryType]
 
 	if !ok {
-		log.Infof("Projector: %s is not interested in %s. Discarding event: %d", p.ID, dataCollectedEvent.DiscoveryType, dataCollectedEvent.ID)
+		log.Debugf("Projector: %s is not interested in %s. Discarding event: %d", p.ID, dataCollectedEvent.DiscoveryType, dataCollectedEvent.ID)
 		return nil
 	}
 
 	log.Infof("Projector: %s is interested in %s. Projecting event: %d", p.ID, dataCollectedEvent.DiscoveryType, dataCollectedEvent.ID)
+
 	return p.db.Transaction(func(tx *gorm.DB) error {
+		var subscription Subscription
+		tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where(&Subscription{ProjectorID: p.ID, AgentID: dataCollectedEvent.AgentID}).First(&subscription)
+
+		if subscription.LastProjectedEventID >= dataCollectedEvent.ID {
+			log.Warnf("Projector: %s received an old event: %s %s %d. Skipping",
+				p.ID, dataCollectedEvent.DiscoveryType,
+				dataCollectedEvent.AgentID,
+				dataCollectedEvent.ID)
+
+			return nil
+		}
+
 		tx.Clauses(clause.OnConflict{
 			UpdateAll: true,
 		}).Create(&Subscription{

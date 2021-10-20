@@ -24,6 +24,87 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/checks/{id}/selected": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get selected checks from resource",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Resource id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.SelectedChecks"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Create check selection for the resource",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Resource id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Selected checks",
+                        "name": "Body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.SelectedChecks"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.SelectedChecks"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/clusters/{cluster_id}/results": {
             "get": {
                 "produces": [
@@ -491,6 +572,20 @@ var doc = `{
         }
     },
     "definitions": {
+        "models.SelectedChecks": {
+            "type": "object",
+            "required": [
+                "selected_checks"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "selected_checks": {
+                    "type": "string"
+                }
+            }
+        },
         "web.JSONTag": {
             "type": "object",
             "required": [

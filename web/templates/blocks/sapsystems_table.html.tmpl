@@ -63,7 +63,7 @@
                                     {{- if .IsDatabase }}
                                     {{- $mode := .SystemReplication.GetReplicationMode }}
                                     {{- if ne $mode "" }}
-                                    <td><span class="badge badge-pill badge-info">HANA {{ $mode }}</span>
+                                    <td>HANA {{ $mode }}
                                     {{- else }}
                                     <td></td>
                                     {{- end }}

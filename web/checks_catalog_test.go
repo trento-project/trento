@@ -10,14 +10,14 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/trento-project/trento/web/models"
-	"github.com/trento-project/trento/web/services/mocks"
+	"github.com/trento-project/trento/web/services"
 )
 
 func TestChecksCatalogHandler(t *testing.T) {
-	checksMocks := new(mocks.ChecksService)
+	checksService := new(services.MockChecksService)
 
 	deps := setupTestDependencies()
-	deps.checksService = checksMocks
+	deps.checksService = checksService
 
 	checks := models.GroupedCheckList{
 		&models.GroupedChecks{
@@ -59,7 +59,7 @@ func TestChecksCatalogHandler(t *testing.T) {
 		},
 	}
 
-	checksMocks.On("GetChecksCatalogByGroup").Return(
+	checksService.On("GetChecksCatalogByGroup").Return(
 		checks, nil,
 	)
 
@@ -75,7 +75,7 @@ func TestChecksCatalogHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	app.ServeHTTP(resp, req)
+	app.webEngine.ServeHTTP(resp, req)
 
 	responseBody := minifyHtml(resp.Body.String())
 
@@ -88,17 +88,16 @@ func TestChecksCatalogHandler(t *testing.T) {
 	assert.Equal(t, 2, strings.Count(responseBody, "<h4"))
 	assert.Equal(t, 5, strings.Count(responseBody, "<tr>"))
 
-	checksMocks.AssertExpectations(t)
+	checksService.AssertExpectations(t)
 }
 
 func TestChecksCatalogHandlerError(t *testing.T) {
-
-	checksMocks := new(mocks.ChecksService)
+	checksService := new(services.MockChecksService)
 
 	deps := setupTestDependencies()
-	deps.checksService = checksMocks
+	deps.checksService = checksService
 
-	checksMocks.On("GetChecksCatalogByGroup").Return(
+	checksService.On("GetChecksCatalogByGroup").Return(
 		nil, fmt.Errorf("Error during GetChecksCatalogByGroup"),
 	)
 
@@ -115,7 +114,7 @@ func TestChecksCatalogHandlerError(t *testing.T) {
 	}
 	req.Header.Set("Accept", "text/html")
 
-	app.ServeHTTP(resp, req)
+	app.webEngine.ServeHTTP(resp, req)
 
 	responseBody := minifyHtml(resp.Body.String())
 
@@ -128,6 +127,6 @@ func TestChecksCatalogHandlerError(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("Error during GetChecksCatalogByGroup</br>"), responseBody)
 	assert.Regexp(t, regexp.MustCompile(fmt.Sprintf("%s</br>", tipMsg)), responseBody)
 
-	checksMocks.AssertExpectations(t)
+	checksService.AssertExpectations(t)
 
 }

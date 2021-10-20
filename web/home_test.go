@@ -21,7 +21,7 @@ func TestHomeHandler(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	app.ServeHTTP(resp, req)
+	app.webEngine.ServeHTTP(resp, req)
 
 	assert.Equal(t, 200, resp.Code)
 }

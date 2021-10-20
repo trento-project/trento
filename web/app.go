@@ -1,9 +1,12 @@
 package web
 
 import (
+	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"embed"
 	"fmt"
-	"log"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
@@ -11,11 +14,15 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"golang.org/x/sync/errgroup"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
 	"github.com/trento-project/trento/internal/consul"
+	"github.com/trento-project/trento/web/datapipeline"
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
 	"github.com/trento-project/trento/web/services/ara"
@@ -40,18 +47,22 @@ type App struct {
 
 type Dependencies struct {
 	consul               consul.Client
-	engine               *gin.Engine
+	webEngine            *gin.Engine
+	collectorEngine      *gin.Engine
 	store                cookie.Store
 	checksService        services.ChecksService
 	subscriptionsService services.SubscriptionsService
 	hostsService         services.HostsService
 	sapSystemsService    services.SAPSystemsService
 	tagsService          services.TagsService
+	collectorService     services.CollectorService
+	clustersService      services.ClustersService
 }
 
 func DefaultDependencies() Dependencies {
 	consulClient, _ := consul.DefaultClient()
-	engine := gin.Default()
+	webEngine := gin.Default()
+	collectorEngine := gin.Default()
 	store := cookie.NewStore([]byte("secret"))
 	mode := os.Getenv(gin.EnvGinMode)
 
@@ -73,9 +84,15 @@ func DefaultDependencies() Dependencies {
 	hostsService := services.NewHostsService(consulClient)
 	sapSystemsService := services.NewSAPSystemsService(consulClient)
 
+	// TODO: this layer of data pipeline initialization will go in its own datapipeline application
+	ch := datapipeline.StartProjectorsWorkerPool(db)
+	collectorService := services.NewCollectorService(db, ch)
+
+	clustersService := services.NewClustersService(db, checksService, tagsService)
 	return Dependencies{
-		consulClient, engine, store,
+		consulClient, webEngine, collectorEngine, store,
 		checksService, subscriptionsService, hostsService, sapSystemsService, tagsService,
+		collectorService, clustersService,
 	}
 }
 
@@ -98,7 +115,7 @@ func InitDB() (*gorm.DB, error) {
 }
 
 func MigrateDB(db *gorm.DB) error {
-	err := db.AutoMigrate(models.Tag{})
+	err := db.AutoMigrate(models.Tag{}, models.Cluster{}, datapipeline.DataCollectedEvent{}, datapipeline.Subscription{})
 	if err != nil {
 		return err
 	}
@@ -127,31 +144,32 @@ func NewApp(host string, port int) (*App, error) {
 func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
 	app := &App{
 		Dependencies: deps,
-		host:         host,
+		host:         host, // these are web specific, we need something similar for the collector
 		port:         port,
 	}
 
 	InitAlerts()
-	engine := deps.engine
-	engine.HTMLRender = NewLayoutRender(templatesFS, "templates/*.tmpl")
-	engine.Use(ErrorHandler)
-	engine.Use(sessions.Sessions("session", deps.store))
-	engine.StaticFS("/static", http.FS(assetsFS))
-	engine.GET("/", HomeHandler)
-	engine.GET("/about", NewAboutHandler(deps.subscriptionsService))
-	engine.GET("/hosts", NewHostListHandler(deps.consul, deps.tagsService))
-	engine.GET("/hosts/:name", NewHostHandler(deps.consul, deps.subscriptionsService))
-	engine.GET("/catalog", NewChecksCatalogHandler(deps.checksService))
-	engine.GET("/clusters", NewClusterListHandler(deps.consul, deps.checksService, deps.tagsService))
-	engine.GET("/clusters/:id", NewClusterHandler(deps.consul, deps.checksService))
-	engine.POST("/clusters/:id/settings", NewSaveClusterSettingsHandler(deps.consul))
-	engine.GET("/sapsystems", NewSAPSystemListHandler(deps.consul, deps.hostsService, deps.sapSystemsService, deps.tagsService))
-	engine.GET("/sapsystems/:id", NewSAPResourceHandler(deps.hostsService, deps.sapSystemsService))
-	engine.GET("/databases", NewHanaDatabaseListHandler(deps.consul, deps.hostsService, deps.sapSystemsService, deps.tagsService))
-	engine.GET("/databases/:id", NewSAPResourceHandler(deps.hostsService, deps.sapSystemsService))
-	engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	webEngine := deps.webEngine
+	webEngine.HTMLRender = NewLayoutRender(templatesFS, "templates/*.tmpl")
+	webEngine.Use(ErrorHandler)
+	webEngine.Use(sessions.Sessions("session", deps.store))
+	webEngine.StaticFS("/static", http.FS(assetsFS))
+	webEngine.GET("/", HomeHandler)
+	webEngine.GET("/about", NewAboutHandler(deps.subscriptionsService))
+	webEngine.GET("/hosts", NewHostListHandler(deps.consul, deps.tagsService))
+	webEngine.GET("/hosts/:name", NewHostHandler(deps.consul, deps.subscriptionsService))
+	webEngine.GET("/catalog", NewChecksCatalogHandler(deps.checksService))
+	webEngine.GET("/clusters", NewClusterListHandler(deps.consul, deps.checksService, deps.tagsService))
+	webEngine.GET("/clusters-next", NewClusterListNextHandler(deps.clustersService))
+	webEngine.GET("/clusters/:id", NewClusterHandler(deps.consul, deps.checksService))
+	webEngine.POST("/clusters/:id/settings", NewSaveClusterSettingsHandler(deps.consul))
+	webEngine.GET("/sapsystems", NewSAPSystemListHandler(deps.consul, deps.hostsService, deps.sapSystemsService, deps.tagsService))
+	webEngine.GET("/sapsystems/:id", NewSAPResourceHandler(deps.hostsService, deps.sapSystemsService))
+	webEngine.GET("/databases", NewHanaDatabaseListHandler(deps.consul, deps.hostsService, deps.sapSystemsService, deps.tagsService))
+	webEngine.GET("/databases/:id", NewSAPResourceHandler(deps.hostsService, deps.sapSystemsService))
+	webEngine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	apiGroup := engine.Group("/api")
+	apiGroup := webEngine.Group("/api")
 	{
 		apiGroup.GET("/ping", ApiPingHandler)
 
@@ -167,21 +185,104 @@ func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
 		apiGroup.DELETE("/databases/:id/tags/:tag", ApiDatabaseDeleteTagHandler(deps.sapSystemsService, deps.tagsService))
 	}
 
+	collectorEngine := deps.collectorEngine
+	collectorEngine.POST("/api/collect", ApiCollectDataHandler(deps.collectorService))
+
 	return app, nil
 }
 
 func (a *App) Start() error {
-	s := &http.Server{
+	webServer := &http.Server{
 		Addr:           fmt.Sprintf("%s:%d", a.host, a.port),
-		Handler:        a,
+		Handler:        a.webEngine,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
 
-	return s.ListenAndServe()
+	tlsConfig, err := getTLSConfig()
+	if err != nil {
+		return err
+	}
+	collectorServer := &http.Server{
+		Addr:           fmt.Sprintf("%s:%d", a.host, 8443),
+		Handler:        a.collectorEngine,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+		TLSConfig:      tlsConfig,
+	}
+
+	g, ctx := errgroup.WithContext(context.Background())
+	g.Go(func() error {
+		err := webServer.ListenAndServe()
+		if err != nil && err != http.ErrServerClosed {
+			return err
+		}
+		return err
+	})
+
+	g.Go(func() error {
+		var err error
+		if tlsConfig == nil {
+			err = collectorServer.ListenAndServe()
+		} else {
+			err = collectorServer.ListenAndServeTLS("", "")
+		}
+		if err != nil && err != http.ErrServerClosed {
+			return err
+		}
+		return nil
+	})
+
+	go func() {
+		<-ctx.Done()
+		webServer.Close()
+		collectorServer.Close()
+	}()
+
+	return g.Wait()
 }
 
-func (a *App) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	a.engine.ServeHTTP(w, req)
+func getTLSConfig() (*tls.Config, error) {
+	if !viper.GetBool("enable-mtls") {
+		return nil, nil
+	}
+
+	cert := viper.GetString("cert")
+	key := viper.GetString("key")
+	ca := viper.GetString("ca")
+
+	var err error
+
+	if cert == "" {
+		err = fmt.Errorf("you must provide a server ssl certificate")
+	}
+	if key == "" {
+		err = errors.Wrap(err, "you must provide a key to enable mTLS")
+	}
+	if ca == "" {
+		err = errors.Wrap(err, "you must provide a CA ssl certificate")
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	caCert, err := ioutil.ReadFile(ca)
+	if err != nil {
+		return nil, err
+	}
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caCert)
+
+	certificate, err := tls.LoadX509KeyPair(cert, key)
+	if err != nil {
+		return nil, err
+	}
+
+	return &tls.Config{
+		ClientCAs:    caCertPool,
+		ClientAuth:   tls.RequireAndVerifyClientCert,
+		Certificates: []tls.Certificate{certificate},
+	}, nil
 }

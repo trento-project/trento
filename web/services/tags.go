@@ -5,7 +5,7 @@ import (
 	"gorm.io/gorm"
 )
 
-//go:generate mockery --name=TagsService
+//go:generate mockery --name=TagsService --inpackage --filename=tags_mock.go
 type TagsService interface {
 	GetAll(resourceTypeFilter ...string) ([]string, error)
 	GetAllByResource(resourceType string, resourceId string) ([]string, error)

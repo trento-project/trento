@@ -16,7 +16,7 @@ import (
 
 	consulMocks "github.com/trento-project/trento/internal/consul/mocks"
 	"github.com/trento-project/trento/web/models"
-	servicesMocks "github.com/trento-project/trento/web/services/mocks"
+	"github.com/trento-project/trento/web/services"
 )
 
 var sapSystemsList = sapsystem.SAPSystemsList{
@@ -166,14 +166,14 @@ var sapDatabasesList = sapsystem.SAPSystemsList{
 func TestSAPSystemsListHandler(t *testing.T) {
 	consulInst := new(consulMocks.Client)
 	kv := new(consulMocks.KV)
-	sapSystemsService := new(servicesMocks.SAPSystemsService)
-	hostsService := new(servicesMocks.HostsService)
+	sapSystemsService := new(services.MockSAPSystemsService)
+	hostsService := new(services.MockHostsService)
 	sapSystemsService.On("GetSAPSystemsByType", sapsystem.Application).Return(sapSystemsList, nil)
 	sapSystemsService.On("GetAttachedDatabasesById", "systemId1").Return(sapDatabasesList, nil)
 	sapSystemsService.On("GetAttachedDatabasesById", "systemId2").Return(sapDatabasesList, nil)
 	sapSystemsService.On("GetAttachedDatabasesById", "systemId3").Return(sapDatabasesList, nil)
 
-	tagsService := new(servicesMocks.TagsService)
+	tagsService := new(services.MockTagsService)
 	tagsService.On(
 		"GetAllByResource", models.TagSAPSystemResourceType, "systemId1").Return([]string{"tag1"}, nil)
 	tagsService.On(
@@ -214,7 +214,7 @@ func TestSAPSystemsListHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	app.ServeHTTP(resp, req)
+	app.webEngine.ServeHTTP(resp, req)
 
 	kv.AssertExpectations(t)
 	hostsService.AssertExpectations(t)
@@ -235,9 +235,9 @@ func TestSAPSystemsListHandler(t *testing.T) {
 func TestSAPDatabaseListHandler(t *testing.T) {
 	consulInst := new(consulMocks.Client)
 	kv := new(consulMocks.KV)
-	sapSystemsService := new(servicesMocks.SAPSystemsService)
-	hostsService := new(servicesMocks.HostsService)
-	tagsService := new(servicesMocks.TagsService)
+	sapSystemsService := new(services.MockSAPSystemsService)
+	hostsService := new(services.MockHostsService)
+	tagsService := new(services.MockTagsService)
 	tagsService.On(
 		"GetAllByResource", models.TagDatabaseResourceType, "systemId2").Return([]string{"tag1"}, nil)
 
@@ -266,7 +266,7 @@ func TestSAPDatabaseListHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	app.ServeHTTP(resp, req)
+	app.webEngine.ServeHTTP(resp, req)
 
 	kv.AssertExpectations(t)
 	hostsService.AssertExpectations(t)
@@ -416,8 +416,8 @@ func TestSAPResourceHandler(t *testing.T) {
 	consulInst := new(consulMocks.Client)
 	health := new(consulMocks.Health)
 	consulInst.On("Health").Return(health)
-	sapSystemsService := new(servicesMocks.SAPSystemsService)
-	hostsService := new(servicesMocks.HostsService)
+	sapSystemsService := new(services.MockSAPSystemsService)
+	hostsService := new(services.MockHostsService)
 
 	deps := setupTestDependencies()
 	deps.consul = consulInst
@@ -463,7 +463,7 @@ func TestSAPResourceHandler(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	app.ServeHTTP(resp, req)
+	app.webEngine.ServeHTTP(resp, req)
 	assert.Equal(t, 200, resp.Code)
 	responseBody := minifyHtml(resp.Body.String())
 
@@ -480,7 +480,7 @@ func TestSAPResourceHandler(t *testing.T) {
 }
 
 func TestSAPResourceHandler404Error(t *testing.T) {
-	sapSystemsService := new(servicesMocks.SAPSystemsService)
+	sapSystemsService := new(services.MockSAPSystemsService)
 
 	deps := setupTestDependencies()
 	deps.sapSystemsService = sapSystemsService
@@ -497,7 +497,7 @@ func TestSAPResourceHandler404Error(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/sapsystems/foobar", nil)
 	req.Header.Set("Accept", "text/html")
 
-	app.ServeHTTP(resp, req)
+	app.webEngine.ServeHTTP(resp, req)
 
 	sapSystemsService.AssertExpectations(t)
 

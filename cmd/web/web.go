@@ -17,6 +17,10 @@ var dbPort string
 var dbUser string
 var dbPassword string
 var dbName string
+var enablemTLS bool
+var cert string
+var key string
+var ca string
 
 func NewWebCmd() *cobra.Command {
 	webCmd := &cobra.Command{
@@ -39,6 +43,11 @@ func NewWebCmd() *cobra.Command {
 	serveCmd.Flags().StringVar(&dbUser, "db-user", "postgres", "The database user")
 	serveCmd.Flags().StringVar(&dbPassword, "db-password", "postgres", "The database password")
 	serveCmd.Flags().StringVar(&dbName, "db-name", "trento", "The database name that the application will use")
+
+	serveCmd.Flags().BoolVar(&enablemTLS, "enable-mtls", false, "Enable mTLS authentication between server and agents")
+	serveCmd.Flags().StringVar(&cert, "cert", "", "mTLS server certificate")
+	serveCmd.Flags().StringVar(&key, "key", "", "mTLS server key")
+	serveCmd.Flags().StringVar(&ca, "ca", "", "mTLS Certificate Authority")
 
 	// Bind the flags to viper and make them available to the application
 	serveCmd.Flags().VisitAll(func(f *pflag.Flag) {

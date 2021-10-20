@@ -1,4 +1,4 @@
-package services
+package helpers
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func setupTestDatabase() *gorm.DB {
+func SetupTestDatabase() *gorm.DB {
 	// TODO: refactor this in a common infrastructure init package
 
 	viper.SetDefault("db-host", "localhost")

@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/trento-project/trento/web/models"
@@ -10,8 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-//go:generate mockery --name=ChecksService
-
+//go:generate mockery --name=ChecksService --inpackage --filename=checks_mock.go
 type AggregatedCheckData struct {
 	PassingCount  int
 	WarningCount  int

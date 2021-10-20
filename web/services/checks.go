@@ -225,11 +225,7 @@ func (c *checksService) GetSelectedChecksById(id string) (models.SelectedChecks,
 
 	result := c.db.Where("id", id).First(&selectedChecks)
 
-	if result.Error != nil {
-		return selectedChecks, result.Error
-	}
-
-	return selectedChecks, nil
+	return selectedChecks, result.Error
 }
 
 func (c *checksService) CreateSelectedChecks(id string, selectedChecksStr string) error {

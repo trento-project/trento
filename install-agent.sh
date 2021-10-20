@@ -212,6 +212,8 @@ function install_trento_tgz() {
         TRENTO_TGZ_URL=https://github.com/trento-project/trento/releases/download/${TRENTO_VERSION}/trento-${ARCH}.tgz
     fi
 
+    echo "* Downloading trento from $TRENTO_TGZ_URL ..."
+
     curl -f -sS -O -L "${TRENTO_TGZ_URL}" >/dev/null
     tar -zxf trento-${ARCH}.tgz
 

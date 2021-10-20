@@ -1,5 +1,57 @@
 # Changelog
 
+## [0.5.0](https://github.com/trento-project/trento/tree/0.5.0) (2021-10-20)
+
+[Full Changelog](https://github.com/trento-project/trento/compare/0.4.1...0.5.0)
+
+### Added
+
+- Add a test for ApiClusterCheckResultsHandler [\#304](https://github.com/trento-project/trento/issues/304)
+- Allow install-server script to fetch from different repo owners [\#342](https://github.com/trento-project/trento/pull/342) (@rtorrero)
+- Add HANA replication state in the Databases list view [\#338](https://github.com/trento-project/trento/pull/338) (@arbulu89)
+- Add DB information in the SAP systems list page [\#334](https://github.com/trento-project/trento/pull/334) (@arbulu89)
+- Add the possibility to filter the checks table [\#333](https://github.com/trento-project/trento/pull/333) (@dottorblaster)
+- Compare corosync.conf across the nodes [\#331](https://github.com/trento-project/trento/pull/331) (@aleksei-burlakov)
+- Cluster checks table makeover: achieve a hierarchical view [\#329](https://github.com/trento-project/trento/pull/329) (@dottorblaster)
+- Prevent installing the server if firewalld is detected [\#324](https://github.com/trento-project/trento/pull/324) (@fabriziosestito)
+- Refactor and cleanup web tests [\#323](https://github.com/trento-project/trento/pull/323) (@fabriziosestito)
+- Discover a globally unique SAP system ID [\#311](https://github.com/trento-project/trento/pull/311) (@arbulu89)
+- Add PostgreSQL [\#306](https://github.com/trento-project/trento/pull/306) (@fabriziosestito)
+- Add hana database entry sidebar [\#303](https://github.com/trento-project/trento/pull/303) (@arbulu89)
+- Cluster health details view makeover [\#291](https://github.com/trento-project/trento/pull/291) (@dottorblaster)
+- Runner - Create new check ids system [\#282](https://github.com/trento-project/trento/pull/282) (@arbulu89)
+
+### Fixed
+
+- Checks result modal node column empty on unreachable [\#340](https://github.com/trento-project/trento/issues/340)
+- Trento runner container in K3S is leaving ssh defunc processes [\#326](https://github.com/trento-project/trento/issues/326)
+- The check 2C2D43 \(2.2.8\) is blocking the whole runner's ansible execution [\#325](https://github.com/trento-project/trento/issues/325)
+- Tags autocomplete options shows duplicated tags [\#317](https://github.com/trento-project/trento/issues/317)
+- HANA Databases page misses tags API, so tags are broken [\#308](https://github.com/trento-project/trento/issues/308)
+- Make the new cluster health details play well with unreachable hosts [\#305](https://github.com/trento-project/trento/issues/305)
+- container images are not built with the correct version constant [\#301](https://github.com/trento-project/trento/issues/301)
+- Fix apparmor\_parser requirement check [\#355](https://github.com/trento-project/trento/pull/355) (@fabriziosestito)
+- Show properly the checks when some node is unreachable by ansible [\#343](https://github.com/trento-project/trento/pull/343) (@arbulu89)
+- Add a runner\_on\_skipped hook into the callback module of the runner [\#337](https://github.com/trento-project/trento/pull/337) (@dottorblaster)
+- Fix check 2.2.8 updating the sudo calls to not block the runner in k3s [\#328](https://github.com/trento-project/trento/pull/328) (@arbulu89)
+- Use tini in the runner container to remove ssh zombie processes [\#327](https://github.com/trento-project/trento/pull/327) (@arbulu89)
+- Store hosts reachable state during the runner execution [\#320](https://github.com/trento-project/trento/pull/320) (@arbulu89)
+- Remove duplicated tags in getTags function [\#319](https://github.com/trento-project/trento/pull/319) (@arbulu89)
+- Fix tags usage in the databases view [\#318](https://github.com/trento-project/trento/pull/318) (@arbulu89)
+- Get correct version to OBS using git release tags [\#313](https://github.com/trento-project/trento/pull/313) (@rtorrero)
+- Fetch tags before building container images [\#302](https://github.com/trento-project/trento/pull/302) (@fabriziosestito)
+
+### Other Changes
+
+- Add minimum ansible version in the documentation and dockerfile [\#336](https://github.com/trento-project/trento/pull/336) (@arbulu89)
+- update readme according to latest changes and revisit its structure [\#312](https://github.com/trento-project/trento/pull/312) (@stefanotorresi)
+- Trigger `obs-commit` job also for releases [\#310](https://github.com/trento-project/trento/pull/310) (@rtorrero)
+- Avoid using "rolling" as version and use the previous version instead [\#309](https://github.com/trento-project/trento/pull/309) (@rtorrero)
+- updates env documentation [\#307](https://github.com/trento-project/trento/pull/307) (@nelsonkopliku)
+- add more guidelines to the release how-to [\#300](https://github.com/trento-project/trento/pull/300) (@stefanotorresi)
+- Disable gin debug logging on demand [\#299](https://github.com/trento-project/trento/pull/299) (@dottorblaster)
+- Add apparmor pre-requirement in the install-server script [\#268](https://github.com/trento-project/trento/pull/268) (@dottorblaster)
+
 ## [0.4.1](https://github.com/trento-project/trento/tree/0.4.1) (2021-10-01)
 
 [Full Changelog](https://github.com/trento-project/trento/compare/0.4.0...0.4.1)

@@ -1,6 +1,11 @@
 package web
 
 import (
+	"context"
+	"os"
+	"os/signal"
+	"syscall"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -60,7 +65,17 @@ func NewWebCmd() *cobra.Command {
 }
 
 func serve(cmd *cobra.Command, args []string) {
-	var err error
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		<-signals
+		log.Infof("Bye!")
+		cancel()
+	}()
 
 	deps := web.DefaultDependencies()
 
@@ -69,8 +84,8 @@ func serve(cmd *cobra.Command, args []string) {
 		log.Fatal("Failed to create the web application instance: ", err)
 	}
 
-	err = app.Start()
+	err = app.Start(ctx)
 	if err != nil {
-		log.Fatal("Failed to start the web application service: ", err)
+		log.Fatal("Error while running the web application server: ", err)
 	}
 }

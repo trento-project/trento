@@ -9,6 +9,10 @@
   delegate_to: localhost
   run_once: true
 
+- name: Gather the package facts
+  ansible.builtin.package_facts:
+    manager: auto
+
 - name: set default value to cluster_selected_checks_list
   set_fact:
     cluster_selected_checks_list: "{{ cluster_selected_checks|default('')|split(',') }}"

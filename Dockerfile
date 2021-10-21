@@ -11,7 +11,7 @@ RUN make build
 FROM python:3.7-slim AS trento-runner
 RUN ln -s /usr/local/bin/python /usr/bin/python \
     && /usr/bin/python -m venv /venv \
-    && /venv/bin/pip install 'ansible~=4.6.0' 'ara~=1.5.7' \
+    && /venv/bin/pip install 'ansible~=4.6.0' 'ara~=1.5.7' 'rpm~=0.0.2' \
     && apt-get update && apt-get install -y --no-install-recommends \
       ssh \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \

@@ -35,6 +35,8 @@ spec:
             - start
             - --ara-server
             - http://{{ .Release.Name }}-ara:8000
+            - --web-server
+            - http://{{ .Release.Name }}-trento-web:{{ .Values.trentoWeb.service.port }}
             - -i
             - "5"
           env:

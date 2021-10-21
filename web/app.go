@@ -163,7 +163,7 @@ func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
 	webEngine.GET("/clusters", NewClusterListHandler(deps.consul, deps.checksService, deps.tagsService))
 	webEngine.GET("/clusters-next", NewClusterListNextHandler(deps.clustersService))
 	webEngine.GET("/clusters/:id", NewClusterHandler(deps.consul, deps.checksService))
-	webEngine.POST("/clusters/:id/settings", NewSaveClusterSettingsHandler(deps.consul))
+	webEngine.POST("/clusters/:id/settings", NewSaveClusterSettingsHandler(deps.consul, deps.checksService))
 	webEngine.GET("/sapsystems", NewSAPSystemListHandler(deps.consul, deps.hostsService, deps.sapSystemsService, deps.tagsService))
 	webEngine.GET("/sapsystems/:id", NewSAPResourceHandler(deps.hostsService, deps.sapSystemsService))
 	webEngine.GET("/databases", NewHanaDatabaseListHandler(deps.consul, deps.hostsService, deps.sapSystemsService, deps.tagsService))

@@ -34,6 +34,14 @@ var CheckResultsNotFound = func() Alert {
 	}
 }
 
+var NoCheckSelected = func() Alert {
+	return Alert{
+		Type:  "info",
+		Title: "There is not any check selected",
+		Text:  "Select the desired checks in the settings modal in order to validate the cluster configuration",
+	}
+}
+
 type Alert struct {
 	Type  string
 	Title string

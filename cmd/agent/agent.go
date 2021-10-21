@@ -9,12 +9,23 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 
 	"github.com/trento-project/trento/agent"
+	"github.com/trento-project/trento/agent/collector"
 )
 
 var consulConfigDir string
 var discoveryPeriod int
+
+var collectorHost string
+var collectorPort int
+
+var enablemTLS bool
+var cert string
+var key string
+var ca string
 
 func NewAgentCmd() *cobra.Command {
 
@@ -30,6 +41,19 @@ func NewAgentCmd() *cobra.Command {
 	}
 	startCmd.Flags().StringVarP(&consulConfigDir, "consul-config-dir", "", "consul.d", "Consul configuration directory used to store node meta-data")
 	startCmd.Flags().IntVarP(&discoveryPeriod, "discovery-period", "", 2, "Discovery mechanism loop period on minutes")
+
+	startCmd.Flags().StringVar(&collectorHost, "collector-host", "localhost", "Data Collector host")
+	startCmd.Flags().IntVar(&collectorPort, "collector-port", 8888, "Data Collector port")
+
+	startCmd.Flags().BoolVar(&enablemTLS, "enable-mtls", false, "Enable mTLS authentication between server and agent")
+	startCmd.Flags().StringVar(&cert, "cert", "", "mTLS client certificate")
+	startCmd.Flags().StringVar(&key, "key", "", "mTLS client key")
+	startCmd.Flags().StringVar(&ca, "ca", "", "mTLS Certificate Authority")
+
+	// Bind the flags to viper and make them available to the application
+	startCmd.Flags().VisitAll(func(f *pflag.Flag) {
+		viper.BindPFlag(f.Name, f)
+	})
 
 	agentCmd.AddCommand(startCmd)
 
@@ -49,6 +73,14 @@ func start(cmd *cobra.Command, args []string) {
 
 	cfg.ConsulConfigDir = consulConfigDir
 	cfg.DiscoveryPeriod = time.Duration(discoveryPeriod) * time.Minute
+	cfg.CollectorConfig = collector.Config{
+		CollectorHost: viper.GetString("collector-host"),
+		CollectorPort: viper.GetInt("collector-port"),
+		EnablemTLS:    viper.GetBool("enable-mtls"),
+		Cert:          viper.GetString("cert"),
+		Key:           viper.GetString("key"),
+		CA:            viper.GetString("ca"),
+	}
 
 	a, err := agent.NewWithConfig(cfg)
 	if err != nil {

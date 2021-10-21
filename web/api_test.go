@@ -411,3 +411,107 @@ func TestApiClusterCheckResultsHandler500(t *testing.T) {
 
 	assert.Equal(t, 500, resp.Code)
 }
+
+func TestApiCheckGetSelectedHandler(t *testing.T) {
+	expectedValue := models.SelectedChecks{
+		ID:             "group1",
+		SelectedChecks: []string{"ABCDEF", "123456"},
+	}
+
+	mockChecksService := new(services.MockChecksService)
+	mockChecksService.On(
+		"GetSelectedChecksById", "group1").Return(expectedValue, nil)
+	mockChecksService.On(
+		"GetSelectedChecksById", "otherId").Return(models.SelectedChecks{}, fmt.Errorf("not found"))
+
+	deps := setupTestDependencies()
+	deps.checksService = mockChecksService
+
+	var err error
+	app, err := NewAppWithDeps("", 80, deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// 200 scenario
+	resp := httptest.NewRecorder()
+
+	req, err := http.NewRequest("GET", "/api/checks/group1/selected", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	app.webEngine.ServeHTTP(resp, req)
+
+	var selectedChecks JSONSelectedChecks
+	json.Unmarshal(resp.Body.Bytes(), &selectedChecks)
+
+	assert.Equal(t, 200, resp.Code)
+	assert.ElementsMatch(t, expectedValue.SelectedChecks, selectedChecks.SelectedChecks)
+
+	// 404 scenario
+	resp = httptest.NewRecorder()
+
+	req, err = http.NewRequest("GET", "/api/checks/otherId/selected", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	app.webEngine.ServeHTTP(resp, req)
+
+	json.Unmarshal(resp.Body.Bytes(), &selectedChecks)
+
+	assert.Equal(t, 404, resp.Code)
+
+	mockChecksService.AssertExpectations(t)
+}
+
+func TestApiCheckCreateSelectedHandler(t *testing.T) {
+	mockChecksService := new(services.MockChecksService)
+	mockChecksService.On(
+		"CreateSelectedChecks", "group1", []string{"ABCDEF", "123456"}).Return(nil)
+	mockChecksService.On(
+		"CreateSelectedChecks", "otherId", []string{"ABCDEF", "123456"}).Return(fmt.Errorf("not storing"))
+
+	deps := setupTestDependencies()
+	deps.checksService = mockChecksService
+
+	var err error
+	app, err := NewAppWithDeps("", 80, deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// 200 scenario
+	sentValue := JSONSelectedChecks{
+		SelectedChecks: []string{"ABCDEF", "123456"},
+	}
+	resp := httptest.NewRecorder()
+	body, _ := json.Marshal(&sentValue)
+	req, err := http.NewRequest("POST", "/api/checks/group1/selected", bytes.NewBuffer(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	app.webEngine.ServeHTTP(resp, req)
+
+	var selectedChecks JSONSelectedChecks
+	json.Unmarshal(resp.Body.Bytes(), &selectedChecks)
+
+	assert.Equal(t, 201, resp.Code)
+	assert.ElementsMatch(t, sentValue.SelectedChecks, selectedChecks.SelectedChecks)
+
+	// 500 scenario
+	resp = httptest.NewRecorder()
+
+	req, err = http.NewRequest("POST", "/api/checks/otherId/selected", bytes.NewBuffer(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	app.webEngine.ServeHTTP(resp, req)
+
+	assert.Equal(t, 500, resp.Code)
+
+	mockChecksService.AssertExpectations(t)
+}

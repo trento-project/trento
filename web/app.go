@@ -79,7 +79,7 @@ func DefaultDependencies() Dependencies {
 
 	tagsService := services.NewTagsService(db)
 	araService := ara.NewAraService(viper.GetString("ara-addr"))
-	checksService := services.NewChecksService(araService)
+	checksService := services.NewChecksService(araService, db)
 	subscriptionsService := services.NewSubscriptionsService(consulClient)
 	hostsService := services.NewHostsService(consulClient)
 	sapSystemsService := services.NewSAPSystemsService(consulClient)
@@ -115,7 +115,7 @@ func InitDB() (*gorm.DB, error) {
 }
 
 func MigrateDB(db *gorm.DB) error {
-	err := db.AutoMigrate(models.Tag{}, models.Cluster{}, datapipeline.DataCollectedEvent{}, datapipeline.Subscription{})
+	err := db.AutoMigrate(models.Tag{}, models.SelectedChecks{}, models.Cluster{}, datapipeline.DataCollectedEvent{}, datapipeline.Subscription{})
 	if err != nil {
 		return err
 	}
@@ -183,6 +183,8 @@ func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
 		apiGroup.DELETE("/sapsystems/:id/tags/:tag", ApiSAPSystemDeleteTagHandler(deps.sapSystemsService, deps.tagsService))
 		apiGroup.POST("/databases/:id/tags", ApiDatabaseCreateTagHandler(deps.sapSystemsService, deps.tagsService))
 		apiGroup.DELETE("/databases/:id/tags/:tag", ApiDatabaseDeleteTagHandler(deps.sapSystemsService, deps.tagsService))
+		apiGroup.GET("/checks/:id/selected", ApiCheckGetSelectedHandler(deps.checksService))
+		apiGroup.POST("/checks/:id/selected", ApiCheckCreateSelectedHandler(deps.checksService))
 	}
 
 	collectorEngine := deps.collectorEngine

@@ -18,7 +18,6 @@ import (
 	"github.com/trento-project/trento/internal/cluster/cib"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
-	"github.com/trento-project/trento/runner"
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
 )
@@ -535,7 +534,7 @@ func getDefaultConnectionSettings(client consul.Client, c *cluster.Cluster) (map
 			mapstructure.Decode(data.Metadata, &azureMetadata)
 			connData[n.Name] = azureMetadata.Compute.OsProfile.AdminUserName
 		} else {
-			connData[n.Name] = runner.DefaultUser
+			connData[n.Name] = "root"
 		}
 	}
 

@@ -1,14 +1,19 @@
 package runner
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"text/template"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/trento-project/trento/internal/cloud"
 	"github.com/trento-project/trento/internal/cluster"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
+
+	"github.com/trento-project/trento/api"
 )
 
 type InventoryContent struct {
@@ -70,15 +75,6 @@ var getClusters = func(client consul.Client) (map[string]*cluster.Cluster, error
 	return clusters, nil
 }
 
-var getCheckSelection = func(client consul.Client, clusterId string) (string, error) {
-	checks, err := cluster.GetCheckSelection(client, clusterId)
-	if err != nil {
-		return "", err
-	}
-
-	return checks, nil
-}
-
 var getNodeAddress = func(client consul.Client, node string) (string, error) {
 	hostList, err := hosts.Load(client, fmt.Sprintf("Node == \"%s\"", node), []string{})
 	if err == nil && len(hostList) > 0 {
@@ -117,7 +113,7 @@ var getCloudUserName = func(client consul.Client, node string) (string, error) {
 	}
 }
 
-func NewClusterInventoryContent(client consul.Client) (*InventoryContent, error) {
+func NewClusterInventoryContent(client consul.Client, trentoApi api.TrentoApiService) (*InventoryContent, error) {
 	content := &InventoryContent{}
 
 	clusters, err := getClusters(client)
@@ -127,6 +123,19 @@ func NewClusterInventoryContent(client consul.Client) (*InventoryContent, error)
 
 	for clusterId, clusterData := range clusters {
 		nodes := []*Node{}
+
+		selectedChecks, err := trentoApi.GetSelectedChecksById(clusterId)
+		if err != nil {
+			log.Warnf("error getting the cluster %s selected checks", clusterId)
+			continue
+		}
+
+		jsonSelectedChecks, err := json.Marshal(selectedChecks.SelectedChecks)
+		if err != nil {
+			log.Errorf("error marshalling the cluster %s selected checks", clusterId)
+			continue
+		}
+
 		for _, node := range clusterData.Crmmon.Nodes {
 			node := &Node{
 				Name:        node.Name,
@@ -134,10 +143,7 @@ func NewClusterInventoryContent(client consul.Client) (*InventoryContent, error)
 				Variables:   make(map[string]interface{}),
 			}
 
-			checks, err := getCheckSelection(client, clusterId)
-			if err == nil {
-				node.Variables[clusterSelectedChecks] = checks
-			}
+			node.Variables[clusterSelectedChecks] = string(jsonSelectedChecks)
 
 			address, err := getNodeAddress(client, node.Name)
 			if err == nil {

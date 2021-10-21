@@ -13,6 +13,9 @@ import (
 	"github.com/trento-project/trento/internal/cluster/crmmon"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/consul/mocks"
+
+	apiMocks "github.com/trento-project/trento/api/mocks"
+	"github.com/trento-project/trento/web"
 )
 
 func TestCreateInventory(t *testing.T) {
@@ -168,14 +171,19 @@ func mockGetCloudUserName(client consul.Client, node string) (string, error) {
 
 func TestNewClusterInventoryContent(t *testing.T) {
 	consulInst := new(mocks.Client)
+	apiInst := new(apiMocks.TrentoApiService)
 
 	getClusters = mockGetCluster
-	getCheckSelection = mockGetCheckSelection
 	getNodeAddress = mockGetNodeAddress
 	getConnectionName = mockGetConnectionName
 	getCloudUserName = mockGetCloudUserName
 
-	content, err := NewClusterInventoryContent(consulInst)
+	apiInst.On("GetSelectedChecksById", "cluster1").Return(
+		&web.JSONSelectedChecks{SelectedChecks: []string{"check1", "check2"}}, nil)
+	apiInst.On("GetSelectedChecksById", "cluster2").Return(
+		&web.JSONSelectedChecks{SelectedChecks: []string{"check3", "check4"}}, nil)
+
+	content, err := NewClusterInventoryContent(consulInst, apiInst)
 
 	expectedContent := &InventoryContent{
 		Groups: []*Group{
@@ -185,7 +193,7 @@ func TestNewClusterInventoryContent(t *testing.T) {
 					&Node{
 						Name: "node1",
 						Variables: map[string]interface{}{
-							"cluster_selected_checks": "check1,check2",
+							"cluster_selected_checks": "[\"check1\",\"check2\"]",
 						},
 						AnsibleHost: "192.168.10.1",
 						AnsibleUser: "user1",
@@ -193,7 +201,7 @@ func TestNewClusterInventoryContent(t *testing.T) {
 					&Node{
 						Name: "node2",
 						Variables: map[string]interface{}{
-							"cluster_selected_checks": "check1,check2",
+							"cluster_selected_checks": "[\"check1\",\"check2\"]",
 						},
 						AnsibleHost: "192.168.10.2",
 						AnsibleUser: "user2",
@@ -206,7 +214,7 @@ func TestNewClusterInventoryContent(t *testing.T) {
 					&Node{
 						Name: "node3",
 						Variables: map[string]interface{}{
-							"cluster_selected_checks": "check3,check4",
+							"cluster_selected_checks": "[\"check3\",\"check4\"]",
 						},
 						AnsibleHost: "192.168.10.3",
 						AnsibleUser: "clouduser",
@@ -214,7 +222,7 @@ func TestNewClusterInventoryContent(t *testing.T) {
 					&Node{
 						Name: "node4",
 						Variables: map[string]interface{}{
-							"cluster_selected_checks": "check3,check4",
+							"cluster_selected_checks": "[\"check3\",\"check4\"]",
 						},
 						AnsibleHost: "",
 						AnsibleUser: "root",
@@ -226,4 +234,5 @@ func TestNewClusterInventoryContent(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.ElementsMatch(t, expectedContent.Groups, content.Groups)
+	apiInst.AssertExpectations(t)
 }

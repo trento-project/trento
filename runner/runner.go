@@ -13,6 +13,8 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/trento-project/trento/internal/consul"
+
+	"github.com/trento-project/trento/api"
 )
 
 //go:embed ansible
@@ -30,9 +32,11 @@ type Runner struct {
 	ctx       context.Context
 	ctxCancel context.CancelFunc
 	consul    consul.Client
+	trentoApi api.TrentoApiService
 }
 
 type Config struct {
+	WebServer     string
 	AraServer     string
 	Interval      time.Duration
 	AnsibleFolder string
@@ -58,6 +62,7 @@ func NewWithConfig(cfg Config) (*Runner, error) {
 
 func DefaultConfig() (Config, error) {
 	return Config{
+		WebServer:     "http://127.0.0.1:80",
 		AraServer:     "http://127.0.0.1:8000",
 		Interval:      5 * time.Minute,
 		AnsibleFolder: "/tmp/trento",
@@ -70,6 +75,13 @@ func (c *Runner) Start() error {
 	if err := createAnsibleFiles(c.cfg.AnsibleFolder); err != nil {
 		return err
 	}
+
+	trentoApi := api.NewTrentoApiService(c.cfg.WebServer)
+	if !trentoApi.IsWebServerUp() {
+		return fmt.Errorf("Trento server api not available")
+	}
+
+	c.trentoApi = trentoApi
 
 	metaRunner, err := NewAnsibleMetaRunner(&c.cfg)
 	if err != nil {
@@ -195,7 +207,7 @@ func (c *Runner) startCheckRunnerTicker() {
 	}
 
 	tick := func() {
-		content, err := NewClusterInventoryContent(c.consul)
+		content, err := NewClusterInventoryContent(c.consul, c.trentoApi)
 		if err != nil {
 			log.Errorf("Error creating the ansible inventory content")
 			return

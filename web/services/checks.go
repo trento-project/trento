@@ -42,7 +42,7 @@ type ChecksService interface {
 	GetAggregatedChecksResultByCluster(clusterId string) (*AggregatedCheckData, error)
 	// Selected checks services
 	GetSelectedChecksById(id string) (models.SelectedChecks, error)
-	CreateSelectedChecks(id string, selectedChecksStr string) error
+	CreateSelectedChecks(id string, selectedChecksList []string) error
 }
 
 type checksService struct {
@@ -228,10 +228,10 @@ func (c *checksService) GetSelectedChecksById(id string) (models.SelectedChecks,
 	return selectedChecks, result.Error
 }
 
-func (c *checksService) CreateSelectedChecks(id string, selectedChecksStr string) error {
+func (c *checksService) CreateSelectedChecks(id string, selectedChecksList []string) error {
 	selectedChecks := models.SelectedChecks{
 		ID:             id,
-		SelectedChecks: selectedChecksStr,
+		SelectedChecks: selectedChecksList,
 	}
 
 	result := c.db.Clauses(clause.OnConflict{

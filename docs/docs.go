@@ -46,7 +46,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.SelectedChecks"
+                            "$ref": "#/definitions/web.JSONSelectedChecks"
                         }
                     },
                     "404": {
@@ -82,7 +82,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.SelectedChecks"
+                            "$ref": "#/definitions/web.JSONSelectedChecks"
                         }
                     }
                 ],
@@ -90,7 +90,7 @@ var doc = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.SelectedChecks"
+                            "$ref": "#/definitions/web.JSONSelectedChecks"
                         }
                     },
                     "500": {
@@ -572,17 +572,17 @@ var doc = `{
         }
     },
     "definitions": {
-        "models.SelectedChecks": {
+        "web.JSONSelectedChecks": {
             "type": "object",
             "required": [
                 "selected_checks"
             ],
             "properties": {
-                "id": {
-                    "type": "string"
-                },
                 "selected_checks": {
-                    "type": "string"
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

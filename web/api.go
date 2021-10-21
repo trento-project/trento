@@ -19,6 +19,10 @@ type JSONTag struct {
 	Tag string `json:"tag" binding:"required"`
 }
 
+type JSONSelectedChecks struct {
+	SelectedChecks []string `json:"selected_checks" binding:"required"`
+}
+
 // ApiListTag godoc
 // @Summary List all the tags in the system
 // @Accept json
@@ -385,7 +389,7 @@ func ApiClusterCheckResultsHandler(client consul.Client, s services.ChecksServic
 // @Accept json
 // @Produce json
 // @Param id path string true "Resource id"
-// @Success 200 {object} models.SelectedChecks
+// @Success 200 {object} JSONSelectedChecks
 // @Failure 404 {object} map[string]string
 // @Router /api/checks/{id}/selected [get]
 func ApiCheckGetSelectedHandler(s services.ChecksService) gin.HandlerFunc {
@@ -398,7 +402,10 @@ func ApiCheckGetSelectedHandler(s services.ChecksService) gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, selectedChecks)
+		var jsonSelectedChecks JSONSelectedChecks
+		jsonSelectedChecks.SelectedChecks = selectedChecks.SelectedChecks
+
+		c.JSON(http.StatusOK, jsonSelectedChecks)
 	}
 }
 
@@ -407,15 +414,15 @@ func ApiCheckGetSelectedHandler(s services.ChecksService) gin.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Param id path string true "Resource id"
-// @Param Body body models.SelectedChecks true "Selected checks"
-// @Success 201 {object} models.SelectedChecks
+// @Param Body body JSONSelectedChecks true "Selected checks"
+// @Success 201 {object} JSONSelectedChecks
 // @Failure 500 {object} map[string]string
 // @Router /api/checks/{id}/selected [post]
 func ApiCheckCreateSelectedHandler(s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 
-		var r models.SelectedChecks
+		var r JSONSelectedChecks
 
 		err := c.BindJSON(&r)
 		if err != nil {

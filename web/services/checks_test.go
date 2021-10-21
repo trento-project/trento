@@ -980,15 +980,15 @@ func (suite *ChecksServiceTestSuite) TearDownTest() {
 func loadChecksFixtures(db *gorm.DB) {
 	db.Create(&models.SelectedChecks{
 		ID:             "group1",
-		SelectedChecks: "ABCDEF,123456",
+		SelectedChecks: []string{"ABCDEF", "123456"},
 	})
 	db.Create(&models.SelectedChecks{
 		ID:             "group2",
-		SelectedChecks: "ABC123,123ABC",
+		SelectedChecks: []string{"ABC123", "123ABC"},
 	})
 	db.Create(&models.SelectedChecks{
 		ID:             "group3",
-		SelectedChecks: "DEF456,456DEF",
+		SelectedChecks: []string{"DEF456", "456DEF"},
 	})
 }
 
@@ -996,12 +996,12 @@ func (suite *ChecksServiceTestSuite) TestChecksService_GetSelectedChecksById() {
 	selectedChecks, err := suite.checksService.GetSelectedChecksById("group1")
 
 	suite.NoError(err)
-	suite.Equal("ABCDEF,123456", selectedChecks.SelectedChecks)
+	suite.ElementsMatch([]string{"ABCDEF", "123456"}, selectedChecks.SelectedChecks)
 
 	selectedChecks, err = suite.checksService.GetSelectedChecksById("group2")
 
 	suite.NoError(err)
-	suite.Equal("ABC123,123ABC", selectedChecks.SelectedChecks)
+	suite.ElementsMatch([]string{"ABC123", "123ABC"}, selectedChecks.SelectedChecks)
 }
 
 func (suite *ChecksServiceTestSuite) TestChecksService_GetSelectedChecksByIdError() {
@@ -1011,26 +1011,26 @@ func (suite *ChecksServiceTestSuite) TestChecksService_GetSelectedChecksByIdErro
 }
 
 func (suite *ChecksServiceTestSuite) TestChecksService_CreateSelectedChecks() {
-	err := suite.checksService.CreateSelectedChecks("group4", "FEDCBA,ABCDEF")
+	err := suite.checksService.CreateSelectedChecks("group4", []string{"FEDCBA", "ABCDEF"})
 
 	var selectedChecks models.SelectedChecks
 
 	suite.tx.Where("id", "group4").First(&selectedChecks)
 	expectedValue := models.SelectedChecks{
 		ID:             "group4",
-		SelectedChecks: "FEDCBA,ABCDEF",
+		SelectedChecks: []string{"FEDCBA", "ABCDEF"},
 	}
 
 	suite.NoError(err)
 	suite.Equal(expectedValue, selectedChecks)
 
 	// Check if an update works
-	err = suite.checksService.CreateSelectedChecks("group4", "ABCDEF,FEDCBA")
+	err = suite.checksService.CreateSelectedChecks("group4", []string{"ABCDEF", "FEDCBA"})
 
 	suite.tx.Where("id", "group4").First(&selectedChecks)
 	expectedValue = models.SelectedChecks{
 		ID:             "group4",
-		SelectedChecks: "ABCDEF,FEDCBA",
+		SelectedChecks: []string{"ABCDEF", "FEDCBA"},
 	}
 
 	suite.NoError(err)

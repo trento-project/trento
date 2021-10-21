@@ -2,6 +2,8 @@ package models
 
 import (
 	"sort"
+
+	"github.com/lib/pq"
 )
 
 const (
@@ -113,6 +115,6 @@ func (g GroupedCheckList) OrderByName() GroupedCheckList {
 }
 
 type SelectedChecks struct {
-	ID             string `gorm:"primaryKey" json:"id"`
-	SelectedChecks string `json:"selected_checks" binding:"required"`
+	ID             string         `gorm:"primaryKey" json:"id"`
+	SelectedChecks pq.StringArray `gorm:"type:text[]"`
 }

@@ -8,6 +8,7 @@ const stylesHandler = 'style-loader';
 const config = {
   entry: {
     check_results: './javascripts/check_results.js',
+    cluster_check_settings: './javascripts/cluster_check_settings.js',
   },
   output: {
     path: path.resolve(__dirname, 'assets/js'),
@@ -37,6 +38,7 @@ const config = {
   resolve: {
     alias: {
       '@components': path.resolve(__dirname, 'components'),
+      '@lib': path.resolve(__dirname, 'lib'),
     },
   },
 };

@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	ClusterDiscovery   = "clusterDiscovery"
-	SAPsystemDiscovery = "sapsystemDiscovery"
+	ClusterDiscovery   = "ha_cluster_discovery"
+	SAPsystemDiscovery = "sap_system_discovery"
 )
 
 type DataCollectedEvent struct {

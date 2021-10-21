@@ -54,6 +54,7 @@ func NewCollectorClient(cfg Config) (*collectorClient, error) {
 	}
 
 	machineID, err := afero.ReadFile(fileSystem, machineIdPath)
+
 	if err != nil {
 		return nil, err
 	}

@@ -353,23 +353,23 @@ To start the trento agent:
 
 #### Publishing discovery data
 
-**This feature is still undel heavy development**
+**This feature is still under heavy development**
 
 Trento Agents publish discovery data to a Collector on Trento Server
 
-In `./test/certs/` you will find some dummy Server, Client and CA Certificates and Keys.
+`./test/certs/` folder contains some dummy Server, Client and CA Certificates and Keys.
 Those are useful in order to test `mTLS` communication between the Agent and the DataCollector.
 
 As of now `mtls` needs to explicitly be activated with `--enable-mtls`
 
 #### Server
 ```
-$> ./trento web serve [...] --enable-mtls --cert /path/to/certs/dev/server-cert.pem --key /path/to/certs/dev/server-key.pem --ca /path/tok/certs/dev/ca-cert.pem
+$> ./trento web serve [...] --enable-mtls --cert /path/to/certs/server-cert.pem --key /path/to/certs/server-key.pem --ca /path/to/certs/ca-cert.pem
 ```
 
 #### Agent
 ```
-$> ./trento agent start [...] --enable-mtls --cert /path/to/certs/dev/client-cert.pem --key /path/to/certs/dev/client-key.pem --ca /path/to/certs/dev/ca-cert.pem
+$> ./trento agent start [...] --enable-mtls --cert /path/to/certs/client-cert.pem --key /path/to/certs/client-key.pem --ca /path/to/certs/ca-cert.pem
 ```
 ---
 

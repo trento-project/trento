@@ -225,5 +225,5 @@ func TestNewClusterInventoryContent(t *testing.T) {
 	}
 
 	assert.NoError(t, err)
-	assert.Equal(t, expectedContent, content)
+	assert.ElementsMatch(t, expectedContent.Groups, content.Groups)
 }

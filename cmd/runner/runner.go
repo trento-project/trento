@@ -8,14 +8,12 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"github.com/trento-project/trento/runner"
 )
 
 var araServer string
 var interval int
 var ansibleFolder string
-var consulAddr string
 
 func NewRunnerCmd() *cobra.Command {
 	runnerCmd := &cobra.Command{
@@ -30,7 +28,6 @@ func NewRunnerCmd() *cobra.Command {
 	}
 
 	startCmd.Flags().StringVar(&araServer, "ara-server", "http://127.0.0.1:8000", "ARA server url (ex: http://localhost:8000)")
-	startCmd.Flags().StringVar(&consulAddr, "consul-addr", "127.0.0.1:8500", "Consul host address (ex: localhost:8500)")
 	startCmd.Flags().IntVarP(&interval, "interval", "i", 5, "Interval in minutes to run the checks")
 	startCmd.Flags().StringVar(&ansibleFolder, "ansible-folder", "/tmp/trento", "Folder where the ansible file structure will be created")
 
@@ -51,10 +48,8 @@ func start(cmd *cobra.Command, args []string) {
 	}
 
 	cfg.AraServer = araServer
-	cfg.ConsulAddr = consulAddr
 	cfg.Interval = time.Duration(interval) * time.Minute
 	cfg.AnsibleFolder = ansibleFolder
-	cfg.ConsulTemplateLogLevel = viper.GetString("log-level")
 
 	runner, err := runner.NewWithConfig(cfg)
 	if err != nil {

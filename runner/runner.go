@@ -10,9 +10,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hashicorp/consul-template/manager"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"github.com/trento-project/trento/internal/consul"
 )
 
 //go:embed ansible
@@ -22,36 +22,35 @@ const (
 	AnsibleMain       = "ansible/check.yml"
 	AnsibleMeta       = "ansible/meta.yml"
 	AnsibleConfigFile = "ansible/ansible.cfg"
+	AnsibleHostFile   = "ansible/ansible_hosts"
 )
 
 type Runner struct {
-	cfg            Config
-	ctx            context.Context
-	ctxCancel      context.CancelFunc
-	templateRunner *manager.Runner
+	cfg       Config
+	ctx       context.Context
+	ctxCancel context.CancelFunc
+	consul    consul.Client
 }
 
 type Config struct {
-	AraServer              string
-	ConsulAddr             string
-	Interval               time.Duration
-	AnsibleFolder          string
-	ConsulTemplateLogLevel string
+	AraServer     string
+	Interval      time.Duration
+	AnsibleFolder string
 }
 
 func NewWithConfig(cfg Config) (*Runner, error) {
-	templateRunner, err := NewTemplateRunner(&cfg)
+	client, err := consul.DefaultClient()
 	if err != nil {
-		return nil, errors.Wrap(err, "could not create the consul template runner")
+		return nil, errors.Wrap(err, "could not create the consul client connection")
 	}
 
 	ctx, ctxCancel := context.WithCancel(context.Background())
 
 	runner := &Runner{
-		cfg:            cfg,
-		ctx:            ctx,
-		ctxCancel:      ctxCancel,
-		templateRunner: templateRunner,
+		cfg:       cfg,
+		ctx:       ctx,
+		ctxCancel: ctxCancel,
+		consul:    client,
 	}
 
 	return runner, nil
@@ -59,11 +58,9 @@ func NewWithConfig(cfg Config) (*Runner, error) {
 
 func DefaultConfig() (Config, error) {
 	return Config{
-		AraServer:              "http://127.0.0.1:8000",
-		ConsulAddr:             "127.0.0.1:8500",
-		Interval:               5 * time.Minute,
-		AnsibleFolder:          "/tmp/trento",
-		ConsulTemplateLogLevel: "info",
+		AraServer:     "http://127.0.0.1:8000",
+		Interval:      5 * time.Minute,
+		AnsibleFolder: "/tmp/trento",
 	}, nil
 }
 
@@ -173,7 +170,6 @@ func NewAnsibleMetaRunner(cfg *Config) (*AnsibleRunner, error) {
 
 func NewAnsibleCheckRunner(cfg *Config) (*AnsibleRunner, error) {
 	playbookPath := path.Join(cfg.AnsibleFolder, AnsibleMain)
-	inventoryPath := path.Join(cfg.AnsibleFolder, ansibleHostFile)
 
 	ansibleRunner, err := DefaultAnsibleRunnerWithAra()
 	if err != nil {
@@ -181,10 +177,6 @@ func NewAnsibleCheckRunner(cfg *Config) (*AnsibleRunner, error) {
 	}
 
 	if err = ansibleRunner.SetPlaybook(playbookPath); err != nil {
-		return ansibleRunner, err
-	}
-
-	if err = ansibleRunner.SetInventory(inventoryPath); err != nil {
 		return ansibleRunner, err
 	}
 
@@ -197,22 +189,28 @@ func NewAnsibleCheckRunner(cfg *Config) (*AnsibleRunner, error) {
 }
 
 func (c *Runner) startCheckRunnerTicker() {
-
-	c.startConsulTemplate()
-
 	checkRunner, err := NewAnsibleCheckRunner(&c.cfg)
 	if err != nil {
 		return
 	}
 
 	tick := func() {
-		// As consul-template is executed as run-once, we need to create the runner everytime
-		tmpRunner, err := NewTemplateRunner(&c.cfg)
+		content, err := NewClusterInventoryContent(c.consul)
 		if err != nil {
+			log.Errorf("Error creating the ansible inventory content")
 			return
 		}
-		c.templateRunner = tmpRunner
-		c.startConsulTemplate()
+
+		inventoryFile := path.Join(c.cfg.AnsibleFolder, AnsibleHostFile)
+		err = CreateInventory(inventoryFile, content)
+		if err != nil {
+			log.Errorf("Error creating the ansible inventory file")
+			return
+		}
+
+		if err = checkRunner.SetInventory(inventoryFile); err != nil {
+			return
+		}
 
 		if !checkRunner.IsAraServerUp() {
 			log.Error("ARA server not found. Skipping ansible execution as the data is not recorded")

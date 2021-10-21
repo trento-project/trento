@@ -2,7 +2,7 @@
 <script src="/static/frontend/assets/js/check_selection.js"></script>{{ end }}
 {{ define "content" }}
     {{ template "alerts" .Alerts }}
-    <h1>Pacemaker Cluster details <i class="eos-icons eos-24 cluster-settings" data-toggle="modal" data-target="#clusterModal">settings</i></h1>
+    <h1>Pacemaker Cluster details <i class="eos-icons eos-24 cluster-settings" data-toggle="modal" data-target="#clusterModal">settings</i><span id="cluster-settings-button"></span></h1>
     <div class="row">
         <div class="col">
             <h6>
@@ -121,4 +121,5 @@
     {{ template "cluster_checks_result_modal" . }}
 
     {{ script "check_results.js" }}
+    {{ script "cluster_check_settings.js" }}
 {{- end }}

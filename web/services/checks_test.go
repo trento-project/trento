@@ -2,9 +2,12 @@ package services
 
 import (
 	"fmt"
+	"gorm.io/gorm"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
+	"github.com/trento-project/trento/test/helpers"
 	araMocks "github.com/trento-project/trento/web/services/ara/mocks"
 
 	"github.com/trento-project/trento/web/models"
@@ -168,7 +171,8 @@ func TestGetChecksCatalog(t *testing.T) {
 		r, nil,
 	)
 
-	checksService := NewChecksService(mockAra)
+	db := helpers.SetupTestDatabase()
+	checksService := NewChecksService(mockAra, db)
 	c, err := checksService.GetChecksCatalog()
 
 	expectedChecks := models.CheckList{
@@ -208,7 +212,8 @@ func TestGetChecksCatalogEmpty(t *testing.T) {
 		rList, nil,
 	)
 
-	checksService := NewChecksService(mockAra)
+	db := helpers.SetupTestDatabase()
+	checksService := NewChecksService(mockAra, db)
 	c, err := checksService.GetChecksCatalog()
 
 	expectedChecks := models.CheckList(nil)
@@ -229,7 +234,8 @@ func TestGetChecksCatalogListError(t *testing.T) {
 		rList, fmt.Errorf("Some error"),
 	)
 
-	checksService := NewChecksService(mockAra)
+	db := helpers.SetupTestDatabase()
+	checksService := NewChecksService(mockAra, db)
 	c, err := checksService.GetChecksCatalog()
 
 	expectedChecks := models.CheckList(nil)
@@ -266,7 +272,8 @@ func TestGetChecksCatalogRecordError(t *testing.T) {
 		r, fmt.Errorf("Some other error"),
 	)
 
-	checksService := NewChecksService(mockAra)
+	db := helpers.SetupTestDatabase()
+	checksService := NewChecksService(mockAra, db)
 	c, err := checksService.GetChecksCatalog()
 
 	expectedChecks := models.CheckList(nil)
@@ -352,7 +359,8 @@ func TestGetChecksCatalogByGroup(t *testing.T) {
 		r, nil,
 	)
 
-	checksService := NewChecksService(mockAra)
+	db := helpers.SetupTestDatabase()
+	checksService := NewChecksService(mockAra, db)
 	c, err := checksService.GetChecksCatalogByGroup()
 
 	expectedChecks := models.GroupedCheckList{
@@ -437,7 +445,8 @@ func TestGetChecksResult(t *testing.T) {
 		araResultRecord(), nil,
 	)
 
-	checksService := NewChecksService(mockAra)
+	db := helpers.SetupTestDatabase()
+	checksService := NewChecksService(mockAra, db)
 	c, err := checksService.GetChecksResult()
 
 	expectedResults := map[string]*models.Results{
@@ -503,7 +512,8 @@ func TestGetChecksResultEmpty(t *testing.T) {
 		rList, nil,
 	)
 
-	checksService := NewChecksService(mockAra)
+	db := helpers.SetupTestDatabase()
+	checksService := NewChecksService(mockAra, db)
 	c, err := checksService.GetChecksResult()
 
 	expectedResults := map[string]*models.Results(nil)
@@ -524,7 +534,8 @@ func TestGetChecksResultListError(t *testing.T) {
 		rList, fmt.Errorf("Some error"),
 	)
 
-	checksService := NewChecksService(mockAra)
+	db := helpers.SetupTestDatabase()
+	checksService := NewChecksService(mockAra, db)
 	c, err := checksService.GetChecksResult()
 
 	expectedResults := map[string]*models.Results(nil)
@@ -561,7 +572,8 @@ func TestGetChecksResultRecordError(t *testing.T) {
 		r, fmt.Errorf("Some other error"),
 	)
 
-	checksService := NewChecksService(mockAra)
+	db := helpers.SetupTestDatabase()
+	checksService := NewChecksService(mockAra, db)
 	c, err := checksService.GetChecksResult()
 
 	expectedResults := map[string]*models.Results(nil)
@@ -608,7 +620,8 @@ func TestGetChecksResultByCluster(t *testing.T) {
 		araResultRecord(), nil,
 	)
 
-	checksService := NewChecksService(mockAra)
+	db := helpers.SetupTestDatabase()
+	checksService := NewChecksService(mockAra, db)
 	c, err := checksService.GetChecksResultByCluster("myClusterId")
 
 	expectedResults := &models.Results{
@@ -767,7 +780,8 @@ func TestGetChecksResultAndMetadataByCluster(t *testing.T) {
 	mockAra.On("GetRecord", 1).Return(araResultRecord, nil)
 	mockAra.On("GetRecord", 2).Return(araMetaRecord, nil)
 
-	checksService := NewChecksService(mockAra)
+	db := helpers.SetupTestDatabase()
+	checksService := NewChecksService(mockAra, db)
 	results, err := checksService.GetChecksResultAndMetadataByCluster("myClusterId")
 
 	expectedResults := &models.ClusterCheckResults{
@@ -851,7 +865,8 @@ func TestGetAggregatedChecksResultByHost(t *testing.T) {
 		araResultRecord(), nil,
 	)
 
-	checksService := NewChecksService(mockAra)
+	db := helpers.SetupTestDatabase()
+	checksService := NewChecksService(mockAra, db)
 	c, err := checksService.GetAggregatedChecksResultByHost("myClusterId")
 
 	expectedResults := map[string]*AggregatedCheckData{
@@ -909,7 +924,8 @@ func TestGetAggregatedChecksResultByCluster(t *testing.T) {
 		araResultRecord(), nil,
 	)
 
-	checksService := NewChecksService(mockAra)
+	db := helpers.SetupTestDatabase()
+	checksService := NewChecksService(mockAra, db)
 	c, err := checksService.GetAggregatedChecksResultByCluster("myClusterId")
 
 	expectedResults := &AggregatedCheckData{
@@ -922,4 +938,101 @@ func TestGetAggregatedChecksResultByCluster(t *testing.T) {
 	assert.Equal(t, expectedResults, c)
 
 	mockAra.AssertExpectations(t)
+}
+
+/*
+Check selection tests
+*/
+
+type ChecksServiceTestSuite struct {
+	suite.Suite
+	db            *gorm.DB
+	tx            *gorm.DB
+	ara           *araMocks.AraService
+	checksService ChecksService
+}
+
+func TestChecksServiceTestSuite(t *testing.T) {
+	suite.Run(t, new(ChecksServiceTestSuite))
+}
+
+func (suite *ChecksServiceTestSuite) SetupSuite() {
+	suite.db = helpers.SetupTestDatabase()
+
+	suite.db.AutoMigrate(models.SelectedChecks{})
+	loadChecksFixtures(suite.db)
+}
+
+func (suite *ChecksServiceTestSuite) TearDownSuite() {
+	suite.db.Migrator().DropTable(models.SelectedChecks{})
+}
+
+func (suite *ChecksServiceTestSuite) SetupTest() {
+	suite.tx = suite.db.Begin()
+	suite.ara = new(araMocks.AraService)
+	suite.checksService = NewChecksService(suite.ara, suite.tx)
+}
+
+func (suite *ChecksServiceTestSuite) TearDownTest() {
+	suite.tx.Rollback()
+}
+
+func loadChecksFixtures(db *gorm.DB) {
+	db.Create(&models.SelectedChecks{
+		ID:             "group1",
+		SelectedChecks: "ABCDEF,123456",
+	})
+	db.Create(&models.SelectedChecks{
+		ID:             "group2",
+		SelectedChecks: "ABC123,123ABC",
+	})
+	db.Create(&models.SelectedChecks{
+		ID:             "group3",
+		SelectedChecks: "DEF456,456DEF",
+	})
+}
+
+func (suite *ChecksServiceTestSuite) TestChecksService_GetSelectedChecksById() {
+	selectedChecks, err := suite.checksService.GetSelectedChecksById("group1")
+
+	suite.NoError(err)
+	suite.Equal("ABCDEF,123456", selectedChecks.SelectedChecks)
+
+	selectedChecks, err = suite.checksService.GetSelectedChecksById("group2")
+
+	suite.NoError(err)
+	suite.Equal("ABC123,123ABC", selectedChecks.SelectedChecks)
+}
+
+func (suite *ChecksServiceTestSuite) TestChecksService_GetSelectedChecksByIdError() {
+	_, err := suite.checksService.GetSelectedChecksById("other")
+
+	suite.EqualError(err, "record not found")
+}
+
+func (suite *ChecksServiceTestSuite) TestChecksService_CreateSelectedChecks() {
+	err := suite.checksService.CreateSelectedChecks("group4", "FEDCBA,ABCDEF")
+
+	var selectedChecks models.SelectedChecks
+
+	suite.tx.Where("id", "group4").First(&selectedChecks)
+	expectedValue := models.SelectedChecks{
+		ID:             "group4",
+		SelectedChecks: "FEDCBA,ABCDEF",
+	}
+
+	suite.NoError(err)
+	suite.Equal(expectedValue, selectedChecks)
+
+	// Check if an update works
+	err = suite.checksService.CreateSelectedChecks("group4", "ABCDEF,FEDCBA")
+
+	suite.tx.Where("id", "group4").First(&selectedChecks)
+	expectedValue = models.SelectedChecks{
+		ID:             "group4",
+		SelectedChecks: "ABCDEF,FEDCBA",
+	}
+
+	suite.NoError(err)
+	suite.Equal(expectedValue, selectedChecks)
 }

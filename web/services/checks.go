@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/mitchellh/mapstructure"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services/ara"
@@ -38,14 +40,18 @@ type ChecksService interface {
 	GetChecksResultAndMetadataByCluster(clusterId string) (*models.ClusterCheckResults, error)
 	GetAggregatedChecksResultByHost(clusterId string) (map[string]*AggregatedCheckData, error)
 	GetAggregatedChecksResultByCluster(clusterId string) (*AggregatedCheckData, error)
+	// Selected checks services
+	GetSelectedChecksById(id string) (models.SelectedChecks, error)
+	CreateSelectedChecks(id string, selectedChecksStr string) error
 }
 
 type checksService struct {
 	araService ara.AraService
+	db         *gorm.DB
 }
 
-func NewChecksService(araService ara.AraService) ChecksService {
-	return &checksService{araService: araService}
+func NewChecksService(araService ara.AraService, db *gorm.DB) ChecksService {
+	return &checksService{araService: araService, db: db}
 }
 
 func (c *checksService) GetChecksCatalog() (models.CheckList, error) {
@@ -208,4 +214,33 @@ func (c *checksService) GetAggregatedChecksResultByCluster(clusterId string) (*A
 	}
 
 	return aCheckData, nil
+}
+
+/*
+Selected checks services
+*/
+
+func (c *checksService) GetSelectedChecksById(id string) (models.SelectedChecks, error) {
+	var selectedChecks models.SelectedChecks
+
+	result := c.db.Where("id", id).First(&selectedChecks)
+
+	if result.Error != nil {
+		return selectedChecks, result.Error
+	}
+
+	return selectedChecks, nil
+}
+
+func (c *checksService) CreateSelectedChecks(id string, selectedChecksStr string) error {
+	selectedChecks := models.SelectedChecks{
+		ID:             id,
+		SelectedChecks: selectedChecksStr,
+	}
+
+	result := c.db.Clauses(clause.OnConflict{
+		UpdateAll: true,
+	}).Create(&selectedChecks)
+
+	return result.Error
 }

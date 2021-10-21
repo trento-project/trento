@@ -111,3 +111,8 @@ func (g GroupedCheckList) OrderByName() GroupedCheckList {
 	sort.Sort(g)
 	return g
 }
+
+type SelectedChecks struct {
+	ID             string `gorm:"primaryKey" json:"id"`
+	SelectedChecks string `json:"selected_checks" binding:"required"`
+}

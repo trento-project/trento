@@ -6,16 +6,21 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+//go:generate mockery --name=Projector --inpackage --filename=projector_mock.go
+type Projector interface {
+	Project(dataCollectedEvent *DataCollectedEvent) error
+}
+
 type ProjectorHandler func(dataCollectedEvent *DataCollectedEvent, db *gorm.DB) error
 
-type Projector struct {
+type projector struct {
 	ID       string
 	db       *gorm.DB
 	handlers map[string]ProjectorHandler
 }
 
-func NewProjector(ID string, db *gorm.DB) *Projector {
-	return &Projector{
+func NewProjector(ID string, db *gorm.DB) *projector {
+	return &projector{
 		ID:       ID,
 		db:       db,
 		handlers: make(map[string]ProjectorHandler),
@@ -23,14 +28,14 @@ func NewProjector(ID string, db *gorm.DB) *Projector {
 }
 
 // AddHandler registers a handler for a specific discovery type
-func (p *Projector) AddHandler(discoveryType string, handler ProjectorHandler) {
+func (p *projector) AddHandler(discoveryType string, handler ProjectorHandler) {
 	p.handlers[discoveryType] = handler
 }
 
 // Project processes the data collected event and calls the registered handlers
 // By updating the subscription with the LastProjectedEventID, it leverages the PostgresSQL implicit lock
 // to enforce linearizability if a specific agent tries to use the same projector concurrently
-func (p *Projector) Project(dataCollectedEvent *DataCollectedEvent) error {
+func (p *projector) Project(dataCollectedEvent *DataCollectedEvent) error {
 	handler, ok := p.handlers[dataCollectedEvent.DiscoveryType]
 
 	if !ok {

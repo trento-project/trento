@@ -50,6 +50,7 @@ type Dependencies struct {
 	webEngine            *gin.Engine
 	collectorEngine      *gin.Engine
 	store                cookie.Store
+	projectorWorkersPool *datapipeline.ProjectorsWorkerPool
 	checksService        services.ChecksService
 	subscriptionsService services.SubscriptionsService
 	hostsService         services.HostsService
@@ -77,20 +78,20 @@ func DefaultDependencies() Dependencies {
 		log.Fatalf("failed to migrate database: %s", err)
 	}
 
+	projectorRegistry := datapipeline.InitProjectorsRegistry(db)
+	projectorWorkersPool := datapipeline.NewProjectorsWorkerPool(projectorRegistry)
+
 	tagsService := services.NewTagsService(db)
 	araService := ara.NewAraService(viper.GetString("ara-addr"))
 	checksService := services.NewChecksService(araService, db)
 	subscriptionsService := services.NewSubscriptionsService(consulClient)
 	hostsService := services.NewHostsService(consulClient)
 	sapSystemsService := services.NewSAPSystemsService(consulClient)
-
-	// TODO: this layer of data pipeline initialization will go in its own datapipeline application
-	ch := datapipeline.StartProjectorsWorkerPool(db)
-	collectorService := services.NewCollectorService(db, ch)
-
 	clustersService := services.NewClustersService(db, checksService, tagsService)
+	collectorService := services.NewCollectorService(db, projectorWorkersPool.GetChannel())
+
 	return Dependencies{
-		consulClient, webEngine, collectorEngine, store,
+		consulClient, webEngine, collectorEngine, store, projectorWorkersPool,
 		checksService, subscriptionsService, hostsService, sapSystemsService, tagsService,
 		collectorService, clustersService,
 	}
@@ -193,7 +194,7 @@ func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
 	return app, nil
 }
 
-func (a *App) Start() error {
+func (a *App) Start(ctx context.Context) error {
 	webServer := &http.Server{
 		Addr:           fmt.Sprintf("%s:%d", a.host, a.port),
 		Handler:        a.webEngine,
@@ -215,15 +216,18 @@ func (a *App) Start() error {
 		TLSConfig:      tlsConfig,
 	}
 
-	g, ctx := errgroup.WithContext(context.Background())
+	g, ctx := errgroup.WithContext(ctx)
+
+	log.Info("Starting web server")
 	g.Go(func() error {
 		err := webServer.ListenAndServe()
 		if err != nil && err != http.ErrServerClosed {
 			return err
 		}
-		return err
+		return nil
 	})
 
+	log.Info("Starting collector server")
 	g.Go(func() error {
 		var err error
 		if tlsConfig == nil {
@@ -237,9 +241,16 @@ func (a *App) Start() error {
 		return nil
 	})
 
+	g.Go(func() error {
+		a.projectorWorkersPool.Run(ctx)
+		return nil
+	})
+
 	go func() {
 		<-ctx.Done()
+		log.Info("Web server is shutting down.")
 		webServer.Close()
+		log.Info("Collector server is shutting down.")
 		collectorServer.Close()
 	}()
 

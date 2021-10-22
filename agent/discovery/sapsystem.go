@@ -3,6 +3,8 @@ package discovery
 import (
 	"fmt"
 
+	log "github.com/sirupsen/logrus"
+	"github.com/trento-project/trento/agent/collector"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/internal/sapsystem"
@@ -16,10 +18,10 @@ type SAPSystemsDiscovery struct {
 	SAPSystems sapsystem.SAPSystemsList
 }
 
-func NewSAPSystemsDiscovery(client consul.Client) SAPSystemsDiscovery {
+func NewSAPSystemsDiscovery(consulClient consul.Client, collectorClient collector.Client) SAPSystemsDiscovery {
 	r := SAPSystemsDiscovery{}
 	r.id = SAPDiscoveryId
-	r.discovery = NewDiscovery(client)
+	r.discovery = NewDiscovery(consulClient, collectorClient)
 	return r
 }
 
@@ -36,15 +38,21 @@ func (d SAPSystemsDiscovery) Discover() (string, error) {
 
 	d.SAPSystems = systems
 	for _, s := range d.SAPSystems {
-		err := s.Store(d.discovery.client)
+		err := s.Store(d.discovery.consulClient)
 		if err != nil {
 			return "", err
 		}
 	}
 
 	// Store SAP System on hosts metadata
-	err = storeSAPSystemTags(d.discovery.client, d.SAPSystems)
+	err = storeSAPSystemTags(d.discovery.consulClient, d.SAPSystems)
 	if err != nil {
+		return "", err
+	}
+
+	err = d.discovery.collectorClient.Publish(d.id, systems)
+	if err != nil {
+		log.Debugf("Error while sending sapsystem discovery to data collector: %s", err)
 		return "", err
 	}
 

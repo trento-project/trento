@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+//go:generate mockery --name=Projector --inpackage --filename=projector_mock.go
 type Projector interface {
 	Project(dataCollectedEvent *DataCollectedEvent) error
 }

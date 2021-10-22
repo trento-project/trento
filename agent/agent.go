@@ -13,6 +13,7 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
+	"github.com/trento-project/trento/agent/collector"
 	"github.com/trento-project/trento/agent/discovery"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
@@ -34,6 +35,7 @@ type Config struct {
 	InstanceName    string
 	ConsulConfigDir string
 	DiscoveryPeriod time.Duration
+	CollectorConfig collector.Config
 }
 
 func New() (*Agent, error) {
@@ -47,9 +49,14 @@ func New() (*Agent, error) {
 
 // returns a new instance of Agent with the given configuration
 func NewWithConfig(cfg Config) (*Agent, error) {
-	client, err := consul.DefaultClient()
+	consulClient, err := consul.DefaultClient()
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create a Consul client")
+	}
+
+	collectorClient, err := collector.NewCollectorClient(cfg.CollectorConfig)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not create a collector client")
 	}
 
 	templateRunner, err := NewTemplateRunner(cfg.ConsulConfigDir)
@@ -58,18 +65,17 @@ func NewWithConfig(cfg Config) (*Agent, error) {
 	}
 
 	ctx, ctxCancel := context.WithCancel(context.Background())
-
 	agent := &Agent{
 		cfg:       cfg,
 		ctx:       ctx,
 		ctxCancel: ctxCancel,
-		consul:    client,
+		consul:    consulClient,
 		discoveries: []discovery.Discovery{
-			discovery.NewClusterDiscovery(client),
-			discovery.NewSAPSystemsDiscovery(client),
-			discovery.NewCloudDiscovery(client),
-			discovery.NewSubscriptionDiscovery(client),
-			discovery.NewHostDiscovery(client),
+			discovery.NewClusterDiscovery(consulClient, collectorClient),
+			discovery.NewSAPSystemsDiscovery(consulClient),
+			discovery.NewCloudDiscovery(consulClient),
+			discovery.NewSubscriptionDiscovery(consulClient),
+			discovery.NewHostDiscovery(consulClient),
 		},
 		templateRunner: templateRunner,
 	}

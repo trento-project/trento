@@ -351,6 +351,28 @@ To start the trento agent:
 > If the discovery loop is being executed too frequently, and this impacts the Web interface performance, the agent
 > has the option to configure the discovery loop mechanism using the `--discovery-period` flag. Increasing this value improves the overall performance of the application
 
+#### Publishing discovery data
+
+**This feature is still under heavy development**
+
+Trento Agents publish discovery data to a Collector on Trento Server
+
+`./test/certs/` folder contains some dummy Server, Client and CA Certificates and Keys.
+Those are useful in order to test `mTLS` communication between the Agent and the DataCollector.
+
+As of now `mtls` needs to explicitly be activated with `--enable-mtls`
+
+#### Server
+```
+$> ./trento web serve [...] --enable-mtls --cert /path/to/certs/server-cert.pem --key /path/to/certs/server-key.pem --ca /path/to/certs/ca-cert.pem
+```
+
+#### Agent
+```
+$> ./trento agent start [...] --enable-mtls --cert /path/to/certs/client-cert.pem --key /path/to/certs/client-key.pem --ca /path/to/certs/ca-cert.pem
+```
+---
+
 ### Trento Runner
 
 The Trento Runner is a worker process responsible for driving automated configuration audits. It is based on [Ansible](https://docs.ansible.com/ansible/latest/index.html) and [ARA](https://ara.recordsansible.org/).

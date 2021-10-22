@@ -5,6 +5,8 @@ import (
 	"net"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
+	"github.com/trento-project/trento/agent/collector"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
 )
@@ -16,10 +18,10 @@ type HostDiscovery struct {
 	discovery BaseDiscovery
 }
 
-func NewHostDiscovery(client consul.Client) HostDiscovery {
+func NewHostDiscovery(consulClient consul.Client, collectorClient collector.Client) HostDiscovery {
 	d := HostDiscovery{}
 	d.id = HostDiscoveryId
-	d.discovery = NewDiscovery(client)
+	d.discovery = NewDiscovery(consulClient, collectorClient)
 	return d
 }
 
@@ -37,8 +39,20 @@ func (h HostDiscovery) Discover() (string, error) {
 	metadata := hosts.Metadata{
 		HostIpAddresses: ipAddresses,
 	}
-	err = metadata.Store(h.discovery.client)
+	err = metadata.Store(h.discovery.consulClient)
 	if err != nil {
+		return "", err
+	}
+
+	// TODO: this needs to be redesigned to capture what we are discovering about a Host
+	host := struct {
+		HostIpAddresses string
+		HostName        string
+	}{ipAddresses, h.discovery.host}
+
+	err = h.discovery.collectorClient.Publish(h.id, host)
+	if err != nil {
+		log.Debugf("Error while sending host discovery to data collector: %s", err)
 		return "", err
 	}
 

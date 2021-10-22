@@ -19,10 +19,10 @@ type ClusterDiscovery struct {
 	Cluster   cluster.Cluster
 }
 
-func NewClusterDiscovery(client consul.Client, collectorClient collector.Client) ClusterDiscovery {
+func NewClusterDiscovery(consulClient consul.Client, collectorClient collector.Client) ClusterDiscovery {
 	d := ClusterDiscovery{}
 	d.id = ClusterDiscoveryId
-	d.discovery = NewDiscoveryWithCollector(client, collectorClient)
+	d.discovery = NewDiscovery(consulClient, collectorClient)
 	return d
 }
 
@@ -39,12 +39,12 @@ func (d ClusterDiscovery) Discover() (string, error) {
 
 	d.Cluster = cluster
 
-	err = d.Cluster.Store(d.discovery.client)
+	err = d.Cluster.Store(d.discovery.consulClient)
 	if err != nil {
 		return "", err
 	}
 
-	err = storeClusterMetadata(d.discovery.client, cluster.Name, cluster.Id)
+	err = storeClusterMetadata(d.discovery.consulClient, cluster.Name, cluster.Id)
 	if err != nil {
 		return "", err
 	}

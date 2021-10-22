@@ -62,10 +62,10 @@ func NewAgent(config *Config) (*Agent, error) {
 		consul:    consulClient,
 		discoveries: []discovery.Discovery{
 			discovery.NewClusterDiscovery(consulClient, collectorClient),
-			discovery.NewSAPSystemsDiscovery(consulClient),
-			discovery.NewCloudDiscovery(consulClient),
-			discovery.NewSubscriptionDiscovery(consulClient),
-			discovery.NewHostDiscovery(consulClient),
+			discovery.NewSAPSystemsDiscovery(consulClient, collectorClient),
+			discovery.NewCloudDiscovery(consulClient, collectorClient),
+			discovery.NewSubscriptionDiscovery(consulClient, collectorClient),
+			discovery.NewHostDiscovery(consulClient, collectorClient),
 		},
 		templateRunner: templateRunner,
 	}

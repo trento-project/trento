@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	"github.com/trento-project/trento/agent/collector"
 	"github.com/trento-project/trento/internal/cluster"
 	"github.com/trento-project/trento/internal/consul"
@@ -50,14 +49,10 @@ func (d ClusterDiscovery) Discover() (string, error) {
 		return "", err
 	}
 
-	// TODO: remove this when we want to start collecting
-	if viper.GetBool("data-collector-enabled") {
-		log.Debugf("Sending cluster discovery to data collector")
-		err = d.discovery.collectorClient.Publish(d.id, cluster)
-		if err != nil {
-			log.Debugf("Error while sending cluster discovery to data collector: %s", err)
-			return "", err
-		}
+	err = d.discovery.collectorClient.Publish(d.id, cluster)
+	if err != nil {
+		log.Debugf("Error while sending cluster discovery to data collector: %s", err)
+		return "", err
 	}
 
 	return fmt.Sprintf("Cluster with name: %s successfully discovered", cluster.Name), nil

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/suite"
 	"github.com/trento-project/trento/test/helpers"
 )
@@ -24,6 +25,9 @@ func (suite *CollectorClientTestSuite) SetupSuite() {
 	fileSystem = afero.NewMemMapFs()
 
 	afero.WriteFile(fileSystem, machineIdPath, []byte("the-machine-id"), 0644)
+
+	// this is read by an env variable called DATA_COLLECTOR_ENABLED
+	viper.Set("data-collector-enabled", true)
 }
 
 func (suite *CollectorClientTestSuite) TestCollectorClient_NewClientWithTLS() {

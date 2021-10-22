@@ -9,7 +9,10 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 )
 
 type Client interface {
@@ -66,6 +69,13 @@ func NewCollectorClient(config *Config) (*collectorClient, error) {
 }
 
 func (c *collectorClient) Publish(discoveryType string, payload interface{}) error {
+	// TODO: remove this when we want to start collecting
+	if !viper.GetBool("data-collector-enabled") {
+		return nil
+	}
+
+	log.Debugf("Sending %s to data collector", discoveryType)
+
 	requestBody, err := json.Marshal(map[string]interface{}{
 		"agent_id":       c.machineID,
 		"discovery_type": discoveryType,

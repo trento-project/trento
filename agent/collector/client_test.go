@@ -27,7 +27,7 @@ func (suite *CollectorClientTestSuite) SetupSuite() {
 }
 
 func (suite *CollectorClientTestSuite) TestCollectorClient_NewClientWithTLS() {
-	collectorClient, err := NewCollectorClient(Config{
+	collectorClient, err := NewCollectorClient(&Config{
 		EnablemTLS:    true,
 		CollectorHost: "localhost",
 		CollectorPort: 8443,
@@ -44,7 +44,7 @@ func (suite *CollectorClientTestSuite) TestCollectorClient_NewClientWithTLS() {
 }
 
 func (suite *CollectorClientTestSuite) TestCollectorClient_NewClientWithoutTLS() {
-	collectorClient, err := NewCollectorClient(Config{
+	collectorClient, err := NewCollectorClient(&Config{
 		EnablemTLS:    false,
 		CollectorHost: "localhost",
 		CollectorPort: 8443,
@@ -61,7 +61,7 @@ func (suite *CollectorClientTestSuite) TestCollectorClient_NewClientWithoutTLS()
 }
 
 func (suite *CollectorClientTestSuite) TestCollectorClient_PublishingSuccess() {
-	collectorClient, err := NewCollectorClient(Config{
+	collectorClient, err := NewCollectorClient(&Config{
 		EnablemTLS:    true,
 		CollectorHost: "localhost",
 		CollectorPort: 8443,
@@ -104,7 +104,7 @@ func (suite *CollectorClientTestSuite) TestCollectorClient_PublishingSuccess() {
 }
 
 func (suite *CollectorClientTestSuite) TestCollectorClient_PublishingFailure() {
-	collectorClient, err := NewCollectorClient(Config{
+	collectorClient, err := NewCollectorClient(&Config{
 		EnablemTLS:    false,
 		CollectorHost: "localhost",
 		CollectorPort: 8443,

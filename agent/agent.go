@@ -3,7 +3,6 @@ package agent
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 	"sync"
 	"time"
@@ -23,7 +22,7 @@ import (
 const trentoAgentCheckId = "trentoAgent"
 
 type Agent struct {
-	cfg            Config
+	config         *Config
 	discoveries    []discovery.Discovery
 	consul         consul.Client
 	ctx            context.Context
@@ -35,38 +34,29 @@ type Config struct {
 	InstanceName    string
 	ConsulConfigDir string
 	DiscoveryPeriod time.Duration
-	CollectorConfig collector.Config
+	CollectorConfig *collector.Config
 }
 
-func New() (*Agent, error) {
-	config, err := DefaultConfig()
-	if err != nil {
-		return nil, errors.Wrap(err, "could not create the agent configuration")
-	}
-
-	return NewWithConfig(config)
-}
-
-// returns a new instance of Agent with the given configuration
-func NewWithConfig(cfg Config) (*Agent, error) {
+// NewAgent returns a new instance of Agent with the given configuration
+func NewAgent(config *Config) (*Agent, error) {
 	consulClient, err := consul.DefaultClient()
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create a Consul client")
 	}
 
-	collectorClient, err := collector.NewCollectorClient(cfg.CollectorConfig)
+	collectorClient, err := collector.NewCollectorClient(config.CollectorConfig)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create a collector client")
 	}
 
-	templateRunner, err := NewTemplateRunner(cfg.ConsulConfigDir)
+	templateRunner, err := NewTemplateRunner(config.ConsulConfigDir)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create the consul template runner")
 	}
 
 	ctx, ctxCancel := context.WithCancel(context.Background())
 	agent := &Agent{
-		cfg:       cfg,
+		config:    config,
 		ctx:       ctx,
 		ctxCancel: ctxCancel,
 		consul:    consulClient,
@@ -82,18 +72,6 @@ func NewWithConfig(cfg Config) (*Agent, error) {
 	return agent, nil
 }
 
-func DefaultConfig() (Config, error) {
-	hostname, err := os.Hostname()
-	if err != nil {
-		return Config{}, errors.Wrap(err, "could not read the hostname")
-	}
-
-	return Config{
-		InstanceName:    hostname,
-		DiscoveryPeriod: 2 * time.Minute,
-	}, nil
-}
-
 // Start the Agent which includes the registration against Consul Agent
 func (a *Agent) Start() error {
 	log.Println("Registering the agent service with Consul...")
@@ -105,7 +83,7 @@ func (a *Agent) Start() error {
 
 	defer func() {
 		log.Println("De-registering the agent service with Consul...")
-		err := a.consul.Agent().ServiceDeregister(a.cfg.InstanceName)
+		err := a.consul.Agent().ServiceDeregister(a.config.InstanceName)
 		if err != nil {
 			log.Println("An error occurred while trying to deregisterConsulService the agent service with Consul:", err)
 		} else {
@@ -146,9 +124,9 @@ func (a *Agent) Stop() {
 func (a *Agent) registerConsulService() error {
 	var err error
 
-	discoveryTTL := a.cfg.DiscoveryPeriod * 2
+	discoveryTTL := a.config.DiscoveryPeriod * 2
 	consulService := &consulApi.AgentServiceRegistration{
-		ID:   a.cfg.InstanceName,
+		ID:   a.config.InstanceName,
 		Name: "trento-agent",
 		Tags: []string{"trento"},
 		Checks: consulApi.AgentServiceChecks{
@@ -195,7 +173,7 @@ func (a *Agent) startDiscoverTicker() {
 		}
 	}
 
-	interval := a.cfg.DiscoveryPeriod
+	interval := a.config.DiscoveryPeriod
 	repeat(tick, interval, a.ctx)
 }
 

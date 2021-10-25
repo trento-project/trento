@@ -4,7 +4,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	log "github.com/sirupsen/logrus"
 
@@ -13,7 +12,6 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/trento-project/trento/agent"
-	"github.com/trento-project/trento/agent/collector"
 )
 
 var consulConfigDir string
@@ -66,23 +64,12 @@ func start(cmd *cobra.Command, args []string) {
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
 
-	cfg, err := agent.DefaultConfig()
+	config, err := LoadConfig()
 	if err != nil {
 		log.Fatal("Failed to create the agent configuration: ", err)
 	}
 
-	cfg.ConsulConfigDir = consulConfigDir
-	cfg.DiscoveryPeriod = time.Duration(discoveryPeriod) * time.Minute
-	cfg.CollectorConfig = collector.Config{
-		CollectorHost: viper.GetString("collector-host"),
-		CollectorPort: viper.GetInt("collector-port"),
-		EnablemTLS:    viper.GetBool("enable-mtls"),
-		Cert:          viper.GetString("cert"),
-		Key:           viper.GetString("key"),
-		CA:            viper.GetString("ca"),
-	}
-
-	a, err := agent.NewWithConfig(cfg)
+	a, err := agent.NewAgent(config)
 	if err != nil {
 		log.Fatal("Failed to create the agent: ", err)
 	}

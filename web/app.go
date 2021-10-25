@@ -209,10 +209,16 @@ func (a *App) Start(ctx context.Context) error {
 		MaxHeaderBytes: 1 << 20,
 	}
 
-	tlsConfig, err := getTLSConfig(a.config.Cert, a.config.Key, a.config.CA)
-	if err != nil {
-		return err
+	var tlsConfig *tls.Config
+	var err error
+
+	if a.config.EnablemTLS {
+		tlsConfig, err = getTLSConfig(a.config.Cert, a.config.Key, a.config.CA)
+		if err != nil {
+			return err
+		}
 	}
+
 	collectorServer := &http.Server{
 		Addr:           fmt.Sprintf("%s:%d", a.config.Host, 8443),
 		Handler:        a.collectorEngine,

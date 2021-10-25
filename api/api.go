@@ -33,7 +33,8 @@ func (t *trentoApiService) composeQuery(resource string) string {
 
 func (t *trentoApiService) getJson(query string) ([]byte, int, error) {
 	var err error
-	resp, err := t.httpClient.Get(query)
+
+	resp, err := t.httpClient.Get(t.composeQuery(query))
 	if err != nil {
 		return nil, resp.StatusCode, err
 	}

@@ -1,0 +1,8 @@
+{
+    "agent_id": "the-machine-id",
+    "discovery_type": "host_discovery",
+    "payload": {
+        "HostIpAddresses": "10.1.1.4,10.1.1.5,10.1.1.6",
+        "HostName": "thehostnamewherethediscoveryhappened"
+    }
+}

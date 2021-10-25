@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 
@@ -55,16 +56,18 @@ func NewCollectorClient(config *Config) (*collectorClient, error) {
 		},
 	}
 
-	machineID, err := afero.ReadFile(fileSystem, machineIdPath)
+	machineIDBytes, err := afero.ReadFile(fileSystem, machineIdPath)
 
 	if err != nil {
 		return nil, err
 	}
 
+	machineID := strings.TrimSpace(string(machineIDBytes))
+
 	return &collectorClient{
 		config:     config,
 		httpClient: client,
-		machineID:  string(machineID),
+		machineID:  machineID,
 	}, nil
 }
 

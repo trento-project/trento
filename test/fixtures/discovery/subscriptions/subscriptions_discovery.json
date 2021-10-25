@@ -1,0 +1,56 @@
+[
+    {
+      "identifier": "SLES_SAP",
+      "version": "15.2",
+      "arch": "x86_64",
+      "status": "Registered",
+      "name": "SUSE Customer subscription for SUSE Linux Enterprise Server for SAP Applications x86_64",
+      "regcode": "fake-fake-fake-fake-fake",
+      "starts_at": "2021-09-17 13:41:34 UTC",
+      "expires_at": "2026-09-17 13:41:34 UTC",
+      "subscription_status": "ACTIVE",
+      "type": "internal"
+    },
+    {
+      "identifier": "sle-module-basesystem",
+      "version": "15.2",
+      "arch": "x86_64",
+      "status": "Registered"
+    },
+    {
+      "identifier": "sle-module-server-applications",
+      "version": "15.2",
+      "arch": "x86_64",
+      "status": "Registered"
+    },
+    {
+      "identifier": "sle-ha",
+      "version": "15.2",
+      "arch": "x86_64",
+      "status": "Registered",
+      "name": "SUSE Customer subscription for SUSE Linux Enterprise Server for SAP Applications x86_64",
+      "regcode": "fake-fake-fake-fake-fake",
+      "starts_at": "2021-09-17 13:41:34 UTC",
+      "expires_at": "2026-09-17 13:41:34 UTC",
+      "subscription_status": "ACTIVE",
+      "type": "internal"
+    },
+    {
+      "identifier": "sle-module-sap-applications",
+      "version": "15.2",
+      "arch": "x86_64",
+      "status": "Registered"
+    },
+    {
+      "identifier": "sle-module-desktop-applications",
+      "version": "15.2",
+      "arch": "x86_64",
+      "status": "Registered"
+    },
+    {
+      "identifier": "sle-module-public-cloud",
+      "version": "15.2",
+      "arch": "x86_64",
+      "status": "Registered"
+    }
+  ]

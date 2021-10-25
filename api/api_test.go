@@ -6,28 +6,31 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/trento-project/trento/api/mocks"
+	"github.com/trento-project/trento/test/helpers"
 )
 
 func TestIsWebServerUp(t *testing.T) {
-	mockGetHttp := new(mocks.GetHttp)
-
-	found := &http.Response{StatusCode: http.StatusOK}
-	mockGetHttp.On("Execute", "http://192.168.1.10:8000/api/ping").Return(
-		found, nil,
-	).Times(1)
-
-	notFound := &http.Response{StatusCode: http.StatusBadRequest}
-	mockGetHttp.On("Execute", "http://192.168.1.10:8000/api/ping").Return(
-		notFound, nil,
-	)
-
-	getHttp = mockGetHttp.Execute
-
 	trentoApi := NewTrentoApiService("http://192.168.1.10:8000")
+
+	trentoApi.httpClient = &http.Client{Transport: helpers.RoundTripFunc(func(req *http.Request) *http.Response {
+		assert.Equal(t, req.URL.String(), "http://192.168.1.10:8000/api/ping")
+
+		return &http.Response{
+			StatusCode: 200,
+		}
+	})}
+
 	result := trentoApi.IsWebServerUp()
 
 	assert.Equal(t, true, result)
+
+	trentoApi.httpClient = &http.Client{Transport: helpers.RoundTripFunc(func(req *http.Request) *http.Response {
+		assert.Equal(t, req.URL.String(), "http://192.168.1.10:8000/api/ping")
+
+		return &http.Response{
+			StatusCode: 500,
+		}
+	})}
 
 	result = trentoApi.IsWebServerUp()
 

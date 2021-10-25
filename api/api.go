@@ -18,24 +18,22 @@ type TrentoApiService interface {
 }
 
 type trentoApiService struct {
-	webServer string
+	webServer  string
+	httpClient *http.Client
 }
 
 func NewTrentoApiService(webServer string) *trentoApiService {
-	return &trentoApiService{webServer: webServer}
+	client := &http.Client{}
+	return &trentoApiService{webServer: webServer, httpClient: client}
 }
 
 func (t *trentoApiService) composeQuery(resource string) string {
 	return fmt.Sprintf("%s/api/%s", t.webServer, resource)
 }
 
-//go:generate mockery --name=GetJson
-
-type GetJson func(query string) ([]byte, int, error)
-
-var getJson GetJson = func(query string) ([]byte, int, error) {
+func (t *trentoApiService) getJson(query string) ([]byte, int, error) {
 	var err error
-	resp, err := http.Get(query)
+	resp, err := t.httpClient.Get(query)
 	if err != nil {
 		return nil, resp.StatusCode, err
 	}
@@ -49,19 +47,11 @@ var getJson GetJson = func(query string) ([]byte, int, error) {
 	return body, resp.StatusCode, nil
 }
 
-//go:generate mockery --name=GetHttp
-
-type GetHttp func(url string) (*http.Response, error)
-
-var getHttp GetHttp = func(url string) (*http.Response, error) {
-	return http.Get(url)
-}
-
 func (t *trentoApiService) IsWebServerUp() bool {
 	host := t.composeQuery("ping")
 	log.Debugf("Looking for the Trento server state at: %s", host)
 
-	resp, err := getHttp(host)
+	resp, err := t.httpClient.Get(host)
 
 	if err != nil || resp.StatusCode != http.StatusOK {
 		log.Debugf("Error requesting Trento server api: %s", err)

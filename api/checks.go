@@ -9,7 +9,7 @@ import (
 )
 
 func (t *trentoApiService) GetSelectedChecksById(clusterId string) (*webApi.JSONSelectedChecks, error) {
-	body, statusCode, err := getJson(t.composeQuery(fmt.Sprintf("checks/%s/selected", clusterId)))
+	body, statusCode, err := t.getJson(t.composeQuery(fmt.Sprintf("checks/%s/selected", clusterId)))
 	if err != nil {
 		return nil, err
 	}

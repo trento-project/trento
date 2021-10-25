@@ -23,7 +23,8 @@ func TestAboutHandlerPremium(t *testing.T) {
 	deps.subscriptionsService = subscriptionsMocks
 
 	var err error
-	app, err := NewAppWithDeps("", 80, deps)
+	config := setupTestConfig()
+	app, err := NewAppWithDeps(config, deps)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -65,7 +66,8 @@ func TestAboutHandlerFree(t *testing.T) {
 	deps.subscriptionsService = subscriptionsMocks
 
 	var err error
-	app, err := NewAppWithDeps("", 80, deps)
+	config := setupTestConfig()
+	app, err := NewAppWithDeps(config, deps)
 	if err != nil {
 		t.Fatal(err)
 	}

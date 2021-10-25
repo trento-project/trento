@@ -151,7 +151,8 @@ func TestHostsListHandler(t *testing.T) {
 	deps.tagsService = mockTagsService
 
 	var err error
-	app, err := NewAppWithDeps("", 80, deps)
+	config := setupTestConfig()
+	app, err := NewAppWithDeps(config, deps)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -309,7 +310,8 @@ func TestHostHandler(t *testing.T) {
 	deps.consul = consulInst
 	deps.subscriptionsService = subscriptionsMocks
 
-	app, err := NewAppWithDeps("", 80, deps)
+	config := setupTestConfig()
+	app, err := NewAppWithDeps(config, deps)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -429,7 +431,8 @@ func TestHostHandlerAzure(t *testing.T) {
 	deps.consul = consulInst
 	deps.subscriptionsService = subscriptionsMocks
 
-	app, err := NewAppWithDeps("", 80, deps)
+	config := setupTestConfig()
+	app, err := NewAppWithDeps(config, deps)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -473,7 +476,8 @@ func TestHostHandler404Error(t *testing.T) {
 	deps := setupTestDependencies()
 	deps.consul = consulInst
 
-	app, err := NewAppWithDeps("", 80, deps)
+	config := setupTestConfig()
+	app, err := NewAppWithDeps(config, deps)
 	if err != nil {
 		t.Fatal(err)
 	}

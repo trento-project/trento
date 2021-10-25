@@ -10,7 +10,8 @@ import (
 
 func TestHomeHandler(t *testing.T) {
 	deps := setupTestDependencies()
-	app, err := NewAppWithDeps("", 80, deps)
+	config := setupTestConfig()
+	app, err := NewAppWithDeps(config, deps)
 
 	if err != nil {
 		t.Fatal(err)

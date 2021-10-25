@@ -203,7 +203,8 @@ func TestSAPSystemsListHandler(t *testing.T) {
 	deps.tagsService = tagsService
 
 	var err error
-	app, err := NewAppWithDeps("", 80, deps)
+	config := setupTestConfig()
+	app, err := NewAppWithDeps(config, deps)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -255,7 +256,8 @@ func TestSAPDatabaseListHandler(t *testing.T) {
 	deps.tagsService = tagsService
 
 	var err error
-	app, err := NewAppWithDeps("", 80, deps)
+	config := setupTestConfig()
+	app, err := NewAppWithDeps(config, deps)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -453,7 +455,8 @@ func TestSAPResourceHandler(t *testing.T) {
 	hostsService.On("GetHostsBySystemId", "systemId").Return(hostList, nil)
 
 	var err error
-	app, err := NewAppWithDeps("", 80, deps)
+	config := setupTestConfig()
+	app, err := NewAppWithDeps(config, deps)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -488,7 +491,8 @@ func TestSAPResourceHandler404Error(t *testing.T) {
 	sapSystemsService.On("GetSAPSystemsById", "foobar").Return(sapsystem.SAPSystemsList{}, nil)
 
 	var err error
-	app, err := NewAppWithDeps("", 80, deps)
+	config := setupTestConfig()
+	app, err := NewAppWithDeps(config, deps)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -12,3 +12,10 @@ func setupTestDependencies() Dependencies {
 		store:           cookie.NewStore([]byte("secret")),
 	}
 }
+
+func setupTestConfig() *Config {
+	return &Config{
+		Host: "",
+		Port: 80,
+	}
+}

@@ -120,16 +120,6 @@ func mockGetCluster(client consul.Client) (map[string]*cluster.Cluster, error) {
 	}, nil
 }
 
-func mockGetCheckSelection(client consul.Client, clusterId string) (string, error) {
-	switch clusterId {
-	case "cluster1":
-		return "check1,check2", nil
-	case "cluster2":
-		return "check3,check4", nil
-	}
-	return "", nil
-}
-
 func mockGetNodeAddress(client consul.Client, node string) (string, error) {
 	switch node {
 	case "node1":

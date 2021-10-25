@@ -88,8 +88,7 @@ func TestNewAnsibleCheckRunner(t *testing.T) {
 	a, err := NewAnsibleCheckRunner(cfg)
 
 	expectedMetaRunner := &AnsibleRunner{
-		Playbook:  path.Join(TestAnsibleFolder, "ansible/check.yml"),
-		Inventory: path.Join(TestAnsibleFolder, "ansible_hosts"),
+		Playbook: path.Join(TestAnsibleFolder, "ansible/check.yml"),
 		Envs: map[string]string{
 			"ANSIBLE_CONFIG":           path.Join(TestAnsibleFolder, "ansible/ansible.cfg"),
 			"ANSIBLE_CALLBACK_PLUGINS": "callback",

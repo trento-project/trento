@@ -48,6 +48,7 @@
                                     <th scope='col'>SID</th>
                                     <th scope='col'>Features</th>
                                     <th scope='col'>Instance number</th>
+                                    <th scope='col'>System replication</th>
                                     <th scope='col'>Cluster name</th>
                                     <th scope='col'>Host</th>
                                 </tr>
@@ -59,6 +60,21 @@
                                     <td>{{ .SID }}</td>
                                     <td>{{ .Features }}</td>
                                     <td>{{ .InstanceNumber }}</td>
+                                    {{- if .IsDatabase }}
+                                    {{- $mode := .SystemReplication.GetReplicationMode }}
+                                    {{- if ne $mode "" }}
+                                    <td>HANA {{ $mode }}
+                                    {{- else }}
+                                    <td></td>
+                                    {{- end }}
+                                    {{- if eq $mode "Primary" }}
+                                    {{- $status := .SystemReplication.GetReplicationStatus }}
+                                    <span class="badge badge-pill badge-{{ if eq $status "SOK" }}success{{ else }}danger{{ end }}">{{ $status }}</span>
+                                    {{- end }}
+                                    </td>
+                                    {{- else }}
+                                    <td></td>
+                                    {{- end }}
                                     <td><a href="/clusters/{{ .ClusterId }}">{{ .ClusterName }}</a></td>
                                     <td><a href="/hosts/{{ .Host }}">{{ .Host }}</a></td>
                                 <tr>

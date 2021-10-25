@@ -4,7 +4,7 @@ set -e
 
 readonly ARGS=( "$@" )
 readonly PROGNAME="./install-server.sh"
-TRENTO_VERSION="0.4.1"
+TRENTO_VERSION="0.5.0"
 
 usage() {
     cat <<- EOF
@@ -13,10 +13,9 @@ usage() {
     Install Trento Server
 
     OPTIONS:
-       -p --private-key         pre-authorized private SSH key used by the runner to connect to the hosts
-       -r --rolling             Use the rolling-release version instead of the stable one
-       -h --help                show this help
-
+        -p --private-key  <file>         re-authorized private SSH key used by the runner to connect to the hosts
+        -r --rolling                     use the rolling-release version instead of the stable one
+        -h --help                        show this help
 
     Example:
        $PROGNAME --private-key ./id_rsa_runner
@@ -32,15 +31,15 @@ cmdline() {
             --private-key)  args="${args}-p ";;
             --rolling)      args="${args}-r ";;
             --help)         args="${args}-h ";;
-            
+
             # pass through anything else
             *) [[ "${arg:0:1}" == "-" ]] || delim="\""
             args="${args}${delim}${arg}${delim} ";;
         esac
     done
-    
+
     eval set -- "$args"
-    
+
     while getopts "p:rh" OPTION
     do
         case $OPTION in
@@ -60,15 +59,15 @@ cmdline() {
             ;;
         esac
     done
-    
+
     if [[ -z "$PRIVATE_KEY" ]]; then
         read -rp "Please provide the path of the runner private key: " PRIVATE_KEY </dev/tty
     fi
-    
+
     if [[ "$ROLLING" == "true" ]]; then
         TRENTO_VERSION="rolling"
     fi
-    
+
     return 0
 }
 
@@ -88,9 +87,9 @@ check_requirements() {
         exit 1
     fi
     if grep -q "Y" /sys/module/apparmor/parameters/enabled; then
-        if ! command -v apparmor_parser >/dev/null 1>&1; then
-            echo "apparmor-parser is required by k3s when using AppArmor, please install it and try again."
-            exit 0
+        if ! command -v /sbin/apparmor_parser >/dev/null 1>&1; then
+            echo "apparmor_parser is required by k3s when using AppArmor, please install it and try again."
+            exit 1
         fi
     fi
 }
@@ -117,10 +116,12 @@ update_helm_dependencies() {
 
 install_trento_server_chart() {
     local repo_owner=${TRENTO_REPO_OWNER:-"trento-project"}
+    local runner_image=${TRENTO_RUNNER_IMAGE:-"ghcr.io/$repo_owner/trento-runner"}
+    local web_image=${TRENTO_WEB_IMAGE:-"ghcr.io/$repo_owner/trento-web"}
     local private_key=${PRIVATE_KEY:-"./id_rsa_runner"}
     local trento_source_zip="${TRENTO_VERSION}"
     local trento_packages_url="https://github.com/${repo_owner}/trento/archive/refs/tags"
-    
+
     echo "Installing trento-server chart..."
     pushd -- /tmp >/dev/null
     rm -rf trento-"${trento_source_zip}"
@@ -128,13 +129,16 @@ install_trento_server_chart() {
     curl -f -sS -O -L "${trento_packages_url}/${trento_source_zip}.zip" >/dev/null
     unzip -o "${trento_source_zip}.zip" >/dev/null
     popd >/dev/null
-    
+
     pushd -- /tmp/trento-"${trento_source_zip}"/packaging/helm/trento-server >/dev/null
     helm dep update >/dev/null
     helm upgrade --install trento-server . \
     --set-file trento-runner.privateKey="${private_key}" \
     --set trento-web.image.tag="${TRENTO_VERSION}" \
-    --set trento-runner.image.tag="${TRENTO_VERSION}"
+    --set trento-runner.image.tag="${TRENTO_VERSION}" \
+    --set trento-runner.image.repository="${runner_image}" \
+    --set trento-web.image.repository="${web_image}"
+
     popd >/dev/null
 }
 

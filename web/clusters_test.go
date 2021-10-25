@@ -21,8 +21,6 @@ import (
 	consulMocks "github.com/trento-project/trento/internal/consul/mocks"
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
-	serviceMocks "github.com/trento-project/trento/web/services/mocks"
-	servicesMocks "github.com/trento-project/trento/web/services/mocks"
 )
 
 func clustersListMap() map[string]interface{} {
@@ -494,7 +492,7 @@ func azureMeta(userIndex int) map[string]interface{} {
 
 func TestClustersListHandler(t *testing.T) {
 	consulInst := new(consulMocks.Client)
-	checksMocks := new(serviceMocks.ChecksService)
+	checksMocks := new(services.MockChecksService)
 
 	kv := new(consulMocks.KV)
 	consulInst.On("KV").Return(kv)
@@ -510,7 +508,7 @@ func TestClustersListHandler(t *testing.T) {
 	checksMocks.On("GetAggregatedChecksResultByCluster", "e27d313a674375b2066777a89ee346b9").Return(
 		aggregatedByClusterEmpty(), nil)
 
-	mockTagsService := new(servicesMocks.TagsService)
+	mockTagsService := new(services.MockTagsService)
 	mockTagsService.On("GetAllByResource", models.TagClusterResourceType, "47d1190ffb4f781974c8356d7f863b03").Return([]string{"tag1"}, nil)
 	mockTagsService.On("GetAllByResource", models.TagClusterResourceType, "a615a35f65627be5a757319a0741127f").Return([]string{"tag1"}, nil)
 	mockTagsService.On("GetAllByResource", models.TagClusterResourceType, "e2f2eb50aef748e586a7baa85e0162cf").Return([]string{"tag1"}, nil)
@@ -533,7 +531,7 @@ func TestClustersListHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	app.ServeHTTP(resp, req)
+	app.webEngine.ServeHTTP(resp, req)
 
 	consulInst.AssertExpectations(t)
 	checksMocks.AssertExpectations(t)
@@ -573,7 +571,7 @@ func TestClusterHandlerHANA(t *testing.T) {
 	}
 
 	consulInst := new(consulMocks.Client)
-	checksMocks := new(serviceMocks.ChecksService)
+	checksMocks := new(services.MockChecksService)
 
 	kv := new(consulMocks.KV)
 	consulInst.On("KV").Return(kv)
@@ -628,7 +626,7 @@ func TestClusterHandlerHANA(t *testing.T) {
 	}
 	req.Header.Set("Accept", "text/html")
 
-	app.ServeHTTP(resp, req)
+	app.webEngine.ServeHTTP(resp, req)
 
 	consulInst.AssertExpectations(t)
 	kv.AssertExpectations(t)
@@ -696,7 +694,7 @@ func TestClusterHandlerUnreachableNodes(t *testing.T) {
 	}
 
 	consulInst := new(consulMocks.Client)
-	checksMocks := new(serviceMocks.ChecksService)
+	checksMocks := new(services.MockChecksService)
 
 	kv := new(consulMocks.KV)
 	consulInst.On("KV").Return(kv)
@@ -750,7 +748,7 @@ func TestClusterHandlerUnreachableNodes(t *testing.T) {
 	}
 	req.Header.Set("Accept", "text/html")
 
-	app.ServeHTTP(resp, req)
+	app.webEngine.ServeHTTP(resp, req)
 
 	consulInst.AssertExpectations(t)
 	kv.AssertExpectations(t)
@@ -782,7 +780,7 @@ func TestClusterHandlerAlert(t *testing.T) {
 	}
 
 	consulInst := new(consulMocks.Client)
-	checksMocks := new(serviceMocks.ChecksService)
+	checksMocks := new(services.MockChecksService)
 
 	kv := new(consulMocks.KV)
 	consulInst.On("KV").Return(kv)
@@ -836,7 +834,7 @@ func TestClusterHandlerAlert(t *testing.T) {
 	}
 	req.Header.Set("Accept", "text/html")
 
-	app.ServeHTTP(resp, req)
+	app.webEngine.ServeHTTP(resp, req)
 
 	consulInst.AssertExpectations(t)
 	kv.AssertExpectations(t)
@@ -890,7 +888,7 @@ func TestClusterHandlerGeneric(t *testing.T) {
 	}
 	req.Header.Set("Accept", "text/html")
 
-	app.ServeHTTP(resp, req)
+	app.webEngine.ServeHTTP(resp, req)
 
 	assert.NoError(t, err)
 	assert.Equal(t, 200, resp.Code)
@@ -925,7 +923,7 @@ func TestClusterHandler404Error(t *testing.T) {
 	}
 	req.Header.Set("Accept", "text/html")
 
-	app.ServeHTTP(resp, req)
+	app.webEngine.ServeHTTP(resp, req)
 
 	assert.NoError(t, err)
 	assert.Equal(t, 404, resp.Code)
@@ -971,7 +969,7 @@ func TestSaveChecksHandler(t *testing.T) {
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
 
-	app.ServeHTTP(resp, req)
+	app.webEngine.ServeHTTP(resp, req)
 
 	assert.NoError(t, err)
 	assert.Equal(t, 302, resp.Code)

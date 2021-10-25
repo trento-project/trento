@@ -19,8 +19,7 @@ type SubscriptionData struct {
 	SubscribedCount int
 }
 
-//go:generate mockery --name=SubscriptionsService
-
+//go:generate mockery --name=SubscriptionsService --inpackage --filename=subscriptions_mock.go
 type SubscriptionsService interface {
 	GetSubscriptionData() (*SubscriptionData, error)
 	GetHostSubscriptions(host string) (subscription.Subscriptions, error)

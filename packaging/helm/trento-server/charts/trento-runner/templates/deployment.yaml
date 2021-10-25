@@ -13,8 +13,9 @@ spec:
       {{- include "trento-runner.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
       annotations:
+        rollme: {{ randAlphaNum 5 | quote }}
+      {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
@@ -34,13 +35,11 @@ spec:
             - start
             - --ara-server
             - http://{{ .Release.Name }}-ara:8000
-            - --consul-addr
-            - "{{ .Release.Name }}-consul-server:8500"
             - -i
             - "5"
           env:
             - name: CONSUL_HTTP_ADDR
-              value:
+              value: {{ .Release.Name }}-consul-server:8500
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

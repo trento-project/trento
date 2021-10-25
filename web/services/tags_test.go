@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/trento-project/trento/test/helpers"
 	"github.com/trento-project/trento/web/models"
 
 	"gorm.io/gorm"
@@ -21,7 +22,7 @@ func TestTagsServiceTestSuite(t *testing.T) {
 }
 
 func (suite *TagsServiceTestSuite) SetupSuite() {
-	suite.db = setupTestDatabase()
+	suite.db = helpers.SetupTestDatabase()
 
 	suite.db.AutoMigrate(models.Tag{})
 	loadTagsFixtures(suite.db)

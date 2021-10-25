@@ -11,11 +11,10 @@ import (
 	"github.com/tdewolff/minify/v2/html"
 
 	"github.com/trento-project/trento/web/services"
-	serviceMocks "github.com/trento-project/trento/web/services/mocks"
 )
 
 func TestAboutHandlerPremium(t *testing.T) {
-	subscriptionsMocks := new(serviceMocks.SubscriptionsService)
+	subscriptionsMocks := new(services.MockSubscriptionsService)
 
 	subscriptionsMocks.On("GetSubscriptionData").Return(
 		&services.SubscriptionData{Type: services.Premium, SubscribedCount: 2}, nil)
@@ -35,7 +34,7 @@ func TestAboutHandlerPremium(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	app.ServeHTTP(resp, req)
+	app.webEngine.ServeHTTP(resp, req)
 
 	subscriptionsMocks.AssertExpectations(t)
 
@@ -57,7 +56,7 @@ func TestAboutHandlerPremium(t *testing.T) {
 }
 
 func TestAboutHandlerFree(t *testing.T) {
-	subscriptionsMocks := new(serviceMocks.SubscriptionsService)
+	subscriptionsMocks := new(services.MockSubscriptionsService)
 
 	subscriptionsMocks.On("GetSubscriptionData").Return(
 		&services.SubscriptionData{Type: services.Free, SubscribedCount: 0}, nil)
@@ -77,7 +76,7 @@ func TestAboutHandlerFree(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	app.ServeHTTP(resp, req)
+	app.webEngine.ServeHTTP(resp, req)
 
 	subscriptionsMocks.AssertExpectations(t)
 

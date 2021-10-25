@@ -1,6 +1,11 @@
 package web
 
 import (
+	"context"
+	"os"
+	"os/signal"
+	"syscall"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -17,6 +22,10 @@ var dbPort string
 var dbUser string
 var dbPassword string
 var dbName string
+var enablemTLS bool
+var cert string
+var key string
+var ca string
 
 func NewWebCmd() *cobra.Command {
 	webCmd := &cobra.Command{
@@ -40,6 +49,11 @@ func NewWebCmd() *cobra.Command {
 	serveCmd.Flags().StringVar(&dbPassword, "db-password", "postgres", "The database password")
 	serveCmd.Flags().StringVar(&dbName, "db-name", "trento", "The database name that the application will use")
 
+	serveCmd.Flags().BoolVar(&enablemTLS, "enable-mtls", false, "Enable mTLS authentication between server and agents")
+	serveCmd.Flags().StringVar(&cert, "cert", "", "mTLS server certificate")
+	serveCmd.Flags().StringVar(&key, "key", "", "mTLS server key")
+	serveCmd.Flags().StringVar(&ca, "ca", "", "mTLS Certificate Authority")
+
 	// Bind the flags to viper and make them available to the application
 	serveCmd.Flags().VisitAll(func(f *pflag.Flag) {
 		viper.BindPFlag(f.Name, f)
@@ -51,7 +65,17 @@ func NewWebCmd() *cobra.Command {
 }
 
 func serve(cmd *cobra.Command, args []string) {
-	var err error
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		<-signals
+		log.Infof("Bye!")
+		cancel()
+	}()
 
 	deps := web.DefaultDependencies()
 
@@ -60,8 +84,8 @@ func serve(cmd *cobra.Command, args []string) {
 		log.Fatal("Failed to create the web application instance: ", err)
 	}
 
-	err = app.Start()
+	err = app.Start(ctx)
 	if err != nil {
-		log.Fatal("Failed to start the web application service: ", err)
+		log.Fatal("Error while running the web application server: ", err)
 	}
 }

@@ -1,4 +1,13 @@
 definitions:
+  web.JSONSelectedChecks:
+    properties:
+      selected_checks:
+        items:
+          type: string
+        type: array
+    required:
+    - selected_checks
+    type: object
   web.JSONTag:
     properties:
       tag:
@@ -9,6 +18,59 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/checks/{id}/selected:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Resource id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/web.JSONSelectedChecks'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get selected checks from resource
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Resource id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Selected checks
+        in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/web.JSONSelectedChecks'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/web.JSONSelectedChecks'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create check selection for the resource
   /api/clusters/{cluster_id}/results:
     get:
       parameters:

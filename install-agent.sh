@@ -41,7 +41,7 @@ ARGUMENT_LIST=(
     "use-tgz"
 )
 
-readonly TRENTO_VERSION=0.4.1
+readonly TRENTO_VERSION=0.5.0
 
 opts=$(
     getopt \
@@ -205,12 +205,15 @@ function install_trento_tgz() {
     ARCH=$(uname -m | sed "s~x86_64~amd64~" | sed "s~aarch64~arm64~" )
     local bin_dir=${BIN_DIR:-"/usr/bin"}
     local sysd_dir=${SYSD_DIR:-"/usr/lib/systemd/system"}
+    local repo_owner=${TRENTO_REPO_OWNER:-"trento-project"}
 
     if [[ -n "$USE_ROLLING" ]] ; then
-        TRENTO_TGZ_URL=https://github.com/trento-project/trento/releases/download/rolling/trento-${ARCH}.tgz
+        TRENTO_TGZ_URL=https://github.com/${repo_owner}/trento/releases/download/rolling/trento-${ARCH}.tgz
     else
-        TRENTO_TGZ_URL=https://github.com/trento-project/trento/releases/download/${TRENTO_VERSION}/trento-${ARCH}.tgz
+        TRENTO_TGZ_URL=https://github.com/${repo_owner}/trento/releases/download/${TRENTO_VERSION}/trento-${ARCH}.tgz
     fi
+
+    echo "* Downloading trento from $TRENTO_TGZ_URL ..."
 
     curl -f -sS -O -L "${TRENTO_TGZ_URL}" >/dev/null
     tar -zxf trento-${ARCH}.tgz

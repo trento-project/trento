@@ -25,7 +25,7 @@ jobs:
       postgres:
         image: postgres
         env:
-          POSTGRES_PASSWORD: postgres 
+          POSTGRES_PASSWORD: postgres
           POSTGRES_DB: trento_test
         ports:
           - 5432:5432
@@ -168,6 +168,7 @@ jobs:
     env:
       TRENTO_SERVER_HOST: ${{ secrets.TRENTO_SERVER_HOST }}
       TRENTO_USER: ${{ secrets.TRENTO_USER }}
+      TRENTO_REPO_OWNER: ${{ github.repository_owner }}
     steps:
       - uses: actions/checkout@v2
       - name: Install SSH key
@@ -179,7 +180,7 @@ jobs:
           if_key_exists: replace
           config: ${{ secrets.SSH_CONFIG }}
       - name: deploy trento services on K3S cluster
-        run: ssh "$TRENTO_USER@$TRENTO_SERVER_HOST" "sudo --preserve-env=PATH bash -s" -- < ./install-server.sh -r -p ~/.ssh/id_rsa
+        run: ssh "$TRENTO_USER@$TRENTO_SERVER_HOST" "TRENTO_REPO_OWNER=$TRENTO_REPO_OWNER sudo --preserve-env=PATH,TRENTO_REPO_OWNER bash -s" -- < ./install-server.sh -r -p ~/.ssh/id_rsa
 
   deploy-agents:
     runs-on: [ self-hosted, trento-gh-runner ]
@@ -190,6 +191,7 @@ jobs:
       TRENTO_AGENT_HOSTS: ${{ secrets.TRENTO_AGENT_HOSTS }}
       TRENTO_USER: ${{ secrets.TRENTO_USER }}
       TRENTO_SERVER_HOST: ${{ secrets.TRENTO_SERVER_HOST }}
+      TRENTO_REPO_OWNER: ${{ github.repository_owner }}
     steps:
       - uses: actions/checkout@v2
       - name: install and enable agents
@@ -197,7 +199,7 @@ jobs:
           set -ex
           for target_host in ${TRENTO_AGENT_HOSTS//,/ }
           do
-            ssh "$TRENTO_USER@$target_host" "sudo --preserve-env=PATH bash -s" -- < ./install-agent.sh "--rolling" "--use-tgz" "--agent-bind-ip" "$target_host" "--server-ip" "$TRENTO_SERVER_HOST"
+            ssh "$TRENTO_USER@$target_host" "TRENTO_REPO_OWNER=$TRENTO_REPO_OWNER sudo --preserve-env=PATH,TRENTO_REPO_OWNER bash -s" -- < ./install-agent.sh "--rolling" "--use-tgz" "--agent-bind-ip" "$target_host" "--server-ip" "$TRENTO_SERVER_HOST"
             ssh "$TRENTO_USER@$target_host" "sudo systemctl enable --now trento-agent.service"
           done
 
@@ -286,7 +288,7 @@ jobs:
     if: github.event.release
     container:
       image: ghcr.io/trento-project/continuous-delivery:master
-    steps: 
+    steps:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0

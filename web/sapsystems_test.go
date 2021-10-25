@@ -16,7 +16,7 @@ import (
 
 	consulMocks "github.com/trento-project/trento/internal/consul/mocks"
 	"github.com/trento-project/trento/web/models"
-	servicesMocks "github.com/trento-project/trento/web/services/mocks"
+	"github.com/trento-project/trento/web/services"
 )
 
 var sapSystemsList = sapsystem.SAPSystemsList{
@@ -127,6 +127,7 @@ var sapDatabasesList = sapsystem.SAPSystemsList{
 		Instances: map[string]*sapsystem.SAPInstance{
 			"HDB00": &sapsystem.SAPInstance{
 				Host: "hana01",
+				Type: sapsystem.Database,
 				SAPControl: &sapsystem.SAPControl{
 					Properties: map[string]*sapcontrol.InstanceProperty{
 						"SAPSYSTEMNAME": &sapcontrol.InstanceProperty{
@@ -148,6 +149,15 @@ var sapDatabasesList = sapsystem.SAPSystemsList{
 						},
 					},
 				},
+				SystemReplication: sapsystem.SystemReplication{
+					"local_site_id": "1",
+					"site": map[string]interface{}{
+						"1": map[string]interface{}{
+							"REPLICATION_MODE": "PRIMARY",
+						},
+					},
+					"overall_replication_status": "ACTIVE",
+				},
 			},
 		},
 	},
@@ -156,14 +166,14 @@ var sapDatabasesList = sapsystem.SAPSystemsList{
 func TestSAPSystemsListHandler(t *testing.T) {
 	consulInst := new(consulMocks.Client)
 	kv := new(consulMocks.KV)
-	sapSystemsService := new(servicesMocks.SAPSystemsService)
-	hostsService := new(servicesMocks.HostsService)
+	sapSystemsService := new(services.MockSAPSystemsService)
+	hostsService := new(services.MockHostsService)
 	sapSystemsService.On("GetSAPSystemsByType", sapsystem.Application).Return(sapSystemsList, nil)
 	sapSystemsService.On("GetAttachedDatabasesById", "systemId1").Return(sapDatabasesList, nil)
 	sapSystemsService.On("GetAttachedDatabasesById", "systemId2").Return(sapDatabasesList, nil)
 	sapSystemsService.On("GetAttachedDatabasesById", "systemId3").Return(sapDatabasesList, nil)
 
-	tagsService := new(servicesMocks.TagsService)
+	tagsService := new(services.MockTagsService)
 	tagsService.On(
 		"GetAllByResource", models.TagSAPSystemResourceType, "systemId1").Return([]string{"tag1"}, nil)
 	tagsService.On(
@@ -204,7 +214,7 @@ func TestSAPSystemsListHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	app.ServeHTTP(resp, req)
+	app.webEngine.ServeHTTP(resp, req)
 
 	kv.AssertExpectations(t)
 	hostsService.AssertExpectations(t)
@@ -215,9 +225,9 @@ func TestSAPSystemsListHandler(t *testing.T) {
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, responseBody, "SAP Systems")
 	assert.Regexp(t, regexp.MustCompile("<td><a href=/sapsystems/systemId1>HA1</a></td><td></td><td><a href=/databases/systemId2>PRD</a></td><td>PRD</td><td>192.168.1.5</td><td>.*<input.*value=tag1.*>.*</td>"), responseBody)
-	assert.Regexp(t, regexp.MustCompile("<td>HA1</td><td>MESSAGESERVER|ENQUE</td><td>00</td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>netweaver_cluster</a></td><td><a href=/hosts/netweaver01>netweaver01</a></td>"), responseBody)
-	assert.Regexp(t, regexp.MustCompile("<td>HA1</td><td>ENQREP</td><td>10</td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>netweaver_cluster</a></td><td><a href=/hosts/netweaver02>netweaver02</a></td>"), responseBody)
-	assert.Regexp(t, regexp.MustCompile("<td>PRD</td><td>HDB_WORKER</td><td>00</td><td><a href=/clusters/5dfbd28f35cbfb38969f9b99243ae8d4>hana_cluster</a></td><td><a href=/hosts/hana01>hana01</a></td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<td>HA1</td><td>MESSAGESERVER|ENQUE</td><td>00</td><td></td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>netweaver_cluster</a></td><td><a href=/hosts/netweaver01>netweaver01</a></td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<td>HA1</td><td>ENQREP</td><td>10</td><td></td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>netweaver_cluster</a></td><td><a href=/hosts/netweaver02>netweaver02</a></td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("(?s)<td>PRD</td><td>HDB_WORKER</td><td>00</td><td>.*HANA Primary.*SOK.*</td><td><a href=/clusters/5dfbd28f35cbfb38969f9b99243ae8d4>hana_cluster</a></td><td><a href=/hosts/hana01>hana01</a></td>"), responseBody)
 	assert.Regexp(t, regexp.MustCompile("<td><i .*This SAP system SID exists multiple times.*warning.*<a href=/sapsystems/systemId2>DEV</a></td>"), responseBody)
 	assert.Regexp(t, regexp.MustCompile("<td><i .*This SAP system SID exists multiple times.*warning.*<a href=/sapsystems/systemId3>DEV</a></td>"), responseBody)
 }
@@ -225,9 +235,9 @@ func TestSAPSystemsListHandler(t *testing.T) {
 func TestSAPDatabaseListHandler(t *testing.T) {
 	consulInst := new(consulMocks.Client)
 	kv := new(consulMocks.KV)
-	sapSystemsService := new(servicesMocks.SAPSystemsService)
-	hostsService := new(servicesMocks.HostsService)
-	tagsService := new(servicesMocks.TagsService)
+	sapSystemsService := new(services.MockSAPSystemsService)
+	hostsService := new(services.MockHostsService)
+	tagsService := new(services.MockTagsService)
 	tagsService.On(
 		"GetAllByResource", models.TagDatabaseResourceType, "systemId2").Return([]string{"tag1"}, nil)
 
@@ -256,7 +266,7 @@ func TestSAPDatabaseListHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	app.ServeHTTP(resp, req)
+	app.webEngine.ServeHTTP(resp, req)
 
 	kv.AssertExpectations(t)
 	hostsService.AssertExpectations(t)
@@ -267,15 +277,147 @@ func TestSAPDatabaseListHandler(t *testing.T) {
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, responseBody, "HANA Databases")
 	assert.Regexp(t, regexp.MustCompile("<td><a href=/databases/systemId2>PRD</a></td><td></td><td>.*<input.*value=tag1.*>.*</td>"), responseBody)
-	assert.Regexp(t, regexp.MustCompile("<td>PRD</td><td>HDB_WORKER</td><td>00</td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>hana_cluster</a></td><td><a href=/hosts/hana01>hana01</a></td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("(?s)<td>PRD</td><td>HDB_WORKER</td><td>00</td>.*HANA Primary.*SOK.*<td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>hana_cluster</a></td><td><a href=/hosts/hana01>hana01</a></td>"), responseBody)
+}
+
+func TestIsDatabase(t *testing.T) {
+	r := InstanceRow{
+		Type: sapsystem.Database,
+	}
+	assert.Equal(t, true, r.IsDatabase())
+
+	r = InstanceRow{
+		Type: sapsystem.Application,
+	}
+	assert.Equal(t, false, r.IsDatabase())
+}
+
+func TestGetReplicationModePrimary(t *testing.T) {
+	srData := SystemReplication{
+		"local_site_id": "1",
+		"site": map[string]interface{}{
+			"1": map[string]interface{}{
+				"REPLICATION_MODE": "PRIMARY",
+			},
+		},
+		"overall_replication_status": "ACTIVE",
+	}
+
+	mode := srData.GetReplicationMode()
+	assert.Equal(t, "Primary", mode)
+}
+
+func TestGetReplicationModeSecondary(t *testing.T) {
+	srData := SystemReplication{
+		"local_site_id": "1",
+		"site": map[string]interface{}{
+			"1": map[string]interface{}{
+				"REPLICATION_MODE": "SYNC",
+			},
+		},
+		"overall_replication_status": "ACTIVE",
+	}
+
+	mode := srData.GetReplicationMode()
+	assert.Equal(t, "Secondary", mode)
+}
+
+func TestGetReplicationModeEmpty(t *testing.T) {
+	srData := SystemReplication{
+		"site": map[string]interface{}{
+			"1": map[string]interface{}{
+				"REPLICATION_MODE": "SYNC",
+			},
+		},
+		"overall_replication_status": "ACTIVE",
+	}
+
+	mode := srData.GetReplicationMode()
+	assert.Equal(t, "", mode)
+
+	srData = SystemReplication{
+		"local_site_id":              "1",
+		"overall_replication_status": "ACTIVE",
+	}
+
+	mode = srData.GetReplicationMode()
+	assert.Equal(t, "", mode)
+
+	srData = SystemReplication{
+		"local_site_id": "1",
+		"site": map[string]interface{}{
+			"2": map[string]interface{}{
+				"REPLICATION_MODE": "SYNC",
+			},
+		},
+		"overall_replication_status": "ACTIVE",
+	}
+
+	mode = srData.GetReplicationMode()
+	assert.Equal(t, "", mode)
+}
+
+func TestGetReplicationStatus(t *testing.T) {
+	srData := SystemReplication{
+		"local_site_id": "1",
+		"site": map[string]interface{}{
+			"1": map[string]interface{}{
+				"REPLICATION_MODE": "PRIMARY",
+			},
+		},
+		"overall_replication_status": "ACTIVE",
+	}
+
+	mode := srData.GetReplicationStatus()
+	assert.Equal(t, "SOK", mode)
+
+	srData = SystemReplication{
+		"local_site_id": "1",
+		"site": map[string]interface{}{
+			"1": map[string]interface{}{
+				"REPLICATION_MODE": "PRIMARY",
+			},
+		},
+		"overall_replication_status": "ERROR",
+	}
+
+	mode = srData.GetReplicationStatus()
+	assert.Equal(t, "SFAIL", mode)
+}
+
+func TestGetReplicationEmpty(t *testing.T) {
+	srData := SystemReplication{
+		"local_site_id": "1",
+		"site": map[string]interface{}{
+			"1": map[string]interface{}{
+				"REPLICATION_MODE": "PRIMARY",
+			},
+		},
+	}
+
+	mode := srData.GetReplicationStatus()
+	assert.Equal(t, "", mode)
+
+	srData = SystemReplication{
+		"local_site_id": "1",
+		"site": map[string]interface{}{
+			"1": map[string]interface{}{
+				"REPLICATION_MODE": "PRIMARY",
+			},
+		},
+		"overall_replication_status": "Other",
+	}
+
+	mode = srData.GetReplicationStatus()
+	assert.Equal(t, "", mode)
 }
 
 func TestSAPResourceHandler(t *testing.T) {
 	consulInst := new(consulMocks.Client)
 	health := new(consulMocks.Health)
 	consulInst.On("Health").Return(health)
-	sapSystemsService := new(servicesMocks.SAPSystemsService)
-	hostsService := new(servicesMocks.HostsService)
+	sapSystemsService := new(services.MockSAPSystemsService)
+	hostsService := new(services.MockHostsService)
 
 	deps := setupTestDependencies()
 	deps.consul = consulInst
@@ -321,7 +463,7 @@ func TestSAPResourceHandler(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	app.ServeHTTP(resp, req)
+	app.webEngine.ServeHTTP(resp, req)
 	assert.Equal(t, 200, resp.Code)
 	responseBody := minifyHtml(resp.Body.String())
 
@@ -338,7 +480,7 @@ func TestSAPResourceHandler(t *testing.T) {
 }
 
 func TestSAPResourceHandler404Error(t *testing.T) {
-	sapSystemsService := new(servicesMocks.SAPSystemsService)
+	sapSystemsService := new(services.MockSAPSystemsService)
 
 	deps := setupTestDependencies()
 	deps.sapSystemsService = sapSystemsService
@@ -355,7 +497,7 @@ func TestSAPResourceHandler404Error(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/sapsystems/foobar", nil)
 	req.Header.Set("Accept", "text/html")
 
-	app.ServeHTTP(resp, req)
+	app.webEngine.ServeHTTP(resp, req)
 
 	sapSystemsService.AssertExpectations(t)
 

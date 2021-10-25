@@ -77,9 +77,12 @@ func serve(cmd *cobra.Command, args []string) {
 		cancel()
 	}()
 
-	deps := web.DefaultDependencies()
+	config, err := LoadConfig()
+	if err != nil {
+		log.Fatal("Failed to configure the web application instance: ", err)
+	}
 
-	app, err := web.NewAppWithDeps(host, port, deps)
+	app, err := web.NewApp(config)
 	if err != nil {
 		log.Fatal("Failed to create the web application instance: ", err)
 	}

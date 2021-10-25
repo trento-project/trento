@@ -25,6 +25,14 @@ const (
 	clusterNameWordCount   int    = 1
 )
 
+type DiscoveryTools struct {
+	CibAdmPath      string
+	CrmmonAdmPath   string
+	CorosyncKeyPath string
+	SBDPath         string
+	SBDConfigPath   string
+}
+
 type Cluster struct {
 	Cib    cib.Root    `mapstructure:"cib,omitempty"`
 	Crmmon crmmon.Root `mapstructure:"crmmon,omitempty"`
@@ -34,9 +42,19 @@ type Cluster struct {
 }
 
 func NewCluster() (Cluster, error) {
+	return NewClusterWithDiscoveryTools(&DiscoveryTools{
+		CibAdmPath:      cibAdmPath,
+		CrmmonAdmPath:   crmmonAdmPath,
+		CorosyncKeyPath: corosyncKeyPath,
+		SBDPath:         SBDPath,
+		SBDConfigPath:   SBDConfigPath,
+	})
+}
+
+func NewClusterWithDiscoveryTools(discoveryTools *DiscoveryTools) (Cluster, error) {
 	var cluster = Cluster{}
 
-	cibParser := cib.NewCibAdminParser(cibAdmPath)
+	cibParser := cib.NewCibAdminParser(discoveryTools.CibAdmPath)
 
 	cibConfig, err := cibParser.Parse()
 	if err != nil {
@@ -45,7 +63,7 @@ func NewCluster() (Cluster, error) {
 
 	cluster.Cib = cibConfig
 
-	crmmonParser := crmmon.NewCrmMonParser(crmmonAdmPath)
+	crmmonParser := crmmon.NewCrmMonParser(discoveryTools.CrmmonAdmPath)
 
 	crmmonConfig, err := crmmonParser.Parse()
 	if err != nil {
@@ -55,7 +73,7 @@ func NewCluster() (Cluster, error) {
 	cluster.Crmmon = crmmonConfig
 
 	// Set MD5-hashed key based on the corosync auth key
-	cluster.Id, err = getCorosyncAuthkeyMd5(corosyncKeyPath)
+	cluster.Id, err = getCorosyncAuthkeyMd5(discoveryTools.CorosyncKeyPath)
 	if err != nil {
 		return cluster, err
 	}
@@ -63,7 +81,7 @@ func NewCluster() (Cluster, error) {
 	cluster.Name = getName(cluster)
 
 	if cluster.IsFencingSBD() {
-		sbdData, err := NewSBD(cluster.Id, SBDPath, SBDConfigPath)
+		sbdData, err := NewSBD(cluster.Id, discoveryTools.SBDPath, discoveryTools.SBDConfigPath)
 		if err != nil {
 			return cluster, err
 		}

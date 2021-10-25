@@ -14,7 +14,6 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
@@ -40,11 +39,19 @@ var assetsFS embed.FS
 var templatesFS embed.FS
 
 type App struct {
-	host string
-	port int
+	config *Config
 	Dependencies
 }
 
+type Config struct {
+	Host          string
+	Port          int
+	CollectorPort int
+	EnablemTLS    bool
+	Cert          string
+	Key           string
+	CA            string
+}
 type Dependencies struct {
 	consul               consul.Client
 	webEngine            *gin.Engine
@@ -125,8 +132,8 @@ func MigrateDB(db *gorm.DB) error {
 }
 
 // shortcut to use default dependencies
-func NewApp(host string, port int) (*App, error) {
-	return NewAppWithDeps(host, port, DefaultDependencies())
+func NewApp(config *Config) (*App, error) {
+	return NewAppWithDeps(config, DefaultDependencies())
 }
 
 // @title Trento API
@@ -142,11 +149,10 @@ func NewApp(host string, port int) (*App, error) {
 // @host localhost:8080
 // @BasePath /
 // @schemes http
-func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
+func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 	app := &App{
+		config:       config,
 		Dependencies: deps,
-		host:         host, // these are web specific, we need something similar for the collector
-		port:         port,
 	}
 
 	InitAlerts()
@@ -196,19 +202,19 @@ func NewAppWithDeps(host string, port int, deps Dependencies) (*App, error) {
 
 func (a *App) Start(ctx context.Context) error {
 	webServer := &http.Server{
-		Addr:           fmt.Sprintf("%s:%d", a.host, a.port),
+		Addr:           fmt.Sprintf("%s:%d", a.config.Host, a.config.Port),
 		Handler:        a.webEngine,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
 
-	tlsConfig, err := getTLSConfig()
+	tlsConfig, err := getTLSConfig(a.config.Cert, a.config.Key, a.config.CA)
 	if err != nil {
 		return err
 	}
 	collectorServer := &http.Server{
-		Addr:           fmt.Sprintf("%s:%d", a.host, 8443),
+		Addr:           fmt.Sprintf("%s:%d", a.config.Host, 8443),
 		Handler:        a.collectorEngine,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
@@ -257,30 +263,7 @@ func (a *App) Start(ctx context.Context) error {
 	return g.Wait()
 }
 
-func getTLSConfig() (*tls.Config, error) {
-	if !viper.GetBool("enable-mtls") {
-		return nil, nil
-	}
-
-	cert := viper.GetString("cert")
-	key := viper.GetString("key")
-	ca := viper.GetString("ca")
-
-	var err error
-
-	if cert == "" {
-		err = fmt.Errorf("you must provide a server ssl certificate")
-	}
-	if key == "" {
-		err = errors.Wrap(err, "you must provide a key to enable mTLS")
-	}
-	if ca == "" {
-		err = errors.Wrap(err, "you must provide a CA ssl certificate")
-	}
-	if err != nil {
-		return nil, err
-	}
-
+func getTLSConfig(cert string, key string, ca string) (*tls.Config, error) {
 	caCert, err := ioutil.ReadFile(ca)
 	if err != nil {
 		return nil, err

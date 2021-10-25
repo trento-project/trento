@@ -48,7 +48,8 @@ func TestApiListTag(t *testing.T) {
 	deps := setupTestDependencies()
 	deps.tagsService = mockTagsService
 
-	app, err := NewAppWithDeps("", 80, deps)
+	config := setupTestConfig()
+	app, err := NewAppWithDeps(config, deps)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -164,7 +165,8 @@ func TestApiResourceTag(t *testing.T) {
 		mockTagsService.On("Delete", errorTag, tc.resourceType, resourceID).Return(fmt.Errorf("guru meditation"))
 		deps.tagsService = mockTagsService
 
-		app, err := NewAppWithDeps("", 80, deps)
+		config := setupTestConfig()
+		app, err := NewAppWithDeps(config, deps)
 		if err != nil {
 			t.Fatal(err)
 		}

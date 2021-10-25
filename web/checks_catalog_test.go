@@ -64,7 +64,8 @@ func TestChecksCatalogHandler(t *testing.T) {
 	)
 
 	var err error
-	app, err := NewAppWithDeps("", 80, deps)
+	config := setupTestConfig()
+	app, err := NewAppWithDeps(config, deps)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -102,7 +103,8 @@ func TestChecksCatalogHandlerError(t *testing.T) {
 	)
 
 	var err error
-	app, err := NewAppWithDeps("", 80, deps)
+	config := setupTestConfig()
+	app, err := NewAppWithDeps(config, deps)
 	if err != nil {
 		t.Fatal(err)
 	}

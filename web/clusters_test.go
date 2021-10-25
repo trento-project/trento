@@ -520,7 +520,8 @@ func TestClustersListHandler(t *testing.T) {
 	deps.tagsService = mockTagsService
 
 	var err error
-	app, err := NewAppWithDeps("", 80, deps)
+	config := setupTestConfig()
+	app, err := NewAppWithDeps(config, deps)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -614,7 +615,8 @@ func TestClusterHandlerHANA(t *testing.T) {
 	deps.consul = consulInst
 	deps.checksService = checksMocks
 
-	app, err := NewAppWithDeps("", 80, deps)
+	config := setupTestConfig()
+	app, err := NewAppWithDeps(config, deps)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -736,7 +738,8 @@ func TestClusterHandlerUnreachableNodes(t *testing.T) {
 	deps.consul = consulInst
 	deps.checksService = checksMocks
 
-	app, err := NewAppWithDeps("", 80, deps)
+	config := setupTestConfig()
+	app, err := NewAppWithDeps(config, deps)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -822,7 +825,8 @@ func TestClusterHandlerAlert(t *testing.T) {
 	deps.consul = consulInst
 	deps.checksService = checksMocks
 
-	app, err := NewAppWithDeps("", 80, deps)
+	config := setupTestConfig()
+	app, err := NewAppWithDeps(config, deps)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -876,7 +880,8 @@ func TestClusterHandlerGeneric(t *testing.T) {
 	deps := setupTestDependencies()
 	deps.consul = consulInst
 
-	app, err := NewAppWithDeps("", 80, deps)
+	config := setupTestConfig()
+	app, err := NewAppWithDeps(config, deps)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -911,7 +916,8 @@ func TestClusterHandler404Error(t *testing.T) {
 	deps := setupTestDependencies()
 	deps.consul = consulInst
 
-	app, err := NewAppWithDeps("", 80, deps)
+	config := setupTestConfig()
+	app, err := NewAppWithDeps(config, deps)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -950,7 +956,8 @@ func TestSaveChecksHandler(t *testing.T) {
 	deps := setupTestDependencies()
 	deps.consul = consulInst
 
-	app, err := NewAppWithDeps("", 80, deps)
+	config := setupTestConfig()
+	app, err := NewAppWithDeps(config, deps)
 	if err != nil {
 		t.Fatal(err)
 	}

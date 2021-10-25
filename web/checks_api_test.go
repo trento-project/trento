@@ -65,7 +65,8 @@ func TestApiClusterCheckResultsHandler(t *testing.T) {
 	deps.checksService = mockChecksService
 
 	var err error
-	app, err := NewAppWithDeps("", 80, deps)
+	config := setupTestConfig()
+	app, err := NewAppWithDeps(config, deps)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -133,7 +134,8 @@ func TestApiClusterCheckResultsHandler500(t *testing.T) {
 	deps.checksService = mockChecksService
 
 	var err error
-	app, err := NewAppWithDeps("", 80, deps)
+	config := setupTestConfig()
+	app, err := NewAppWithDeps(config, deps)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -166,7 +168,8 @@ func TestApiCheckGetSelectedHandler(t *testing.T) {
 	deps.checksService = mockChecksService
 
 	var err error
-	app, err := NewAppWithDeps("", 80, deps)
+	config := setupTestConfig()
+	app, err := NewAppWithDeps(config, deps)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -215,7 +218,8 @@ func TestApiCheckCreateSelectedHandler(t *testing.T) {
 	deps.checksService = mockChecksService
 
 	var err error
-	app, err := NewAppWithDeps("", 80, deps)
+	config := setupTestConfig()
+	app, err := NewAppWithDeps(config, deps)
 	if err != nil {
 		t.Fatal(err)
 	}

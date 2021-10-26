@@ -30,7 +30,7 @@ func (suite *CollectorClientTestSuite) TestCollectorClient_NewClientWithTLS() {
 	collectorClient, err := NewCollectorClient(&Config{
 		EnablemTLS:    true,
 		CollectorHost: "localhost",
-		CollectorPort: 8443,
+		CollectorPort: 8081,
 		Cert:          "../../test/certs/client-cert.pem",
 		Key:           "../../test/certs/client-key.pem",
 		CA:            "../../test/certs/ca-cert.pem",
@@ -47,7 +47,7 @@ func (suite *CollectorClientTestSuite) TestCollectorClient_NewClientWithoutTLS()
 	collectorClient, err := NewCollectorClient(&Config{
 		EnablemTLS:    false,
 		CollectorHost: "localhost",
-		CollectorPort: 8443,
+		CollectorPort: 8081,
 		Cert:          "",
 		Key:           "",
 		CA:            "",
@@ -64,7 +64,7 @@ func (suite *CollectorClientTestSuite) TestCollectorClient_PublishingSuccess() {
 	collectorClient, err := NewCollectorClient(&Config{
 		EnablemTLS:    true,
 		CollectorHost: "localhost",
-		CollectorPort: 8443,
+		CollectorPort: 8081,
 		Cert:          "../../test/certs/client-cert.pem",
 		Key:           "../../test/certs/client-key.pem",
 		CA:            "../../test/certs/ca-cert.pem",
@@ -92,7 +92,7 @@ func (suite *CollectorClientTestSuite) TestCollectorClient_PublishingSuccess() {
 
 		suite.EqualValues(requestBody, string(bodyBytes))
 
-		suite.Equal(req.URL.String(), "https://localhost:8443/api/collect")
+		suite.Equal(req.URL.String(), "https://localhost:8081/api/collect")
 		return &http.Response{
 			StatusCode: 202,
 		}
@@ -107,13 +107,13 @@ func (suite *CollectorClientTestSuite) TestCollectorClient_PublishingFailure() {
 	collectorClient, err := NewCollectorClient(&Config{
 		EnablemTLS:    false,
 		CollectorHost: "localhost",
-		CollectorPort: 8443,
+		CollectorPort: 8081,
 	})
 
 	suite.NoError(err)
 
 	collectorClient.httpClient.Transport = helpers.RoundTripFunc(func(req *http.Request) *http.Response {
-		suite.Equal(req.URL.String(), "http://localhost:8443/api/collect")
+		suite.Equal(req.URL.String(), "http://localhost:8081/api/collect")
 		return &http.Response{
 			StatusCode: 500,
 		}

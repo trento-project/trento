@@ -41,7 +41,7 @@ func NewAgentCmd() *cobra.Command {
 	startCmd.Flags().IntVarP(&discoveryPeriod, "discovery-period", "", 2, "Discovery mechanism loop period on minutes")
 
 	startCmd.Flags().StringVar(&collectorHost, "collector-host", "localhost", "Data Collector host")
-	startCmd.Flags().IntVar(&collectorPort, "collector-port", 8888, "Data Collector port")
+	startCmd.Flags().IntVar(&collectorPort, "collector-port", 8081, "Data Collector port")
 
 	startCmd.Flags().BoolVar(&enablemTLS, "enable-mtls", false, "Enable mTLS authentication between server and agent")
 	startCmd.Flags().StringVar(&cert, "cert", "", "mTLS client certificate")

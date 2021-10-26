@@ -220,7 +220,7 @@ func (a *App) Start(ctx context.Context) error {
 	}
 
 	collectorServer := &http.Server{
-		Addr:           fmt.Sprintf("%s:%d", a.config.Host, 8443),
+		Addr:           fmt.Sprintf("%s:%d", a.config.Host, a.config.CollectorPort),
 		Handler:        a.collectorEngine,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,

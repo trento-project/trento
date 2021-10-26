@@ -22,6 +22,8 @@ var dbPort string
 var dbUser string
 var dbPassword string
 var dbName string
+
+var collectorPort int
 var enablemTLS bool
 var cert string
 var key string
@@ -40,7 +42,7 @@ func NewWebCmd() *cobra.Command {
 	}
 
 	serveCmd.Flags().StringVar(&host, "host", "0.0.0.0", "The host to bind the HTTP service to")
-	serveCmd.Flags().IntVarP(&port, "port", "p", 8080, "The port for the HTTP service to listen at")
+	serveCmd.Flags().IntVarP(&port, "port", "p", 8080, "The port for the HTTP service to listen on")
 	serveCmd.Flags().StringVar(&araAddr, "ara-addr", "127.0.0.1:8000", "Address where ARA is running (ex: localhost:80)")
 
 	serveCmd.Flags().StringVar(&dbHost, "db-host", "localhost", "The database host")
@@ -49,6 +51,7 @@ func NewWebCmd() *cobra.Command {
 	serveCmd.Flags().StringVar(&dbPassword, "db-password", "postgres", "The database password")
 	serveCmd.Flags().StringVar(&dbName, "db-name", "trento", "The database name that the application will use")
 
+	serveCmd.Flags().IntVar(&collectorPort, "collector-port", 8081, "The port for the data collector service to listen on")
 	serveCmd.Flags().BoolVar(&enablemTLS, "enable-mtls", false, "Enable mTLS authentication between server and agents")
 	serveCmd.Flags().StringVar(&cert, "cert", "", "mTLS server certificate")
 	serveCmd.Flags().StringVar(&key, "key", "", "mTLS server key")

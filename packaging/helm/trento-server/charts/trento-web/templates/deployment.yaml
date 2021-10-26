@@ -37,8 +37,10 @@ spec:
             - {{ .Release.Name }}-ara:8000
             - --db-host
             - {{ .Release.Name }}-postgresql
-            - -p
-            - "{{ .Values.service.port }}"
+            - --port
+            - "{{ .Values.webService.port }}"
+            - --collector-port
+            - "{{ .Values.collectorService.port }}"
           env:
             - name: CONSUL_HTTP_ADDR
               value: {{ .Release.Name }}-consul-server:8500
@@ -48,7 +50,10 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: {{ .Values.service.port }}
+              containerPort: {{ .Values.webService.port }}
+              protocol: TCP
+            - name: collector
+              containerPort: {{ .Values.collectorService.port }}
               protocol: TCP
           livenessProbe:
             httpGet:

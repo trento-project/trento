@@ -77,3 +77,8 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+# trento-web port
+trentoWeb:
+  service:
+    port: 8080

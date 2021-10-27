@@ -577,16 +577,12 @@ func TestClusterHandlerHANA(t *testing.T) {
 	kv := new(consulMocks.KV)
 	consulInst.On("KV").Return(kv)
 	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
-	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil).Times(3)
+	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil).Times(2)
 
 	catalog := new(consulMocks.Catalog)
 	filter := &consulApi.QueryOptions{Filter: "Meta[\"trento-ha-cluster-id\"] == \"" + clusterId + "\""}
 	catalog.On("Nodes", filter).Return(nodes, nil, nil)
 	consulInst.On("Catalog").Return(catalog)
-
-	selectedChecksPath := fmt.Sprintf(consul.KvClustersChecksPath, clusterId)
-	selectedChecksValue := &consulApi.KVPair{Value: []byte("ABCDEF,12ABCD")}
-	kv.On("Get", selectedChecksPath, (*consulApi.QueryOptions)(nil)).Return(selectedChecksValue, nil, nil)
 
 	connData := map[string]interface{}{
 		"test_node_1": "myuser1",
@@ -610,6 +606,8 @@ func TestClusterHandlerHANA(t *testing.T) {
 		aggregatedByClusterCritical(), nil)
 	checksMocks.On("GetAggregatedChecksResultByHost", clusterId).Return(
 		checksResultByHost(), nil)
+	checksMocks.On("GetSelectedChecksById", clusterId).Return(
+		models.SelectedChecks{ID: clusterId, SelectedChecks: []string{"ABCDEF", "12ABCD"}}, nil)
 
 	deps := setupTestDependencies()
 	deps.consul = consulInst
@@ -701,16 +699,12 @@ func TestClusterHandlerUnreachableNodes(t *testing.T) {
 	kv := new(consulMocks.KV)
 	consulInst.On("KV").Return(kv)
 	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
-	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil).Times(3)
+	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil).Times(2)
 
 	catalog := new(consulMocks.Catalog)
 	filter := &consulApi.QueryOptions{Filter: "Meta[\"trento-ha-cluster-id\"] == \"" + clusterId + "\""}
 	catalog.On("Nodes", filter).Return(nodes, nil, nil)
 	consulInst.On("Catalog").Return(catalog)
-
-	selectedChecksPath := fmt.Sprintf(consul.KvClustersChecksPath, clusterId)
-	selectedChecksValue := &consulApi.KVPair{Value: []byte("1.1.1,1.1.2")}
-	kv.On("Get", selectedChecksPath, (*consulApi.QueryOptions)(nil)).Return(selectedChecksValue, nil, nil)
 
 	connData := map[string]interface{}{
 		"test_node_1": "myuser1",
@@ -733,6 +727,8 @@ func TestClusterHandlerUnreachableNodes(t *testing.T) {
 		aggregatedByClusterCritical(), nil)
 	checksMocks.On("GetAggregatedChecksResultByHost", clusterId).Return(
 		checksResultByHost(), nil)
+	checksMocks.On("GetSelectedChecksById", clusterId).Return(
+		models.SelectedChecks{ID: clusterId, SelectedChecks: []string{"ABCDEF", "12ABCD"}}, nil)
 
 	deps := setupTestDependencies()
 	deps.consul = consulInst
@@ -788,16 +784,12 @@ func TestClusterHandlerAlert(t *testing.T) {
 	kv := new(consulMocks.KV)
 	consulInst.On("KV").Return(kv)
 	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
-	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil).Times(3)
+	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil).Times(2)
 
 	catalog := new(consulMocks.Catalog)
 	filter := &consulApi.QueryOptions{Filter: "Meta[\"trento-ha-cluster-id\"] == \"" + clusterId + "\""}
 	catalog.On("Nodes", filter).Return(nodes, nil, nil)
 	consulInst.On("Catalog").Return(catalog)
-
-	selectedChecksPath := fmt.Sprintf(consul.KvClustersChecksPath, clusterId)
-	selectedChecksValue := &consulApi.KVPair{Value: []byte("1.1.1,1.2.3")}
-	kv.On("Get", selectedChecksPath, (*consulApi.QueryOptions)(nil)).Return(selectedChecksValue, nil, nil)
 
 	connData := map[string]interface{}{
 		"test_node_1": "myuser1",
@@ -820,6 +812,8 @@ func TestClusterHandlerAlert(t *testing.T) {
 		aggregatedByClusterCritical(), nil)
 	checksMocks.On("GetAggregatedChecksResultByHost", clusterId).Return(
 		checksResultByHost(), nil)
+	checksMocks.On("GetSelectedChecksById", clusterId).Return(
+		models.SelectedChecks{ID: clusterId, SelectedChecks: []string{"ABCDEF", "12ABCD"}}, nil)
 
 	deps := setupTestDependencies()
 	deps.consul = consulInst
@@ -944,17 +938,20 @@ func TestSaveChecksHandler(t *testing.T) {
 		"host2": "myuser2",
 	}
 
+	checkServInst := new(services.MockChecksService)
 	kv := new(consulMocks.KV)
-	kv.On("PutTyped", fmt.Sprintf(consul.KvClustersChecksPath, "foobar"), "1.2.3").Return(nil)
 	kv.On("PutMap", fmt.Sprintf(consul.KvClustersConnectionPath, "foobar"), expectedConnections).Return(nil)
+
+	checkServInst.On("CreateSelectedChecks", "foobar", []string{"1.2.3"}).Return(nil)
 
 	consulInst := new(consulMocks.Client)
 	consulInst.On("KV").Return(kv)
 	testLock := consulApi.Lock{}
-	consulInst.On("AcquireLockKey", consul.KvClustersPath).Return(&testLock, nil).Times(2)
+	consulInst.On("AcquireLockKey", consul.KvClustersPath).Return(&testLock, nil)
 
 	deps := setupTestDependencies()
 	deps.consul = consulInst
+	deps.checksService = checkServInst
 
 	config := setupTestConfig()
 	app, err := NewAppWithDeps(config, deps)
@@ -983,4 +980,5 @@ func TestSaveChecksHandler(t *testing.T) {
 
 	consulInst.AssertExpectations(t)
 	kv.AssertExpectations(t)
+	checkServInst.AssertExpectations(t)
 }

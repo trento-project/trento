@@ -12,6 +12,7 @@ import (
 )
 
 var araServer string
+var webServer string
 var interval int
 var ansibleFolder string
 
@@ -28,6 +29,7 @@ func NewRunnerCmd() *cobra.Command {
 	}
 
 	startCmd.Flags().StringVar(&araServer, "ara-server", "http://127.0.0.1:8000", "ARA server url (ex: http://localhost:8000)")
+	startCmd.Flags().StringVar(&webServer, "web-server", "http://127.0.0.1:80", "Trento web server url (ex: http://localhost:80)")
 	startCmd.Flags().IntVarP(&interval, "interval", "i", 5, "Interval in minutes to run the checks")
 	startCmd.Flags().StringVar(&ansibleFolder, "ansible-folder", "/tmp/trento", "Folder where the ansible file structure will be created")
 
@@ -47,6 +49,7 @@ func start(cmd *cobra.Command, args []string) {
 		log.Fatal("Failed to create the runner configuration: ", err)
 	}
 
+	cfg.WebServer = webServer
 	cfg.AraServer = araServer
 	cfg.Interval = time.Duration(interval) * time.Minute
 	cfg.AnsibleFolder = ansibleFolder

@@ -18,7 +18,6 @@ import (
 	"github.com/trento-project/trento/internal/cluster/cib"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
-	"github.com/trento-project/trento/runner"
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
 )
@@ -506,7 +505,7 @@ func NewClusterListHandler(client consul.Client, s services.ChecksService, t ser
 	}
 }
 
-func getChecksCatalogWithSelected(s services.ChecksService, clusterId, selectedChecks string) (models.GroupedCheckList, error) {
+func getChecksCatalogWithSelected(s services.ChecksService, clusterId string, selectedChecks []string) (models.GroupedCheckList, error) {
 	checksCatalog, err := s.GetChecksCatalogByGroup()
 	if err != nil {
 		return checksCatalog, err
@@ -514,7 +513,7 @@ func getChecksCatalogWithSelected(s services.ChecksService, clusterId, selectedC
 
 	for _, groupedCheckList := range checksCatalog.OrderByName() {
 		for _, check := range groupedCheckList.Checks {
-			if internal.Contains(strings.Split(selectedChecks, ","), check.ID) {
+			if internal.Contains(selectedChecks, check.ID) {
 				check.Selected = true
 			}
 		}
@@ -535,7 +534,7 @@ func getDefaultConnectionSettings(client consul.Client, c *cluster.Cluster) (map
 			mapstructure.Decode(data.Metadata, &azureMetadata)
 			connData[n.Name] = azureMetadata.Compute.OsProfile.AdminUserName
 		} else {
-			connData[n.Name] = runner.DefaultUser
+			connData[n.Name] = "root"
 		}
 	}
 
@@ -574,9 +573,9 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 			return
 		}
 
-		selectedChecks, getCheckErr := cluster.GetCheckSelection(client, clusterId)
+		selectedChecks, getCheckErr := s.GetSelectedChecksById(clusterId)
 		if getCheckErr != nil {
-			StoreAlert(c, AlertCatalogNotFound())
+			StoreAlert(c, NoCheckSelected())
 		}
 
 		connectionData, getConnErr := cluster.GetConnectionSettings(client, clusterId)
@@ -586,19 +585,12 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 		}
 
 		checksCatalog, errCatalog := getChecksCatalogWithSelected(
-			s, clusterId, selectedChecks)
+			s, clusterId, selectedChecks.SelectedChecks)
 		checksResult, errResult := s.GetChecksResultByCluster(clusterItem.Id)
 		if errCatalog != nil {
 			StoreAlert(c, AlertCatalogNotFound())
 		} else if errResult != nil {
 			StoreAlert(c, CheckResultsNotFound())
-		} else if selectedChecks == "" {
-			a := Alert{
-				Type:  "info",
-				Title: "There is not any check selected",
-				Text:  "Select the desired checks in the settings modal in order to validate the cluster configuration",
-			}
-			StoreAlert(c, a)
 		}
 
 		nodes := NewNodes(s, clusterItem, hosts)
@@ -643,7 +635,7 @@ func getConnectionMap(form url.Values) map[string]interface{} {
 	return usernames
 }
 
-func NewSaveClusterSettingsHandler(client consul.Client) gin.HandlerFunc {
+func NewSaveClusterSettingsHandler(client consul.Client, s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		clusterId := c.Param("id")
 
@@ -652,8 +644,7 @@ func NewSaveClusterSettingsHandler(client consul.Client) gin.HandlerFunc {
 
 		usernames := getConnectionMap(c.Request.PostForm)
 
-		checkErr := cluster.StoreCheckSelection(
-			client, clusterId, strings.Join(selectedChecks.Ids, ","))
+		checkErr := s.CreateSelectedChecks(clusterId, selectedChecks.Ids)
 
 		connErr := cluster.StoreConnectionSettings(
 			client, clusterId, usernames)

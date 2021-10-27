@@ -3,6 +3,8 @@ package discovery
 import (
 	"fmt"
 
+	log "github.com/sirupsen/logrus"
+	"github.com/trento-project/trento/agent/collector"
 	"github.com/trento-project/trento/internal/cloud"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
@@ -15,10 +17,10 @@ type CloudDiscovery struct {
 	discovery BaseDiscovery
 }
 
-func NewCloudDiscovery(client consul.Client) CloudDiscovery {
+func NewCloudDiscovery(consulClient consul.Client, collectorClient collector.Client) CloudDiscovery {
 	r := CloudDiscovery{}
 	r.id = CloudDiscoveryId
-	r.discovery = NewDiscovery(client)
+	r.discovery = NewDiscovery(consulClient, collectorClient)
 	return r
 }
 
@@ -32,13 +34,19 @@ func (d CloudDiscovery) Discover() (string, error) {
 		return "", err
 	}
 
-	err = cloudData.Store(d.discovery.client)
+	err = cloudData.Store(d.discovery.consulClient)
 	if err != nil {
 		return "", err
 	}
 
-	err = storeCloudMetadata(d.discovery.client, cloudData.Provider)
+	err = storeCloudMetadata(d.discovery.consulClient, cloudData.Provider)
 	if err != nil {
+		return "", err
+	}
+
+	err = d.discovery.collectorClient.Publish(d.id, cloudData)
+	if err != nil {
+		log.Debugf("Error while sending cloud discovery to data collector: %s", err)
 		return "", err
 	}
 

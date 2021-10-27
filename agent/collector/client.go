@@ -8,8 +8,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 )
 
 type Client interface {
@@ -52,20 +56,29 @@ func NewCollectorClient(config *Config) (*collectorClient, error) {
 		},
 	}
 
-	machineID, err := afero.ReadFile(fileSystem, machineIdPath)
+	machineIDBytes, err := afero.ReadFile(fileSystem, machineIdPath)
 
 	if err != nil {
 		return nil, err
 	}
 
+	machineID := strings.TrimSpace(string(machineIDBytes))
+
 	return &collectorClient{
 		config:     config,
 		httpClient: client,
-		machineID:  string(machineID),
+		machineID:  machineID,
 	}, nil
 }
 
 func (c *collectorClient) Publish(discoveryType string, payload interface{}) error {
+	// TODO: remove this when we want to start collecting
+	if !viper.GetBool("data-collector-enabled") {
+		return nil
+	}
+
+	log.Debugf("Sending %s to data collector", discoveryType)
+
 	requestBody, err := json.Marshal(map[string]interface{}{
 		"agent_id":       c.machineID,
 		"discovery_type": discoveryType,

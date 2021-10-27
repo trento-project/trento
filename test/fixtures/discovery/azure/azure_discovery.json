@@ -1,0 +1,244 @@
+{
+    "compute": {
+      "azEnvironment": "AzurePublicCloud",
+      "customData": "",
+      "evictionPolicy": "",
+      "isHostCompatibilityLayerVm": "false",
+      "licenseType": "",
+      "location": "westeurope",
+      "name": "vmhana01",
+      "offer": "sles-sap-15-sp2-byos",
+      "osProfile": {
+        "adminUsername": "cloudadmin",
+        "computerName": "vmhana01",
+        "disablePasswordAuthentication": "true"
+      },
+      "osType": "Linux",
+      "placementGroupId": "",
+      "plan": {
+        "name": "",
+        "product": "",
+        "publisher": ""
+      },
+      "platformFaultDomain": "1",
+      "platformUpdateDomain": "0",
+      "priority": "",
+      "provider": "Microsoft.Compute",
+      "publicKeys": [
+        {
+          "keyData": "ssh-rsa the public key\n",
+          "path": "/home/cloudadmin/.ssh/authorized_keys"
+        }
+      ],
+      "publisher": "SUSE",
+      "resourceGroupName": "RG-HA-SAP-THERESOURCEGROUP",
+      "resourceId": "/subscriptions/f7c6dd3f-1329-4805-92c0-554da66aa37e/resourceGroups/RG-HA-SAP-THERESOURCEGROUP/providers/Microsoft.Compute/virtualMachines/vmhana01",
+      "securityProfile": {
+        "secureBootEnabled": "false",
+        "virtualTpmEnabled": "false"
+      },
+      "sku": "gen2",
+      "storageProfile": {
+        "dataDisks": [
+          {
+            "caching": "None",
+            "createOption": "Empty",
+            "diskSizeGB": "128",
+            "image": {
+              "uri": ""
+            },
+            "lun": "0",
+            "managedDisk": {
+              "id": "/subscriptions/f7c6dd3f-1329-4805-92c0-554da66aa37e/resourceGroups/RG-HA-SAP-THERESOURCEGROUP/providers/Microsoft.Compute/disks/disk-hana01-Data01",
+              "storageAccountType": "Premium_LRS"
+            },
+            "name": "disk-hana01-Data01",
+            "vhd": {
+              "uri": ""
+            },
+            "writeAcceleratorEnabled": "false"
+          },
+          {
+            "caching": "None",
+            "createOption": "Empty",
+            "diskSizeGB": "128",
+            "image": {
+              "uri": ""
+            },
+            "lun": "1",
+            "managedDisk": {
+              "id": "/subscriptions/f7c6dd3f-1329-4805-92c0-554da66aa37e/resourceGroups/RG-HA-SAP-THERESOURCEGROUP/providers/Microsoft.Compute/disks/disk-hana01-Data02",
+              "storageAccountType": "Premium_LRS"
+            },
+            "name": "disk-hana01-Data02",
+            "vhd": {
+              "uri": ""
+            },
+            "writeAcceleratorEnabled": "false"
+          },
+          {
+            "caching": "None",
+            "createOption": "Empty",
+            "diskSizeGB": "128",
+            "image": {
+              "uri": ""
+            },
+            "lun": "2",
+            "managedDisk": {
+              "id": "/subscriptions/f7c6dd3f-1329-4805-92c0-554da66aa37e/resourceGroups/RG-HA-SAP-THERESOURCEGROUP/providers/Microsoft.Compute/disks/disk-hana01-Data03",
+              "storageAccountType": "Premium_LRS"
+            },
+            "name": "disk-hana01-Data03",
+            "vhd": {
+              "uri": ""
+            },
+            "writeAcceleratorEnabled": "false"
+          },
+          {
+            "caching": "None",
+            "createOption": "Empty",
+            "diskSizeGB": "128",
+            "image": {
+              "uri": ""
+            },
+            "lun": "3",
+            "managedDisk": {
+              "id": "/subscriptions/f7c6dd3f-1329-4805-92c0-554da66aa37e/resourceGroups/RG-HA-SAP-THERESOURCEGROUP/providers/Microsoft.Compute/disks/disk-hana01-Data04",
+              "storageAccountType": "Premium_LRS"
+            },
+            "name": "disk-hana01-Data04",
+            "vhd": {
+              "uri": ""
+            },
+            "writeAcceleratorEnabled": "false"
+          },
+          {
+            "caching": "None",
+            "createOption": "Empty",
+            "diskSizeGB": "128",
+            "image": {
+              "uri": ""
+            },
+            "lun": "4",
+            "managedDisk": {
+              "id": "/subscriptions/f7c6dd3f-1329-4805-92c0-554da66aa37e/resourceGroups/RG-HA-SAP-THERESOURCEGROUP/providers/Microsoft.Compute/disks/disk-hana01-Data05",
+              "storageAccountType": "Premium_LRS"
+            },
+            "name": "disk-hana01-Data05",
+            "vhd": {
+              "uri": ""
+            },
+            "writeAcceleratorEnabled": "false"
+          },
+          {
+            "caching": "None",
+            "createOption": "Empty",
+            "diskSizeGB": "128",
+            "image": {
+              "uri": ""
+            },
+            "lun": "5",
+            "managedDisk": {
+              "id": "/subscriptions/f7c6dd3f-1329-4805-92c0-554da66aa37e/resourceGroups/RG-HA-SAP-THERESOURCEGROUP/providers/Microsoft.Compute/disks/disk-hana01-Data06",
+              "storageAccountType": "Premium_LRS"
+            },
+            "name": "disk-hana01-Data06",
+            "vhd": {
+              "uri": ""
+            },
+            "writeAcceleratorEnabled": "false"
+          },
+          {
+            "caching": "None",
+            "createOption": "Empty",
+            "diskSizeGB": "128",
+            "image": {
+              "uri": ""
+            },
+            "lun": "6",
+            "managedDisk": {
+              "id": "/subscriptions/f7c6dd3f-1329-4805-92c0-554da66aa37e/resourceGroups/RG-HA-SAP-THERESOURCEGROUP/providers/Microsoft.Compute/disks/disk-hana01-Data07",
+              "storageAccountType": "Premium_LRS"
+            },
+            "name": "disk-hana01-Data07",
+            "vhd": {
+              "uri": ""
+            },
+            "writeAcceleratorEnabled": "false"
+          }
+        ],
+        "imageReference": {
+          "id": "",
+          "offer": "sles-sap-15-sp2-byos",
+          "publisher": "SUSE",
+          "sku": "gen2",
+          "version": "latest"
+        },
+        "osDisk": {
+          "caching": "ReadWrite",
+          "createOption": "FromImage",
+          "diffDiskSettings": {
+            "option": ""
+          },
+          "diskSizeGB": "30",
+          "encryptionSettings": {
+            "enabled": "false"
+          },
+          "image": {
+            "uri": ""
+          },
+          "managedDisk": {
+            "id": "/subscriptions/f7c6dd3f-1329-4805-92c0-554da66aa37e/resourceGroups/RG-HA-SAP-THERESOURCEGROUP/providers/Microsoft.Compute/disks/disk-hana01-Os",
+            "storageAccountType": "Premium_LRS"
+          },
+          "name": "disk-hana01-Os",
+          "osType": "Linux",
+          "vhd": {
+            "uri": ""
+          },
+          "writeAcceleratorEnabled": "false"
+        },
+        "resourceDisk": {
+          "size": "65536"
+        }
+      },
+      "subscriptionId": "f7c6dd3f-1329-4805-92c0-554da66aa37e",
+      "tags": "workspace:theworkspace",
+      "tagsList": [
+        {
+          "name": "workspace",
+          "value": "theworkspace"
+        }
+      ],
+      "userData": "",
+      "version": "2021.06.05",
+      "vmId": "060dd0d9-7d6d-43d7-86b7-7f6ecb3067d8",
+      "vmScaleSetName": "",
+      "vmSize": "Standard_E4s_v3",
+      "zone": ""
+    },
+    "network": {
+      "interface": [
+        {
+          "ipv4": {
+            "ipAddress": [
+              {
+                "privateIpAddress": "10.74.1.10",
+                "publicIpAddress": ""
+              }
+            ],
+            "subnet": [
+              {
+                "address": "10.74.1.0",
+                "prefix": "24"
+              }
+            ]
+          },
+          "ipv6": {
+            "ipAddress": []
+          },
+          "macAddress": "6045BD87DAB7"
+        }
+      ]
+    }
+  }

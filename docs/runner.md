@@ -1,12 +1,9 @@
 # Ansible runner
 
-These health checks are written in ansible following a pre-defined files structure. Find how to write a new check in the next chapters
+# Implementing a check
 
-## Implementing a check
+## Table of contents
 
-# Table of contents
-
-- [Structure]
    - [Check structure](#check-structure)
    - [Metadata files](#metadata-files)
    - [Check files](#check-files)
@@ -15,16 +12,16 @@ These health checks are written in ansible following a pre-defined files structu
 
 ## Check structure
 
-The checks folder is in `runner/ansible/roles/checks`. Each check is stored in an individual folder, which gives the name to the check (e.g. 1.1.1). The name refers to its place in the queue (1.1.2 will be 
+The checks folder is in `runner/ansible/roles/checks`. Each check is stored in an individual folder, which gives the name to the check (e.g. 1.1.1). The name refers to its place in the queue (1.1.2 will be
 executed after 1.1.1 etc.). These check folders contain other two subfolders. Both of these each has one file in them named `main.yml`:
 - `defaults`
-   The `main.yml`file in the `defaults` directory contains all the required [metadata](#metadata-files) for the check. 
+   The `main.yml`file in the `defaults` directory contains all the required [metadata](#metadata-files) for the check.
 
 - `tasks`
-  The `main.yml` file in the `tasks` directory contains the [check](#check-files). 
+  The `main.yml` file in the `tasks` directory contains the [check](#check-files).
 
 
-## Metadata files:
+## Metadata files
 
 The metadata files provide information about the check's themselves. They are used to get information
 from the Trento Web GUI and render properly everything related with the Ansible tasks.
@@ -54,14 +51,9 @@ If the expected value is a variable (something that differs in the different clo
 
 ```
 name: "{{ id }}.check"
-```
-
-```  
 check_mode: no
 register: config_updated
 changed_when: config_updated.stdout != expected[name]
-```
-```
 - block:
     - import_role:
         name: post-results
@@ -69,7 +61,7 @@ changed_when: config_updated.stdout != expected[name]
     - ansible_check_mode
   vars:
     status: "{{ config_updated is not changed }}"
-``` 
+```
 
 ## Creating a new ID
 
@@ -113,7 +105,7 @@ implementation: "{{ lookup('file', 'roles/checks/'+id+'/tasks/main.yml') }}"
 # Test data
 key_name: token
 id: FFFFFF
-``` 
+```
 (In this example the ID FFFFFF is used [(six hex digits)](#add-id). When creating a check the `hack/id_checker.py` script should be used.
 It checks if the ID's are unique and adds ID's to the checks if they are missing.)
 

@@ -164,6 +164,7 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 		apiGroup.GET("/checks/:id/settings", ApiCheckGetSettingsByIdHandler(deps.checksService))
 		apiGroup.POST("/checks/:id/settings", ApiCheckCreateSettingsByIdHandler(deps.checksService))
 		apiGroup.PUT("/checks/catalog", ApiCreateChecksCatalogHandler(deps.checksService))
+		apiGroup.GET("/checks/catalog", ApiChecksCatalogHandler(deps.checksService))
 	}
 
 	collectorEngine := deps.collectorEngine

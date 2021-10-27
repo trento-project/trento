@@ -29,6 +29,24 @@ type JSONCheck struct {
 }
 
 // ApiCheckResultsHandler godoc
+// @Summary Get the whole checks' catalog
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Error 500
+// @Router /api/checks_catalog [get]
+func ApiChecksCatalogHandler(s services.ChecksService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		checkGroups, err := s.GetChecksCatalogByGroup()
+		if err != nil {
+			c.Error(err)
+			return
+		}
+
+		c.JSON(http.StatusOK, checkGroups)
+	}
+}
+
+// ApiCheckResultsHandler godoc
 // @Summary Get a specific cluster's check results
 // @Produce json
 // @Param cluster_id path string true "Cluster Id"

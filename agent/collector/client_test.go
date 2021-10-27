@@ -30,8 +30,8 @@ func (suite *CollectorClientTestSuite) SetupSuite() {
 
 	afero.WriteFile(fileSystem, machineIdPath, []byte("the-machine-id"), 0644)
 
-	// this is read by an env variable called DATA_COLLECTOR_ENABLED
-	viper.Set("data-collector-enabled", true)
+	// this is read by an env variable called TRENTO_COLLECTOR_ENABLED
+	viper.Set("collector-enabled", true)
 
 	collectorClient, err := NewCollectorClient(&Config{
 		EnablemTLS:    true,

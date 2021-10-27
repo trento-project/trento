@@ -84,20 +84,6 @@ var getNodeAddress = func(client consul.Client, node string) (string, error) {
 	return "", err
 }
 
-var getConnectionName = func(client consul.Client, clusterId string, node string) (string, error) {
-	connectionData, err := cluster.GetConnectionSettings(client, clusterId)
-	if err != nil {
-		return "", err
-	}
-
-	user, found := connectionData[node]
-	if !found {
-		return "", fmt.Errorf("connection data for %s node not found", node)
-	}
-
-	return user.(string), nil
-}
-
 var getCloudUserName = func(client consul.Client, node string) (string, error) {
 	cloudData, err := cloud.Load(client, node)
 	if err != nil {
@@ -136,6 +122,12 @@ func NewClusterInventoryContent(client consul.Client, trentoApi api.TrentoApiSer
 			continue
 		}
 
+		connUsers, err := trentoApi.GetConnectionDataById(clusterId)
+		if err != nil {
+			log.Errorf("error getting the cluster %s connection data", clusterId)
+			continue
+		}
+
 		for _, node := range clusterData.Crmmon.Nodes {
 			node := &Node{
 				Name:        node.Name,
@@ -150,13 +142,13 @@ func NewClusterInventoryContent(client consul.Client, trentoApi api.TrentoApiSer
 				node.AnsibleHost = address
 			}
 
-			userName, err := getConnectionName(client, clusterId, node.Name)
-			if err == nil {
-				node.AnsibleUser = userName
+			user, found := connUsers[node.Name]
+			if found {
+				node.AnsibleUser = user.User
 			}
 
 			// if the node user name is not provided by the user, get the cloud data
-			if err != nil || len(userName) == 0 {
+			if len(node.AnsibleUser) == 0 {
 				cloudUser, err := getCloudUserName(client, node.Name)
 				if err == nil {
 					node.AnsibleUser = cloudUser

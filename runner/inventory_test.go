@@ -16,6 +16,7 @@ import (
 
 	apiMocks "github.com/trento-project/trento/api/mocks"
 	"github.com/trento-project/trento/web"
+	"github.com/trento-project/trento/web/models"
 )
 
 func TestCreateInventory(t *testing.T) {
@@ -134,21 +135,6 @@ func mockGetNodeAddress(client consul.Client, node string) (string, error) {
 	return "", nil
 }
 
-func mockGetConnectionName(client consul.Client, clusterId string, node string) (string, error) {
-	switch node {
-	case "node1":
-		return "user1", nil
-	case "node2":
-		return "user2", nil
-	case "node3":
-		return "", nil
-	case "node4":
-		return "", fmt.Errorf("Error getting node user")
-	}
-
-	return "", nil
-}
-
 func mockGetCloudUserName(client consul.Client, node string) (string, error) {
 	switch node {
 	case "node3":
@@ -165,13 +151,24 @@ func TestNewClusterInventoryContent(t *testing.T) {
 
 	getClusters = mockGetCluster
 	getNodeAddress = mockGetNodeAddress
-	getConnectionName = mockGetConnectionName
 	getCloudUserName = mockGetCloudUserName
 
 	apiInst.On("GetSelectedChecksById", "cluster1").Return(
 		&web.JSONSelectedChecks{SelectedChecks: []string{"check1", "check2"}}, nil)
 	apiInst.On("GetSelectedChecksById", "cluster2").Return(
 		&web.JSONSelectedChecks{SelectedChecks: []string{"check3", "check4"}}, nil)
+
+	connData1 := map[string]*models.ConnectionData{
+		"node1": &models.ConnectionData{ID: "cluster1", Node: "node1", User: "user1"},
+		"node2": &models.ConnectionData{ID: "cluster1", Node: "node2", User: "user2"},
+	}
+
+	connData2 := map[string]*models.ConnectionData{
+		"node3": &models.ConnectionData{ID: "cluster1", Node: "node1", User: ""},
+	}
+
+	apiInst.On("GetConnectionDataById", "cluster1").Return(connData1, nil)
+	apiInst.On("GetConnectionDataById", "cluster2").Return(connData2, nil)
 
 	content, err := NewClusterInventoryContent(consulInst, apiInst)
 

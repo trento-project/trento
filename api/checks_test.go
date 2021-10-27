@@ -12,7 +12,7 @@ import (
 )
 
 func TestGetSelectedChecksById(t *testing.T) {
-	trentoApi := NewTrentoApiService("http://192.168.1.10:8000")
+	trentoApi := NewTrentoApiService("192.168.1.10", 8000)
 
 	trentoApi.httpClient = &http.Client{Transport: helpers.RoundTripFunc(func(req *http.Request) *http.Response {
 		assert.Equal(t, req.URL.String(), "http://192.168.1.10:8000/api/checks/group1/selected")
@@ -31,7 +31,7 @@ func TestGetSelectedChecksById(t *testing.T) {
 }
 
 func TestGetSelectedChecksByIdNotFound(t *testing.T) {
-	trentoApi := NewTrentoApiService("http://192.168.1.10:8000")
+	trentoApi := NewTrentoApiService("192.168.1.10", 8000)
 
 	trentoApi.httpClient = &http.Client{Transport: helpers.RoundTripFunc(func(req *http.Request) *http.Response {
 		assert.Equal(t, req.URL.String(), "http://192.168.1.10:8000/api/checks/otherId/selected")

@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func SetupTestDatabase() *gorm.DB {
+func SetupTestDatabase() (*gorm.DB, error) {
 	// TODO: refactor this in a common infrastructure init package
 
 	viper.SetDefault("db-host", "localhost")
@@ -30,8 +30,8 @@ func SetupTestDatabase() *gorm.DB {
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbName)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("could not open test database connection")
 	}
 
-	return db
+	return db, err
 }

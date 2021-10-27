@@ -2,8 +2,9 @@ package services
 
 import (
 	"fmt"
-	"gorm.io/gorm"
 	"testing"
+
+	"gorm.io/gorm"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -106,6 +107,10 @@ func araResultRecord() *ara.Record {
 }
 
 func TestGetChecksCatalog(t *testing.T) {
+	db, err := helpers.SetupTestDatabase()
+	if err != nil {
+		t.Skip(err)
+	}
 
 	mockAra := new(araMocks.AraService)
 
@@ -171,7 +176,6 @@ func TestGetChecksCatalog(t *testing.T) {
 		r, nil,
 	)
 
-	db := helpers.SetupTestDatabase()
 	checksService := NewChecksService(mockAra, db)
 	c, err := checksService.GetChecksCatalog()
 
@@ -203,6 +207,10 @@ func TestGetChecksCatalog(t *testing.T) {
 }
 
 func TestGetChecksCatalogEmpty(t *testing.T) {
+	db, err := helpers.SetupTestDatabase()
+	if err != nil {
+		t.Skip(err)
+	}
 
 	mockAra := new(araMocks.AraService)
 
@@ -212,7 +220,6 @@ func TestGetChecksCatalogEmpty(t *testing.T) {
 		rList, nil,
 	)
 
-	db := helpers.SetupTestDatabase()
 	checksService := NewChecksService(mockAra, db)
 	c, err := checksService.GetChecksCatalog()
 
@@ -225,6 +232,10 @@ func TestGetChecksCatalogEmpty(t *testing.T) {
 }
 
 func TestGetChecksCatalogListError(t *testing.T) {
+	db, err := helpers.SetupTestDatabase()
+	if err != nil {
+		t.Skip(err)
+	}
 
 	mockAra := new(araMocks.AraService)
 
@@ -234,7 +245,6 @@ func TestGetChecksCatalogListError(t *testing.T) {
 		rList, fmt.Errorf("Some error"),
 	)
 
-	db := helpers.SetupTestDatabase()
 	checksService := NewChecksService(mockAra, db)
 	c, err := checksService.GetChecksCatalog()
 
@@ -247,6 +257,10 @@ func TestGetChecksCatalogListError(t *testing.T) {
 }
 
 func TestGetChecksCatalogRecordError(t *testing.T) {
+	db, err := helpers.SetupTestDatabase()
+	if err != nil {
+		t.Skip(err)
+	}
 
 	mockAra := new(araMocks.AraService)
 
@@ -272,7 +286,6 @@ func TestGetChecksCatalogRecordError(t *testing.T) {
 		r, fmt.Errorf("Some other error"),
 	)
 
-	db := helpers.SetupTestDatabase()
 	checksService := NewChecksService(mockAra, db)
 	c, err := checksService.GetChecksCatalog()
 
@@ -285,6 +298,10 @@ func TestGetChecksCatalogRecordError(t *testing.T) {
 }
 
 func TestGetChecksCatalogByGroup(t *testing.T) {
+	db, err := helpers.SetupTestDatabase()
+	if err != nil {
+		t.Skip(err)
+	}
 
 	mockAra := new(araMocks.AraService)
 
@@ -359,7 +376,6 @@ func TestGetChecksCatalogByGroup(t *testing.T) {
 		r, nil,
 	)
 
-	db := helpers.SetupTestDatabase()
 	checksService := NewChecksService(mockAra, db)
 	c, err := checksService.GetChecksCatalogByGroup()
 
@@ -410,6 +426,10 @@ func TestGetChecksCatalogByGroup(t *testing.T) {
 }
 
 func TestGetChecksResult(t *testing.T) {
+	db, err := helpers.SetupTestDatabase()
+	if err != nil {
+		t.Skip(err)
+	}
 
 	mockAra := new(araMocks.AraService)
 
@@ -445,7 +465,6 @@ func TestGetChecksResult(t *testing.T) {
 		araResultRecord(), nil,
 	)
 
-	db := helpers.SetupTestDatabase()
 	checksService := NewChecksService(mockAra, db)
 	c, err := checksService.GetChecksResult()
 
@@ -503,6 +522,10 @@ func TestGetChecksResult(t *testing.T) {
 }
 
 func TestGetChecksResultEmpty(t *testing.T) {
+	db, err := helpers.SetupTestDatabase()
+	if err != nil {
+		t.Skip(err)
+	}
 
 	mockAra := new(araMocks.AraService)
 
@@ -512,7 +535,6 @@ func TestGetChecksResultEmpty(t *testing.T) {
 		rList, nil,
 	)
 
-	db := helpers.SetupTestDatabase()
 	checksService := NewChecksService(mockAra, db)
 	c, err := checksService.GetChecksResult()
 
@@ -525,6 +547,10 @@ func TestGetChecksResultEmpty(t *testing.T) {
 }
 
 func TestGetChecksResultListError(t *testing.T) {
+	db, err := helpers.SetupTestDatabase()
+	if err != nil {
+		t.Skip(err)
+	}
 
 	mockAra := new(araMocks.AraService)
 
@@ -534,7 +560,6 @@ func TestGetChecksResultListError(t *testing.T) {
 		rList, fmt.Errorf("Some error"),
 	)
 
-	db := helpers.SetupTestDatabase()
 	checksService := NewChecksService(mockAra, db)
 	c, err := checksService.GetChecksResult()
 
@@ -547,6 +572,10 @@ func TestGetChecksResultListError(t *testing.T) {
 }
 
 func TestGetChecksResultRecordError(t *testing.T) {
+	db, err := helpers.SetupTestDatabase()
+	if err != nil {
+		t.Skip(err)
+	}
 
 	mockAra := new(araMocks.AraService)
 
@@ -572,7 +601,6 @@ func TestGetChecksResultRecordError(t *testing.T) {
 		r, fmt.Errorf("Some other error"),
 	)
 
-	db := helpers.SetupTestDatabase()
 	checksService := NewChecksService(mockAra, db)
 	c, err := checksService.GetChecksResult()
 
@@ -585,6 +613,10 @@ func TestGetChecksResultRecordError(t *testing.T) {
 }
 
 func TestGetChecksResultByCluster(t *testing.T) {
+	db, err := helpers.SetupTestDatabase()
+	if err != nil {
+		t.Skip(err)
+	}
 
 	mockAra := new(araMocks.AraService)
 
@@ -620,7 +652,6 @@ func TestGetChecksResultByCluster(t *testing.T) {
 		araResultRecord(), nil,
 	)
 
-	db := helpers.SetupTestDatabase()
 	checksService := NewChecksService(mockAra, db)
 	c, err := checksService.GetChecksResultByCluster("myClusterId")
 
@@ -676,6 +707,11 @@ func TestGetChecksResultByCluster(t *testing.T) {
 }
 
 func TestGetChecksResultAndMetadataByCluster(t *testing.T) {
+	db, err := helpers.SetupTestDatabase()
+	if err != nil {
+		t.Skip(err)
+	}
+
 	mockAra := new(araMocks.AraService)
 
 	rList := &ara.RecordList{
@@ -780,7 +816,6 @@ func TestGetChecksResultAndMetadataByCluster(t *testing.T) {
 	mockAra.On("GetRecord", 1).Return(araResultRecord, nil)
 	mockAra.On("GetRecord", 2).Return(araMetaRecord, nil)
 
-	db := helpers.SetupTestDatabase()
 	checksService := NewChecksService(mockAra, db)
 	results, err := checksService.GetChecksResultAndMetadataByCluster("myClusterId")
 
@@ -830,6 +865,10 @@ func TestGetChecksResultAndMetadataByCluster(t *testing.T) {
 }
 
 func TestGetAggregatedChecksResultByHost(t *testing.T) {
+	db, err := helpers.SetupTestDatabase()
+	if err != nil {
+		t.Skip(err)
+	}
 
 	mockAra := new(araMocks.AraService)
 
@@ -865,7 +904,6 @@ func TestGetAggregatedChecksResultByHost(t *testing.T) {
 		araResultRecord(), nil,
 	)
 
-	db := helpers.SetupTestDatabase()
 	checksService := NewChecksService(mockAra, db)
 	c, err := checksService.GetAggregatedChecksResultByHost("myClusterId")
 
@@ -889,6 +927,10 @@ func TestGetAggregatedChecksResultByHost(t *testing.T) {
 }
 
 func TestGetAggregatedChecksResultByCluster(t *testing.T) {
+	db, err := helpers.SetupTestDatabase()
+	if err != nil {
+		t.Skip(err)
+	}
 
 	mockAra := new(araMocks.AraService)
 
@@ -924,7 +966,6 @@ func TestGetAggregatedChecksResultByCluster(t *testing.T) {
 		araResultRecord(), nil,
 	)
 
-	db := helpers.SetupTestDatabase()
 	checksService := NewChecksService(mockAra, db)
 	c, err := checksService.GetAggregatedChecksResultByCluster("myClusterId")
 
@@ -953,7 +994,11 @@ func TestChecksServiceTestSuite(t *testing.T) {
 }
 
 func (suite *ChecksServiceTestSuite) SetupSuite() {
-	suite.db = helpers.SetupTestDatabase()
+	var err error
+	suite.db, err = helpers.SetupTestDatabase()
+	if err != nil {
+		suite.T().Skip(err)
+	}
 
 	suite.db.AutoMigrate(models.SelectedChecks{}, models.ConnectionSettings{})
 	loadSelectedChecksFixtures(suite.db)

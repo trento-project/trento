@@ -21,11 +21,7 @@ func TestProjectorTestSuite(t *testing.T) {
 }
 
 func (suite *ProjectorTestSuite) SetupSuite() {
-	var err error
-	suite.db, err = helpers.SetupTestDatabase()
-	if err != nil {
-		suite.T().Skip(err)
-	}
+	suite.db = helpers.SetupTestDatabase(suite.T())
 
 	suite.db.AutoMigrate(&Subscription{})
 }

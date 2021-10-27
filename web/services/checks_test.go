@@ -107,10 +107,7 @@ func araResultRecord() *ara.Record {
 }
 
 func TestGetChecksCatalog(t *testing.T) {
-	db, err := helpers.SetupTestDatabase()
-	if err != nil {
-		t.Skip(err)
-	}
+	db := helpers.SetupTestDatabase(t)
 
 	mockAra := new(araMocks.AraService)
 
@@ -207,10 +204,7 @@ func TestGetChecksCatalog(t *testing.T) {
 }
 
 func TestGetChecksCatalogEmpty(t *testing.T) {
-	db, err := helpers.SetupTestDatabase()
-	if err != nil {
-		t.Skip(err)
-	}
+	db := helpers.SetupTestDatabase(t)
 
 	mockAra := new(araMocks.AraService)
 
@@ -232,10 +226,7 @@ func TestGetChecksCatalogEmpty(t *testing.T) {
 }
 
 func TestGetChecksCatalogListError(t *testing.T) {
-	db, err := helpers.SetupTestDatabase()
-	if err != nil {
-		t.Skip(err)
-	}
+	db := helpers.SetupTestDatabase(t)
 
 	mockAra := new(araMocks.AraService)
 
@@ -257,10 +248,7 @@ func TestGetChecksCatalogListError(t *testing.T) {
 }
 
 func TestGetChecksCatalogRecordError(t *testing.T) {
-	db, err := helpers.SetupTestDatabase()
-	if err != nil {
-		t.Skip(err)
-	}
+	db := helpers.SetupTestDatabase(t)
 
 	mockAra := new(araMocks.AraService)
 
@@ -298,10 +286,7 @@ func TestGetChecksCatalogRecordError(t *testing.T) {
 }
 
 func TestGetChecksCatalogByGroup(t *testing.T) {
-	db, err := helpers.SetupTestDatabase()
-	if err != nil {
-		t.Skip(err)
-	}
+	db := helpers.SetupTestDatabase(t)
 
 	mockAra := new(araMocks.AraService)
 
@@ -426,10 +411,7 @@ func TestGetChecksCatalogByGroup(t *testing.T) {
 }
 
 func TestGetChecksResult(t *testing.T) {
-	db, err := helpers.SetupTestDatabase()
-	if err != nil {
-		t.Skip(err)
-	}
+	db := helpers.SetupTestDatabase(t)
 
 	mockAra := new(araMocks.AraService)
 
@@ -522,10 +504,7 @@ func TestGetChecksResult(t *testing.T) {
 }
 
 func TestGetChecksResultEmpty(t *testing.T) {
-	db, err := helpers.SetupTestDatabase()
-	if err != nil {
-		t.Skip(err)
-	}
+	db := helpers.SetupTestDatabase(t)
 
 	mockAra := new(araMocks.AraService)
 
@@ -547,10 +526,7 @@ func TestGetChecksResultEmpty(t *testing.T) {
 }
 
 func TestGetChecksResultListError(t *testing.T) {
-	db, err := helpers.SetupTestDatabase()
-	if err != nil {
-		t.Skip(err)
-	}
+	db := helpers.SetupTestDatabase(t)
 
 	mockAra := new(araMocks.AraService)
 
@@ -572,10 +548,7 @@ func TestGetChecksResultListError(t *testing.T) {
 }
 
 func TestGetChecksResultRecordError(t *testing.T) {
-	db, err := helpers.SetupTestDatabase()
-	if err != nil {
-		t.Skip(err)
-	}
+	db := helpers.SetupTestDatabase(t)
 
 	mockAra := new(araMocks.AraService)
 
@@ -613,10 +586,7 @@ func TestGetChecksResultRecordError(t *testing.T) {
 }
 
 func TestGetChecksResultByCluster(t *testing.T) {
-	db, err := helpers.SetupTestDatabase()
-	if err != nil {
-		t.Skip(err)
-	}
+	db := helpers.SetupTestDatabase(t)
 
 	mockAra := new(araMocks.AraService)
 
@@ -707,10 +677,7 @@ func TestGetChecksResultByCluster(t *testing.T) {
 }
 
 func TestGetChecksResultAndMetadataByCluster(t *testing.T) {
-	db, err := helpers.SetupTestDatabase()
-	if err != nil {
-		t.Skip(err)
-	}
+	db := helpers.SetupTestDatabase(t)
 
 	mockAra := new(araMocks.AraService)
 
@@ -865,10 +832,7 @@ func TestGetChecksResultAndMetadataByCluster(t *testing.T) {
 }
 
 func TestGetAggregatedChecksResultByHost(t *testing.T) {
-	db, err := helpers.SetupTestDatabase()
-	if err != nil {
-		t.Skip(err)
-	}
+	db := helpers.SetupTestDatabase(t)
 
 	mockAra := new(araMocks.AraService)
 
@@ -927,10 +891,7 @@ func TestGetAggregatedChecksResultByHost(t *testing.T) {
 }
 
 func TestGetAggregatedChecksResultByCluster(t *testing.T) {
-	db, err := helpers.SetupTestDatabase()
-	if err != nil {
-		t.Skip(err)
-	}
+	db := helpers.SetupTestDatabase(t)
 
 	mockAra := new(araMocks.AraService)
 
@@ -994,13 +955,9 @@ func TestChecksServiceTestSuite(t *testing.T) {
 }
 
 func (suite *ChecksServiceTestSuite) SetupSuite() {
-	var err error
-	suite.db, err = helpers.SetupTestDatabase()
-	if err != nil {
-		suite.T().Skip(err)
-	}
-
+	suite.db = helpers.SetupTestDatabase(suite.T())
 	suite.db.AutoMigrate(models.SelectedChecks{}, models.ConnectionSettings{})
+
 	loadSelectedChecksFixtures(suite.db)
 	loadConnectionSettingsFixtures(suite.db)
 }

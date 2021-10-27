@@ -9,10 +9,7 @@ import (
 )
 
 func TestCollectorService_StoreEvent(t *testing.T) {
-	db, err := helpers.SetupTestDatabase()
-	if err != nil {
-		t.Skip(err)
-	}
+	db := helpers.SetupTestDatabase(t)
 
 	tx := db.Begin()
 	tx.AutoMigrate(&datapipeline.DataCollectedEvent{})

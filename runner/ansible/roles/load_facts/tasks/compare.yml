@@ -1,0 +1,9 @@
+- name: compare facts among nodes
+  assert:
+    that:
+      - "{{ groups[item] | map('extract', hostvars) | map(attribute=fact_to_compare) | list | unique | length }} == 1"
+    quiet: true
+  loop: "{{ group_names }}"
+  register: config_updated
+  changed_when: config_updated.failed
+  when: "fact_to_compare is defined"

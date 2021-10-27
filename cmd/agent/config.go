@@ -41,10 +41,12 @@ func LoadConfig() (*agent.Config, error) {
 
 	return &agent.Config{
 		CollectorConfig: &collector.Config{
-			EnablemTLS: enablemTLS,
-			Cert:       cert,
-			Key:        key,
-			CA:         ca,
+			CollectorHost: viper.GetString("collector-host"),
+			CollectorPort: viper.GetInt("collector-port"),
+			EnablemTLS:    enablemTLS,
+			Cert:          cert,
+			Key:           key,
+			CA:            ca,
 		},
 		InstanceName:    hostname,
 		DiscoveryPeriod: time.Duration(viper.GetInt("discovery-period")) * time.Minute,

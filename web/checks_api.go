@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/trento-project/trento/internal/consul"
+	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
 )
 
@@ -81,6 +82,59 @@ func ApiCheckCreateSelectedHandler(s services.ChecksService) gin.HandlerFunc {
 		}
 
 		err = s.CreateSelectedChecks(id, r.SelectedChecks)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
+		c.JSON(http.StatusCreated, &r)
+	}
+}
+
+// ApiCheckGetConnectionDataHandler godoc
+// @Summary Get users connection data
+// @Accept json
+// @Produce json
+// @Param id path string true "Checks group id"
+// @Success 200 {object} map[string]models.ConnectionData
+// @Failure 404 {object} map[string]string
+// @Router /api/checks/{id}/connection_data [get]
+func ApiCheckGetConnectionDataHandler(s services.ChecksService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+
+		connectionData, err := s.GetConnectionDataById(id)
+		if err != nil {
+			_ = c.Error(NotFoundError("could not find connection data"))
+			return
+		}
+
+		c.JSON(http.StatusOK, connectionData)
+	}
+}
+
+// ApiCheckCreateConnectionDataHandler godoc
+// @Summary Create connection data for the node
+// @Accept json
+// @Produce json
+// @Param id path string true "Checks group id"
+// @Param Body body models.ConnectionData true "Checks connection user data"
+// @Success 201 {object} models.ConnectionData
+// @Failure 500 {object} map[string]string
+// @Router /api/checks/{id}/connection_data [post]
+func ApiCheckCreateConnectionDataHandler(s services.ChecksService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+
+		var r models.ConnectionData
+
+		err := c.BindJSON(&r)
+		if err != nil {
+			_ = c.Error(BadRequestError("unable to parse JSON body"))
+			return
+		}
+
+		err = s.CreateConnectionData(id, r.Node, r.User)
 		if err != nil {
 			_ = c.Error(err)
 			return

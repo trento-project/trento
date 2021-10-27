@@ -123,7 +123,7 @@ func InitDB() (*gorm.DB, error) {
 }
 
 func MigrateDB(db *gorm.DB) error {
-	err := db.AutoMigrate(models.Tag{}, models.SelectedChecks{}, models.Cluster{}, datapipeline.DataCollectedEvent{}, datapipeline.Subscription{})
+	err := db.AutoMigrate(models.Tag{}, models.SelectedChecks{}, models.ConnectionData{}, models.Cluster{}, datapipeline.DataCollectedEvent{}, datapipeline.Subscription{})
 	if err != nil {
 		return err
 	}
@@ -169,7 +169,7 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 	webEngine.GET("/clusters", NewClusterListHandler(deps.consul, deps.checksService, deps.tagsService))
 	webEngine.GET("/clusters-next", NewClusterListNextHandler(deps.clustersService))
 	webEngine.GET("/clusters/:id", NewClusterHandler(deps.consul, deps.checksService))
-	webEngine.POST("/clusters/:id/settings", NewSaveClusterSettingsHandler(deps.consul, deps.checksService))
+	webEngine.POST("/clusters/:id/settings", NewSaveClusterSettingsHandler(deps.checksService))
 	webEngine.GET("/sapsystems", NewSAPSystemListHandler(deps.consul, deps.hostsService, deps.sapSystemsService, deps.tagsService))
 	webEngine.GET("/sapsystems/:id", NewSAPResourceHandler(deps.hostsService, deps.sapSystemsService))
 	webEngine.GET("/databases", NewHanaDatabaseListHandler(deps.consul, deps.hostsService, deps.sapSystemsService, deps.tagsService))
@@ -192,6 +192,8 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 		apiGroup.DELETE("/databases/:id/tags/:tag", ApiDatabaseDeleteTagHandler(deps.sapSystemsService, deps.tagsService))
 		apiGroup.GET("/checks/:id/selected", ApiCheckGetSelectedHandler(deps.checksService))
 		apiGroup.POST("/checks/:id/selected", ApiCheckCreateSelectedHandler(deps.checksService))
+		apiGroup.GET("/checks/:id/connection_data", ApiCheckGetConnectionDataHandler(deps.checksService))
+		apiGroup.POST("/checks/:id/connection_data", ApiCheckCreateConnectionDataHandler(deps.checksService))
 	}
 
 	collectorEngine := deps.collectorEngine

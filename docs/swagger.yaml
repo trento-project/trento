@@ -1,4 +1,13 @@
 definitions:
+  models.ConnectionData:
+    properties:
+      id:
+        type: string
+      node:
+        type: string
+      user:
+        type: string
+    type: object
   web.JSONSelectedChecks:
     properties:
       selected_checks:
@@ -18,6 +27,61 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/checks/{id}/connection_data:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Checks group id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              $ref: '#/definitions/models.ConnectionData'
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get users connection data
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Checks group id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Checks connection user data
+        in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/models.ConnectionData'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.ConnectionData'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create connection data for the node
   /api/checks/{id}/selected:
     get:
       consumes:

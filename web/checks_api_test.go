@@ -257,3 +257,107 @@ func TestApiCheckCreateSelectedHandler(t *testing.T) {
 
 	mockChecksService.AssertExpectations(t)
 }
+
+func TestApiCheckGetConnectionDataHandler(t *testing.T) {
+	expectedData := map[string]models.ConnectionData{
+		"node1": models.ConnectionData{ID: "group1", Node: "node1", User: "user1"},
+		"node2": models.ConnectionData{ID: "group1", Node: "node2", User: "user2"},
+	}
+
+	mockChecksService := new(services.MockChecksService)
+	mockChecksService.On(
+		"GetConnectionDataById", "group1").Return(expectedData, nil)
+	mockChecksService.On(
+		"GetConnectionDataById", "otherId").Return(make(map[string]models.ConnectionData), fmt.Errorf("not found"))
+
+	deps := setupTestDependencies()
+	deps.checksService = mockChecksService
+
+	var err error
+	config := setupTestConfig()
+	app, err := NewAppWithDeps(config, deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// 200 scenario
+	resp := httptest.NewRecorder()
+
+	req, err := http.NewRequest("GET", "/api/checks/group1/connection_data", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	app.webEngine.ServeHTTP(resp, req)
+
+	var connData map[string]models.ConnectionData
+	json.Unmarshal(resp.Body.Bytes(), &connData)
+
+	assert.Equal(t, 200, resp.Code)
+	assert.Equal(t, expectedData, connData)
+
+	// 404 scenario
+	resp = httptest.NewRecorder()
+
+	req, err = http.NewRequest("GET", "/api/checks/otherId/connection_data", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	app.webEngine.ServeHTTP(resp, req)
+
+	json.Unmarshal(resp.Body.Bytes(), &connData)
+
+	assert.Equal(t, 404, resp.Code)
+
+	mockChecksService.AssertExpectations(t)
+}
+
+func TestApiCheckCreateConnectionDataHandler(t *testing.T) {
+	mockChecksService := new(services.MockChecksService)
+	mockChecksService.On(
+		"CreateConnectionData", "group1", "node1", "user1").Return(nil)
+	mockChecksService.On(
+		"CreateConnectionData", "otherId", "node1", "user1").Return(fmt.Errorf("not storing"))
+
+	deps := setupTestDependencies()
+	deps.checksService = mockChecksService
+
+	var err error
+	config := setupTestConfig()
+	app, err := NewAppWithDeps(config, deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// 200 scenario
+	sendData := models.ConnectionData{ID: "group1", Node: "node1", User: "user1"}
+	resp := httptest.NewRecorder()
+	body, _ := json.Marshal(&sendData)
+	req, err := http.NewRequest("POST", "/api/checks/group1/connection_data", bytes.NewBuffer(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	app.webEngine.ServeHTTP(resp, req)
+
+	var connData models.ConnectionData
+	json.Unmarshal(resp.Body.Bytes(), &connData)
+
+	assert.Equal(t, 201, resp.Code)
+	assert.Equal(t, sendData, connData)
+
+	// 500 scenario
+	resp = httptest.NewRecorder()
+
+	req, err = http.NewRequest("POST", "/api/checks/otherId/connection_data", bytes.NewBuffer(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	app.webEngine.ServeHTTP(resp, req)
+
+	assert.Equal(t, 500, resp.Code)
+
+	mockChecksService.AssertExpectations(t)
+}

@@ -43,6 +43,10 @@ type ChecksService interface {
 	// Selected checks services
 	GetSelectedChecksById(id string) (models.SelectedChecks, error)
 	CreateSelectedChecks(id string, selectedChecksList []string) error
+	// Connection data services
+	GetConnectionDataById(id string) (map[string]models.ConnectionData, error)
+	GetConnectionDataByNode(node string) (models.ConnectionData, error)
+	CreateConnectionData(node, cluster, user string) error
 }
 
 type checksService struct {
@@ -237,6 +241,49 @@ func (c *checksService) CreateSelectedChecks(id string, selectedChecksList []str
 	result := c.db.Clauses(clause.OnConflict{
 		UpdateAll: true,
 	}).Create(&selectedChecks)
+
+	return result.Error
+}
+
+/*
+Checks connection user services
+*/
+
+func (c *checksService) GetConnectionDataByNode(node string) (models.ConnectionData, error) {
+	var connUser models.ConnectionData
+
+	result := c.db.Where("node", node).First(&connUser)
+
+	return connUser, result.Error
+}
+
+func (c *checksService) GetConnectionDataById(id string) (map[string]models.ConnectionData, error) {
+	var connUsersList []models.ConnectionData
+
+	result := c.db.Where("id", id).Find(&connUsersList)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	connUsersMap := make(map[string]models.ConnectionData)
+	for _, user := range connUsersList {
+		connUsersMap[user.Node] = user
+	}
+
+	return connUsersMap, nil
+}
+
+func (c *checksService) CreateConnectionData(id, node, user string) error {
+	connUser := models.ConnectionData{
+		ID:   id,
+		Node: node,
+		User: user,
+	}
+
+	result := c.db.Clauses(clause.OnConflict{
+		UpdateAll: true,
+	}).Create(&connUser)
 
 	return result.Error
 }

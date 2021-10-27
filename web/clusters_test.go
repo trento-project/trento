@@ -577,19 +577,12 @@ func TestClusterHandlerHANA(t *testing.T) {
 	kv := new(consulMocks.KV)
 	consulInst.On("KV").Return(kv)
 	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
-	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil).Times(2)
+	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil)
 
 	catalog := new(consulMocks.Catalog)
 	filter := &consulApi.QueryOptions{Filter: "Meta[\"trento-ha-cluster-id\"] == \"" + clusterId + "\""}
 	catalog.On("Nodes", filter).Return(nodes, nil, nil)
 	consulInst.On("Catalog").Return(catalog)
-
-	connData := map[string]interface{}{
-		"test_node_1": "myuser1",
-		"test_node_2": "myuser2",
-	}
-	connSettingsPath := fmt.Sprintf(consul.KvClustersConnectionPath, clusterId)
-	kv.On("ListMap", connSettingsPath, connSettingsPath).Return(connData, nil)
 
 	cloudPath1 := fmt.Sprintf(consul.KvHostsClouddataPath, "test_node_1")
 	consulInst.On("WaitLock", path.Join(consul.KvHostsPath, "test_node_1")+"/").Return(nil)
@@ -608,6 +601,12 @@ func TestClusterHandlerHANA(t *testing.T) {
 		checksResultByHost(), nil)
 	checksMocks.On("GetSelectedChecksById", clusterId).Return(
 		models.SelectedChecks{ID: clusterId, SelectedChecks: []string{"ABCDEF", "12ABCD"}}, nil)
+
+	connData := map[string]models.ConnectionData{
+		"test_node_1": models.ConnectionData{ID: clusterId, Node: "test_node_1", User: "myuser1"},
+		"test_node_2": models.ConnectionData{ID: clusterId, Node: "test_node_2", User: "myuser2"},
+	}
+	checksMocks.On("GetConnectionDataById", clusterId).Return(connData, nil)
 
 	deps := setupTestDependencies()
 	deps.consul = consulInst
@@ -699,19 +698,12 @@ func TestClusterHandlerUnreachableNodes(t *testing.T) {
 	kv := new(consulMocks.KV)
 	consulInst.On("KV").Return(kv)
 	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
-	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil).Times(2)
+	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil)
 
 	catalog := new(consulMocks.Catalog)
 	filter := &consulApi.QueryOptions{Filter: "Meta[\"trento-ha-cluster-id\"] == \"" + clusterId + "\""}
 	catalog.On("Nodes", filter).Return(nodes, nil, nil)
 	consulInst.On("Catalog").Return(catalog)
-
-	connData := map[string]interface{}{
-		"test_node_1": "myuser1",
-		"test_node_2": "myuser2",
-	}
-	connSettingsPath := fmt.Sprintf(consul.KvClustersConnectionPath, clusterId)
-	kv.On("ListMap", connSettingsPath, connSettingsPath).Return(connData, nil)
 
 	cloudPath1 := fmt.Sprintf(consul.KvHostsClouddataPath, "test_node_1")
 	consulInst.On("WaitLock", path.Join(consul.KvHostsPath, "test_node_1")+"/").Return(nil)
@@ -729,6 +721,12 @@ func TestClusterHandlerUnreachableNodes(t *testing.T) {
 		checksResultByHost(), nil)
 	checksMocks.On("GetSelectedChecksById", clusterId).Return(
 		models.SelectedChecks{ID: clusterId, SelectedChecks: []string{"ABCDEF", "12ABCD"}}, nil)
+
+	connData := map[string]models.ConnectionData{
+		"test_node_1": models.ConnectionData{ID: clusterId, Node: "test_node_1", User: "myuser1"},
+		"test_node_2": models.ConnectionData{ID: clusterId, Node: "test_node_2", User: "myuser2"},
+	}
+	checksMocks.On("GetConnectionDataById", clusterId).Return(connData, nil)
 
 	deps := setupTestDependencies()
 	deps.consul = consulInst
@@ -784,19 +782,12 @@ func TestClusterHandlerAlert(t *testing.T) {
 	kv := new(consulMocks.KV)
 	consulInst.On("KV").Return(kv)
 	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
-	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil).Times(2)
+	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil)
 
 	catalog := new(consulMocks.Catalog)
 	filter := &consulApi.QueryOptions{Filter: "Meta[\"trento-ha-cluster-id\"] == \"" + clusterId + "\""}
 	catalog.On("Nodes", filter).Return(nodes, nil, nil)
 	consulInst.On("Catalog").Return(catalog)
-
-	connData := map[string]interface{}{
-		"test_node_1": "myuser1",
-		"test_node_2": "myuser2",
-	}
-	connSettingsPath := fmt.Sprintf(consul.KvClustersConnectionPath, clusterId)
-	kv.On("ListMap", connSettingsPath, connSettingsPath).Return(connData, nil)
 
 	cloudPath1 := fmt.Sprintf(consul.KvHostsClouddataPath, "test_node_1")
 	consulInst.On("WaitLock", path.Join(consul.KvHostsPath, "test_node_1")+"/").Return(nil)
@@ -814,6 +805,12 @@ func TestClusterHandlerAlert(t *testing.T) {
 		checksResultByHost(), nil)
 	checksMocks.On("GetSelectedChecksById", clusterId).Return(
 		models.SelectedChecks{ID: clusterId, SelectedChecks: []string{"ABCDEF", "12ABCD"}}, nil)
+
+	connData := map[string]models.ConnectionData{
+		"test_node_1": models.ConnectionData{ID: clusterId, Node: "test_node_1", User: "myuser1"},
+		"test_node_2": models.ConnectionData{ID: clusterId, Node: "test_node_2", User: "myuser2"},
+	}
+	checksMocks.On("GetConnectionDataById", clusterId).Return(connData, nil)
 
 	deps := setupTestDependencies()
 	deps.consul = consulInst
@@ -933,24 +930,12 @@ func TestClusterHandler404Error(t *testing.T) {
 func TestSaveChecksHandler(t *testing.T) {
 	var err error
 
-	expectedConnections := map[string]interface{}{
-		"host1": "myuser1",
-		"host2": "myuser2",
-	}
-
 	checkServInst := new(services.MockChecksService)
-	kv := new(consulMocks.KV)
-	kv.On("PutMap", fmt.Sprintf(consul.KvClustersConnectionPath, "foobar"), expectedConnections).Return(nil)
-
 	checkServInst.On("CreateSelectedChecks", "foobar", []string{"1.2.3"}).Return(nil)
-
-	consulInst := new(consulMocks.Client)
-	consulInst.On("KV").Return(kv)
-	testLock := consulApi.Lock{}
-	consulInst.On("AcquireLockKey", consul.KvClustersPath).Return(&testLock, nil)
+	checkServInst.On("CreateConnectionData", "foobar", "host1", "myuser1").Return(nil)
+	checkServInst.On("CreateConnectionData", "foobar", "host2", "myuser2").Return(nil)
 
 	deps := setupTestDependencies()
-	deps.consul = consulInst
 	deps.checksService = checkServInst
 
 	config := setupTestConfig()
@@ -978,7 +963,5 @@ func TestSaveChecksHandler(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 302, resp.Code)
 
-	consulInst.AssertExpectations(t)
-	kv.AssertExpectations(t)
 	checkServInst.AssertExpectations(t)
 }

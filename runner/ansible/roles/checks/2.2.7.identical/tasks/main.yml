@@ -1,0 +1,24 @@
+---
+
+- name: "{{ name }} get the python3 version"
+  set_fact:
+    python3_version: "{{ ansible_facts.packages['python3'][0].version }}"
+  delegate_facts: true
+  when: "'python3' in ansible_facts.packages"
+
+- name: "{{ name }} compare python3 versions across nodes"
+  assert:
+    that:
+      - "{{ groups[item] | map('extract', hostvars) | map(attribute='python3_version') | list | unique | length }} == 1"
+    quiet: true
+  loop: "{{ group_names }}"
+  register: config_updated
+  changed_when: config_updated.failed
+  when: "python3_version is defined"
+
+- block:
+    - name: Post results
+      import_role:
+        name: post-results
+  vars:
+    status: "{{ python3_version is defined and config_updated is not changed }}"

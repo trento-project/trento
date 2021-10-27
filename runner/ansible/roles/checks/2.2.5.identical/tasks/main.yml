@@ -1,0 +1,24 @@
+---
+
+- name: "{{ name }} get the sbd version"
+  set_fact:
+    sbd_version: "{{ ansible_facts.packages['sbd'][0].version }}"
+  delegate_facts: true
+  when: "'sbd' in ansible_facts.packages"
+
+- name: "{{ name }} compare sbd versions across nodes"
+  assert:
+    that:
+      - "{{ groups[item] | map('extract', hostvars) | map(attribute='sbd_version') | list | unique | length }} == 1"
+    quiet: true
+  loop: "{{ group_names }}"
+  register: config_updated
+  changed_when: config_updated.failed
+  when: "sbd_version is defined"
+
+- block:
+    - name: Post results
+      import_role:
+        name: post-results
+  vars:
+    status: "{{ sbd_version is defined and config_updated is not changed }}"

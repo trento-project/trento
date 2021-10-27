@@ -1,0 +1,20 @@
+---
+
+name: 2.2.2.identical
+group: OS and package versions
+labels: hana
+description: |
+  Test if the OS version identical on all nodes
+remediation: |
+  ## Abstract
+  You need identical SUSE Linux Enterprise Server for SAP Applications 15 SP1 on all nodes of the cluster
+
+  ## Remediation
+  Please install identical OS version on all nodes of the cluster
+
+  ## Reference
+  - https://documentation.suse.com/en-us/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
+implementation: "{{ lookup('file', 'roles/checks/'+name+'/tasks/main.yml') }}"
+
+# check id. This value must not be changed over the life of this check
+id: D028BA

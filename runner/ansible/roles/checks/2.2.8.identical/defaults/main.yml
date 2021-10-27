@@ -1,0 +1,20 @@
+---
+
+name: 2.2.8
+group: OS and package versions
+labels: hana
+description: |
+  Test if installed HANA and SPS versions are identical on all nodes
+remediation: |
+  ## Abstract
+  SAP HANA versions must be idenical on all nodes of the cluster.
+
+  ## Remediation
+  Install identical versions of SAP HANA on all nodes of the cluster.
+
+  ## References
+  - Section 2 in https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/#cha.hana-sr.scenario
+implementation: "{{ lookup('file', 'roles/checks/'+name+'/tasks/main.yml') }}"
+
+# check id. This value must not be changed over the life of this check
+id: 2C2D44

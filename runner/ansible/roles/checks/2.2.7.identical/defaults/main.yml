@@ -1,0 +1,20 @@
+---
+
+name: 2.2.7.identical
+group: OS and package versions
+labels: hana
+description: |
+  Test if installed Python3 version is identical on all nodes
+remediation: |
+  ## Abstract
+  Installed Python3 version must be identical on all nodes of the cluster
+
+  ## Remediation
+  Install identical Python3 version on all nodes of the cluster
+
+  ## Reference
+  - https://documentation.suse.com/en-us/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/
+implementation: "{{ lookup('file', 'roles/checks/'+name+'/tasks/main.yml') }}"
+
+# check id. This value must not be changed over the life of this check
+id: F50AF6

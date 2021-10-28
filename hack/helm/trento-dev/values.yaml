@@ -1,8 +1,7 @@
 trento-server:
   postgresql:
     service:
-      type: NodePort
-      nodePort: 32432
+      type: LoadBalancer
     initdbScripts:
       init.sql: |
         CREATE DATABASE trento_test;

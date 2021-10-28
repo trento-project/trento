@@ -62,8 +62,6 @@ jobs:
       - name: install-mockery
         run: go install github.com/vektra/mockery/v2
       - name: test
-        env:
-          TRENTO_DB_PORT: 5432
         run: make test
       - name: static analysis
         run: make vet-check

@@ -3,7 +3,7 @@ package discovery
 import (
 	"os"
 
-	"github.com/trento-project/trento/agent/collector"
+	"github.com/trento-project/trento/agent/discovery/collector"
 	"github.com/trento-project/trento/internal/consul"
 )
 

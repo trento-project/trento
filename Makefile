@@ -20,7 +20,7 @@ trento: web-assets
 
 cross-compiled: $(ARCHS)
 $(ARCHS): web-assets
-	@mkdir -p build/$@	
+	@mkdir -p build/$@
 	GOOS=linux GOARCH=$@ $(GO_BUILD) -o build/$@/trento
 
 clean: clean-binary clean-frontend
@@ -60,7 +60,7 @@ test: generate web-assets
 
 test-coverage:
 	@mkdir -p build
-	go test -cover -coverprofile=build/coverage.out ./...
+	GIN_MODE=test go test -cover -coverprofile=build/coverage.out ./...
 	go tool cover -html=build/coverage.out
 
 vet-check: generate web-assets

@@ -22,7 +22,7 @@ func TestTagsServiceTestSuite(t *testing.T) {
 }
 
 func (suite *TagsServiceTestSuite) SetupSuite() {
-	suite.db = helpers.SetupTestDatabase()
+	suite.db = helpers.SetupTestDatabase(suite.T())
 
 	suite.db.AutoMigrate(models.Tag{})
 	loadTagsFixtures(suite.db)

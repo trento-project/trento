@@ -9,7 +9,8 @@ import (
 )
 
 func TestCollectorService_StoreEvent(t *testing.T) {
-	db := helpers.SetupTestDatabase()
+	db := helpers.SetupTestDatabase(t)
+
 	tx := db.Begin()
 	tx.AutoMigrate(&datapipeline.DataCollectedEvent{})
 	defer tx.Rollback()

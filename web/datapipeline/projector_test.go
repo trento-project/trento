@@ -21,7 +21,7 @@ func TestProjectorTestSuite(t *testing.T) {
 }
 
 func (suite *ProjectorTestSuite) SetupSuite() {
-	suite.db = helpers.SetupTestDatabase()
+	suite.db = helpers.SetupTestDatabase(suite.T())
 
 	suite.db.AutoMigrate(&Subscription{})
 }

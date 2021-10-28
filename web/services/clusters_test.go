@@ -23,7 +23,7 @@ func TestClustersServiceTestSuite(t *testing.T) {
 }
 
 func (suite *ClustersServiceTestSuite) SetupSuite() {
-	suite.db = helpers.SetupTestDatabase()
+	suite.db = helpers.SetupTestDatabase(suite.T())
 
 	suite.db.AutoMigrate(models.Cluster{})
 	loadClustersFixtures(suite.db)

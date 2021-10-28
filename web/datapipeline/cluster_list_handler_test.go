@@ -13,7 +13,8 @@ import (
 )
 
 func TestClusterListHandler(t *testing.T) {
-	db := helpers.SetupTestDatabase()
+	db := helpers.SetupTestDatabase(t)
+
 	tx := db.Begin()
 	defer tx.Rollback()
 

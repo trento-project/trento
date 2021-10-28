@@ -578,7 +578,7 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 			StoreAlert(c, NoCheckSelected())
 		}
 
-		connectionData, getConnErr := s.GetConnectionDataById(clusterId)
+		connectionData, getConnErr := s.GetConnectionSettingsById(clusterId)
 		defaultConnectionData, getDefConnErr := getDefaultConnectionSettings(client, clusterItem)
 		if getConnErr != nil || getDefConnErr != nil {
 			StoreAlert(c, AlertConnectionDataNotFound())
@@ -648,7 +648,7 @@ func NewSaveClusterSettingsHandler(s services.ChecksService) gin.HandlerFunc {
 
 		usernames := getConnectionMap(c.Request.PostForm)
 		for node, user := range usernames {
-			connErr = s.CreateConnectionData(clusterId, node, user)
+			connErr = s.CreateConnectionSettings(clusterId, node, user)
 			if connErr != nil {
 				break
 			}

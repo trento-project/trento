@@ -16,7 +16,6 @@ import (
 
 	apiMocks "github.com/trento-project/trento/api/mocks"
 	"github.com/trento-project/trento/web"
-	"github.com/trento-project/trento/web/models"
 )
 
 func TestCreateInventory(t *testing.T) {
@@ -153,22 +152,23 @@ func TestNewClusterInventoryContent(t *testing.T) {
 	getNodeAddress = mockGetNodeAddress
 	getCloudUserName = mockGetCloudUserName
 
-	apiInst.On("GetSelectedChecksById", "cluster1").Return(
-		&web.JSONSelectedChecks{SelectedChecks: []string{"check1", "check2"}}, nil)
-	apiInst.On("GetSelectedChecksById", "cluster2").Return(
-		&web.JSONSelectedChecks{SelectedChecks: []string{"check3", "check4"}}, nil)
-
-	connData1 := map[string]*models.ConnectionData{
-		"node1": &models.ConnectionData{ID: "cluster1", Node: "node1", User: "user1"},
-		"node2": &models.ConnectionData{ID: "cluster1", Node: "node2", User: "user2"},
+	settings1 := &web.JSONChecksSettings{
+		SelectedChecks: []string{"check1", "check2"},
+		ConnectionSettings: map[string]string{
+			"node1": "user1",
+			"node2": "user2",
+		},
 	}
 
-	connData2 := map[string]*models.ConnectionData{
-		"node3": &models.ConnectionData{ID: "cluster1", Node: "node1", User: ""},
+	settings2 := &web.JSONChecksSettings{
+		SelectedChecks: []string{"check3", "check4"},
+		ConnectionSettings: map[string]string{
+			"node3": "",
+		},
 	}
 
-	apiInst.On("GetConnectionDataById", "cluster1").Return(connData1, nil)
-	apiInst.On("GetConnectionDataById", "cluster2").Return(connData2, nil)
+	apiInst.On("GetChecksSettingsById", "cluster1").Return(settings1, nil)
+	apiInst.On("GetChecksSettingsById", "cluster2").Return(settings2, nil)
 
 	content, err := NewClusterInventoryContent(consulInst, apiInst)
 

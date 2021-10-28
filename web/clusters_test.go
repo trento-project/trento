@@ -602,11 +602,11 @@ func TestClusterHandlerHANA(t *testing.T) {
 	checksMocks.On("GetSelectedChecksById", clusterId).Return(
 		models.SelectedChecks{ID: clusterId, SelectedChecks: []string{"ABCDEF", "12ABCD"}}, nil)
 
-	connData := map[string]models.ConnectionData{
-		"test_node_1": models.ConnectionData{ID: clusterId, Node: "test_node_1", User: "myuser1"},
-		"test_node_2": models.ConnectionData{ID: clusterId, Node: "test_node_2", User: "myuser2"},
+	connData := map[string]models.ConnectionSettings{
+		"test_node_1": models.ConnectionSettings{ID: clusterId, Node: "test_node_1", User: "myuser1"},
+		"test_node_2": models.ConnectionSettings{ID: clusterId, Node: "test_node_2", User: "myuser2"},
 	}
-	checksMocks.On("GetConnectionDataById", clusterId).Return(connData, nil)
+	checksMocks.On("GetConnectionSettingsById", clusterId).Return(connData, nil)
 
 	deps := setupTestDependencies()
 	deps.consul = consulInst
@@ -722,11 +722,11 @@ func TestClusterHandlerUnreachableNodes(t *testing.T) {
 	checksMocks.On("GetSelectedChecksById", clusterId).Return(
 		models.SelectedChecks{ID: clusterId, SelectedChecks: []string{"ABCDEF", "12ABCD"}}, nil)
 
-	connData := map[string]models.ConnectionData{
-		"test_node_1": models.ConnectionData{ID: clusterId, Node: "test_node_1", User: "myuser1"},
-		"test_node_2": models.ConnectionData{ID: clusterId, Node: "test_node_2", User: "myuser2"},
+	connData := map[string]models.ConnectionSettings{
+		"test_node_1": models.ConnectionSettings{ID: clusterId, Node: "test_node_1", User: "myuser1"},
+		"test_node_2": models.ConnectionSettings{ID: clusterId, Node: "test_node_2", User: "myuser2"},
 	}
-	checksMocks.On("GetConnectionDataById", clusterId).Return(connData, nil)
+	checksMocks.On("GetConnectionSettingsById", clusterId).Return(connData, nil)
 
 	deps := setupTestDependencies()
 	deps.consul = consulInst
@@ -806,11 +806,11 @@ func TestClusterHandlerAlert(t *testing.T) {
 	checksMocks.On("GetSelectedChecksById", clusterId).Return(
 		models.SelectedChecks{ID: clusterId, SelectedChecks: []string{"ABCDEF", "12ABCD"}}, nil)
 
-	connData := map[string]models.ConnectionData{
-		"test_node_1": models.ConnectionData{ID: clusterId, Node: "test_node_1", User: "myuser1"},
-		"test_node_2": models.ConnectionData{ID: clusterId, Node: "test_node_2", User: "myuser2"},
+	connData := map[string]models.ConnectionSettings{
+		"test_node_1": models.ConnectionSettings{ID: clusterId, Node: "test_node_1", User: "myuser1"},
+		"test_node_2": models.ConnectionSettings{ID: clusterId, Node: "test_node_2", User: "myuser2"},
 	}
-	checksMocks.On("GetConnectionDataById", clusterId).Return(connData, nil)
+	checksMocks.On("GetConnectionSettingsById", clusterId).Return(connData, nil)
 
 	deps := setupTestDependencies()
 	deps.consul = consulInst
@@ -932,8 +932,8 @@ func TestSaveChecksHandler(t *testing.T) {
 
 	checkServInst := new(services.MockChecksService)
 	checkServInst.On("CreateSelectedChecks", "foobar", []string{"1.2.3"}).Return(nil)
-	checkServInst.On("CreateConnectionData", "foobar", "host1", "myuser1").Return(nil)
-	checkServInst.On("CreateConnectionData", "foobar", "host2", "myuser2").Return(nil)
+	checkServInst.On("CreateConnectionSettings", "foobar", "host1", "myuser1").Return(nil)
+	checkServInst.On("CreateConnectionSettings", "foobar", "host2", "myuser2").Return(nil)
 
 	deps := setupTestDependencies()
 	deps.checksService = checkServInst

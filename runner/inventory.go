@@ -110,21 +110,15 @@ func NewClusterInventoryContent(client consul.Client, trentoApi api.TrentoApiSer
 	for clusterId, clusterData := range clusters {
 		nodes := []*Node{}
 
-		selectedChecks, err := trentoApi.GetSelectedChecksById(clusterId)
+		checksSettings, err := trentoApi.GetChecksSettingsById(clusterId)
 		if err != nil {
-			log.Warnf("error getting the cluster %s selected checks", clusterId)
+			log.Errorf("error getting the cluster %s check settings", clusterId)
 			continue
 		}
 
-		jsonSelectedChecks, err := json.Marshal(selectedChecks.SelectedChecks)
+		jsonSelectedChecks, err := json.Marshal(checksSettings.SelectedChecks)
 		if err != nil {
 			log.Errorf("error marshalling the cluster %s selected checks", clusterId)
-			continue
-		}
-
-		connUsers, err := trentoApi.GetConnectionDataById(clusterId)
-		if err != nil {
-			log.Errorf("error getting the cluster %s connection data", clusterId)
 			continue
 		}
 
@@ -142,9 +136,9 @@ func NewClusterInventoryContent(client consul.Client, trentoApi api.TrentoApiSer
 				node.AnsibleHost = address
 			}
 
-			user, found := connUsers[node.Name]
+			user, found := checksSettings.ConnectionSettings[node.Name]
 			if found {
-				node.AnsibleUser = user.User
+				node.AnsibleUser = user
 			}
 
 			// if the node user name is not provided by the user, get the cloud data

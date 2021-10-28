@@ -463,7 +463,7 @@ helm install trento-dev .
 ```
 
 Since integration tests require a running PostgreSQL instance, please make sure the chart is installed prior to running the integration tests.
-The PostgreSQL instance will be accessible at port `localhost:32432`.
+The PostgreSQL instance will be accessible at port `localhost:5432`.
 
 If you want to skip database integration tests, you can use a dedicated environment variable as follows:
 ```shell

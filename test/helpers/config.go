@@ -9,7 +9,7 @@ import (
 func init() {
 	viper.SetDefault("db-integration-tests", true)
 	viper.SetDefault("db-host", "localhost")
-	viper.SetDefault("db-port", "32432")
+	viper.SetDefault("db-port", "5432")
 	viper.SetDefault("db-user", "postgres")
 	viper.SetDefault("db-password", "postgres")
 	viper.SetDefault("db-name", "trento_test")

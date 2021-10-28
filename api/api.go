@@ -8,15 +8,13 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	webApi "github.com/trento-project/trento/web"
-	"github.com/trento-project/trento/web/models"
 )
 
 //go:generate mockery --all
 
 type TrentoApiService interface {
 	IsWebServerUp() bool
-	GetSelectedChecksById(clusterId string) (*webApi.JSONSelectedChecks, error)
-	GetConnectionDataById(node string) (map[string]*models.ConnectionData, error)
+	GetChecksSettingsById(id string) (*webApi.JSONChecksSettings, error)
 }
 
 type trentoApiService struct {

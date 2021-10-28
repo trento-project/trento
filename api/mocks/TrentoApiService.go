@@ -4,8 +4,6 @@ package mocks
 
 import (
 	mock "github.com/stretchr/testify/mock"
-	models "github.com/trento-project/trento/web/models"
-
 	web "github.com/trento-project/trento/web"
 )
 
@@ -14,45 +12,22 @@ type TrentoApiService struct {
 	mock.Mock
 }
 
-// GetConnectionDataById provides a mock function with given fields: node
-func (_m *TrentoApiService) GetConnectionDataById(node string) (map[string]*models.ConnectionData, error) {
-	ret := _m.Called(node)
+// GetChecksSettingsById provides a mock function with given fields: id
+func (_m *TrentoApiService) GetChecksSettingsById(id string) (*web.JSONChecksSettings, error) {
+	ret := _m.Called(id)
 
-	var r0 map[string]*models.ConnectionData
-	if rf, ok := ret.Get(0).(func(string) map[string]*models.ConnectionData); ok {
-		r0 = rf(node)
+	var r0 *web.JSONChecksSettings
+	if rf, ok := ret.Get(0).(func(string) *web.JSONChecksSettings); ok {
+		r0 = rf(id)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]*models.ConnectionData)
+			r0 = ret.Get(0).(*web.JSONChecksSettings)
 		}
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(node)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetSelectedChecksById provides a mock function with given fields: clusterId
-func (_m *TrentoApiService) GetSelectedChecksById(clusterId string) (*web.JSONSelectedChecks, error) {
-	ret := _m.Called(clusterId)
-
-	var r0 *web.JSONSelectedChecks
-	if rf, ok := ret.Get(0).(func(string) *web.JSONSelectedChecks); ok {
-		r0 = rf(clusterId)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*web.JSONSelectedChecks)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(clusterId)
+		r1 = rf(id)
 	} else {
 		r1 = ret.Error(1)
 	}

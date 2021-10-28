@@ -6,11 +6,10 @@ import (
 	"net/http"
 
 	webApi "github.com/trento-project/trento/web"
-	"github.com/trento-project/trento/web/models"
 )
 
-func (t *trentoApiService) GetSelectedChecksById(clusterId string) (*webApi.JSONSelectedChecks, error) {
-	body, statusCode, err := t.getJson(fmt.Sprintf("checks/%s/selected", clusterId))
+func (t *trentoApiService) GetChecksSettingsById(id string) (*webApi.JSONChecksSettings, error) {
+	body, statusCode, err := t.getJson(fmt.Sprintf("checks/%s/settings", id))
 	if err != nil {
 		return nil, err
 	}
@@ -19,32 +18,12 @@ func (t *trentoApiService) GetSelectedChecksById(clusterId string) (*webApi.JSON
 		return nil, fmt.Errorf("error during the request with status code %d", statusCode)
 	}
 
-	var selectedChecks webApi.JSONSelectedChecks
+	var checksSettings *webApi.JSONChecksSettings
 
-	err = json.Unmarshal(body, &selectedChecks)
+	err = json.Unmarshal(body, &checksSettings)
 	if err != nil {
 		return nil, err
 	}
 
-	return &selectedChecks, nil
-}
-
-func (t *trentoApiService) GetConnectionDataById(id string) (map[string]*models.ConnectionData, error) {
-	body, statusCode, err := t.getJson(fmt.Sprintf("checks/%s/connection_data", id))
-	if err != nil {
-		return nil, err
-	}
-
-	if statusCode != http.StatusOK {
-		return nil, fmt.Errorf("error during the request with status code %d", statusCode)
-	}
-
-	connData := make(map[string]*models.ConnectionData)
-
-	err = json.Unmarshal(body, &connData)
-	if err != nil {
-		return nil, err
-	}
-
-	return connData, nil
+	return checksSettings, nil
 }

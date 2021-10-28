@@ -11,7 +11,7 @@ import (
 func NewDiscoveredSubscriptionsMock() subscription.Subscriptions {
 	var subs subscription.Subscriptions
 
-	jsonFile, err := os.Open("../../test/fixtures/discovery/subscriptions/subscriptions_discovery.json")
+	jsonFile, err := os.Open("../../../test/fixtures/discovery/subscriptions/subscriptions_discovery.json")
 	if err != nil {
 		panic(err)
 	}

@@ -940,10 +940,6 @@ func TestGetAggregatedChecksResultByCluster(t *testing.T) {
 	mockAra.AssertExpectations(t)
 }
 
-/*
-Check selection tests
-*/
-
 type ChecksServiceTestSuite struct {
 	suite.Suite
 	db            *gorm.DB
@@ -959,14 +955,14 @@ func TestChecksServiceTestSuite(t *testing.T) {
 func (suite *ChecksServiceTestSuite) SetupSuite() {
 	suite.db = helpers.SetupTestDatabase()
 
-	suite.db.AutoMigrate(models.SelectedChecks{}, models.ConnectionData{})
+	suite.db.AutoMigrate(models.SelectedChecks{}, models.ConnectionSettings{})
 	loadSelectedChecksFixtures(suite.db)
-	loadConnectionDataFixtures(suite.db)
+	loadConnectionSettingsFixtures(suite.db)
 }
 
 func (suite *ChecksServiceTestSuite) TearDownSuite() {
 	suite.db.Migrator().DropTable(models.SelectedChecks{})
-	suite.db.Migrator().DropTable(models.ConnectionData{})
+	suite.db.Migrator().DropTable(models.ConnectionSettings{})
 }
 
 func (suite *ChecksServiceTestSuite) SetupTest() {
@@ -994,18 +990,18 @@ func loadSelectedChecksFixtures(db *gorm.DB) {
 	})
 }
 
-func loadConnectionDataFixtures(db *gorm.DB) {
-	db.Create(&models.ConnectionData{
+func loadConnectionSettingsFixtures(db *gorm.DB) {
+	db.Create(&models.ConnectionSettings{
 		ID:   "group1",
 		Node: "node1",
 		User: "user1",
 	})
-	db.Create(&models.ConnectionData{
+	db.Create(&models.ConnectionSettings{
 		ID:   "group1",
 		Node: "node2",
 		User: "user2",
 	})
-	db.Create(&models.ConnectionData{
+	db.Create(&models.ConnectionSettings{
 		ID:   "group2",
 		Node: "node3",
 		User: "user3",
@@ -1057,65 +1053,65 @@ func (suite *ChecksServiceTestSuite) TestChecksService_CreateSelectedChecks() {
 	suite.Equal(expectedValue, selectedChecks)
 }
 
-func (suite *ChecksServiceTestSuite) TestChecksService_GetConnectionDataByNode() {
-	data, err := suite.checksService.GetConnectionDataByNode("node1")
+func (suite *ChecksServiceTestSuite) TestChecksService_GetConnectionSettingsByNode() {
+	data, err := suite.checksService.GetConnectionSettingsByNode("node1")
 
 	suite.NoError(err)
-	suite.Equal(models.ConnectionData{ID: "group1", Node: "node1", User: "user1"}, data)
+	suite.Equal(models.ConnectionSettings{ID: "group1", Node: "node1", User: "user1"}, data)
 
-	data, err = suite.checksService.GetConnectionDataByNode("node2")
+	data, err = suite.checksService.GetConnectionSettingsByNode("node2")
 
 	suite.NoError(err)
-	suite.Equal(models.ConnectionData{ID: "group1", Node: "node2", User: "user2"}, data)
+	suite.Equal(models.ConnectionSettings{ID: "group1", Node: "node2", User: "user2"}, data)
 }
 
-func (suite *ChecksServiceTestSuite) TestChecksService_GetConnectionDataByNodeError() {
-	_, err := suite.checksService.GetConnectionDataByNode("other")
+func (suite *ChecksServiceTestSuite) TestChecksService_GetConnectionSettingsByNodeError() {
+	_, err := suite.checksService.GetConnectionSettingsByNode("other")
 
 	suite.EqualError(err, "record not found")
 }
 
-func (suite *ChecksServiceTestSuite) TestChecksService_GetConnectionDataById() {
-	data, err := suite.checksService.GetConnectionDataById("group1")
+func (suite *ChecksServiceTestSuite) TestChecksService_GetConnectionSettingsById() {
+	data, err := suite.checksService.GetConnectionSettingsById("group1")
 
-	expectedData := map[string]models.ConnectionData{
-		"node1": models.ConnectionData{ID: "group1", Node: "node1", User: "user1"},
-		"node2": models.ConnectionData{ID: "group1", Node: "node2", User: "user2"},
+	expectedData := map[string]models.ConnectionSettings{
+		"node1": models.ConnectionSettings{ID: "group1", Node: "node1", User: "user1"},
+		"node2": models.ConnectionSettings{ID: "group1", Node: "node2", User: "user2"},
 	}
 	suite.NoError(err)
 	suite.Equal(expectedData, data)
 
-	data, err = suite.checksService.GetConnectionDataById("group2")
+	data, err = suite.checksService.GetConnectionSettingsById("group2")
 
-	expectedData = map[string]models.ConnectionData{
-		"node3": models.ConnectionData{ID: "group2", Node: "node3", User: "user3"},
+	expectedData = map[string]models.ConnectionSettings{
+		"node3": models.ConnectionSettings{ID: "group2", Node: "node3", User: "user3"},
 	}
 	suite.NoError(err)
 	suite.Equal(expectedData, data)
 
-	data, err = suite.checksService.GetConnectionDataById("other")
+	data, err = suite.checksService.GetConnectionSettingsById("other")
 
-	expectedData = map[string]models.ConnectionData{}
+	expectedData = map[string]models.ConnectionSettings{}
 	suite.NoError(err)
 	suite.Equal(expectedData, data)
 }
 
-func (suite *ChecksServiceTestSuite) TestChecksService_CreateConnectionData() {
-	err := suite.checksService.CreateConnectionData("group4", "node4", "user4")
+func (suite *ChecksServiceTestSuite) TestChecksService_CreateConnectionSettings() {
+	err := suite.checksService.CreateConnectionSettings("group4", "node4", "user4")
 
-	var data models.ConnectionData
+	var data models.ConnectionSettings
 
 	suite.tx.Where("id", "group4").First(&data)
-	expectedValue := models.ConnectionData{ID: "group4", Node: "node4", User: "user4"}
+	expectedValue := models.ConnectionSettings{ID: "group4", Node: "node4", User: "user4"}
 
 	suite.NoError(err)
 	suite.Equal(expectedValue, data)
 
 	// Check if an update works
-	err = suite.checksService.CreateConnectionData("group4", "node4", "user5")
+	err = suite.checksService.CreateConnectionSettings("group4", "node4", "user5")
 
 	suite.tx.Where("id", "group4").First(&data)
-	expectedValue = models.ConnectionData{ID: "group4", Node: "node4", User: "user5"}
+	expectedValue = models.ConnectionSettings{ID: "group4", Node: "node4", User: "user5"}
 
 	suite.NoError(err)
 	suite.Equal(expectedValue, data)

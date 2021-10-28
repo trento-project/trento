@@ -123,7 +123,7 @@ func InitDB() (*gorm.DB, error) {
 }
 
 func MigrateDB(db *gorm.DB) error {
-	err := db.AutoMigrate(models.Tag{}, models.SelectedChecks{}, models.ConnectionData{}, models.Cluster{}, datapipeline.DataCollectedEvent{}, datapipeline.Subscription{})
+	err := db.AutoMigrate(models.Tag{}, models.SelectedChecks{}, models.ConnectionSettings{}, models.Cluster{}, datapipeline.DataCollectedEvent{}, datapipeline.Subscription{})
 	if err != nil {
 		return err
 	}
@@ -190,10 +190,8 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 		apiGroup.DELETE("/sapsystems/:id/tags/:tag", ApiSAPSystemDeleteTagHandler(deps.sapSystemsService, deps.tagsService))
 		apiGroup.POST("/databases/:id/tags", ApiDatabaseCreateTagHandler(deps.sapSystemsService, deps.tagsService))
 		apiGroup.DELETE("/databases/:id/tags/:tag", ApiDatabaseDeleteTagHandler(deps.sapSystemsService, deps.tagsService))
-		apiGroup.GET("/checks/:id/selected", ApiCheckGetSelectedHandler(deps.checksService))
-		apiGroup.POST("/checks/:id/selected", ApiCheckCreateSelectedHandler(deps.checksService))
-		apiGroup.GET("/checks/:id/connection_data", ApiCheckGetConnectionDataHandler(deps.checksService))
-		apiGroup.POST("/checks/:id/connection_data", ApiCheckCreateConnectionDataHandler(deps.checksService))
+		apiGroup.GET("/checks/:id/settings", ApiCheckGetSettingsByIdHandler(deps.checksService))
+		apiGroup.POST("/checks/:id/settings", ApiCheckCreateSettingsByIdHandler(deps.checksService))
 	}
 
 	collectorEngine := deps.collectorEngine

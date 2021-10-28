@@ -44,9 +44,9 @@ type ChecksService interface {
 	GetSelectedChecksById(id string) (models.SelectedChecks, error)
 	CreateSelectedChecks(id string, selectedChecksList []string) error
 	// Connection data services
-	GetConnectionDataById(id string) (map[string]models.ConnectionData, error)
-	GetConnectionDataByNode(node string) (models.ConnectionData, error)
-	CreateConnectionData(node, cluster, user string) error
+	GetConnectionSettingsById(id string) (map[string]models.ConnectionSettings, error)
+	GetConnectionSettingsByNode(node string) (models.ConnectionSettings, error)
+	CreateConnectionSettings(node, cluster, user string) error
 }
 
 type checksService struct {
@@ -249,16 +249,16 @@ func (c *checksService) CreateSelectedChecks(id string, selectedChecksList []str
 Checks connection user services
 */
 
-func (c *checksService) GetConnectionDataByNode(node string) (models.ConnectionData, error) {
-	var connUser models.ConnectionData
+func (c *checksService) GetConnectionSettingsByNode(node string) (models.ConnectionSettings, error) {
+	var connUser models.ConnectionSettings
 
 	result := c.db.Where("node", node).First(&connUser)
 
 	return connUser, result.Error
 }
 
-func (c *checksService) GetConnectionDataById(id string) (map[string]models.ConnectionData, error) {
-	var connUsersList []models.ConnectionData
+func (c *checksService) GetConnectionSettingsById(id string) (map[string]models.ConnectionSettings, error) {
+	var connUsersList []models.ConnectionSettings
 
 	result := c.db.Where("id", id).Find(&connUsersList)
 
@@ -266,7 +266,7 @@ func (c *checksService) GetConnectionDataById(id string) (map[string]models.Conn
 		return nil, result.Error
 	}
 
-	connUsersMap := make(map[string]models.ConnectionData)
+	connUsersMap := make(map[string]models.ConnectionSettings)
 	for _, user := range connUsersList {
 		connUsersMap[user.Node] = user
 	}
@@ -274,8 +274,8 @@ func (c *checksService) GetConnectionDataById(id string) (map[string]models.Conn
 	return connUsersMap, nil
 }
 
-func (c *checksService) CreateConnectionData(id, node, user string) error {
-	connUser := models.ConnectionData{
+func (c *checksService) CreateConnectionSettings(id, node, user string) error {
+	connUser := models.ConnectionSettings{
 		ID:   id,
 		Node: node,
 		User: user,

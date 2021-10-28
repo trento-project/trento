@@ -24,7 +24,7 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/checks/{id}/connection_data": {
+        "/api/checks/{id}/settings": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -32,11 +32,11 @@ var doc = `{
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Get users connection data",
+                "summary": "Get the check settings",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Checks group id",
+                        "description": "Resource id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -46,10 +46,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "$ref": "#/definitions/models.ConnectionData"
-                            }
+                            "$ref": "#/definitions/web.JSONChecksSettings"
                         }
                     },
                     "404": {
@@ -70,88 +67,7 @@ var doc = `{
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Create connection data for the node",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Checks group id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Checks connection user data",
-                        "name": "Body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.ConnectionData"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/models.ConnectionData"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/checks/{id}/selected": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "summary": "Get selected checks from resource",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Resource id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/web.JSONSelectedChecks"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "summary": "Create check selection for the resource",
+                "summary": "Create the check settings",
                 "parameters": [
                     {
                         "type": "string",
@@ -161,12 +77,12 @@ var doc = `{
                         "required": true
                     },
                     {
-                        "description": "Selected checks",
+                        "description": "Checks settings",
                         "name": "Body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/web.JSONSelectedChecks"
+                            "$ref": "#/definitions/web.JSONChecksSettings"
                         }
                     }
                 ],
@@ -174,7 +90,7 @@ var doc = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/web.JSONSelectedChecks"
+                            "$ref": "#/definitions/web.JSONChecksSettings"
                         }
                     },
                     "500": {
@@ -656,26 +572,19 @@ var doc = `{
         }
     },
     "definitions": {
-        "models.ConnectionData": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "node": {
-                    "type": "string"
-                },
-                "user": {
-                    "type": "string"
-                }
-            }
-        },
-        "web.JSONSelectedChecks": {
+        "web.JSONChecksSettings": {
             "type": "object",
             "required": [
+                "connection_settings",
                 "selected_checks"
             ],
             "properties": {
+                "connection_settings": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
                 "selected_checks": {
                     "type": "array",
                     "items": {

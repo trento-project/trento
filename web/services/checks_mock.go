@@ -12,8 +12,8 @@ type MockChecksService struct {
 	mock.Mock
 }
 
-// CreateConnectionData provides a mock function with given fields: node, cluster, user
-func (_m *MockChecksService) CreateConnectionData(node string, cluster string, user string) error {
+// CreateConnectionSettings provides a mock function with given fields: node, cluster, user
+func (_m *MockChecksService) CreateConnectionSettings(node string, cluster string, user string) error {
 	ret := _m.Called(node, cluster, user)
 
 	var r0 error
@@ -201,16 +201,16 @@ func (_m *MockChecksService) GetChecksResultByCluster(clusterId string) (*models
 	return r0, r1
 }
 
-// GetConnectionDataById provides a mock function with given fields: id
-func (_m *MockChecksService) GetConnectionDataById(id string) (map[string]models.ConnectionData, error) {
+// GetConnectionSettingsById provides a mock function with given fields: id
+func (_m *MockChecksService) GetConnectionSettingsById(id string) (map[string]models.ConnectionSettings, error) {
 	ret := _m.Called(id)
 
-	var r0 map[string]models.ConnectionData
-	if rf, ok := ret.Get(0).(func(string) map[string]models.ConnectionData); ok {
+	var r0 map[string]models.ConnectionSettings
+	if rf, ok := ret.Get(0).(func(string) map[string]models.ConnectionSettings); ok {
 		r0 = rf(id)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]models.ConnectionData)
+			r0 = ret.Get(0).(map[string]models.ConnectionSettings)
 		}
 	}
 
@@ -224,15 +224,15 @@ func (_m *MockChecksService) GetConnectionDataById(id string) (map[string]models
 	return r0, r1
 }
 
-// GetConnectionDataByNode provides a mock function with given fields: node
-func (_m *MockChecksService) GetConnectionDataByNode(node string) (models.ConnectionData, error) {
+// GetConnectionSettingsByNode provides a mock function with given fields: node
+func (_m *MockChecksService) GetConnectionSettingsByNode(node string) (models.ConnectionSettings, error) {
 	ret := _m.Called(node)
 
-	var r0 models.ConnectionData
-	if rf, ok := ret.Get(0).(func(string) models.ConnectionData); ok {
+	var r0 models.ConnectionSettings
+	if rf, ok := ret.Get(0).(func(string) models.ConnectionSettings); ok {
 		r0 = rf(node)
 	} else {
-		r0 = ret.Get(0).(models.ConnectionData)
+		r0 = ret.Get(0).(models.ConnectionSettings)
 	}
 
 	var r1 error

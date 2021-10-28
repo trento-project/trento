@@ -28,7 +28,7 @@ const (
 )
 
 type Runner struct {
-	cfg       Config
+	config    *Config
 	ctx       context.Context
 	ctxCancel context.CancelFunc
 	consul    consul.Client
@@ -36,13 +36,14 @@ type Runner struct {
 }
 
 type Config struct {
-	WebServer     string
+	ApiHost       string
+	ApiPort       int
 	AraServer     string
 	Interval      time.Duration
 	AnsibleFolder string
 }
 
-func NewWithConfig(cfg Config) (*Runner, error) {
+func NewRunner(config *Config) (*Runner, error) {
 	client, err := consul.DefaultClient()
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create the consul client connection")
@@ -51,7 +52,7 @@ func NewWithConfig(cfg Config) (*Runner, error) {
 	ctx, ctxCancel := context.WithCancel(context.Background())
 
 	runner := &Runner{
-		cfg:       cfg,
+		config:    config,
 		ctx:       ctx,
 		ctxCancel: ctxCancel,
 		consul:    client,
@@ -60,30 +61,21 @@ func NewWithConfig(cfg Config) (*Runner, error) {
 	return runner, nil
 }
 
-func DefaultConfig() (Config, error) {
-	return Config{
-		WebServer:     "http://127.0.0.1:80",
-		AraServer:     "http://127.0.0.1:8000",
-		Interval:      5 * time.Minute,
-		AnsibleFolder: "/tmp/trento",
-	}, nil
-}
-
 func (c *Runner) Start() error {
 	var wg sync.WaitGroup
 
-	if err := createAnsibleFiles(c.cfg.AnsibleFolder); err != nil {
+	if err := createAnsibleFiles(c.config.AnsibleFolder); err != nil {
 		return err
 	}
 
-	trentoApi := api.NewTrentoApiService(c.cfg.WebServer)
+	trentoApi := api.NewTrentoApiService(c.config.ApiHost, c.config.ApiPort)
 	if !trentoApi.IsWebServerUp() {
 		return fmt.Errorf("Trento server api not available")
 	}
 
 	c.trentoApi = trentoApi
 
-	metaRunner, err := NewAnsibleMetaRunner(&c.cfg)
+	metaRunner, err := NewAnsibleMetaRunner(c.config)
 	if err != nil {
 		return err
 	}
@@ -162,8 +154,8 @@ func createAnsibleFiles(folder string) error {
 	return nil
 }
 
-func NewAnsibleMetaRunner(cfg *Config) (*AnsibleRunner, error) {
-	playbookPath := path.Join(cfg.AnsibleFolder, AnsibleMeta)
+func NewAnsibleMetaRunner(config *Config) (*AnsibleRunner, error) {
+	playbookPath := path.Join(config.AnsibleFolder, AnsibleMeta)
 	ansibleRunner, err := DefaultAnsibleRunnerWithAra()
 	if err != nil {
 		return ansibleRunner, err
@@ -173,15 +165,15 @@ func NewAnsibleMetaRunner(cfg *Config) (*AnsibleRunner, error) {
 		return ansibleRunner, err
 	}
 
-	configFile := path.Join(cfg.AnsibleFolder, AnsibleConfigFile)
+	configFile := path.Join(config.AnsibleFolder, AnsibleConfigFile)
 	ansibleRunner.SetConfigFile(configFile)
-	ansibleRunner.SetAraServer(cfg.AraServer)
+	ansibleRunner.SetAraServer(config.AraServer)
 
 	return ansibleRunner, err
 }
 
-func NewAnsibleCheckRunner(cfg *Config) (*AnsibleRunner, error) {
-	playbookPath := path.Join(cfg.AnsibleFolder, AnsibleMain)
+func NewAnsibleCheckRunner(config *Config) (*AnsibleRunner, error) {
+	playbookPath := path.Join(config.AnsibleFolder, AnsibleMain)
 
 	ansibleRunner, err := DefaultAnsibleRunnerWithAra()
 	if err != nil {
@@ -193,15 +185,15 @@ func NewAnsibleCheckRunner(cfg *Config) (*AnsibleRunner, error) {
 	}
 
 	ansibleRunner.Check = true
-	configFile := path.Join(cfg.AnsibleFolder, AnsibleConfigFile)
+	configFile := path.Join(config.AnsibleFolder, AnsibleConfigFile)
 	ansibleRunner.SetConfigFile(configFile)
-	ansibleRunner.SetAraServer(cfg.AraServer)
+	ansibleRunner.SetAraServer(config.AraServer)
 
 	return ansibleRunner, nil
 }
 
 func (c *Runner) startCheckRunnerTicker() {
-	checkRunner, err := NewAnsibleCheckRunner(&c.cfg)
+	checkRunner, err := NewAnsibleCheckRunner(c.config)
 	if err != nil {
 		return
 	}
@@ -213,7 +205,7 @@ func (c *Runner) startCheckRunnerTicker() {
 			return
 		}
 
-		inventoryFile := path.Join(c.cfg.AnsibleFolder, AnsibleHostFile)
+		inventoryFile := path.Join(c.config.AnsibleFolder, AnsibleHostFile)
 		err = CreateInventory(inventoryFile, content)
 		if err != nil {
 			log.Errorf("Error creating the ansible inventory file")
@@ -231,7 +223,7 @@ func (c *Runner) startCheckRunnerTicker() {
 		checkRunner.RunPlaybook()
 	}
 
-	interval := c.cfg.Interval
+	interval := c.config.Interval
 
 	repeat(tick, interval, c.ctx)
 }

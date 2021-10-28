@@ -18,17 +18,18 @@ type TrentoApiService interface {
 }
 
 type trentoApiService struct {
-	webServer  string
+	apiHost    string
+	apiPort    int
 	httpClient *http.Client
 }
 
-func NewTrentoApiService(webServer string) *trentoApiService {
+func NewTrentoApiService(apiHost string, apiPort int) *trentoApiService {
 	client := &http.Client{}
-	return &trentoApiService{webServer: webServer, httpClient: client}
+	return &trentoApiService{apiHost: apiHost, apiPort: apiPort, httpClient: client}
 }
 
 func (t *trentoApiService) composeQuery(resource string) string {
-	return fmt.Sprintf("%s/api/%s", t.webServer, resource)
+	return fmt.Sprintf("http://%s:%d/api/%s", t.apiHost, t.apiPort, resource)
 }
 
 func (t *trentoApiService) getJson(query string) ([]byte, int, error) {

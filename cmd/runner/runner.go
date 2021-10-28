@@ -4,15 +4,19 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	log "github.com/sirupsen/logrus"
+
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
+
 	"github.com/trento-project/trento/runner"
 )
 
 var araServer string
-var webServer string
+var apiHost string
+var apiPort int
 var interval int
 var ansibleFolder string
 
@@ -29,9 +33,15 @@ func NewRunnerCmd() *cobra.Command {
 	}
 
 	startCmd.Flags().StringVar(&araServer, "ara-server", "http://127.0.0.1:8000", "ARA server url (ex: http://localhost:8000)")
-	startCmd.Flags().StringVar(&webServer, "web-server", "http://127.0.0.1:80", "Trento web server url (ex: http://localhost:80)")
+	startCmd.Flags().StringVar(&apiHost, "api-host", "0.0.0.0", "Trento web server API host")
+	startCmd.Flags().IntVar(&apiPort, "api-port", 8080, "Trento web server API port")
 	startCmd.Flags().IntVarP(&interval, "interval", "i", 5, "Interval in minutes to run the checks")
 	startCmd.Flags().StringVar(&ansibleFolder, "ansible-folder", "/tmp/trento", "Folder where the ansible file structure will be created")
+
+	// Bind the flags to viper and make them available to the application
+	startCmd.Flags().VisitAll(func(f *pflag.Flag) {
+		viper.BindPFlag(f.Name, f)
+	})
 
 	runnerCmd.AddCommand(startCmd)
 
@@ -44,17 +54,9 @@ func start(cmd *cobra.Command, args []string) {
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
 
-	cfg, err := runner.DefaultConfig()
-	if err != nil {
-		log.Fatal("Failed to create the runner configuration: ", err)
-	}
+	config := LoadConfig()
 
-	cfg.WebServer = webServer
-	cfg.AraServer = araServer
-	cfg.Interval = time.Duration(interval) * time.Minute
-	cfg.AnsibleFolder = ansibleFolder
-
-	runner, err := runner.NewWithConfig(cfg)
+	runner, err := runner.NewRunner(config)
 	if err != nil {
 		log.Fatal("Failed to create the runner instance: ", err)
 	}

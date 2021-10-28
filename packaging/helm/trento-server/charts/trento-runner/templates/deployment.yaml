@@ -38,7 +38,7 @@ spec:
             - --api-host
             - {{ .Release.Name }}-trento-web
             - --api-port
-            - {{ .Values.trentoWeb.service.port }}
+            - "{{ .Values.trentoWeb.service.port }}"
             - -i
             - "5"
           env:

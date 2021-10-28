@@ -71,28 +71,6 @@ type ClusterCheckResult struct {
 	Description string            `json:"description,omitempty" mapstructure:"description,omitempty"`
 }
 
-func (c *Results) GetHostNames() []string {
-	var hostNames []string
-	for _, cList := range c.Checks {
-		for host, _ := range cList.Hosts {
-			hostNames = append(hostNames, host)
-		}
-		break
-	}
-	return hostNames
-}
-
-func (c *Results) HostResultPresent(host string) bool {
-	hostList := c.GetHostNames()
-	for _, v := range hostList {
-		if v == host {
-			return true
-		}
-	}
-
-	return false
-}
-
 // Sorting methods for GroupedCheckList
 
 func (g GroupedCheckList) Len() int {

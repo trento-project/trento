@@ -12,7 +12,7 @@ import (
 	"github.com/trento-project/trento/web/models"
 )
 
-func TestClusterListHandler(t *testing.T) {
+func TestClustersProjector_ClusterDiscoveryHandler(t *testing.T) {
 	db := helpers.SetupTestDatabase(t)
 
 	tx := db.Begin()
@@ -37,7 +37,7 @@ func TestClusterListHandler(t *testing.T) {
 		Payload:       byteValue,
 	}
 
-	ClusterListHandler(dataCollectedEvent, tx)
+	clustersProjector_ClusterDiscoveryHandler(dataCollectedEvent, tx)
 
 	var cluster models.Cluster
 	tx.First(&cluster)

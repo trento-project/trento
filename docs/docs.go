@@ -24,6 +24,39 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/checks/catalog": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Create a checks catalog metadata",
+                "parameters": [
+                    {
+                        "description": "Checks metadata",
+                        "name": "Body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/web.JSONCheck"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/web.JSONCheck"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/checks/{id}/settings": {
             "get": {
                 "consumes": [
@@ -572,6 +605,37 @@ var doc = `{
         }
     },
     "definitions": {
+        "web.JSONCheck": {
+            "type": "object",
+            "required": [
+                "group",
+                "id",
+                "name"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "implementation": {
+                    "type": "string"
+                },
+                "labels": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "remediation": {
+                    "type": "string"
+                }
+            }
+        },
         "web.JSONChecksSettings": {
             "type": "object",
             "required": [

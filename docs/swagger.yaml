@@ -1,4 +1,25 @@
 definitions:
+  web.JSONCheck:
+    properties:
+      description:
+        type: string
+      group:
+        type: string
+      id:
+        type: string
+      implementation:
+        type: string
+      labels:
+        type: string
+      name:
+        type: string
+      remediation:
+        type: string
+    required:
+    - group
+    - id
+    - name
+    type: object
   web.JSONChecksSettings:
     properties:
       connection_settings:
@@ -76,6 +97,27 @@ paths:
               type: string
             type: object
       summary: Create the check settings
+  /api/checks/catalog:
+    post:
+      parameters:
+      - description: Checks metadata
+        in: body
+        name: Body
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/web.JSONCheck'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            items:
+              $ref: '#/definitions/web.JSONCheck'
+            type: array
+      summary: Create a checks catalog metadata
   /api/clusters/{cluster_id}/results:
     get:
       parameters:

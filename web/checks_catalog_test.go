@@ -22,7 +22,7 @@ func TestChecksCatalogHandler(t *testing.T) {
 	checks := models.GroupedCheckList{
 		&models.GroupedChecks{
 			Group: "group 1",
-			Checks: models.CheckList{
+			Checks: models.ChecksCatalog{
 				&models.Check{
 					ID:             "ABCDEF",
 					Name:           "1.1.1",
@@ -45,7 +45,7 @@ func TestChecksCatalogHandler(t *testing.T) {
 		},
 		&models.GroupedChecks{
 			Group: "group 2",
-			Checks: models.CheckList{
+			Checks: models.ChecksCatalog{
 				&models.Check{
 					ID:             "123ABC",
 					Name:           "1.2.1",

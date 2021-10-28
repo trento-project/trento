@@ -221,7 +221,6 @@ function install_trento_tgz() {
     mv trento ${bin_dir}/trento
     mv packaging/systemd/trento-agent.service ${sysd_dir}/trento-agent.service
     systemctl daemon-reload
-    systemctl enable --now trento-agent.service
     rm trento-${ARCH}.tgz
 }
 

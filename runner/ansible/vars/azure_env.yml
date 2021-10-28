@@ -60,7 +60,7 @@ expected:
   "2.1.7.path": "/usr/share/SAPHanaSR"
   "2.1.7.execution_order": "1"
   "2.1.7.ha_dr_saphanasr": "info"
-  "2.2.1": "sles_sap.prod"
+  "2.2.1": "SLES_SAP"
   "2.2.2": "15.1"
   "2.2.3": "2.0.3"
   "2.2.3.exclude": "2.0.3+20200511.2b248d828"

@@ -73,7 +73,7 @@ func NewCollectorClient(config *Config) (*collectorClient, error) {
 
 func (c *collectorClient) Publish(discoveryType string, payload interface{}) error {
 	// TODO: remove this when we want to start collecting
-	if !viper.GetBool("data-collector-enabled") {
+	if !viper.GetBool("collector-enabled") {
 		return nil
 	}
 

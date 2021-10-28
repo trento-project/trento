@@ -192,6 +192,7 @@ jobs:
       TRENTO_USER: ${{ secrets.TRENTO_USER }}
       TRENTO_SERVER_HOST: ${{ secrets.TRENTO_SERVER_HOST }}
       TRENTO_REPO_OWNER: ${{ github.repository_owner }}
+      TRENTO_COLLECTOR_ENABLED: ${{ secrets.TRENTO_COLLECTOR_ENABLED }}
     steps:
       - uses: actions/checkout@v2
       - name: install and enable agents
@@ -199,6 +200,8 @@ jobs:
           set -ex
           for target_host in ${TRENTO_AGENT_HOSTS//,/ }
           do
+            ssh "$TRENTO_USER@$target_host" "sudo systemctl set-environment TRENTO_COLLECTOR_ENABLED=$TRENTO_COLLECTOR_ENABLED"
+            ssh "$TRENTO_USER@$target_host" "sudo systemctl set-environment TRENTO_COLLECTOR_HOST=$TRENTO_SERVER_HOST"
             ssh "$TRENTO_USER@$target_host" "TRENTO_REPO_OWNER=$TRENTO_REPO_OWNER sudo --preserve-env=PATH,TRENTO_REPO_OWNER bash -s" -- < ./install-agent.sh "--rolling" "--use-tgz" "--agent-bind-ip" "$target_host" "--server-ip" "$TRENTO_SERVER_HOST"
             ssh "$TRENTO_USER@$target_host" "sudo systemctl enable --now trento-agent.service"
           done

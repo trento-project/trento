@@ -425,9 +425,9 @@ pip install 'ansible~=4.6.0' 'ara~=1.5.7'
 Once dependencies are in place, you can start the Runner itself:
 
 ```shell
-./trento runner start --ara-server http://$ARA_IP:$ARA_PORT --web-server http://$WEB_IP:$WEB_PORT -i 5
+./trento runner start --ara-server http://$ARA_IP:$ARA_PORT --api-host $WEB_IP --api-port $WEB_PORT -i 5
 # If the connection to consul fails try set the CONSUL_HTTP_ADDR environment variable
-CONSUL_HTTP_ADDR=$CONSUL_IP:$CONSUL_PORT ./trento runner start --ara-server http://$ARA_IP:$ARA_PORT --web-server http://$WEB_IP:$WEB_PORT -i 5
+CONSUL_HTTP_ADDR=$CONSUL_IP:$CONSUL_PORT ./trento runner start --ara-server http://$ARA_IP:$ARA_PORT --api-host $WEB_IP --api-port $WEB_PORT -i 5
 ```
 
 > *Note:* The Trento Runner component must have SSH access to all the agents via a password-less SSH key pair.

@@ -12,7 +12,7 @@
                 <th scope='col'>Tenant</th>
                 <th scope='col'>DB address</th>
                 {{- end }}
-                <th scope='col'>Tags</th>
+                <th scope='col' style="float: right">Tags</th>
             </tr>
             </thead>
             <tbody>
@@ -29,7 +29,7 @@
                 <td>{{ $value.Profile.dbs.hdb.dbname }}</td>
                 <td>{{ $value.Profile.SAPDBHOST }}</td>
                 {{- end }}
-                <td>
+                <td style="float: right">
                     <input class="tags-input"
                         value="{{- range .Tags }}{{ . }},{{- end }}"
                         data-resource-type="{{ $resource }}"

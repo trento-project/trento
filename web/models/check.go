@@ -2,6 +2,9 @@ package models
 
 import (
 	"sort"
+	"time"
+
+	"gorm.io/datatypes"
 )
 
 const (
@@ -18,17 +21,45 @@ type CheckData struct {
 }
 
 // List is used instead of a map as it guarantees order
-type CheckList []*Check
+type ChecksCatalog []*Check
+
+type Check struct {
+	ID             string `json:"id,omitempty" mapstructure:"id,omitempty"`
+	Name           string `json:"name,omitempty" mapstructure:"name,omitempty"`
+	Group          string `json:"group,omitempty" mapstructure:"group,omitempty"`
+	Description    string `json:"description,omitempty" mapstructure:"description,omitempty"`
+	Remediation    string `json:"remediation,omitempty" mapstructure:"remediation,omitempty"`
+	Implementation string `json:"implementation,omitempty" mapstructure:"implementation,omitempty"`
+	Labels         string `json:"labels,omitempty" mapstructure:"labels,omitempty"`
+	Selected       bool   `json:"selected,omitempty" mapstructure:"selected,omitempty"`
+	Result         string `json:"result,omitempty" mapstructure:"result,omitempty"`
+}
+
+// Store the data as payload. Changes in this struct are expected
+type CheckRaw struct {
+	ID        string `gorm:"primaryKey"`
+	CreatedAt time.Time
+	Payload   datatypes.JSON
+}
+
+type Tabler interface {
+	TableName() string
+}
+
+// TableName overrides the table name used by CheckRaw to `checks`
+func (CheckRaw) TableName() string {
+	return "checks"
+}
 
 type GroupedChecks struct {
 	Group  string
-	Checks CheckList
+	Checks ChecksCatalog
 }
 
 type GroupedCheckList []*GroupedChecks
 
 type Metadata struct {
-	Checks CheckList `json:"checks,omitempty" mapstructure:"checks,omitempty"`
+	Checks ChecksCatalog `json:"checks,omitempty" mapstructure:"checks,omitempty"`
 }
 
 type Results struct {
@@ -44,18 +75,6 @@ type ChecksByHost struct {
 type Host struct {
 	Reachable bool   `json:"reachable" mapstructure:"reachable"`
 	Msg       string `json:"msg" mapstructure:"msg"`
-}
-
-type Check struct {
-	ID             string `json:"id,omitempty" mapstructure:"id,omitempty"`
-	Name           string `json:"name,omitempty" mapstructure:"name,omitempty"`
-	Group          string `json:"group,omitempty" mapstructure:"group,omitempty"`
-	Description    string `json:"description,omitempty" mapstructure:"description,omitempty"`
-	Remediation    string `json:"remediation,omitempty" mapstructure:"remediation,omitempty"`
-	Implementation string `json:"implementation,omitempty" mapstructure:"implementation,omitempty"`
-	Labels         string `json:"labels,omitempty" mapstructure:"labels,omitempty"`
-	Selected       bool   `json:"selected,omitempty" mapstructure:"selected,omitempty"`
-	Result         string `json:"result,omitempty" mapstructure:"result,omitempty"`
 }
 
 // Simplified models for the frontend

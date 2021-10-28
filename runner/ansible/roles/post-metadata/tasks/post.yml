@@ -1,11 +1,13 @@
-- name: Post metadata to ARA
-  ara_record:
-    key: trento-metadata
-    value: '{{ metadata }}'
-    type: json
+- name: Post metadata
+  uri:
+    url: 'http://{{ lookup("env", "TRENTO_WEB_API_HOST") }}:{{ lookup("env", "TRENTO_WEB_API_PORT") }}/api/checks/catalog'
+    method: POST
+    body_format: json
+    body: '{{ metadata["checks"] }}'
+    return_content: true
   register: record
 
 - name: Print metadata
   debug:
-    msg: '{{ record.value }}'
+    msg: '{{ record.content }}'
     verbosity: 1

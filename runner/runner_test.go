@@ -30,6 +30,8 @@ func TestCreateAnsibleFiles(t *testing.T) {
 func TestNewAnsibleMetaRunner(t *testing.T) {
 
 	cfg := &Config{
+		ApiHost:       "127.0.0.1",
+		ApiPort:       8000,
 		AnsibleFolder: TestAnsibleFolder,
 		AraServer:     "127.0.0.1",
 	}
@@ -56,6 +58,8 @@ func TestNewAnsibleMetaRunner(t *testing.T) {
 			"ANSIBLE_ACTION_PLUGINS":   "action",
 			"ARA_API_CLIENT":           "http",
 			"ARA_API_SERVER":           "127.0.0.1",
+			"TRENTO_WEB_API_HOST":      "127.0.0.1",
+			"TRENTO_WEB_API_PORT":      "8000",
 		},
 		Check: false,
 	}
@@ -69,6 +73,8 @@ func TestNewAnsibleMetaRunner(t *testing.T) {
 func TestNewAnsibleCheckRunner(t *testing.T) {
 
 	cfg := &Config{
+		ApiHost:       "127.0.0.1",
+		ApiPort:       8000,
 		AnsibleFolder: TestAnsibleFolder,
 		AraServer:     "127.0.0.1",
 	}
@@ -95,6 +101,8 @@ func TestNewAnsibleCheckRunner(t *testing.T) {
 			"ANSIBLE_ACTION_PLUGINS":   "action",
 			"ARA_API_CLIENT":           "http",
 			"ARA_API_SERVER":           "127.0.0.1",
+			"TRENTO_WEB_API_HOST":      "127.0.0.1",
+			"TRENTO_WEB_API_PORT":      "8000",
 		},
 		Check: true,
 	}

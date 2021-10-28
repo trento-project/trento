@@ -1,11 +1,16 @@
 definitions:
-  web.JSONSelectedChecks:
+  web.JSONChecksSettings:
     properties:
+      connection_settings:
+        additionalProperties:
+          type: string
+        type: object
       selected_checks:
         items:
           type: string
         type: array
     required:
+    - connection_settings
     - selected_checks
     type: object
   web.JSONTag:
@@ -18,7 +23,7 @@ definitions:
 info:
   contact: {}
 paths:
-  /api/checks/{id}/selected:
+  /api/checks/{id}/settings:
     get:
       consumes:
       - application/json
@@ -34,14 +39,14 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/web.JSONSelectedChecks'
+            $ref: '#/definitions/web.JSONChecksSettings'
         "404":
           description: Not Found
           schema:
             additionalProperties:
               type: string
             type: object
-      summary: Get selected checks from resource
+      summary: Get the check settings
     post:
       consumes:
       - application/json
@@ -51,26 +56,26 @@ paths:
         name: id
         required: true
         type: string
-      - description: Selected checks
+      - description: Checks settings
         in: body
         name: Body
         required: true
         schema:
-          $ref: '#/definitions/web.JSONSelectedChecks'
+          $ref: '#/definitions/web.JSONChecksSettings'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/web.JSONSelectedChecks'
+            $ref: '#/definitions/web.JSONChecksSettings'
         "500":
           description: Internal Server Error
           schema:
             additionalProperties:
               type: string
             type: object
-      summary: Create check selection for the resource
+      summary: Create the check settings
   /api/clusters/{cluster_id}/results:
     get:
       parameters:

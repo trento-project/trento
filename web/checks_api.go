@@ -9,8 +9,9 @@ import (
 	"github.com/trento-project/trento/web/services"
 )
 
-type JSONSelectedChecks struct {
-	SelectedChecks []string `json:"selected_checks" binding:"required"`
+type JSONChecksSettings struct {
+	SelectedChecks     []string          `json:"selected_checks" binding:"required"`
+	ConnectionSettings map[string]string `json:"connection_settings" binding:"required"`
 }
 
 // ApiCheckResultsHandler godoc
@@ -34,15 +35,15 @@ func ApiClusterCheckResultsHandler(client consul.Client, s services.ChecksServic
 	}
 }
 
-// ApiCheckGetSelectedHandler godoc
-// @Summary Get selected checks from resource
+// ApiCheckGetSettingsByIdHandler godoc
+// @Summary Get the check settings
 // @Accept json
 // @Produce json
 // @Param id path string true "Resource id"
-// @Success 200 {object} JSONSelectedChecks
+// @Success 200 {object} JSONChecksSettings
 // @Failure 404 {object} map[string]string
-// @Router /api/checks/{id}/selected [get]
-func ApiCheckGetSelectedHandler(s services.ChecksService) gin.HandlerFunc {
+// @Router /api/checks/{id}/settings [get]
+func ApiCheckGetSettingsByIdHandler(s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 
@@ -52,27 +53,38 @@ func ApiCheckGetSelectedHandler(s services.ChecksService) gin.HandlerFunc {
 			return
 		}
 
-		var jsonSelectedChecks JSONSelectedChecks
-		jsonSelectedChecks.SelectedChecks = selectedChecks.SelectedChecks
+		connSettings, err := s.GetConnectionSettingsById(id)
+		if err != nil {
+			_ = c.Error(NotFoundError("could not find connection settings"))
+			return
+		}
 
-		c.JSON(http.StatusOK, jsonSelectedChecks)
+		var jsonCheckSetting JSONChecksSettings
+		jsonCheckSetting.ConnectionSettings = make(map[string]string)
+
+		jsonCheckSetting.SelectedChecks = selectedChecks.SelectedChecks
+		for node, settings := range connSettings {
+			jsonCheckSetting.ConnectionSettings[node] = settings.User
+		}
+
+		c.JSON(http.StatusOK, jsonCheckSetting)
 	}
 }
 
-// ApiCheckCreateSelectedHandler godoc
-// @Summary Create check selection for the resource
+// ApiCheckCreateSettingsByIdHandler godoc
+// @Summary Create the check settings
 // @Accept json
 // @Produce json
 // @Param id path string true "Resource id"
-// @Param Body body JSONSelectedChecks true "Selected checks"
-// @Success 201 {object} JSONSelectedChecks
+// @Param Body body JSONChecksSettings true "Checks settings"
+// @Success 201 {object} JSONChecksSettings
 // @Failure 500 {object} map[string]string
-// @Router /api/checks/{id}/selected [post]
-func ApiCheckCreateSelectedHandler(s services.ChecksService) gin.HandlerFunc {
+// @Router /api/checks/{id}/settings [post]
+func ApiCheckCreateSettingsByIdHandler(s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 
-		var r JSONSelectedChecks
+		var r JSONChecksSettings
 
 		err := c.BindJSON(&r)
 		if err != nil {
@@ -84,6 +96,14 @@ func ApiCheckCreateSelectedHandler(s services.ChecksService) gin.HandlerFunc {
 		if err != nil {
 			_ = c.Error(err)
 			return
+		}
+
+		for node, user := range r.ConnectionSettings {
+			err = s.CreateConnectionSettings(id, node, user)
+			if err != nil {
+				_ = c.Error(err)
+				return
+			}
 		}
 
 		c.JSON(http.StatusCreated, &r)

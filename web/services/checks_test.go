@@ -940,10 +940,6 @@ func TestGetAggregatedChecksResultByCluster(t *testing.T) {
 	mockAra.AssertExpectations(t)
 }
 
-/*
-Check selection tests
-*/
-
 type ChecksServiceTestSuite struct {
 	suite.Suite
 	db            *gorm.DB
@@ -959,12 +955,14 @@ func TestChecksServiceTestSuite(t *testing.T) {
 func (suite *ChecksServiceTestSuite) SetupSuite() {
 	suite.db = helpers.SetupTestDatabase()
 
-	suite.db.AutoMigrate(models.SelectedChecks{})
-	loadChecksFixtures(suite.db)
+	suite.db.AutoMigrate(models.SelectedChecks{}, models.ConnectionSettings{})
+	loadSelectedChecksFixtures(suite.db)
+	loadConnectionSettingsFixtures(suite.db)
 }
 
 func (suite *ChecksServiceTestSuite) TearDownSuite() {
 	suite.db.Migrator().DropTable(models.SelectedChecks{})
+	suite.db.Migrator().DropTable(models.ConnectionSettings{})
 }
 
 func (suite *ChecksServiceTestSuite) SetupTest() {
@@ -977,7 +975,7 @@ func (suite *ChecksServiceTestSuite) TearDownTest() {
 	suite.tx.Rollback()
 }
 
-func loadChecksFixtures(db *gorm.DB) {
+func loadSelectedChecksFixtures(db *gorm.DB) {
 	db.Create(&models.SelectedChecks{
 		ID:             "group1",
 		SelectedChecks: []string{"ABCDEF", "123456"},
@@ -989,6 +987,24 @@ func loadChecksFixtures(db *gorm.DB) {
 	db.Create(&models.SelectedChecks{
 		ID:             "group3",
 		SelectedChecks: []string{"DEF456", "456DEF"},
+	})
+}
+
+func loadConnectionSettingsFixtures(db *gorm.DB) {
+	db.Create(&models.ConnectionSettings{
+		ID:   "group1",
+		Node: "node1",
+		User: "user1",
+	})
+	db.Create(&models.ConnectionSettings{
+		ID:   "group1",
+		Node: "node2",
+		User: "user2",
+	})
+	db.Create(&models.ConnectionSettings{
+		ID:   "group2",
+		Node: "node3",
+		User: "user3",
 	})
 }
 
@@ -1035,4 +1051,68 @@ func (suite *ChecksServiceTestSuite) TestChecksService_CreateSelectedChecks() {
 
 	suite.NoError(err)
 	suite.Equal(expectedValue, selectedChecks)
+}
+
+func (suite *ChecksServiceTestSuite) TestChecksService_GetConnectionSettingsByNode() {
+	data, err := suite.checksService.GetConnectionSettingsByNode("node1")
+
+	suite.NoError(err)
+	suite.Equal(models.ConnectionSettings{ID: "group1", Node: "node1", User: "user1"}, data)
+
+	data, err = suite.checksService.GetConnectionSettingsByNode("node2")
+
+	suite.NoError(err)
+	suite.Equal(models.ConnectionSettings{ID: "group1", Node: "node2", User: "user2"}, data)
+}
+
+func (suite *ChecksServiceTestSuite) TestChecksService_GetConnectionSettingsByNodeError() {
+	_, err := suite.checksService.GetConnectionSettingsByNode("other")
+
+	suite.EqualError(err, "record not found")
+}
+
+func (suite *ChecksServiceTestSuite) TestChecksService_GetConnectionSettingsById() {
+	data, err := suite.checksService.GetConnectionSettingsById("group1")
+
+	expectedData := map[string]models.ConnectionSettings{
+		"node1": models.ConnectionSettings{ID: "group1", Node: "node1", User: "user1"},
+		"node2": models.ConnectionSettings{ID: "group1", Node: "node2", User: "user2"},
+	}
+	suite.NoError(err)
+	suite.Equal(expectedData, data)
+
+	data, err = suite.checksService.GetConnectionSettingsById("group2")
+
+	expectedData = map[string]models.ConnectionSettings{
+		"node3": models.ConnectionSettings{ID: "group2", Node: "node3", User: "user3"},
+	}
+	suite.NoError(err)
+	suite.Equal(expectedData, data)
+
+	data, err = suite.checksService.GetConnectionSettingsById("other")
+
+	expectedData = map[string]models.ConnectionSettings{}
+	suite.NoError(err)
+	suite.Equal(expectedData, data)
+}
+
+func (suite *ChecksServiceTestSuite) TestChecksService_CreateConnectionSettings() {
+	err := suite.checksService.CreateConnectionSettings("group4", "node4", "user4")
+
+	var data models.ConnectionSettings
+
+	suite.tx.Where("id", "group4").First(&data)
+	expectedValue := models.ConnectionSettings{ID: "group4", Node: "node4", User: "user4"}
+
+	suite.NoError(err)
+	suite.Equal(expectedValue, data)
+
+	// Check if an update works
+	err = suite.checksService.CreateConnectionSettings("group4", "node4", "user5")
+
+	suite.tx.Where("id", "group4").First(&data)
+	expectedValue = models.ConnectionSettings{ID: "group4", Node: "node4", User: "user5"}
+
+	suite.NoError(err)
+	suite.Equal(expectedValue, data)
 }

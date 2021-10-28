@@ -134,21 +134,6 @@ func mockGetNodeAddress(client consul.Client, node string) (string, error) {
 	return "", nil
 }
 
-func mockGetConnectionName(client consul.Client, clusterId string, node string) (string, error) {
-	switch node {
-	case "node1":
-		return "user1", nil
-	case "node2":
-		return "user2", nil
-	case "node3":
-		return "", nil
-	case "node4":
-		return "", fmt.Errorf("Error getting node user")
-	}
-
-	return "", nil
-}
-
 func mockGetCloudUserName(client consul.Client, node string) (string, error) {
 	switch node {
 	case "node3":
@@ -165,13 +150,25 @@ func TestNewClusterInventoryContent(t *testing.T) {
 
 	getClusters = mockGetCluster
 	getNodeAddress = mockGetNodeAddress
-	getConnectionName = mockGetConnectionName
 	getCloudUserName = mockGetCloudUserName
 
-	apiInst.On("GetSelectedChecksById", "cluster1").Return(
-		&web.JSONSelectedChecks{SelectedChecks: []string{"check1", "check2"}}, nil)
-	apiInst.On("GetSelectedChecksById", "cluster2").Return(
-		&web.JSONSelectedChecks{SelectedChecks: []string{"check3", "check4"}}, nil)
+	settings1 := &web.JSONChecksSettings{
+		SelectedChecks: []string{"check1", "check2"},
+		ConnectionSettings: map[string]string{
+			"node1": "user1",
+			"node2": "user2",
+		},
+	}
+
+	settings2 := &web.JSONChecksSettings{
+		SelectedChecks: []string{"check3", "check4"},
+		ConnectionSettings: map[string]string{
+			"node3": "",
+		},
+	}
+
+	apiInst.On("GetChecksSettingsById", "cluster1").Return(settings1, nil)
+	apiInst.On("GetChecksSettingsById", "cluster2").Return(settings2, nil)
 
 	content, err := NewClusterInventoryContent(consulInst, apiInst)
 

@@ -24,7 +24,7 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/checks/{id}/selected": {
+        "/api/checks/{id}/settings": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -32,7 +32,7 @@ var doc = `{
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Get selected checks from resource",
+                "summary": "Get the check settings",
                 "parameters": [
                     {
                         "type": "string",
@@ -46,7 +46,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/web.JSONSelectedChecks"
+                            "$ref": "#/definitions/web.JSONChecksSettings"
                         }
                     },
                     "404": {
@@ -67,7 +67,7 @@ var doc = `{
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Create check selection for the resource",
+                "summary": "Create the check settings",
                 "parameters": [
                     {
                         "type": "string",
@@ -77,12 +77,12 @@ var doc = `{
                         "required": true
                     },
                     {
-                        "description": "Selected checks",
+                        "description": "Checks settings",
                         "name": "Body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/web.JSONSelectedChecks"
+                            "$ref": "#/definitions/web.JSONChecksSettings"
                         }
                     }
                 ],
@@ -90,7 +90,7 @@ var doc = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/web.JSONSelectedChecks"
+                            "$ref": "#/definitions/web.JSONChecksSettings"
                         }
                     },
                     "500": {
@@ -572,12 +572,19 @@ var doc = `{
         }
     },
     "definitions": {
-        "web.JSONSelectedChecks": {
+        "web.JSONChecksSettings": {
             "type": "object",
             "required": [
+                "connection_settings",
                 "selected_checks"
             ],
             "properties": {
+                "connection_settings": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
                 "selected_checks": {
                     "type": "array",
                     "items": {

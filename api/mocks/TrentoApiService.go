@@ -12,22 +12,22 @@ type TrentoApiService struct {
 	mock.Mock
 }
 
-// GetSelectedChecksById provides a mock function with given fields: clusterId
-func (_m *TrentoApiService) GetSelectedChecksById(clusterId string) (*web.JSONSelectedChecks, error) {
-	ret := _m.Called(clusterId)
+// GetChecksSettingsById provides a mock function with given fields: id
+func (_m *TrentoApiService) GetChecksSettingsById(id string) (*web.JSONChecksSettings, error) {
+	ret := _m.Called(id)
 
-	var r0 *web.JSONSelectedChecks
-	if rf, ok := ret.Get(0).(func(string) *web.JSONSelectedChecks); ok {
-		r0 = rf(clusterId)
+	var r0 *web.JSONChecksSettings
+	if rf, ok := ret.Get(0).(func(string) *web.JSONChecksSettings); ok {
+		r0 = rf(id)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*web.JSONSelectedChecks)
+			r0 = ret.Get(0).(*web.JSONChecksSettings)
 		}
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(clusterId)
+		r1 = rf(id)
 	} else {
 		r1 = ret.Error(1)
 	}

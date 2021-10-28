@@ -39,7 +39,8 @@
                                               {{- range .Nodes }}
                                               <tr>
                                                   <td>{{ .Name }}</td>
-                                                  <td><input id='username-{{ .Name }}' name='username-{{ .Name }}' type='text' value='{{ index $connectionData .Name }}'></td>
+                                                  {{- $user := index $connectionData .Name }}
+                                                  <td><input id='username-{{ .Name }}' name='username-{{ .Name }}' type='text' value='{{ if $user }}{{ $user.User }}{{ end }}'></td>
                                                   <td>{{ index $defConnectionData .Name }}</td>
                                               </tr>
                                               {{- else }}

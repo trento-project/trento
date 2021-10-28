@@ -9,32 +9,48 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/trento-project/trento/test/helpers"
+
+	"github.com/trento-project/trento/web"
 )
 
 func TestGetSelectedChecksById(t *testing.T) {
 	trentoApi := NewTrentoApiService("192.168.1.10", 8000)
 
 	trentoApi.httpClient = &http.Client{Transport: helpers.RoundTripFunc(func(req *http.Request) *http.Response {
-		assert.Equal(t, req.URL.String(), "http://192.168.1.10:8000/api/checks/group1/selected")
+		assert.Equal(t, req.URL.String(), "http://192.168.1.10:8000/api/checks/group1/settings")
 
 		return &http.Response{
 			StatusCode: 200,
-			Body:       io.NopCloser(strings.NewReader(`{"selected_checks":["ABCDEF","123456"]}`)),
+			Body: io.NopCloser(strings.NewReader(`
+				{
+					"selected_checks": ["ABCDEF","123456"],
+					"connection_settings": {
+						"node1":"user1",
+						"node2":"user2"
+					}
+				}`)),
 		}
 	})}
 
-	selectedChecks, err := trentoApi.GetSelectedChecksById("group1")
+	connData, err := trentoApi.GetChecksSettingsById("group1")
+
+	expectedData := &web.JSONChecksSettings{
+		SelectedChecks: []string{"ABCDEF", "123456"},
+		ConnectionSettings: map[string]string{
+			"node1": "user1",
+			"node2": "user2",
+		},
+	}
 
 	assert.NoError(t, err)
-	assert.Equal(t, []string{"ABCDEF", "123456"}, selectedChecks.SelectedChecks)
-
+	assert.Equal(t, expectedData, connData)
 }
 
 func TestGetSelectedChecksByIdNotFound(t *testing.T) {
 	trentoApi := NewTrentoApiService("192.168.1.10", 8000)
 
 	trentoApi.httpClient = &http.Client{Transport: helpers.RoundTripFunc(func(req *http.Request) *http.Response {
-		assert.Equal(t, req.URL.String(), "http://192.168.1.10:8000/api/checks/otherId/selected")
+		assert.Equal(t, req.URL.String(), "http://192.168.1.10:8000/api/checks/otherId/settings")
 
 		return &http.Response{
 			StatusCode: 404,
@@ -42,7 +58,7 @@ func TestGetSelectedChecksByIdNotFound(t *testing.T) {
 		}
 	})}
 
-	_, err := trentoApi.GetSelectedChecksById("otherId")
+	_, err := trentoApi.GetChecksSettingsById("otherId")
 
 	assert.EqualError(t, err, "error during the request with status code 404")
 }

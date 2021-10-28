@@ -14,7 +14,7 @@ import (
 
 type TrentoApiService interface {
 	IsWebServerUp() bool
-	GetSelectedChecksById(clusterId string) (*webApi.JSONSelectedChecks, error)
+	GetChecksSettingsById(id string) (*webApi.JSONChecksSettings, error)
 }
 
 type trentoApiService struct {

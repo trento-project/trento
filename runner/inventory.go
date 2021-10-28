@@ -84,20 +84,6 @@ var getNodeAddress = func(client consul.Client, node string) (string, error) {
 	return "", err
 }
 
-var getConnectionName = func(client consul.Client, clusterId string, node string) (string, error) {
-	connectionData, err := cluster.GetConnectionSettings(client, clusterId)
-	if err != nil {
-		return "", err
-	}
-
-	user, found := connectionData[node]
-	if !found {
-		return "", fmt.Errorf("connection data for %s node not found", node)
-	}
-
-	return user.(string), nil
-}
-
 var getCloudUserName = func(client consul.Client, node string) (string, error) {
 	cloudData, err := cloud.Load(client, node)
 	if err != nil {
@@ -124,13 +110,13 @@ func NewClusterInventoryContent(client consul.Client, trentoApi api.TrentoApiSer
 	for clusterId, clusterData := range clusters {
 		nodes := []*Node{}
 
-		selectedChecks, err := trentoApi.GetSelectedChecksById(clusterId)
+		checksSettings, err := trentoApi.GetChecksSettingsById(clusterId)
 		if err != nil {
-			log.Warnf("error getting the cluster %s selected checks", clusterId)
+			log.Errorf("error getting the cluster %s check settings", clusterId)
 			continue
 		}
 
-		jsonSelectedChecks, err := json.Marshal(selectedChecks.SelectedChecks)
+		jsonSelectedChecks, err := json.Marshal(checksSettings.SelectedChecks)
 		if err != nil {
 			log.Errorf("error marshalling the cluster %s selected checks", clusterId)
 			continue
@@ -150,13 +136,13 @@ func NewClusterInventoryContent(client consul.Client, trentoApi api.TrentoApiSer
 				node.AnsibleHost = address
 			}
 
-			userName, err := getConnectionName(client, clusterId, node.Name)
-			if err == nil {
-				node.AnsibleUser = userName
+			user, found := checksSettings.ConnectionSettings[node.Name]
+			if found {
+				node.AnsibleUser = user
 			}
 
 			// if the node user name is not provided by the user, get the cloud data
-			if err != nil || len(userName) == 0 {
+			if len(node.AnsibleUser) == 0 {
 				cloudUser, err := getCloudUserName(client, node.Name)
 				if err == nil {
 					node.AnsibleUser = cloudUser

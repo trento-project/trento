@@ -12,6 +12,20 @@ type MockChecksService struct {
 	mock.Mock
 }
 
+// CreateConnectionSettings provides a mock function with given fields: node, cluster, user
+func (_m *MockChecksService) CreateConnectionSettings(node string, cluster string, user string) error {
+	ret := _m.Called(node, cluster, user)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
+		r0 = rf(node, cluster, user)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // CreateSelectedChecks provides a mock function with given fields: id, selectedChecksList
 func (_m *MockChecksService) CreateSelectedChecks(id string, selectedChecksList []string) error {
 	ret := _m.Called(id, selectedChecksList)
@@ -180,6 +194,50 @@ func (_m *MockChecksService) GetChecksResultByCluster(clusterId string) (*models
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(clusterId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetConnectionSettingsById provides a mock function with given fields: id
+func (_m *MockChecksService) GetConnectionSettingsById(id string) (map[string]models.ConnectionSettings, error) {
+	ret := _m.Called(id)
+
+	var r0 map[string]models.ConnectionSettings
+	if rf, ok := ret.Get(0).(func(string) map[string]models.ConnectionSettings); ok {
+		r0 = rf(id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]models.ConnectionSettings)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetConnectionSettingsByNode provides a mock function with given fields: node
+func (_m *MockChecksService) GetConnectionSettingsByNode(node string) (models.ConnectionSettings, error) {
+	ret := _m.Called(node)
+
+	var r0 models.ConnectionSettings
+	if rf, ok := ret.Get(0).(func(string) models.ConnectionSettings); ok {
+		r0 = rf(node)
+	} else {
+		r0 = ret.Get(0).(models.ConnectionSettings)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(node)
 	} else {
 		r1 = ret.Error(1)
 	}

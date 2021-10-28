@@ -578,7 +578,7 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 			StoreAlert(c, NoCheckSelected())
 		}
 
-		connectionData, getConnErr := cluster.GetConnectionSettings(client, clusterId)
+		connectionData, getConnErr := s.GetConnectionSettingsById(clusterId)
 		defaultConnectionData, getDefConnErr := getDefaultConnectionSettings(client, clusterItem)
 		if getConnErr != nil || getDefConnErr != nil {
 			StoreAlert(c, AlertConnectionDataNotFound())
@@ -624,8 +624,8 @@ type checkSelectionForm struct {
 	Ids []string `form:"check_ids[]"`
 }
 
-func getConnectionMap(form url.Values) map[string]interface{} {
-	usernames := make(map[string]interface{})
+func getConnectionMap(form url.Values) map[string]string {
+	usernames := make(map[string]string)
 	for key, value := range form {
 		if strings.HasPrefix(key, "username") {
 			usernames[strings.Split(key, "username-")[1]] = value[0]
@@ -635,19 +635,24 @@ func getConnectionMap(form url.Values) map[string]interface{} {
 	return usernames
 }
 
-func NewSaveClusterSettingsHandler(client consul.Client, s services.ChecksService) gin.HandlerFunc {
+func NewSaveClusterSettingsHandler(s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		var connErr error
+		var selectedChecks checkSelectionForm
+
 		clusterId := c.Param("id")
 
-		var selectedChecks checkSelectionForm
 		c.ShouldBind(&selectedChecks)
-
-		usernames := getConnectionMap(c.Request.PostForm)
 
 		checkErr := s.CreateSelectedChecks(clusterId, selectedChecks.Ids)
 
-		connErr := cluster.StoreConnectionSettings(
-			client, clusterId, usernames)
+		usernames := getConnectionMap(c.Request.PostForm)
+		for node, user := range usernames {
+			connErr = s.CreateConnectionSettings(clusterId, node, user)
+			if connErr != nil {
+				break
+			}
+		}
 
 		var newAlert Alert
 		if checkErr == nil && connErr == nil {

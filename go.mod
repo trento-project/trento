@@ -29,6 +29,7 @@ require (
 	github.com/swaggo/swag v1.7.0
 	github.com/tdewolff/minify/v2 v2.9.16
 	github.com/vektra/mockery/v2 v2.9.0
+	github.com/zcalusic/sysinfo v0.0.0-20210905121133-6fa2f969a900 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/sys v0.0.0-20210809222454-d867a43fc93e // indirect
 	golang.org/x/tools v0.1.5 // indirect

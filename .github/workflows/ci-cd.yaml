@@ -8,6 +8,7 @@ on:
   pull_request:
   release:
     types: [published]
+  workflow_dispatch:
 
 env:
   PACKAGE_NAME: trento
@@ -163,6 +164,7 @@ jobs:
     needs: [ build-and-push-container-images, release-rolling ]
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
     environment: AZURE_DEMO
+    concurrency: deployment
     env:
       TRENTO_SERVER_HOST: ${{ secrets.TRENTO_SERVER_HOST }}
       TRENTO_USER: ${{ secrets.TRENTO_USER }}
@@ -185,6 +187,7 @@ jobs:
     needs: [ deploy-server ]
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
     environment: AZURE_DEMO
+    concurrency: deployment
     env:
       TRENTO_AGENT_HOSTS: ${{ secrets.TRENTO_AGENT_HOSTS }}
       TRENTO_USER: ${{ secrets.TRENTO_USER }}

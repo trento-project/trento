@@ -1,12 +1,15 @@
 package web
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/lib/pq"
 
+	"github.com/trento-project/trento/internal/cluster"
 	"github.com/trento-project/trento/internal/consul"
-
+	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
 )
@@ -14,6 +17,7 @@ import (
 type JSONChecksSettings struct {
 	SelectedChecks     []string          `json:"selected_checks" binding:"required"`
 	ConnectionSettings map[string]string `json:"connection_settings" binding:"required"`
+	Hosts              Nodes             `json:"hosts"`
 }
 
 type JSONChecksCatalog []*JSONCheck
@@ -118,17 +122,38 @@ func ApiCreateChecksCatalogHandler(s services.ChecksService) gin.HandlerFunc {
 // @Success 200 {object} JSONChecksSettings
 // @Failure 404 {object} map[string]string
 // @Router /api/checks/{id}/settings [get]
-func ApiCheckGetSettingsByIdHandler(s services.ChecksService) gin.HandlerFunc {
+func ApiCheckGetSettingsByIdHandler(consul consul.Client, s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		id := c.Param("id")
+		clusterId := c.Param("id")
 
-		selectedChecks, err := s.GetSelectedChecksById(id)
+		// TODO: this has absolutely to be refactored once we've got the hosts service
+		clusters, err := cluster.Load(consul)
 		if err != nil {
-			_ = c.Error(NotFoundError("could not find check selection"))
+			_ = c.Error(err)
 			return
 		}
 
-		connSettings, err := s.GetConnectionSettingsById(id)
+		clusterItem, ok := clusters[clusterId]
+		if !ok {
+			_ = c.Error(NotFoundError("could not find cluster"))
+			return
+		}
+
+		filterQuery := fmt.Sprintf("Meta[\"trento-ha-cluster-id\"] == \"%s\"", clusterId)
+		hosts, err := hosts.Load(consul, filterQuery, nil)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
+		nodes := NewNodes(s, clusterItem, hosts)
+
+		selectedChecks, err := s.GetSelectedChecksById(clusterId)
+		if err != nil {
+			selectedChecks = models.SelectedChecks{SelectedChecks: pq.StringArray{}}
+		}
+
+		connSettings, err := s.GetConnectionSettingsById(clusterId)
 		if err != nil {
 			_ = c.Error(NotFoundError("could not find connection settings"))
 			return
@@ -138,10 +163,10 @@ func ApiCheckGetSettingsByIdHandler(s services.ChecksService) gin.HandlerFunc {
 		jsonCheckSetting.ConnectionSettings = make(map[string]string)
 
 		jsonCheckSetting.SelectedChecks = selectedChecks.SelectedChecks
+		jsonCheckSetting.Hosts = nodes
 		for node, settings := range connSettings {
 			jsonCheckSetting.ConnectionSettings[node] = settings.User
 		}
-
 		c.JSON(http.StatusOK, jsonCheckSetting)
 	}
 }
@@ -157,7 +182,7 @@ func ApiCheckGetSettingsByIdHandler(s services.ChecksService) gin.HandlerFunc {
 // @Router /api/checks/{id}/settings [post]
 func ApiCheckCreateSettingsByIdHandler(s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		id := c.Param("id")
+		clusterId := c.Param("id")
 
 		var r JSONChecksSettings
 
@@ -167,14 +192,14 @@ func ApiCheckCreateSettingsByIdHandler(s services.ChecksService) gin.HandlerFunc
 			return
 		}
 
-		err = s.CreateSelectedChecks(id, r.SelectedChecks)
+		err = s.CreateSelectedChecks(clusterId, r.SelectedChecks)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 
 		for node, user := range r.ConnectionSettings {
-			err = s.CreateConnectionSettings(id, node, user)
+			err = s.CreateConnectionSettings(clusterId, node, user)
 			if err != nil {
 				_ = c.Error(err)
 				return

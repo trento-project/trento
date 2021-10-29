@@ -75,17 +75,15 @@ func NewSAPSystemsTable(sapSystemsList sapsystem.SAPSystemsList, hostsService se
 					return nil, err
 				}
 
-				if len(attachedDatabases) == 0 {
-					continue
-				}
+				if len(attachedDatabases) > 0 {
+					sapSystem.AttachedDatabaseSID = attachedDatabases[0].SID
+					sapSystem.AttachedDatabaseId = attachedDatabases[0].Id
 
-				sapSystem.AttachedDatabaseSID = attachedDatabases[0].SID
-				sapSystem.AttachedDatabaseId = attachedDatabases[0].Id
-
-				// Add the database instances to the instaces table
-				for index, database := range attachedDatabases {
-					for _, data := range database.Instances {
-						s.Instances[fmt.Sprint(index)] = data
+					// Add the database instances to the instaces table
+					for index, database := range attachedDatabases {
+						for _, data := range database.Instances {
+							s.Instances[fmt.Sprint(index)] = data
+						}
 					}
 				}
 			}

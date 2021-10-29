@@ -11,7 +11,7 @@ import (
 func NewDiscoveredCloudMock() cloud.CloudInstance {
 	metadata := &cloud.AzureMetadata{}
 
-	jsonFile, err := os.Open("../../test/fixtures/discovery/azure/azure_discovery.json")
+	jsonFile, err := os.Open("../../../test/fixtures/discovery/azure/azure_discovery.json")
 	if err != nil {
 		panic(err)
 	}

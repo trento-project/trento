@@ -12,8 +12,8 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/trento-project/trento/agent/collector"
 	"github.com/trento-project/trento/agent/discovery"
+	"github.com/trento-project/trento/agent/discovery/collector"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/version"

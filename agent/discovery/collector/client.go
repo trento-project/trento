@@ -20,7 +20,7 @@ type Client interface {
 	Publish(discoveryType string, payload interface{}) error
 }
 
-type collectorClient struct {
+type client struct {
 	config     *Config
 	machineID  string
 	httpClient *http.Client
@@ -39,7 +39,7 @@ const machineIdPath = "/etc/machine-id"
 
 var fileSystem = afero.NewOsFs()
 
-func NewCollectorClient(config *Config) (*collectorClient, error) {
+func NewCollectorClient(config *Config) (*client, error) {
 	var tlsConfig *tls.Config
 	var err error
 
@@ -50,7 +50,7 @@ func NewCollectorClient(config *Config) (*collectorClient, error) {
 		}
 	}
 
-	client := &http.Client{
+	httpClient := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: tlsConfig,
 		},
@@ -64,14 +64,14 @@ func NewCollectorClient(config *Config) (*collectorClient, error) {
 
 	machineID := strings.TrimSpace(string(machineIDBytes))
 
-	return &collectorClient{
+	return &client{
 		config:     config,
-		httpClient: client,
+		httpClient: httpClient,
 		machineID:  machineID,
 	}, nil
 }
 
-func (c *collectorClient) Publish(discoveryType string, payload interface{}) error {
+func (c *client) Publish(discoveryType string, payload interface{}) error {
 	// TODO: remove this when we want to start collecting
 	if !viper.GetBool("collector-enabled") {
 		return nil

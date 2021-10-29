@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"github.com/trento-project/trento/agent"
-	"github.com/trento-project/trento/agent/collector"
+	"github.com/trento-project/trento/agent/discovery/collector"
 )
 
 func LoadConfig() (*agent.Config, error) {

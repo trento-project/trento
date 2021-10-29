@@ -6,9 +6,12 @@ import (
 	"strings"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/trento-project/trento/agent/collector"
+	"github.com/trento-project/trento/agent/discovery/collector"
+	"github.com/trento-project/trento/agent/discovery/models"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
+	"github.com/trento-project/trento/version"
+	"github.com/zcalusic/sysinfo"
 )
 
 const HostDiscoveryId string = "host_discovery"
@@ -37,18 +40,24 @@ func (h HostDiscovery) Discover() (string, error) {
 	}
 
 	metadata := hosts.Metadata{
-		HostIpAddresses: ipAddresses,
+		HostIpAddresses: strings.Join(ipAddresses, ","),
 	}
 	err = metadata.Store(h.discovery.consulClient)
 	if err != nil {
 		return "", err
 	}
 
-	// TODO: this needs to be redesigned to capture what we are discovering about a Host
-	host := struct {
-		HostIpAddresses string
-		HostName        string
-	}{ipAddresses, h.discovery.host}
+	var si sysinfo.SysInfo
+	si.GetSysInfo()
+
+	host := models.DiscoveredHost{
+		HostIpAddresses: ipAddresses,
+		HostName:        h.discovery.host,
+		CPUCount:        int(si.CPU.Cpus) * int(si.CPU.Cores),
+		SocketCount:     int(si.CPU.Cpus),
+		TotalMemoryMB:   int(si.Memory.Size),
+		AgentVersion:    version.Version,
+	}
 
 	err = h.discovery.collectorClient.Publish(h.id, host)
 	if err != nil {
@@ -59,10 +68,10 @@ func (h HostDiscovery) Discover() (string, error) {
 	return fmt.Sprintf("Host with name: %s successfully discovered", h.discovery.host), nil
 }
 
-func getHostIpAddresses() (string, error) {
+func getHostIpAddresses() ([]string, error) {
 	interfaces, err := net.Interfaces()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	ipAddrList := make([]string, 0)
@@ -79,5 +88,5 @@ func getHostIpAddresses() (string, error) {
 		}
 	}
 
-	return strings.Join(ipAddrList, ","), nil
+	return ipAddrList, nil
 }

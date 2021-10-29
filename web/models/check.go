@@ -42,10 +42,6 @@ type CheckRaw struct {
 	Payload   datatypes.JSON
 }
 
-type Tabler interface {
-	TableName() string
-}
-
 // TableName overrides the table name used by CheckRaw to `checks`
 func (CheckRaw) TableName() string {
 	return "checks"

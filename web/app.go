@@ -194,7 +194,7 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 		apiGroup.DELETE("/databases/:id/tags/:tag", ApiDatabaseDeleteTagHandler(deps.sapSystemsService, deps.tagsService))
 		apiGroup.GET("/checks/:id/settings", ApiCheckGetSettingsByIdHandler(deps.checksService))
 		apiGroup.POST("/checks/:id/settings", ApiCheckCreateSettingsByIdHandler(deps.checksService))
-		apiGroup.POST("/checks/catalog", ApiCreateChecksCatalogtaHandler(deps.checksService))
+		apiGroup.PUT("/checks/catalog", ApiCreateChecksCatalogHandler(deps.checksService))
 	}
 
 	collectorEngine := deps.collectorEngine

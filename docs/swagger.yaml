@@ -98,9 +98,9 @@ paths:
             type: object
       summary: Create the check settings
   /api/checks/catalog:
-    post:
+    put:
       parameters:
-      - description: Checks metadata
+      - description: Checks catalog
         in: body
         name: Body
         required: true
@@ -111,13 +111,19 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
+        "200":
+          description: OK
           schema:
             items:
               $ref: '#/definitions/web.JSONCheck'
             type: array
-      summary: Create a checks catalog metadata
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create/Updates the checks catalog
   /api/clusters/{cluster_id}/results:
     get:
       parameters:
@@ -133,6 +139,12 @@ paths:
           description: OK
           schema:
             additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
             type: object
       summary: Get a specific cluster's check results
   /api/clusters/{id}/tags:

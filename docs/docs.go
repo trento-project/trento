@@ -25,14 +25,14 @@ var doc = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/api/checks/catalog": {
-            "post": {
+            "put": {
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Create a checks catalog metadata",
+                "summary": "Create/Updates the checks catalog",
                 "parameters": [
                     {
-                        "description": "Checks metadata",
+                        "description": "Checks catalog",
                         "name": "Body",
                         "in": "body",
                         "required": true,
@@ -45,12 +45,21 @@ var doc = `{
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
                                 "$ref": "#/definitions/web.JSONCheck"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
                             }
                         }
                     }
@@ -159,6 +168,15 @@ var doc = `{
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }

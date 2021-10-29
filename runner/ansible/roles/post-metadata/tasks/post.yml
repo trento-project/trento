@@ -1,10 +1,10 @@
 - name: Post metadata
   uri:
     url: 'http://{{ lookup("env", "TRENTO_WEB_API_HOST") }}:{{ lookup("env", "TRENTO_WEB_API_PORT") }}/api/checks/catalog'
-    method: POST
+    method: PUT
     body_format: json
     body: '{{ metadata["checks"] }}'
-    status_code: [201]
+    status_code: [200]
     return_content: true
   register: record
 

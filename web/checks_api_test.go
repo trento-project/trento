@@ -152,7 +152,7 @@ func TestApiClusterCheckResultsHandler500(t *testing.T) {
 	assert.Equal(t, 500, resp.Code)
 }
 
-func TestApiCreateChecksCatalogtaHandler(t *testing.T) {
+func TestApiCreateChecksCatalogHandler(t *testing.T) {
 	expectedCatalog := models.ChecksCatalog{
 		&models.Check{
 			ID:             "id1",
@@ -211,21 +211,21 @@ func TestApiCreateChecksCatalogtaHandler(t *testing.T) {
 
 	resp := httptest.NewRecorder()
 	body, _ := json.Marshal(&sendData)
-	req, err := http.NewRequest("POST", "/api/checks/catalog", bytes.NewBuffer(body))
+	req, err := http.NewRequest("PUT", "/api/checks/catalog", bytes.NewBuffer(body))
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	app.webEngine.ServeHTTP(resp, req)
 
-	assert.Equal(t, 201, resp.Code)
+	assert.Equal(t, 200, resp.Code)
 
 	// 500 scenario
 	resp = httptest.NewRecorder()
 
 	sendData = JSONChecksCatalog{}
 	body, _ = json.Marshal(&sendData)
-	req, err = http.NewRequest("POST", "/api/checks/catalog", bytes.NewBuffer(body))
+	req, err = http.NewRequest("PUT", "/api/checks/catalog", bytes.NewBuffer(body))
 	if err != nil {
 		t.Fatal(err)
 	}

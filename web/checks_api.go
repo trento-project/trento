@@ -33,7 +33,7 @@ type JSONCheck struct {
 // @Produce json
 // @Param cluster_id path string true "Cluster Id"
 // @Success 200 {object} map[string]interface{}
-// @Error 500
+// @Failure 500 {object} map[string]string
 // @Router /api/clusters/{cluster_id}/results [get]
 func ApiClusterCheckResultsHandler(client consul.Client, s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -49,14 +49,14 @@ func ApiClusterCheckResultsHandler(client consul.Client, s services.ChecksServic
 	}
 }
 
-// ApiCreateChecksCatalogtaHandler godoc
-// @Summary Create a checks catalog metadata
+// ApiCreateChecksCatalogHandler godoc
+// @Summary Create/Updates the checks catalog
 // @Produce json
-// @Param Body body JSONChecksCatalog true "Checks metadata"
-// @Success 201 {object} JSONChecksCatalog
-// @Error 500
-// @Router /api/checks/catalog [post]
-func ApiCreateChecksCatalogtaHandler(s services.ChecksService) gin.HandlerFunc {
+// @Param Body body JSONChecksCatalog true "Checks catalog"
+// @Success 200 {object} JSONChecksCatalog
+// @Failure 500 {object} map[string]string
+// @Router /api/checks/catalog [put]
+func ApiCreateChecksCatalogHandler(s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		var r JSONChecksCatalog
@@ -88,7 +88,7 @@ func ApiCreateChecksCatalogtaHandler(s services.ChecksService) gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusCreated, &r)
+		c.JSON(http.StatusOK, &r)
 	}
 }
 

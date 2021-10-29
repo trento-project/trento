@@ -52,7 +52,7 @@ endif
 mod-tidy:
 	go mod tidy
 
-test: generate web-assets
+test: web-assets
 	GIN_MODE=test go test -v ./...
 
 test-coverage:
@@ -60,7 +60,7 @@ test-coverage:
 	GIN_MODE=test go test -cover -coverprofile=build/coverage.out ./...
 	go tool cover -html=build/coverage.out
 
-vet-check: generate web-assets
+vet-check: web-assets
 	go vet ./...
 
 web-deps: web/frontend/node_modules

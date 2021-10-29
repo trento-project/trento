@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/mitchellh/mapstructure"
 
 	"github.com/trento-project/trento/internal/consul"
 
@@ -28,6 +29,24 @@ type JSONCheck struct {
 	Labels         string `json:"labels,omitempty"`
 }
 
+type JSONChecksResults struct {
+	Hosts  map[string]*JSONHosts       `json:"hosts,omitempty" binding:"required"`
+	Checks map[string]*JSONCheckResult `json:"checks,omitempty" binding:"required"`
+}
+
+type JSONHosts struct {
+	Result    string `json:"result,omitempty"`
+	Reachable bool   `json:"reachable,omitempty"`
+	Msg       string `json:"msg,omitempty"`
+}
+
+type JSONCheckResult struct {
+	ID          string                `json:"id,omitempty"`
+	Hosts       map[string]*JSONHosts `json:"hosts,omitempty"`
+	Group       string                `json:"group,omitempty"`
+	Description string                `json:"description,omitempty"`
+}
+
 // ApiCheckResultsHandler godoc
 // @Summary Get a specific cluster's check results
 // @Produce json
@@ -46,6 +65,40 @@ func ApiClusterCheckResultsHandler(client consul.Client, s services.ChecksServic
 		}
 
 		c.JSON(http.StatusOK, checkResults)
+	}
+}
+
+// ApiCreateChecksResultstaHandler godoc
+// @Summary Create a checks results entry
+// @Produce json
+// @Param id path string true "Resource Id"
+// @Param Body body JSONChecksResults true "Checks results"
+// @Success 201 {object} JSONChecksResults
+// @Error 500
+// @Router /api/checks/{id}/results [post]
+func ApiCreateChecksResultstaHandler(s services.ChecksService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var r JSONChecksResults
+
+		id := c.Param("id")
+
+		err := c.BindJSON(&r)
+		if err != nil {
+			_ = c.Error(BadRequestError("unable to parse JSON body"))
+			return
+		}
+
+		var results models.Results
+		// This is the easier way to decode the json format in the internal models
+		mapstructure.Decode(r, &results)
+
+		err = s.CreateChecksResultsById(id, &results)
+		if err != nil {
+			c.Error(err)
+			return
+		}
+
+		c.JSON(http.StatusCreated, &r)
 	}
 }
 

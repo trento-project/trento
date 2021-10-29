@@ -54,6 +54,18 @@ type GroupedChecks struct {
 
 type GroupedCheckList []*GroupedChecks
 
+type CheckResultsRaw struct {
+	ID        int64
+	CreatedAt time.Time
+	GroupID   string
+	Payload   datatypes.JSON
+}
+
+// TableName overrides the table name used by CheckResultsRaw to `check_results`
+func (CheckResultsRaw) TableName() string {
+	return "check_results"
+}
+
 type Metadata struct {
 	Checks ChecksCatalog `json:"checks,omitempty" mapstructure:"checks,omitempty"`
 }

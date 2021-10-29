@@ -40,6 +40,7 @@ type ChecksService interface {
 	// Check result services
 	GetChecksResult() (map[string]*models.Results, error)
 	GetChecksResultByCluster(clusterId string) (*models.Results, error)
+	CreateChecksResultsById(id string, checkResults *models.Results) error
 	GetChecksResultAndMetadataByCluster(clusterId string) (*models.ClusterCheckResults, error)
 	GetAggregatedChecksResultByHost(clusterId string) (map[string]*AggregatedCheckData, error)
 	GetAggregatedChecksResultByCluster(clusterId string) (*AggregatedCheckData, error)
@@ -174,6 +175,18 @@ func (c *checksService) GetChecksResultByCluster(clusterId string) (*models.Resu
 	}
 
 	return cResultByCluster, nil
+}
+
+func (c *checksService) CreateChecksResultsById(id string, checkResults *models.Results) error {
+	jsonData, err := json.Marshal(&checkResults)
+	if err != nil {
+		return err
+	}
+
+	event := models.CheckResultsRaw{GroupID: id, Payload: jsonData}
+	result := c.db.Create(&event)
+
+	return result.Error
 }
 
 func (c *checksService) GetChecksResultAndMetadataByCluster(clusterId string) (*models.ClusterCheckResults, error) {

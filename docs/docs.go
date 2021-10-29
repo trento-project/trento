@@ -66,6 +66,40 @@ var doc = `{
                 }
             }
         },
+        "/api/checks/{id}/results": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Create a checks results entry",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Resource Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Checks results",
+                        "name": "Body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/web.JSONChecksResults"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/web.JSONChecksResults"
+                        }
+                    }
+                }
+            }
+        },
         "/api/checks/{id}/settings": {
             "get": {
                 "consumes": [
@@ -654,6 +688,47 @@ var doc = `{
                 }
             }
         },
+        "web.JSONCheckResult": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "hosts": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/web.JSONHosts"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "web.JSONChecksResults": {
+            "type": "object",
+            "required": [
+                "checks",
+                "hosts"
+            ],
+            "properties": {
+                "checks": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/web.JSONCheckResult"
+                    }
+                },
+                "hosts": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/web.JSONHosts"
+                    }
+                }
+            }
+        },
         "web.JSONChecksSettings": {
             "type": "object",
             "required": [
@@ -672,6 +747,20 @@ var doc = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "web.JSONHosts": {
+            "type": "object",
+            "properties": {
+                "msg": {
+                    "type": "string"
+                },
+                "reachable": {
+                    "type": "boolean"
+                },
+                "result": {
+                    "type": "string"
                 }
             }
         },

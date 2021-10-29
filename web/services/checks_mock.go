@@ -40,6 +40,20 @@ func (_m *MockChecksService) CreateChecksCatalogEntry(check *models.Check) error
 	return r0
 }
 
+// CreateChecksResultsById provides a mock function with given fields: id, checkResults
+func (_m *MockChecksService) CreateChecksResultsById(id string, checkResults *models.Results) error {
+	ret := _m.Called(id, checkResults)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, *models.Results) error); ok {
+		r0 = rf(id, checkResults)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // CreateConnectionSettings provides a mock function with given fields: node, cluster, user
 func (_m *MockChecksService) CreateConnectionSettings(node string, cluster string, user string) error {
 	ret := _m.Called(node, cluster, user)

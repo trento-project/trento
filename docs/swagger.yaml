@@ -20,6 +20,33 @@ definitions:
     - id
     - name
     type: object
+  web.JSONCheckResult:
+    properties:
+      description:
+        type: string
+      group:
+        type: string
+      hosts:
+        additionalProperties:
+          $ref: '#/definitions/web.JSONHosts'
+        type: object
+      id:
+        type: string
+    type: object
+  web.JSONChecksResults:
+    properties:
+      checks:
+        additionalProperties:
+          $ref: '#/definitions/web.JSONCheckResult'
+        type: object
+      hosts:
+        additionalProperties:
+          $ref: '#/definitions/web.JSONHosts'
+        type: object
+    required:
+    - checks
+    - hosts
+    type: object
   web.JSONChecksSettings:
     properties:
       connection_settings:
@@ -34,6 +61,15 @@ definitions:
     - connection_settings
     - selected_checks
     type: object
+  web.JSONHosts:
+    properties:
+      msg:
+        type: string
+      reachable:
+        type: boolean
+      result:
+        type: string
+    type: object
   web.JSONTag:
     properties:
       tag:
@@ -44,6 +80,28 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/checks/{id}/results:
+    post:
+      parameters:
+      - description: Resource Id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Checks results
+        in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/web.JSONChecksResults'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/web.JSONChecksResults'
+      summary: Create a checks results entry
   /api/checks/{id}/settings:
     get:
       consumes:

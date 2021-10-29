@@ -28,7 +28,7 @@ const ClustersChecks = ({ clusterId }) => {
   });
 
   useEffect(() => {
-    get(`/api/clusters/${clusterId}/results`).then(({ data }) => {
+    get(`/api/checks/${clusterId}/results`).then(({ data }) => {
       setResults(data.checks);
       setHosts(data.hosts);
     });

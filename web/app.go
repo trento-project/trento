@@ -24,7 +24,6 @@ import (
 	"github.com/trento-project/trento/web/datapipeline"
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
-	"github.com/trento-project/trento/web/services/ara"
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -89,8 +88,7 @@ func DefaultDependencies() Dependencies {
 	projectorWorkersPool := datapipeline.NewProjectorsWorkerPool(projectorRegistry)
 
 	tagsService := services.NewTagsService(db)
-	araService := ara.NewAraService(viper.GetString("ara-addr"))
-	checksService := services.NewChecksService(araService, db)
+	checksService := services.NewChecksService(db)
 	subscriptionsService := services.NewSubscriptionsService(consulClient)
 	hostsService := services.NewHostsService(consulClient)
 	sapSystemsService := services.NewSAPSystemsService(consulClient)
@@ -187,7 +185,6 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 		apiGroup.DELETE("/hosts/:name/tags/:tag", ApiHostDeleteTagHandler(deps.consul, deps.tagsService))
 		apiGroup.POST("/clusters/:id/tags", ApiClusterCreateTagHandler(deps.consul, deps.tagsService))
 		apiGroup.DELETE("/clusters/:id/tags/:tag", ApiClusterDeleteTagHandler(deps.consul, deps.tagsService))
-		apiGroup.GET("/clusters/:cluster_id/results", ApiClusterCheckResultsHandler(deps.consul, deps.checksService))
 		apiGroup.POST("/sapsystems/:id/tags", ApiSAPSystemCreateTagHandler(deps.sapSystemsService, deps.tagsService))
 		apiGroup.DELETE("/sapsystems/:id/tags/:tag", ApiSAPSystemDeleteTagHandler(deps.sapSystemsService, deps.tagsService))
 		apiGroup.POST("/databases/:id/tags", ApiDatabaseCreateTagHandler(deps.sapSystemsService, deps.tagsService))
@@ -195,6 +192,7 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 		apiGroup.GET("/checks/:id/settings", ApiCheckGetSettingsByIdHandler(deps.checksService))
 		apiGroup.POST("/checks/:id/settings", ApiCheckCreateSettingsByIdHandler(deps.checksService))
 		apiGroup.PUT("/checks/catalog", ApiCreateChecksCatalogHandler(deps.checksService))
+		apiGroup.GET("/checks/:id/results", ApiGetCheckResultsHandler(deps.checksService))
 		apiGroup.POST("/checks/:id/results", ApiCreateChecksResultstaHandler(deps.checksService))
 	}
 

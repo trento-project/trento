@@ -305,7 +305,7 @@ func NewClustersTable(s services.ChecksService, t services.TagsService, clusters
 		sids = append(sids, getHanaSID(c))
 
 		// Using empty string in case of error
-		if aCheckData, err := s.GetAggregatedChecksResultByCluster(id); err == nil {
+		if aCheckData, err := s.GetAggregatedChecksResultById(id); err == nil {
 			health = aCheckData.String()
 		}
 
@@ -586,7 +586,7 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 
 		checksCatalog, errCatalog := getChecksCatalogWithSelected(
 			s, clusterId, selectedChecks.SelectedChecks)
-		checksResult, errResult := s.GetChecksResultByCluster(clusterItem.Id)
+		checksResult, errResult := s.GetChecksResultById(clusterItem.Id)
 		if errCatalog != nil {
 			StoreAlert(c, AlertCatalogNotFound())
 		} else if errResult != nil {
@@ -595,7 +595,7 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 
 		nodes := NewNodes(s, clusterItem, hosts)
 		// It returns an empty aggretaged data in case of error
-		aCheckData, _ := s.GetAggregatedChecksResultByCluster(clusterId)
+		aCheckData, _ := s.GetAggregatedChecksResultById(clusterId)
 
 		hContainer := &HealthContainer{
 			CriticalCount: aCheckData.CriticalCount,

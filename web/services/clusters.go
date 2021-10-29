@@ -80,7 +80,7 @@ func (s *clustersService) enrichClusterData(clusterList models.ClusterList) erro
 		if names[c.Name] > 1 {
 			c.HasDuplicatedName = true
 		}
-		health, _ := s.checksService.GetAggregatedChecksResultByCluster(c.ID)
+		health, _ := s.checksService.GetAggregatedChecksResultById(c.ID)
 		c.Health = health.String()
 
 		tags, err := s.tagsService.GetAllByResource(models.TagClusterResourceType, c.ID)

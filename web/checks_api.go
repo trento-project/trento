@@ -6,8 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/mitchellh/mapstructure"
 
-	"github.com/trento-project/trento/internal/consul"
-
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
 )
@@ -47,18 +45,18 @@ type JSONCheckResult struct {
 	Description string                `json:"description,omitempty"`
 }
 
-// ApiCheckResultsHandler godoc
-// @Summary Get a specific cluster's check results
+// ApiGetCheckResultsHandler godoc
+// @Summary Get a specific group's check results
 // @Produce json
-// @Param cluster_id path string true "Cluster Id"
-// @Success 200 {object} map[string]interface{}
-// @Failure 500 {object} map[string]string
-// @Router /api/clusters/{cluster_id}/results [get]
-func ApiClusterCheckResultsHandler(client consul.Client, s services.ChecksService) gin.HandlerFunc {
+// @Param id path string true "Resource Id"
+// @Success 200 {object} JSONChecksResults
+// @Error 404
+// @Router /api/checks/{id}/results [get]
+func ApiGetCheckResultsHandler(s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		clusterId := c.Param("cluster_id")
+		id := c.Param("id")
 
-		checkResults, err := s.GetChecksResultAndMetadataByCluster(clusterId)
+		checkResults, err := s.GetChecksResultAndMetadataById(id)
 		if err != nil {
 			c.Error(err)
 			return

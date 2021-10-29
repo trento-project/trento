@@ -2,14 +2,11 @@ package services
 
 import (
 	"encoding/json"
-	"fmt"
 
-	"github.com/mitchellh/mapstructure"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
 	"github.com/trento-project/trento/web/models"
-	"github.com/trento-project/trento/web/services/ara"
 )
 
 //go:generate mockery --name=ChecksService --inpackage --filename=checks_mock.go
@@ -38,12 +35,11 @@ type ChecksService interface {
 	CreateChecksCatalogEntry(check *models.Check) error
 	CreateChecksCatalog(checkList models.ChecksCatalog) error
 	// Check result services
-	GetChecksResult() (map[string]*models.Results, error)
-	GetChecksResultByCluster(clusterId string) (*models.Results, error)
+	GetChecksResultById(id string) (*models.Results, error)
 	CreateChecksResultsById(id string, checkResults *models.Results) error
-	GetChecksResultAndMetadataByCluster(clusterId string) (*models.ClusterCheckResults, error)
-	GetAggregatedChecksResultByHost(clusterId string) (map[string]*AggregatedCheckData, error)
-	GetAggregatedChecksResultByCluster(clusterId string) (*AggregatedCheckData, error)
+	GetChecksResultAndMetadataById(id string) (*models.ClusterCheckResults, error)
+	GetAggregatedChecksResultByHost(id string) (map[string]*AggregatedCheckData, error)
+	GetAggregatedChecksResultById(id string) (*AggregatedCheckData, error)
 	// Selected checks services
 	GetSelectedChecksById(id string) (models.SelectedChecks, error)
 	CreateSelectedChecks(id string, selectedChecksList []string) error
@@ -54,12 +50,11 @@ type ChecksService interface {
 }
 
 type checksService struct {
-	araService ara.AraService
-	db         *gorm.DB
+	db *gorm.DB
 }
 
-func NewChecksService(araService ara.AraService, db *gorm.DB) *checksService {
-	return &checksService{araService: araService, db: db}
+func NewChecksService(db *gorm.DB) *checksService {
+	return &checksService{db: db}
 }
 
 /*
@@ -141,40 +136,17 @@ func (c *checksService) CreateChecksCatalog(checkList models.ChecksCatalog) erro
 Checks result services
 */
 
-func (c *checksService) GetChecksResult() (map[string]*models.Results, error) {
-	var checkData = models.CheckData{}
+func (c *checksService) GetChecksResultById(id string) (*models.Results, error) {
+	var resultRaw models.CheckResultsRaw
+	result := c.db.Where("group_id", id).Last(&resultRaw)
 
-	records, err := c.araService.GetRecordList("key=trento-results&order=-id")
-	if err != nil {
-		return nil, err
+	if result.Error != nil {
+		return nil, result.Error
 	}
 
-	if len(records.Results) == 0 {
-		return nil, fmt.Errorf("Couldn't find any check result record. Check if the runner component is running")
-	}
-
-	record, err := c.araService.GetRecord(records.Results[0].ID)
-	if err != nil {
-		return nil, err
-	}
-
-	mapstructure.Decode(record.Value, &checkData)
-
-	return checkData.Groups, nil
-}
-
-func (c *checksService) GetChecksResultByCluster(clusterId string) (*models.Results, error) {
-	cResult, err := c.GetChecksResult()
-	if err != nil {
-		return nil, err
-	}
-
-	cResultByCluster, ok := cResult[clusterId]
-	if !ok {
-		return nil, fmt.Errorf("Cluster %s not found", clusterId)
-	}
-
-	return cResultByCluster, nil
+	var checkResult models.Results
+	err := json.Unmarshal(resultRaw.Payload, &checkResult)
+	return &checkResult, err
 }
 
 func (c *checksService) CreateChecksResultsById(id string, checkResults *models.Results) error {
@@ -189,8 +161,8 @@ func (c *checksService) CreateChecksResultsById(id string, checkResults *models.
 	return result.Error
 }
 
-func (c *checksService) GetChecksResultAndMetadataByCluster(clusterId string) (*models.ClusterCheckResults, error) {
-	cResultByCluster, err := c.GetChecksResultByCluster(clusterId)
+func (c *checksService) GetChecksResultAndMetadataById(id string) (*models.ClusterCheckResults, error) {
+	cResultById, err := c.GetChecksResultById(id)
 	if err != nil {
 		return nil, err
 	}
@@ -201,11 +173,11 @@ func (c *checksService) GetChecksResultAndMetadataByCluster(clusterId string) (*
 	}
 
 	resultSet := &models.ClusterCheckResults{}
-	resultSet.Hosts = cResultByCluster.Hosts
+	resultSet.Hosts = cResultById.Hosts
 	resultSet.Checks = []models.ClusterCheckResult{}
 
 	for _, checkMeta := range checkList {
-		for checkId, checkByHost := range cResultByCluster.Checks {
+		for checkId, checkByHost := range cResultById.Checks {
 			if checkId == checkMeta.ID {
 				current := models.ClusterCheckResult{
 					Group:       checkMeta.Group,
@@ -222,15 +194,15 @@ func (c *checksService) GetChecksResultAndMetadataByCluster(clusterId string) (*
 	return resultSet, nil
 }
 
-func (c *checksService) GetAggregatedChecksResultByHost(clusterId string) (map[string]*AggregatedCheckData, error) {
-	cResultByCluster, err := c.GetChecksResultByCluster(clusterId)
+func (c *checksService) GetAggregatedChecksResultByHost(id string) (map[string]*AggregatedCheckData, error) {
+	cResultById, err := c.GetChecksResultById(id)
 	if err != nil {
 		return nil, err
 	}
 
 	aCheckDataByHost := make(map[string]*AggregatedCheckData)
 
-	for _, check := range cResultByCluster.Checks {
+	for _, check := range cResultById.Checks {
 		for hostName, host := range check.Hosts {
 			if _, ok := aCheckDataByHost[hostName]; !ok {
 				aCheckDataByHost[hostName] = &AggregatedCheckData{}
@@ -249,10 +221,10 @@ func (c *checksService) GetAggregatedChecksResultByHost(clusterId string) (map[s
 	return aCheckDataByHost, nil
 }
 
-func (c *checksService) GetAggregatedChecksResultByCluster(clusterId string) (*AggregatedCheckData, error) {
+func (c *checksService) GetAggregatedChecksResultById(id string) (*AggregatedCheckData, error) {
 	aCheckData := &AggregatedCheckData{}
 
-	aCheckDataByHost, err := c.GetAggregatedChecksResultByHost(clusterId)
+	aCheckDataByHost, err := c.GetAggregatedChecksResultByHost(id)
 	if err != nil {
 		return aCheckData, err
 	}

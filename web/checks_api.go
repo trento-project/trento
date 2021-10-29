@@ -88,7 +88,7 @@ func ApiCreateChecksCatalogtaHandler(s services.ChecksService) gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, &r)
+		c.JSON(http.StatusCreated, &r)
 	}
 }
 

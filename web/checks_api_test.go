@@ -218,7 +218,7 @@ func TestApiCreateChecksCatalogtaHandler(t *testing.T) {
 
 	app.webEngine.ServeHTTP(resp, req)
 
-	assert.Equal(t, 200, resp.Code)
+	assert.Equal(t, 201, resp.Code)
 
 	// 500 scenario
 	resp = httptest.NewRecorder()

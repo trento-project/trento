@@ -4,6 +4,7 @@
     method: POST
     body_format: json
     body: '{{ metadata["checks"] }}'
+    status_code: [201]
     return_content: true
   register: record
 

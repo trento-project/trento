@@ -48,6 +48,7 @@ func LoadConfig() (*agent.Config, error) {
 			Key:           key,
 			CA:            ca,
 		},
+		ConsulConfigDir: viper.GetString("consul-config-dir"),
 		InstanceName:    hostname,
 		DiscoveryPeriod: time.Duration(viper.GetInt("discovery-period")) * time.Minute,
 	}, nil

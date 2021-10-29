@@ -4,7 +4,7 @@
   become: true
 
   vars:
-    ara_playbook_labels:
+    trento_labels:
       - test  # Do not change the name. It is use in the trento callback call
 
   tasks:

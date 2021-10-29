@@ -1,9 +1,5 @@
 """
 Trento Callback executor.
-Find some documentation at:
-https://ara.readthedocs.io/en/latest/api-usage.html
-https://ara.readthedocs.io/en/latest/ansible-plugins-and-use-cases.html
-https://github.com/ansible-community/ara/blob/master/ara/plugins/action/ara_record.py
 
 :author: xarbulu
 :organization: SUSE Linux GmbH
@@ -14,13 +10,12 @@ https://github.com/ansible-community/ara/blob/master/ara/plugins/action/ara_reco
 
 import os
 import yaml
+import requests
 
 from ansible.plugins.callback import CallbackBase
-from ara.clients.http import AraHttpClient
 
-TRENTO_TEST_LABEL_KEY = "ara_playbook_labels"
+TRENTO_TEST_LABEL_KEY = "trento_labels"
 TRENTO_TEST_LABEL = "test"
-TRENTO_RECORD_KEY = "trento-results"
 TEST_RESULT_TASK_NAME = "set_test_result"
 TEST_INCLUDE_TASK_NAME = "run_checks"
 CHECK_ID = "id"
@@ -118,8 +113,10 @@ class CallbackModule(CallbackBase):
         self.playbook = None
         self.play = None
         self.results = Results()
-        endpoint = os.getenv('ARA_API_SERVER')
-        self.client = AraHttpClient(endpoint=endpoint, verify=False)
+        host = os.getenv('TRENTO_WEB_API_HOST')
+        port = os.getenv('TRENTO_WEB_API_PORT')
+        api_url = "http://{}:{}".format(host, port)
+        self._trento_api_url = api_url
 
     def v2_playbook_on_start(self, playbook):
         """
@@ -188,17 +185,13 @@ class CallbackModule(CallbackBase):
 
     def v2_playbook_on_stats(self, _stats):
         """
-        Upload ARA record at the end of the execution
+        Post results at the end of the execution
         """
         if not self._is_test_execution():
             return
 
         self._display.banner("Publishing Trento results")
-        self._create_or_update_record(
-            self._get_playbook_id(),
-            TRENTO_RECORD_KEY,
-            self.results.results,
-            "json")
+        self._post_results(self.results.results)
 
     def _all_vars(self, host=None, task=None):
         """
@@ -271,33 +264,13 @@ class CallbackModule(CallbackBase):
                     self.results.set_host_state(group, host, True)
                     self.results.add_result(group, check_id, host, "skipped")
 
-    def _get_playbook_id(self):
-        """
-        Get current execution playbook id
-        """
-        play = self.client.get("/api/v1/plays?uuid=%s" % self.play._uuid)
-        playbook_id = play["results"][0]["playbook"]
-        return playbook_id
 
-    def _create_or_update_record(self, playbook, key, value, record_type):
+    def _post_results(self, results):
         """
-        Create or update (if it already exists) an ARA record
-
-        Based on:
-        https://github.com/ansible-community/ara/blob/master/ara/plugins/action/ara_record.py#L145
+        Post results to the trento web api server
         """
-        changed = False
-        record = self.client.get("/api/v1/records?playbook=%s&key=%s" % (playbook, key))
-        if record["count"] == 0:
-            record = self.client.post(
-                "/api/v1/records", playbook=playbook, key=key, value=value, type=record_type)
-            changed = True
-        else:
-            old = self.client.get("/api/v1/records/%s" % record["results"][0]["id"])
-            if old["value"] != value or old["type"] != type:
-                record = self.client.patch(
-                    "/api/v1/records/%s" % old["id"], key=key, value=value, type=record_type)
-                changed = True
-            else:
-                record = old
-        return record, changed
+        for key, group in results["results"].items():
+            url = "{}/api/checks/{}/results".format(self._trento_api_url, key)
+            response = requests.post(url, json=group)
+            self._display.banner(
+                "Results of {} published. Return code is: {}".format(key, response.status_code))

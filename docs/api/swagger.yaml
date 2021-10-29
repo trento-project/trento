@@ -42,7 +42,6 @@ definitions:
     required:
     - tag
     type: object
-host: localhost:8080
 info:
   contact:
     email: trento-project@suse.com

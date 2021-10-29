@@ -154,6 +154,23 @@ var doc = `{
                 }
             }
         },
+        "/api/checks_catalog": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get the whole checks' catalog",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/api/clusters/{cluster_id}/results": {
             "get": {
                 "produces": [
@@ -674,6 +691,12 @@ var doc = `{
                         "type": "string"
                     }
                 },
+                "hosts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/web.Node"
+                    }
+                },
                 "selected_checks": {
                     "type": "array",
                     "items": {
@@ -689,6 +712,61 @@ var doc = `{
             ],
             "properties": {
                 "tag": {
+                    "type": "string"
+                }
+            }
+        },
+        "web.Node": {
+            "type": "object",
+            "properties": {
+                "attributes": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "health": {
+                    "type": "string"
+                },
+                "ip": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "resources": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/web.Resource"
+                    }
+                },
+                "sid": {
+                    "type": "string"
+                },
+                "virtualIps": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "web.Resource": {
+            "type": "object",
+            "properties": {
+                "failCount": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "type": {
                     "type": "string"
                 }
             }

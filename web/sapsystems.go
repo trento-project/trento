@@ -74,6 +74,11 @@ func NewSAPSystemsTable(sapSystemsList sapsystem.SAPSystemsList, hostsService se
 				if err != nil {
 					return nil, err
 				}
+
+				if len(attachedDatabases) == 0 {
+					continue
+				}
+
 				sapSystem.AttachedDatabaseSID = attachedDatabases[0].SID
 				sapSystem.AttachedDatabaseId = attachedDatabases[0].Id
 

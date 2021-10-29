@@ -37,7 +37,7 @@ type ChecksService interface {
 	// Check result services
 	GetChecksResultById(id string) (*models.Results, error)
 	CreateChecksResultsById(id string, checkResults *models.Results) error
-	GetChecksResultAndMetadataById(id string) (*models.ClusterCheckResults, error)
+	GetChecksResultAndMetadataById(id string) (*models.ResultsAsList, error)
 	GetAggregatedChecksResultByHost(id string) (map[string]*AggregatedCheckData, error)
 	GetAggregatedChecksResultById(id string) (*AggregatedCheckData, error)
 	// Selected checks services
@@ -161,7 +161,7 @@ func (c *checksService) CreateChecksResultsById(id string, checkResults *models.
 	return result.Error
 }
 
-func (c *checksService) GetChecksResultAndMetadataById(id string) (*models.ClusterCheckResults, error) {
+func (c *checksService) GetChecksResultAndMetadataById(id string) (*models.ResultsAsList, error) {
 	cResultById, err := c.GetChecksResultById(id)
 	if err != nil {
 		return nil, err
@@ -172,14 +172,14 @@ func (c *checksService) GetChecksResultAndMetadataById(id string) (*models.Clust
 		return nil, err
 	}
 
-	resultSet := &models.ClusterCheckResults{}
+	resultSet := &models.ResultsAsList{}
 	resultSet.Hosts = cResultById.Hosts
-	resultSet.Checks = []models.ClusterCheckResult{}
+	resultSet.Checks = []*models.ChecksByHost{}
 
 	for _, checkMeta := range checkList {
 		for checkId, checkByHost := range cResultById.Checks {
 			if checkId == checkMeta.ID {
-				current := models.ClusterCheckResult{
+				current := &models.ChecksByHost{
 					Group:       checkMeta.Group,
 					Description: checkMeta.Description,
 					Hosts:       checkByHost.Hosts,

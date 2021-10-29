@@ -175,15 +175,15 @@ func (_m *MockChecksService) GetChecksCatalogByGroup() (models.GroupedCheckList,
 }
 
 // GetChecksResultAndMetadataById provides a mock function with given fields: id
-func (_m *MockChecksService) GetChecksResultAndMetadataById(id string) (*models.ClusterCheckResults, error) {
+func (_m *MockChecksService) GetChecksResultAndMetadataById(id string) (*models.Results, error) {
 	ret := _m.Called(id)
 
-	var r0 *models.ClusterCheckResults
-	if rf, ok := ret.Get(0).(func(string) *models.ClusterCheckResults); ok {
+	var r0 *models.Results
+	if rf, ok := ret.Get(0).(func(string) *models.Results); ok {
 		r0 = rf(id)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.ClusterCheckResults)
+			r0 = ret.Get(0).(*models.Results)
 		}
 	}
 

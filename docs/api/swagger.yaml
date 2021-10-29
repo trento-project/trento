@@ -1,3 +1,4 @@
+basePath: /api
 definitions:
   web.JSONCheck:
     properties:
@@ -41,8 +42,18 @@ definitions:
     required:
     - tag
     type: object
+host: localhost:8080
 info:
-  contact: {}
+  contact:
+    email: trento-project@suse.com
+    name: Trento Project
+    url: https://www.trento-project.io
+  description: Trento API
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Trento API
+  version: "1.0"
 paths:
   /api/checks/{id}/settings:
     get:
@@ -436,4 +447,6 @@ paths:
               type: string
             type: object
       summary: List all the tags in the system
+schemes:
+- http
 swagger: "2.0"

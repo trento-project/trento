@@ -137,19 +137,6 @@ func NewApp(config *Config) (*App, error) {
 	return NewAppWithDeps(config, DefaultDependencies())
 }
 
-// @title Trento API
-// @version 1.0
-// @description Trento API
-
-// @contact.name Trento Project
-// @contact.url https://www.trento-project.io
-// @contact.email  trento-project@suse.com
-// @license.name Apache 2.0
-// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
-
-// @host localhost:8080
-// @BasePath /
-// @schemes http
 func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 	app := &App{
 		config:       config,

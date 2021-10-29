@@ -44,13 +44,10 @@ generate:
 ifeq (, $(shell command -v mockery 2> /dev/null))
 	$(error "'mockery' command not found. You can install it locally with 'go install github.com/vektra/mockery/v2'.")
 endif
-	go generate ./...
-
-swag:
 ifeq (, $(shell command -v swag 2> /dev/null))
 	$(error "'swag' command not found. You can install it locally with 'go install github.com/swaggo/swag/cmd/swag@latest'.")
 endif
-	swag init -o docs/api
+	go generate ./...
 
 mod-tidy:
 	go mod tidy

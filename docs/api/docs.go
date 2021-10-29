@@ -17,7 +17,15 @@ var doc = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "contact": {},
+        "contact": {
+            "name": "Trento Project",
+            "url": "https://www.trento-project.io",
+            "email": "trento-project@suse.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
@@ -699,12 +707,12 @@ type swaggerInfo struct {
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = swaggerInfo{
-	Version:     "",
-	Host:        "",
-	BasePath:    "",
-	Schemes:     []string{},
-	Title:       "",
-	Description: "",
+	Version:     "1.0",
+	Host:        "localhost:8080",
+	BasePath:    "/api",
+	Schemes:     []string{"http"},
+	Title:       "Trento API",
+	Description: "Trento API",
 }
 
 type s struct{}

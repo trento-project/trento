@@ -274,16 +274,22 @@ func TestApiCheckGetSettingsByIdHandler(t *testing.T) {
 	assert.Equal(t, 200, resp.Code)
 	assert.Equal(t, expectedSettings, settings)
 
-	// 404 scenario
+	// not found scenario, still 200 but returns an empty set
 	resp = httptest.NewRecorder()
 
 	req = httptest.NewRequest("GET", "/api/checks/otherId/settings", nil)
+
+	emptySettings := &JSONChecksSettings{
+		SelectedChecks:     []string{},
+		ConnectionSettings: map[string]string{},
+	}
 
 	app.webEngine.ServeHTTP(resp, req)
 
 	json.Unmarshal(resp.Body.Bytes(), &settings)
 
-	assert.Equal(t, 404, resp.Code)
+	assert.Equal(t, 200, resp.Code)
+	assert.Equal(t, emptySettings, settings)
 
 	mockChecksService.AssertExpectations(t)
 }

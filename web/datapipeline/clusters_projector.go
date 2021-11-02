@@ -12,8 +12,15 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+func NewClustersProjector(db *gorm.DB) *projector {
+	clusterProjector := NewProjector("clusters", db)
+	clusterProjector.AddHandler(ClusterDiscovery, clustersProjector_ClusterDiscoveryHandler)
+
+	return clusterProjector
+}
+
 // TODO: this is a temporary solution, this code needs to be abstracted in the projector.Project() method
-func ClusterListHandler(event *DataCollectedEvent, db *gorm.DB) error {
+func clustersProjector_ClusterDiscoveryHandler(event *DataCollectedEvent, db *gorm.DB) error {
 	data, _ := event.Payload.MarshalJSON()
 	dec := json.NewDecoder(bytes.NewReader(data))
 	dec.DisallowUnknownFields()

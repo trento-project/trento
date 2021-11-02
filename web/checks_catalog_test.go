@@ -2,7 +2,6 @@ package web
 
 import (
 	"fmt"
-	"net/http"
 	"net/http/httptest"
 	"regexp"
 	"strings"
@@ -71,7 +70,7 @@ func TestChecksCatalogHandler(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/catalog", nil)
+	req := httptest.NewRequest("GET", "/catalog", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -110,7 +109,7 @@ func TestChecksCatalogHandlerError(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/catalog", nil)
+	req := httptest.NewRequest("GET", "/catalog", nil)
 	if err != nil {
 		t.Fatal(err)
 	}

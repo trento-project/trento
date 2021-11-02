@@ -1,7 +1,6 @@
 package web
 
 import (
-	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -18,7 +17,7 @@ func TestHomeHandler(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/", nil)
+	req := httptest.NewRequest("GET", "/", nil)
 	if err != nil {
 		t.Fatal(err)
 	}

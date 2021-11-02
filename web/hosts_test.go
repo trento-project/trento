@@ -1,7 +1,6 @@
 package web
 
 import (
-	"net/http"
 	"net/http/httptest"
 	"regexp"
 	"testing"
@@ -158,7 +157,7 @@ func TestHostsListHandler(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/hosts", nil)
+	req := httptest.NewRequest("GET", "/hosts", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -317,7 +316,7 @@ func TestHostHandler(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/hosts/test_host", nil)
+	req := httptest.NewRequest("GET", "/hosts/test_host", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -438,7 +437,7 @@ func TestHostHandlerAzure(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/hosts/test_host", nil)
+	req := httptest.NewRequest("GET", "/hosts/test_host", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -483,7 +482,7 @@ func TestHostHandler404Error(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/hosts/foobar", nil)
+	req := httptest.NewRequest("GET", "/hosts/foobar", nil)
 	if err != nil {
 		t.Fatal(err)
 	}

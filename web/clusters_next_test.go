@@ -1,7 +1,6 @@
 package web
 
 import (
-	"net/http"
 	"net/http/httptest"
 	"regexp"
 	"testing"
@@ -72,7 +71,7 @@ func TestClustersListNextHandler(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/clusters-next", nil)
+	req := httptest.NewRequest("GET", "/clusters-next", nil)
 	if err != nil {
 		t.Fatal(err)
 	}

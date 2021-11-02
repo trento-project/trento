@@ -2,7 +2,6 @@ package web
 
 import (
 	"fmt"
-	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"path"
@@ -527,7 +526,7 @@ func TestClustersListHandler(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/clusters", nil)
+	req := httptest.NewRequest("GET", "/clusters", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -619,7 +618,7 @@ func TestClusterHandlerHANA(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/clusters/"+clusterId, nil)
+	req := httptest.NewRequest("GET", "/clusters/"+clusterId, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -739,7 +738,7 @@ func TestClusterHandlerUnreachableNodes(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/clusters/"+clusterId, nil)
+	req := httptest.NewRequest("GET", "/clusters/"+clusterId, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -823,7 +822,7 @@ func TestClusterHandlerAlert(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/clusters/"+clusterId, nil)
+	req := httptest.NewRequest("GET", "/clusters/"+clusterId, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -878,7 +877,7 @@ func TestClusterHandlerGeneric(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/clusters/e2f2eb50aef748e586a7baa85e0162cf", nil)
+	req := httptest.NewRequest("GET", "/clusters/e2f2eb50aef748e586a7baa85e0162cf", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -914,7 +913,7 @@ func TestClusterHandler404Error(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/clusters/foobar", nil)
+	req := httptest.NewRequest("GET", "/clusters/foobar", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -950,7 +949,7 @@ func TestSaveChecksHandler(t *testing.T) {
 	data.Set("username-host2", "myuser2")
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("POST", "/clusters/foobar/settings", strings.NewReader(data.Encode()))
+	req := httptest.NewRequest("POST", "/clusters/foobar/settings", strings.NewReader(data.Encode()))
 	if err != nil {
 		t.Fatal(err)
 	}

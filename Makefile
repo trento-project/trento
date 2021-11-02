@@ -13,6 +13,7 @@ endif
 .PHONY: default
 default: clean mod-tidy fmt vet-check web-check test build
 
+.PHONY: build
 build: trento
 trento: web-assets
 	$(GO_BUILD)
@@ -63,6 +64,9 @@ mod-tidy:
 test: web-assets
 	GIN_MODE=test go test -v ./...
 
+.PHONY: full-check
+full-check: generate vet-check test web-check
+
 test-coverage: build/coverage.out
 build/coverage.out:
 	@mkdir -p build
@@ -73,6 +77,7 @@ build/coverage.out:
 vet-check: web-assets
 	go vet ./...
 
+.PHONY: web-deps
 web-deps: web/frontend/node_modules
 web/frontend/node_modules:
 	cd web/frontend; npm install

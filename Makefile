@@ -18,7 +18,7 @@ build: trento
 trento: web-assets
 	$(GO_BUILD)
 
-.PHONY: cross-compiled
+.PHONY: cross-compiled $(ARCHS)
 cross-compiled: $(ARCHS)
 $(ARCHS): web-assets
 	@mkdir -p build/$@
@@ -67,6 +67,7 @@ test: web-assets
 .PHONY: full-check
 full-check: generate vet-check test web-check
 
+.PHONY: test-coverage
 test-coverage: build/coverage.out
 build/coverage.out:
 	@mkdir -p build

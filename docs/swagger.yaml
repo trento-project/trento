@@ -81,6 +81,27 @@ info:
   contact: {}
 paths:
   /api/checks/{id}/results:
+    get:
+      parameters:
+      - description: Resource Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/web.JSONChecksResults'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a specific group's check results
     post:
       parameters:
       - description: Resource Id
@@ -101,6 +122,12 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/web.JSONChecksResults'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       summary: Create a checks results entry
   /api/checks/{id}/settings:
     get:
@@ -182,29 +209,6 @@ paths:
               type: string
             type: object
       summary: Create/Updates the checks catalog
-  /api/clusters/{cluster_id}/results:
-    get:
-      parameters:
-      - description: Cluster Id
-        in: path
-        name: cluster_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Get a specific cluster's check results
   /api/clusters/{id}/tags:
     post:
       consumes:

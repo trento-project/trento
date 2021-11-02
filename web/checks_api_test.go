@@ -14,8 +14,8 @@ import (
 	"github.com/trento-project/trento/web/services"
 )
 
-func TestApiClusterCheckResultsHandler(t *testing.T) {
-	results := &models.ClusterCheckResults{
+func TestApiGetCheckResultsHandler(t *testing.T) {
+	results := &models.ResultsAsList{
 		Hosts: map[string]*models.Host{
 			"host1": &models.Host{
 				Reachable: true,
@@ -26,8 +26,8 @@ func TestApiClusterCheckResultsHandler(t *testing.T) {
 				Msg:       "error connecting",
 			},
 		},
-		Checks: []models.ClusterCheckResult{
-			models.ClusterCheckResult{
+		Checks: []*models.ChecksByHost{
+			&models.ChecksByHost{
 				ID:          "ABCDEF",
 				Group:       "group 1",
 				Description: "description 1",
@@ -40,7 +40,7 @@ func TestApiClusterCheckResultsHandler(t *testing.T) {
 					},
 				},
 			},
-			models.ClusterCheckResult{
+			&models.ChecksByHost{
 				ID:          "123456",
 				Group:       "group 1",
 				Description: "description 2",
@@ -58,7 +58,7 @@ func TestApiClusterCheckResultsHandler(t *testing.T) {
 
 	mockChecksService := new(services.MockChecksService)
 	mockChecksService.On(
-		"GetChecksResultAndMetadataByCluster", "47d1190ffb4f781974c8356d7f863b03").Return(results, nil)
+		"GetChecksResultAndMetadataById", "47d1190ffb4f781974c8356d7f863b03").Return(results, nil)
 
 	deps := setupTestDependencies()
 	deps.checksService = mockChecksService
@@ -72,7 +72,7 @@ func TestApiClusterCheckResultsHandler(t *testing.T) {
 
 	resp := httptest.NewRecorder()
 
-	req := httptest.NewRequest("GET", "/api/clusters/47d1190ffb4f781974c8356d7f863b03/results", nil)
+	req := httptest.NewRequest("GET", "/api/checks/47d1190ffb4f781974c8356d7f863b03/results", nil)
 
 	app.webEngine.ServeHTTP(resp, req)
 
@@ -120,11 +120,11 @@ func TestApiClusterCheckResultsHandler(t *testing.T) {
 	assert.Equal(t, 200, resp.Code)
 }
 
-func TestApiClusterCheckResultsHandler500(t *testing.T) {
+func TestApiGetCheckResultsHandler404(t *testing.T) {
 	mockChecksService := new(services.MockChecksService)
 	mockChecksService.On(
-		"GetChecksResultAndMetadataByCluster", "47d1190ffb4f781974c8356d7f863b03").Return(
-		&models.ClusterCheckResults{}, fmt.Errorf("kaboom"))
+		"GetChecksResultAndMetadataById", "47d1190ffb4f781974c8356d7f863b03").Return(
+		&models.ResultsAsList{}, fmt.Errorf("kaboom"))
 
 	deps := setupTestDependencies()
 	deps.checksService = mockChecksService
@@ -137,12 +137,119 @@ func TestApiClusterCheckResultsHandler500(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
+	req := httptest.NewRequest("GET", "/api/checks/47d1190ffb4f781974c8356d7f863b03/results", nil)
 
-	req := httptest.NewRequest("GET", "/api/clusters/47d1190ffb4f781974c8356d7f863b03/results", nil)
+	app.webEngine.ServeHTTP(resp, req)
+
+	assert.Equal(t, 404, resp.Code)
+}
+
+func TestApiCreateChecksResultstaHandler(t *testing.T) {
+	expectedResults := &models.Results{
+		Hosts: map[string]*models.Host{
+			"host1": &models.Host{
+				Reachable: true,
+				Msg:       "",
+			},
+			"host2": &models.Host{
+				Reachable: true,
+				Msg:       "",
+			},
+		},
+		Checks: map[string]*models.ChecksByHost{
+			"check1": &models.ChecksByHost{
+				Hosts: map[string]*models.Check{
+					"host1": &models.Check{
+						Result: "passing",
+					},
+					"host2": &models.Check{
+						Result: "passing",
+					},
+				},
+			},
+			"check2": &models.ChecksByHost{
+				Hosts: map[string]*models.Check{
+					"host1": &models.Check{
+						Result: "critical",
+					},
+					"host2": &models.Check{
+						Result: "warning",
+					},
+				},
+			},
+		},
+	}
+	mockChecksService := new(services.MockChecksService)
+	mockChecksService.On(
+		"CreateChecksResultsById", "47d1190ffb4f781974c8356d7f863b03", expectedResults).Return(nil)
+	mockChecksService.On(
+		"CreateChecksResultsById", "other", expectedResults).Return(fmt.Errorf("error"))
+
+	deps := setupTestDependencies()
+	deps.checksService = mockChecksService
+
+	var err error
+	config := setupTestConfig()
+	app, err := NewAppWithDeps(config, deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// 200 scenario
+	sendData := JSONChecksResults{
+		Hosts: map[string]*JSONHosts{
+			"host1": &JSONHosts{
+				Reachable: true,
+				Msg:       "",
+			},
+			"host2": &JSONHosts{
+				Reachable: true,
+				Msg:       "",
+			},
+		},
+		Checks: map[string]*JSONCheckResult{
+			"check1": &JSONCheckResult{
+				Hosts: map[string]*JSONHosts{
+					"host1": &JSONHosts{
+						Result: "passing",
+					},
+					"host2": &JSONHosts{
+						Result: "passing",
+					},
+				},
+			},
+			"check2": &JSONCheckResult{
+				Hosts: map[string]*JSONHosts{
+					"host1": &JSONHosts{
+						Result: "critical",
+					},
+					"host2": &JSONHosts{
+						Result: "warning",
+					},
+				},
+			},
+		},
+	}
+
+	resp := httptest.NewRecorder()
+	body, _ := json.Marshal(&sendData)
+	req := httptest.NewRequest("POST", "/api/checks/47d1190ffb4f781974c8356d7f863b03/results", bytes.NewBuffer(body))
+
+	app.webEngine.ServeHTTP(resp, req)
+
+	assert.Equal(t, 201, resp.Code)
+
+	// 500 scenario
+
+	resp = httptest.NewRecorder()
+	body, _ = json.Marshal(&sendData)
+	req = httptest.NewRequest("POST", "/api/checks/other/results", bytes.NewBuffer(body))
 
 	app.webEngine.ServeHTTP(resp, req)
 
 	assert.Equal(t, 500, resp.Code)
+
+	mockChecksService.AssertExpectations(t)
 }
 
 func TestApiCreateChecksCatalogHandler(t *testing.T) {

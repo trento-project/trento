@@ -67,6 +67,38 @@ var doc = `{
             }
         },
         "/api/checks/{id}/results": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get a specific group's check results",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Resource Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web.JSONChecksResults"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
             "post": {
                 "produces": [
                     "application/json"
@@ -95,6 +127,15 @@ var doc = `{
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/web.JSONChecksResults"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }
@@ -167,41 +208,6 @@ var doc = `{
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/web.JSONChecksSettings"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/clusters/{cluster_id}/results": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "summary": "Get a specific cluster's check results",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Cluster Id",
-                        "name": "cluster_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
                         }
                     },
                     "500": {

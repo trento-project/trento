@@ -72,9 +72,9 @@ func loadClustersFixtures(db *gorm.DB) {
 }
 
 func (suite *ClustersServiceTestSuite) TestClustersService_GetAll() {
-	suite.checksService.On("GetAggregatedChecksResultByCluster", "1").Return(&AggregatedCheckData{PassingCount: 1}, nil)
-	suite.checksService.On("GetAggregatedChecksResultByCluster", "2").Return(&AggregatedCheckData{WarningCount: 1}, nil)
-	suite.checksService.On("GetAggregatedChecksResultByCluster", "3").Return(&AggregatedCheckData{CriticalCount: 1}, nil)
+	suite.checksService.On("GetAggregatedChecksResultById", "1").Return(&AggregatedCheckData{PassingCount: 1}, nil)
+	suite.checksService.On("GetAggregatedChecksResultById", "2").Return(&AggregatedCheckData{WarningCount: 1}, nil)
+	suite.checksService.On("GetAggregatedChecksResultById", "3").Return(&AggregatedCheckData{CriticalCount: 1}, nil)
 
 	suite.tagsService.On("GetAllByResource", models.TagClusterResourceType, "1").Return([]string{"tag1", "tag2"}, nil)
 	suite.tagsService.On("GetAllByResource", models.TagClusterResourceType, "2").Return([]string{"tag3", "tag4"}, nil)

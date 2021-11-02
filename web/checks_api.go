@@ -50,7 +50,7 @@ type JSONCheckResult struct {
 // @Produce json
 // @Param id path string true "Resource Id"
 // @Success 200 {object} JSONChecksResults
-// @Error 404
+// @Failure 404 {object} map[string]string
 // @Router /api/checks/{id}/results [get]
 func ApiGetCheckResultsHandler(s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -58,7 +58,7 @@ func ApiGetCheckResultsHandler(s services.ChecksService) gin.HandlerFunc {
 
 		checkResults, err := s.GetChecksResultAndMetadataById(id)
 		if err != nil {
-			c.Error(err)
+			c.Error(NotFoundError("could not find checks group"))
 			return
 		}
 
@@ -72,7 +72,7 @@ func ApiGetCheckResultsHandler(s services.ChecksService) gin.HandlerFunc {
 // @Param id path string true "Resource Id"
 // @Param Body body JSONChecksResults true "Checks results"
 // @Success 201 {object} JSONChecksResults
-// @Error 500
+// @Failure 500 {object} map[string]string
 // @Router /api/checks/{id}/results [post]
 func ApiCreateChecksResultstaHandler(s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {

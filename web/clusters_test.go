@@ -429,7 +429,7 @@ func checksResultUnreachable() *models.Results {
 	return checksResult
 }
 
-func aggregatedByCluster() *services.AggregatedCheckData {
+func aggregatedById() *services.AggregatedCheckData {
 	return &services.AggregatedCheckData{
 		PassingCount:  2,
 		WarningCount:  0,
@@ -437,7 +437,7 @@ func aggregatedByCluster() *services.AggregatedCheckData {
 	}
 }
 
-func aggregatedByClusterWarning() *services.AggregatedCheckData {
+func aggregatedByIdWarning() *services.AggregatedCheckData {
 	return &services.AggregatedCheckData{
 		PassingCount:  2,
 		WarningCount:  2,
@@ -445,7 +445,7 @@ func aggregatedByClusterWarning() *services.AggregatedCheckData {
 	}
 }
 
-func aggregatedByClusterCritical() *services.AggregatedCheckData {
+func aggregatedByIdCritical() *services.AggregatedCheckData {
 	return &services.AggregatedCheckData{
 		PassingCount:  2,
 		WarningCount:  0,
@@ -453,7 +453,7 @@ func aggregatedByClusterCritical() *services.AggregatedCheckData {
 	}
 }
 
-func aggregatedByClusterEmpty() *services.AggregatedCheckData {
+func aggregatedByIdEmpty() *services.AggregatedCheckData {
 	return &services.AggregatedCheckData{
 		PassingCount:  0,
 		WarningCount:  0,
@@ -498,14 +498,14 @@ func TestClustersListHandler(t *testing.T) {
 	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
 	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil)
 
-	checksMocks.On("GetAggregatedChecksResultByCluster", "47d1190ffb4f781974c8356d7f863b03").Return(
-		aggregatedByCluster(), nil)
-	checksMocks.On("GetAggregatedChecksResultByCluster", "a615a35f65627be5a757319a0741127f").Return(
-		aggregatedByClusterWarning(), nil)
-	checksMocks.On("GetAggregatedChecksResultByCluster", "e2f2eb50aef748e586a7baa85e0162cf").Return(
-		aggregatedByClusterCritical(), nil)
-	checksMocks.On("GetAggregatedChecksResultByCluster", "e27d313a674375b2066777a89ee346b9").Return(
-		aggregatedByClusterEmpty(), nil)
+	checksMocks.On("GetAggregatedChecksResultById", "47d1190ffb4f781974c8356d7f863b03").Return(
+		aggregatedById(), nil)
+	checksMocks.On("GetAggregatedChecksResultById", "a615a35f65627be5a757319a0741127f").Return(
+		aggregatedByIdWarning(), nil)
+	checksMocks.On("GetAggregatedChecksResultById", "e2f2eb50aef748e586a7baa85e0162cf").Return(
+		aggregatedByIdCritical(), nil)
+	checksMocks.On("GetAggregatedChecksResultById", "e27d313a674375b2066777a89ee346b9").Return(
+		aggregatedByIdEmpty(), nil)
 
 	mockTagsService := new(services.MockTagsService)
 	mockTagsService.On("GetAllByResource", models.TagClusterResourceType, "47d1190ffb4f781974c8356d7f863b03").Return([]string{"tag1"}, nil)
@@ -589,10 +589,10 @@ func TestClusterHandlerHANA(t *testing.T) {
 	kv.On("ListMap", cloudPath2, cloudPath2).Return(azureMeta(2), nil)
 
 	checksMocks.On("GetChecksCatalogByGroup").Return(checksCatalogByGroup(), nil)
-	checksMocks.On("GetChecksResultByCluster", clusterId).Return(
+	checksMocks.On("GetChecksResultById", clusterId).Return(
 		checksResult(), nil)
-	checksMocks.On("GetAggregatedChecksResultByCluster", clusterId).Return(
-		aggregatedByClusterCritical(), nil)
+	checksMocks.On("GetAggregatedChecksResultById", clusterId).Return(
+		aggregatedByIdCritical(), nil)
 	checksMocks.On("GetAggregatedChecksResultByHost", clusterId).Return(
 		checksResultByHost(), nil)
 	checksMocks.On("GetSelectedChecksById", clusterId).Return(
@@ -707,9 +707,9 @@ func TestClusterHandlerUnreachableNodes(t *testing.T) {
 	kv.On("ListMap", cloudPath2, cloudPath2).Return(azureMeta(2), nil)
 
 	checksMocks.On("GetChecksCatalogByGroup").Return(checksCatalogByGroup(), nil)
-	checksMocks.On("GetChecksResultByCluster", clusterId).Return(checksResultUnreachable(), nil)
-	checksMocks.On("GetAggregatedChecksResultByCluster", clusterId).Return(
-		aggregatedByClusterCritical(), nil)
+	checksMocks.On("GetChecksResultById", clusterId).Return(checksResultUnreachable(), nil)
+	checksMocks.On("GetAggregatedChecksResultById", clusterId).Return(
+		aggregatedByIdCritical(), nil)
 	checksMocks.On("GetAggregatedChecksResultByHost", clusterId).Return(
 		checksResultByHost(), nil)
 	checksMocks.On("GetSelectedChecksById", clusterId).Return(
@@ -788,9 +788,9 @@ func TestClusterHandlerAlert(t *testing.T) {
 	kv.On("ListMap", cloudPath2, cloudPath2).Return(azureMeta(2), nil)
 
 	checksMocks.On("GetChecksCatalogByGroup").Return(nil, fmt.Errorf("catalog error"))
-	checksMocks.On("GetChecksResultByCluster", clusterId).Return(nil, fmt.Errorf("catalog error"))
-	checksMocks.On("GetAggregatedChecksResultByCluster", clusterId).Return(
-		aggregatedByClusterCritical(), nil)
+	checksMocks.On("GetChecksResultById", clusterId).Return(nil, fmt.Errorf("catalog error"))
+	checksMocks.On("GetAggregatedChecksResultById", clusterId).Return(
+		aggregatedByIdCritical(), nil)
 	checksMocks.On("GetAggregatedChecksResultByHost", clusterId).Return(
 		checksResultByHost(), nil)
 	checksMocks.On("GetSelectedChecksById", clusterId).Return(

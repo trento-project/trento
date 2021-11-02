@@ -288,3 +288,7 @@ func getTLSConfig(cert string, key string, ca string) (*tls.Config, error) {
 		Certificates: []tls.Certificate{certificate},
 	}, nil
 }
+
+func (a *App) PruneEvents(olderThan time.Duration) error {
+	return a.collectorService.PruneEvents(olderThan)
+}

@@ -73,9 +73,6 @@ func TestApiClusterCheckResultsHandler(t *testing.T) {
 	resp := httptest.NewRecorder()
 
 	req := httptest.NewRequest("GET", "/api/clusters/47d1190ffb4f781974c8356d7f863b03/results", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	app.webEngine.ServeHTTP(resp, req)
 
@@ -142,9 +139,6 @@ func TestApiClusterCheckResultsHandler500(t *testing.T) {
 	resp := httptest.NewRecorder()
 
 	req := httptest.NewRequest("GET", "/api/clusters/47d1190ffb4f781974c8356d7f863b03/results", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	app.webEngine.ServeHTTP(resp, req)
 
@@ -211,9 +205,6 @@ func TestApiCreateChecksCatalogHandler(t *testing.T) {
 	resp := httptest.NewRecorder()
 	body, _ := json.Marshal(&sendData)
 	req := httptest.NewRequest("PUT", "/api/checks/catalog", bytes.NewBuffer(body))
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	app.webEngine.ServeHTTP(resp, req)
 
@@ -225,9 +216,6 @@ func TestApiCreateChecksCatalogHandler(t *testing.T) {
 	sendData = JSONChecksCatalog{}
 	body, _ = json.Marshal(&sendData)
 	req = httptest.NewRequest("PUT", "/api/checks/catalog", bytes.NewBuffer(body))
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	app.webEngine.ServeHTTP(resp, req)
 
@@ -269,9 +257,6 @@ func TestApiCheckGetSettingsByIdHandler(t *testing.T) {
 	resp := httptest.NewRecorder()
 
 	req := httptest.NewRequest("GET", "/api/checks/group1/settings", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	app.webEngine.ServeHTTP(resp, req)
 
@@ -293,9 +278,6 @@ func TestApiCheckGetSettingsByIdHandler(t *testing.T) {
 	resp = httptest.NewRecorder()
 
 	req = httptest.NewRequest("GET", "/api/checks/otherId/settings", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	app.webEngine.ServeHTTP(resp, req)
 
@@ -340,9 +322,6 @@ func TestApiCheckCreateConnectionByIdHandler(t *testing.T) {
 	resp := httptest.NewRecorder()
 	body, _ := json.Marshal(&sendData)
 	req := httptest.NewRequest("POST", "/api/checks/group1/settings", bytes.NewBuffer(body))
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	app.webEngine.ServeHTTP(resp, req)
 
@@ -356,9 +335,6 @@ func TestApiCheckCreateConnectionByIdHandler(t *testing.T) {
 	resp = httptest.NewRecorder()
 
 	req = httptest.NewRequest("POST", "/api/checks/otherId/settings", bytes.NewBuffer(body))
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	app.webEngine.ServeHTTP(resp, req)
 

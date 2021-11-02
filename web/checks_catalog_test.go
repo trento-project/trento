@@ -71,9 +71,6 @@ func TestChecksCatalogHandler(t *testing.T) {
 
 	resp := httptest.NewRecorder()
 	req := httptest.NewRequest("GET", "/catalog", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	app.webEngine.ServeHTTP(resp, req)
 
@@ -110,9 +107,6 @@ func TestChecksCatalogHandlerError(t *testing.T) {
 
 	resp := httptest.NewRecorder()
 	req := httptest.NewRequest("GET", "/catalog", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
 	req.Header.Set("Accept", "text/html")
 
 	app.webEngine.ServeHTTP(resp, req)

@@ -210,9 +210,6 @@ func TestSAPSystemsListHandler(t *testing.T) {
 
 	resp := httptest.NewRecorder()
 	req := httptest.NewRequest("GET", "/sapsystems", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	app.webEngine.ServeHTTP(resp, req)
 
@@ -263,9 +260,6 @@ func TestSAPDatabaseListHandler(t *testing.T) {
 
 	resp := httptest.NewRecorder()
 	req := httptest.NewRequest("GET", "/databases", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	app.webEngine.ServeHTTP(resp, req)
 
@@ -462,10 +456,9 @@ func TestSAPResourceHandler(t *testing.T) {
 
 	resp := httptest.NewRecorder()
 	req := httptest.NewRequest("GET", "/sapsystems/systemId", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+
 	app.webEngine.ServeHTTP(resp, req)
+
 	assert.Equal(t, 200, resp.Code)
 	responseBody := minifyHtml(resp.Body.String())
 

@@ -176,9 +176,6 @@ func TestApiResourceTag(t *testing.T) {
 			body, _ := json.Marshal(&JSONTag{tag})
 			url := fmt.Sprintf("/api/%s/%s/tags", tc.resourceType, resourceID)
 			req := httptest.NewRequest("POST", url, bytes.NewBuffer(body))
-			if err != nil {
-				t.Fatal(err)
-			}
 
 			app.webEngine.ServeHTTP(resp, req)
 
@@ -195,9 +192,6 @@ func TestApiResourceTag(t *testing.T) {
 			body, _ := json.Marshal(&JSONTag{tag})
 			url := fmt.Sprintf("/api/%s/%s/tags", tc.resourceType, notFoundResourceID)
 			req := httptest.NewRequest("POST", url, bytes.NewBuffer(body))
-			if err != nil {
-				t.Fatal(err)
-			}
 
 			app.webEngine.ServeHTTP(resp, req)
 
@@ -210,9 +204,6 @@ func TestApiResourceTag(t *testing.T) {
 			invalidJSON := []byte("ABC€")
 			url := fmt.Sprintf("/api/%s/%s/tags", tc.resourceType, resourceID)
 			req := httptest.NewRequest("POST", url, bytes.NewBuffer(invalidJSON))
-			if err != nil {
-				t.Fatal(err)
-			}
 
 			app.webEngine.ServeHTTP(resp, req)
 
@@ -225,9 +216,6 @@ func TestApiResourceTag(t *testing.T) {
 			body, _ := json.Marshal(&JSONTag{errorTag})
 			url := fmt.Sprintf("/api/%s/%s/tags", tc.resourceType, resourceID)
 			req := httptest.NewRequest("POST", url, bytes.NewBuffer(body))
-			if err != nil {
-				t.Fatal(err)
-			}
 
 			app.webEngine.ServeHTTP(resp, req)
 
@@ -239,9 +227,6 @@ func TestApiResourceTag(t *testing.T) {
 
 			url := fmt.Sprintf("/api/%s/%s/tags/%s", tc.resourceType, resourceID, tag)
 			req := httptest.NewRequest("DELETE", url, nil)
-			if err != nil {
-				t.Fatal(err)
-			}
 
 			app.webEngine.ServeHTTP(resp, req)
 
@@ -253,9 +238,6 @@ func TestApiResourceTag(t *testing.T) {
 
 			url := fmt.Sprintf("/api/%s/%s/tags/%s", tc.resourceType, notFoundResourceID, tag)
 			req := httptest.NewRequest("DELETE", url, nil)
-			if err != nil {
-				t.Fatal(err)
-			}
 
 			app.webEngine.ServeHTTP(resp, req)
 
@@ -267,9 +249,6 @@ func TestApiResourceTag(t *testing.T) {
 
 			url := fmt.Sprintf("/api/%s/%s/tags/%s", tc.resourceType, resourceID, errorTag)
 			req := httptest.NewRequest("DELETE", url, nil)
-			if err != nil {
-				t.Fatal(err)
-			}
 
 			app.webEngine.ServeHTTP(resp, req)
 

@@ -30,9 +30,6 @@ func TestAboutHandlerPremium(t *testing.T) {
 
 	resp := httptest.NewRecorder()
 	req := httptest.NewRequest("GET", "/about", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	app.webEngine.ServeHTTP(resp, req)
 
@@ -73,9 +70,6 @@ func TestAboutHandlerFree(t *testing.T) {
 
 	resp := httptest.NewRecorder()
 	req := httptest.NewRequest("GET", "/about", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	app.webEngine.ServeHTTP(resp, req)
 

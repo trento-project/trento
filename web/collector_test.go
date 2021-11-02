@@ -32,9 +32,6 @@ func TestApiCollectDataHandler(t *testing.T) {
 		Payload:       []byte("{}"),
 	})
 	req := httptest.NewRequest("POST", "/api/collect", bytes.NewBuffer(body))
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	app.collectorEngine.ServeHTTP(resp, req)
 

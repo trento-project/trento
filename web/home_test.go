@@ -18,9 +18,7 @@ func TestHomeHandler(t *testing.T) {
 
 	resp := httptest.NewRecorder()
 	req := httptest.NewRequest("GET", "/", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+
 	app.webEngine.ServeHTTP(resp, req)
 
 	assert.Equal(t, 200, resp.Code)

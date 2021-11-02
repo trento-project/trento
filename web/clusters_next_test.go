@@ -72,9 +72,6 @@ func TestClustersListNextHandler(t *testing.T) {
 
 	resp := httptest.NewRecorder()
 	req := httptest.NewRequest("GET", "/clusters-next", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	app.webEngine.ServeHTTP(resp, req)
 

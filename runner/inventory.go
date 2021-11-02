@@ -92,7 +92,7 @@ var getCloudUserName = func(client consul.Client, node string) (string, error) {
 
 	switch cloudData.Provider {
 	case cloud.Azure:
-		azureData := cloudData.Metadata.(cloud.AzureMetadata)
+		azureData := cloudData.Metadata.(*cloud.AzureMetadata)
 		return azureData.Compute.OsProfile.AdminUserName, nil
 	default:
 		return DefaultUser, nil

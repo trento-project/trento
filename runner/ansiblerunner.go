@@ -16,6 +16,8 @@ import (
 )
 
 const (
+	TrentoWebApiHost       = "TRENTO_WEB_API_HOST"
+	TrentoWebApiPort       = "TRENTO_WEB_API_PORT"
 	AnsibleConfigFileEnv   = "ANSIBLE_CONFIG"
 	AnsibleCallbackPlugins = "ANSIBLE_CALLBACK_PLUGINS"
 	AnsibleActionPlugins   = "ANSIBLE_ACTION_PLUGINS"
@@ -79,6 +81,11 @@ func (a *AnsibleRunner) SetInventory(inventory string) error {
 
 func (a *AnsibleRunner) SetConfigFile(confFile string) {
 	a.setEnv(AnsibleConfigFileEnv, confFile)
+}
+
+func (a *AnsibleRunner) SetTrentoApiData(host string, port int) {
+	a.setEnv(TrentoWebApiHost, host)
+	a.setEnv(TrentoWebApiPort, fmt.Sprintf("%d", port))
 }
 
 // ARA_API_CLIENT is always set to "http" to ensure the usage of the REST API

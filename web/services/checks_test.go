@@ -1,9 +1,11 @@
 package services
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 
 	"github.com/stretchr/testify/assert"
@@ -104,310 +106,6 @@ func araResultRecord() *ara.Record {
 		Key:  "results",
 		Type: "json",
 	}
-}
-
-func TestGetChecksCatalog(t *testing.T) {
-	db := helpers.SetupTestDatabase(t)
-
-	mockAra := new(araMocks.AraService)
-
-	rList := &ara.RecordList{
-		Count: 3,
-		Results: []*ara.RecordListResult{
-			&ara.RecordListResult{
-				ID:       3,
-				Playbook: 1,
-				Key:      "metadata",
-				Type:     "json",
-			},
-			&ara.RecordListResult{
-				ID:       2,
-				Playbook: 1,
-				Key:      "metadata",
-				Type:     "json",
-			},
-			&ara.RecordListResult{
-				ID:       1,
-				Playbook: 1,
-				Key:      "metadata",
-				Type:     "json",
-			},
-		},
-	}
-
-	mockAra.On("GetRecordList", "key=trento-metadata&order=-id").Return(
-		rList, nil,
-	)
-
-	r := &ara.Record{
-		ID: 1,
-		Value: map[string]interface{}{
-			"metadata": map[string]interface{}{
-				"checks": []interface{}{
-					map[string]interface{}{
-						"id":             "ABCDEF",
-						"name":           "1.1.1",
-						"group":          "group 1",
-						"description":    "description 1",
-						"remediation":    "remediation 1",
-						"labels":         "labels 1",
-						"implementation": "implementation 1",
-					},
-					map[string]interface{}{
-						"id":             "123456",
-						"name":           "1.1.2",
-						"group":          "group 2",
-						"description":    "description 2",
-						"remediation":    "remediation 2",
-						"labels":         "labels 2",
-						"implementation": "implementation 2",
-					},
-				},
-			},
-		},
-		Key:  "metadata",
-		Type: "json",
-	}
-
-	mockAra.On("GetRecord", 3).Return(
-		r, nil,
-	)
-
-	checksService := NewChecksService(mockAra, db)
-	c, err := checksService.GetChecksCatalog()
-
-	expectedChecks := models.CheckList{
-		&models.Check{
-			ID:             "ABCDEF",
-			Name:           "1.1.1",
-			Group:          "group 1",
-			Description:    "description 1",
-			Remediation:    "remediation 1",
-			Implementation: "implementation 1",
-			Labels:         "labels 1",
-		},
-		&models.Check{
-			ID:             "123456",
-			Name:           "1.1.2",
-			Group:          "group 2",
-			Description:    "description 2",
-			Remediation:    "remediation 2",
-			Implementation: "implementation 2",
-			Labels:         "labels 2",
-		},
-	}
-
-	assert.NoError(t, err)
-	assert.ElementsMatch(t, expectedChecks, c)
-
-	mockAra.AssertExpectations(t)
-}
-
-func TestGetChecksCatalogEmpty(t *testing.T) {
-	db := helpers.SetupTestDatabase(t)
-
-	mockAra := new(araMocks.AraService)
-
-	rList := &ara.RecordList{}
-
-	mockAra.On("GetRecordList", "key=trento-metadata&order=-id").Return(
-		rList, nil,
-	)
-
-	checksService := NewChecksService(mockAra, db)
-	c, err := checksService.GetChecksCatalog()
-
-	expectedChecks := models.CheckList(nil)
-
-	assert.EqualError(t, err, "Couldn't find any check catalog record. Check if the runner component is running")
-	assert.Equal(t, expectedChecks, c)
-
-	mockAra.AssertExpectations(t)
-}
-
-func TestGetChecksCatalogListError(t *testing.T) {
-	db := helpers.SetupTestDatabase(t)
-
-	mockAra := new(araMocks.AraService)
-
-	rList := &ara.RecordList{}
-
-	mockAra.On("GetRecordList", "key=trento-metadata&order=-id").Return(
-		rList, fmt.Errorf("Some error"),
-	)
-
-	checksService := NewChecksService(mockAra, db)
-	c, err := checksService.GetChecksCatalog()
-
-	expectedChecks := models.CheckList(nil)
-
-	assert.EqualError(t, err, "Some error")
-	assert.Equal(t, expectedChecks, c)
-
-	mockAra.AssertExpectations(t)
-}
-
-func TestGetChecksCatalogRecordError(t *testing.T) {
-	db := helpers.SetupTestDatabase(t)
-
-	mockAra := new(araMocks.AraService)
-
-	rList := &ara.RecordList{
-		Count: 3,
-		Results: []*ara.RecordListResult{
-			&ara.RecordListResult{
-				ID:       1,
-				Playbook: 1,
-				Key:      "metadata",
-				Type:     "json",
-			},
-		},
-	}
-
-	mockAra.On("GetRecordList", "key=trento-metadata&order=-id").Return(
-		rList, nil,
-	)
-
-	r := &ara.Record{}
-
-	mockAra.On("GetRecord", 1).Return(
-		r, fmt.Errorf("Some other error"),
-	)
-
-	checksService := NewChecksService(mockAra, db)
-	c, err := checksService.GetChecksCatalog()
-
-	expectedChecks := models.CheckList(nil)
-
-	assert.EqualError(t, err, "Some other error")
-	assert.Equal(t, expectedChecks, c)
-
-	mockAra.AssertExpectations(t)
-}
-
-func TestGetChecksCatalogByGroup(t *testing.T) {
-	db := helpers.SetupTestDatabase(t)
-
-	mockAra := new(araMocks.AraService)
-
-	rList := &ara.RecordList{
-		Count: 3,
-		Results: []*ara.RecordListResult{
-			&ara.RecordListResult{
-				ID:       3,
-				Playbook: 1,
-				Key:      "metadata",
-				Type:     "json",
-			},
-			&ara.RecordListResult{
-				ID:       2,
-				Playbook: 1,
-				Key:      "metadata",
-				Type:     "json",
-			},
-			&ara.RecordListResult{
-				ID:       1,
-				Playbook: 1,
-				Key:      "metadata",
-				Type:     "json",
-			},
-		},
-	}
-
-	mockAra.On("GetRecordList", "key=trento-metadata&order=-id").Return(
-		rList, nil,
-	)
-
-	r := &ara.Record{
-		ID: 1,
-		Value: map[string]interface{}{
-			"metadata": map[string]interface{}{
-				"checks": []interface{}{
-					map[string]interface{}{
-						"id":             "ABCDEF",
-						"name":           "1.1.1",
-						"group":          "group 1",
-						"description":    "description 1",
-						"remediation":    "remediation 1",
-						"labels":         "labels 1",
-						"implementation": "implementation 1",
-					},
-					map[string]interface{}{
-						"id":             "123456",
-						"name":           "1.1.2",
-						"group":          "group 1",
-						"description":    "description 2",
-						"remediation":    "remediation 2",
-						"labels":         "labels 2",
-						"implementation": "implementation 2",
-					},
-					map[string]interface{}{
-						"id":             "123ABC",
-						"name":           "1.2.1",
-						"group":          "group 2",
-						"description":    "description 3",
-						"remediation":    "remediation 3",
-						"labels":         "labels 3",
-						"implementation": "implementation 3",
-					},
-				},
-			},
-		},
-		Key:  "metadata",
-		Type: "json",
-	}
-
-	mockAra.On("GetRecord", 3).Return(
-		r, nil,
-	)
-
-	checksService := NewChecksService(mockAra, db)
-	c, err := checksService.GetChecksCatalogByGroup()
-
-	expectedChecks := models.GroupedCheckList{
-		&models.GroupedChecks{
-			Group: "group 1",
-			Checks: models.CheckList{
-				&models.Check{
-					ID:             "ABCDEF",
-					Name:           "1.1.1",
-					Group:          "group 1",
-					Description:    "description 1",
-					Remediation:    "remediation 1",
-					Implementation: "implementation 1",
-					Labels:         "labels 1",
-				},
-				&models.Check{
-					ID:             "123456",
-					Name:           "1.1.2",
-					Group:          "group 1",
-					Description:    "description 2",
-					Remediation:    "remediation 2",
-					Implementation: "implementation 2",
-					Labels:         "labels 2",
-				},
-			},
-		},
-		&models.GroupedChecks{
-			Group: "group 2",
-			Checks: models.CheckList{
-				&models.Check{
-					ID:             "123ABC",
-					Name:           "1.2.1",
-					Group:          "group 2",
-					Description:    "description 3",
-					Remediation:    "remediation 3",
-					Implementation: "implementation 3",
-					Labels:         "labels 3",
-				},
-			},
-		},
-	}
-
-	assert.NoError(t, err)
-	assert.ElementsMatch(t, expectedChecks, c)
-
-	mockAra.AssertExpectations(t)
 }
 
 func TestGetChecksResult(t *testing.T) {
@@ -676,161 +374,6 @@ func TestGetChecksResultByCluster(t *testing.T) {
 	mockAra.AssertExpectations(t)
 }
 
-func TestGetChecksResultAndMetadataByCluster(t *testing.T) {
-	db := helpers.SetupTestDatabase(t)
-
-	mockAra := new(araMocks.AraService)
-
-	rList := &ara.RecordList{
-		Count: 1,
-		Results: []*ara.RecordListResult{
-			&ara.RecordListResult{
-				ID:       1,
-				Playbook: 1,
-				Key:      "results",
-				Type:     "json",
-			},
-		},
-	}
-
-	rMetaList := &ara.RecordList{
-		Count: 1,
-		Results: []*ara.RecordListResult{
-			&ara.RecordListResult{
-				ID:       2,
-				Playbook: 1,
-				Key:      "metadata",
-				Type:     "json",
-			},
-		},
-	}
-
-	mockAra.On("GetRecordList", "key=trento-results&order=-id").Return(rList, nil)
-	mockAra.On("GetRecordList", "key=trento-metadata&order=-id").Return(rMetaList, nil)
-
-	araResultRecord := &ara.Record{
-		ID: 1,
-		Value: map[string]interface{}{
-			"results": map[string]interface{}{
-				"myClusterId": map[string]interface{}{
-					"hosts": map[string]interface{}{
-						"host1": map[string]interface{}{
-							"reachable": true,
-							"msg":       "",
-						},
-						"host2": map[string]interface{}{
-							"reachable": false,
-							"msg":       "error connecting",
-						},
-					},
-					"checks": map[string]interface{}{
-						"ABCDEF": map[string]interface{}{
-							"hosts": map[string]interface{}{
-								"host1": map[string]interface{}{
-									"result": "passing",
-								},
-								"host2": map[string]interface{}{
-									"result": "passing",
-								},
-							},
-						},
-						"123456": map[string]interface{}{
-							"hosts": map[string]interface{}{
-								"host1": map[string]interface{}{
-									"result": "warning",
-								},
-								"host2": map[string]interface{}{
-									"result": "critical",
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-
-	araMetaRecord := &ara.Record{
-		ID: 2,
-		Value: map[string]interface{}{
-			"metadata": map[string]interface{}{
-				"checks": []interface{}{
-					map[string]interface{}{
-						"id":             "ABCDEF",
-						"name":           "1.1.1",
-						"group":          "group 1",
-						"description":    "description 1",
-						"remediation":    "remediation 1",
-						"labels":         "labels 1",
-						"implementation": "implementation 1",
-					},
-					map[string]interface{}{
-						"id":             "123456",
-						"name":           "1.1.2",
-						"group":          "group 1",
-						"description":    "description 2",
-						"remediation":    "remediation 2",
-						"labels":         "labels 2",
-						"implementation": "implementation 2",
-					},
-				},
-			},
-		},
-		Key:  "metadata",
-		Type: "json",
-	}
-
-	mockAra.On("GetRecord", 1).Return(araResultRecord, nil)
-	mockAra.On("GetRecord", 2).Return(araMetaRecord, nil)
-
-	checksService := NewChecksService(mockAra, db)
-	results, err := checksService.GetChecksResultAndMetadataByCluster("myClusterId")
-
-	expectedResults := &models.ClusterCheckResults{
-		Hosts: map[string]*models.Host{
-			"host1": &models.Host{
-				Reachable: true,
-				Msg:       "",
-			},
-			"host2": &models.Host{
-				Reachable: false,
-				Msg:       "error connecting",
-			},
-		},
-		Checks: []models.ClusterCheckResult{
-			models.ClusterCheckResult{
-				ID:          "ABCDEF",
-				Group:       "group 1",
-				Description: "description 1",
-				Hosts: map[string]*models.Check{
-					"host1": &models.Check{
-						Result: models.CheckPassing,
-					},
-					"host2": &models.Check{
-						Result: models.CheckPassing,
-					},
-				},
-			},
-			models.ClusterCheckResult{
-				ID:          "123456",
-				Group:       "group 1",
-				Description: "description 2",
-				Hosts: map[string]*models.Check{
-					"host1": &models.Check{
-						Result: models.CheckWarning,
-					},
-					"host2": &models.Check{
-						Result: models.CheckCritical,
-					},
-				},
-			},
-		},
-	}
-
-	assert.NoError(t, err)
-	assert.Equal(t, expectedResults, results)
-}
-
 func TestGetAggregatedChecksResultByHost(t *testing.T) {
 	db := helpers.SetupTestDatabase(t)
 
@@ -956,25 +499,107 @@ func TestChecksServiceTestSuite(t *testing.T) {
 
 func (suite *ChecksServiceTestSuite) SetupSuite() {
 	suite.db = helpers.SetupTestDatabase(suite.T())
-	suite.db.AutoMigrate(models.SelectedChecks{}, models.ConnectionSettings{})
+	suite.ara = new(araMocks.AraService)
 
+	suite.db.AutoMigrate(
+		models.CheckRaw{}, models.SelectedChecks{}, models.ConnectionSettings{})
+	loadAraFixtures(suite.ara)
+	loadChecksCatalogFixtures(suite.db)
 	loadSelectedChecksFixtures(suite.db)
 	loadConnectionSettingsFixtures(suite.db)
 }
 
 func (suite *ChecksServiceTestSuite) TearDownSuite() {
+	suite.db.Migrator().DropTable(models.CheckRaw{})
 	suite.db.Migrator().DropTable(models.SelectedChecks{})
 	suite.db.Migrator().DropTable(models.ConnectionSettings{})
 }
 
 func (suite *ChecksServiceTestSuite) SetupTest() {
 	suite.tx = suite.db.Begin()
-	suite.ara = new(araMocks.AraService)
 	suite.checksService = NewChecksService(suite.ara, suite.tx)
 }
 
 func (suite *ChecksServiceTestSuite) TearDownTest() {
 	suite.tx.Rollback()
+}
+
+func loadAraFixtures(a *araMocks.AraService) {
+	rList := &ara.RecordList{
+		Count: 1,
+		Results: []*ara.RecordListResult{
+			&ara.RecordListResult{
+				ID:       1,
+				Playbook: 1,
+				Key:      "results",
+				Type:     "json",
+			},
+		},
+	}
+
+	a.On("GetRecordList", "key=trento-results&order=-id").Return(rList, nil)
+
+	araResultRecord := &ara.Record{
+		ID: 1,
+		Value: map[string]interface{}{
+			"results": map[string]interface{}{
+				"myClusterId": map[string]interface{}{
+					"hosts": map[string]interface{}{
+						"host1": map[string]interface{}{
+							"reachable": true,
+							"msg":       "",
+						},
+						"host2": map[string]interface{}{
+							"reachable": false,
+							"msg":       "error connecting",
+						},
+					},
+					"checks": map[string]interface{}{
+						"check1": map[string]interface{}{
+							"hosts": map[string]interface{}{
+								"host1": map[string]interface{}{
+									"result": "passing",
+								},
+								"host2": map[string]interface{}{
+									"result": "passing",
+								},
+							},
+						},
+						"check2": map[string]interface{}{
+							"hosts": map[string]interface{}{
+								"host1": map[string]interface{}{
+									"result": "warning",
+								},
+								"host2": map[string]interface{}{
+									"result": "critical",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	a.On("GetRecord", 1).Return(araResultRecord, nil)
+}
+
+func loadChecksCatalogFixtures(db *gorm.DB) {
+	check1payload := `{"id":"check1","name":"name1","group":"group1","description":"description1"}`
+	db.Create(&models.CheckRaw{
+		ID:      "check1",
+		Payload: datatypes.JSON([]byte(check1payload)),
+	})
+	check3payload := `{"id":"check3","name":"name3","group":"group2","description":"description3"}`
+	db.Create(&models.CheckRaw{
+		ID:      "check3",
+		Payload: datatypes.JSON([]byte(check3payload)),
+	})
+	check2payload := `{"id":"check2","name":"name2","group":"group1","description":"description2"}`
+	db.Create(&models.CheckRaw{
+		ID:      "check2",
+		Payload: datatypes.JSON([]byte(check2payload)),
+	})
 }
 
 func loadSelectedChecksFixtures(db *gorm.DB) {
@@ -1008,6 +633,192 @@ func loadConnectionSettingsFixtures(db *gorm.DB) {
 		Node: "node3",
 		User: "user3",
 	})
+}
+
+func (suite *ChecksServiceTestSuite) TestChecksService_GetChecksCatalog() {
+	catalog, err := suite.checksService.GetChecksCatalog()
+	expectedCatalog := models.ChecksCatalog{
+		&models.Check{
+			ID:          "check1",
+			Name:        "name1",
+			Group:       "group1",
+			Description: "description1",
+		},
+		&models.Check{
+			ID:          "check2",
+			Name:        "name2",
+			Group:       "group1",
+			Description: "description2",
+		},
+		&models.Check{
+			ID:          "check3",
+			Name:        "name3",
+			Group:       "group2",
+			Description: "description3",
+		},
+	}
+
+	suite.NoError(err)
+	suite.ElementsMatch(expectedCatalog, catalog)
+}
+
+func (suite *ChecksServiceTestSuite) TestChecksService_GetChecksCatalogByGroup() {
+	catalog, err := suite.checksService.GetChecksCatalogByGroup()
+	expectedCatalog := models.GroupedCheckList{
+		&models.GroupedChecks{
+			Group: "group1",
+			Checks: models.ChecksCatalog{
+				&models.Check{
+					ID:          "check1",
+					Name:        "name1",
+					Group:       "group1",
+					Description: "description1",
+				},
+				&models.Check{
+					ID:          "check2",
+					Name:        "name2",
+					Group:       "group1",
+					Description: "description2",
+				},
+			},
+		},
+		&models.GroupedChecks{
+			Group: "group2",
+			Checks: models.ChecksCatalog{
+				&models.Check{
+					ID:          "check3",
+					Name:        "name3",
+					Group:       "group2",
+					Description: "description3",
+				},
+			},
+		},
+	}
+
+	suite.NoError(err)
+	suite.ElementsMatch(expectedCatalog, catalog)
+}
+
+func (suite *ChecksServiceTestSuite) TestChecksService_CreateChecksCatalogEntry() {
+	check := &models.Check{
+		ID:          "checkNew",
+		Name:        "nameNew",
+		Group:       "groupNew",
+		Description: "descriptionNew",
+	}
+	err := suite.checksService.CreateChecksCatalogEntry(check)
+
+	var newCheckRaw models.CheckRaw
+	var newCheck models.Check
+
+	suite.tx.Where("id", "checkNew").First(&newCheckRaw)
+
+	json.Unmarshal(newCheckRaw.Payload, &newCheck)
+
+	suite.NoError(err)
+	suite.Equal(check, &newCheck)
+
+	// Check update works
+	check = &models.Check{
+		ID:          "checkNew",
+		Name:        "nameNewUpdated",
+		Group:       "groupNewUpdated",
+		Description: "descriptionNewUpdated",
+	}
+	err = suite.checksService.CreateChecksCatalogEntry(check)
+
+	suite.tx.Where("id", "checkNew").First(&newCheckRaw)
+
+	json.Unmarshal(newCheckRaw.Payload, &newCheck)
+
+	suite.NoError(err)
+	suite.Equal(check, &newCheck)
+}
+
+func (suite *ChecksServiceTestSuite) TestChecksService_CreateChecksCatalog() {
+	check1 := &models.Check{
+		ID:          "checkOther",
+		Name:        "nameNew",
+		Group:       "groupNew",
+		Description: "descriptionNew",
+	}
+
+	check2 := &models.Check{
+		ID:          "checkYetAnother",
+		Name:        "nameNew",
+		Group:       "groupNew",
+		Description: "descriptionNew",
+	}
+
+	catalog := models.ChecksCatalog{check1, check2}
+
+	err := suite.checksService.CreateChecksCatalog(catalog)
+
+	suite.NoError(err)
+
+	var checkRaw1 models.CheckRaw
+	var checkStored1 models.Check
+
+	suite.tx.Where("id", "checkOther").First(&checkRaw1)
+
+	json.Unmarshal(checkRaw1.Payload, &checkStored1)
+	suite.Equal(check1, &checkStored1)
+
+	var checkRaw2 models.CheckRaw
+	var checkStored2 models.Check
+
+	suite.tx.Where("id", "checkYetAnother").First(&checkRaw2)
+
+	json.Unmarshal(checkRaw2.Payload, &checkStored2)
+	suite.Equal(check2, &checkStored2)
+}
+
+func (suite *ChecksServiceTestSuite) TestChecksService_GetChecksResultAndMetadataByCluster() {
+	results, err := suite.checksService.GetChecksResultAndMetadataByCluster("myClusterId")
+
+	expectedResults := &models.ClusterCheckResults{
+		Hosts: map[string]*models.Host{
+			"host1": &models.Host{
+				Reachable: true,
+				Msg:       "",
+			},
+			"host2": &models.Host{
+				Reachable: false,
+				Msg:       "error connecting",
+			},
+		},
+		Checks: []models.ClusterCheckResult{
+			models.ClusterCheckResult{
+				ID:          "check1",
+				Group:       "group1",
+				Description: "description1",
+				Hosts: map[string]*models.Check{
+					"host1": &models.Check{
+						Result: models.CheckPassing,
+					},
+					"host2": &models.Check{
+						Result: models.CheckPassing,
+					},
+				},
+			},
+			models.ClusterCheckResult{
+				ID:          "check2",
+				Group:       "group1",
+				Description: "description2",
+				Hosts: map[string]*models.Check{
+					"host1": &models.Check{
+						Result: models.CheckWarning,
+					},
+					"host2": &models.Check{
+						Result: models.CheckCritical,
+					},
+				},
+			},
+		},
+	}
+
+	suite.NoError(err)
+	suite.Equal(expectedResults, results)
 }
 
 func (suite *ChecksServiceTestSuite) TestChecksService_GetSelectedChecksById() {

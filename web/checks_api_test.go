@@ -152,6 +152,91 @@ func TestApiClusterCheckResultsHandler500(t *testing.T) {
 	assert.Equal(t, 500, resp.Code)
 }
 
+func TestApiCreateChecksCatalogHandler(t *testing.T) {
+	expectedCatalog := models.ChecksCatalog{
+		&models.Check{
+			ID:             "id1",
+			Name:           "name1",
+			Group:          "group1",
+			Description:    "description1",
+			Remediation:    "remediation1",
+			Implementation: "implementation1",
+			Labels:         "labels1",
+		},
+		&models.Check{
+			ID:             "id2",
+			Name:           "name2",
+			Group:          "group2",
+			Description:    "description2",
+			Remediation:    "remediation2",
+			Implementation: "implementation2",
+			Labels:         "labels2",
+		},
+	}
+	mockChecksService := new(services.MockChecksService)
+	mockChecksService.On("CreateChecksCatalog", expectedCatalog).Return(nil)
+	mockChecksService.On("CreateChecksCatalog", models.ChecksCatalog(nil)).Return(fmt.Errorf("error"))
+
+	deps := setupTestDependencies()
+	deps.checksService = mockChecksService
+
+	var err error
+	config := setupTestConfig()
+	app, err := NewAppWithDeps(config, deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// 200 scenario
+	sendData := JSONChecksCatalog{
+		&JSONCheck{
+			ID:             "id1",
+			Name:           "name1",
+			Group:          "group1",
+			Description:    "description1",
+			Remediation:    "remediation1",
+			Implementation: "implementation1",
+			Labels:         "labels1",
+		},
+		&JSONCheck{
+			ID:             "id2",
+			Name:           "name2",
+			Group:          "group2",
+			Description:    "description2",
+			Remediation:    "remediation2",
+			Implementation: "implementation2",
+			Labels:         "labels2",
+		},
+	}
+
+	resp := httptest.NewRecorder()
+	body, _ := json.Marshal(&sendData)
+	req, err := http.NewRequest("PUT", "/api/checks/catalog", bytes.NewBuffer(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	app.webEngine.ServeHTTP(resp, req)
+
+	assert.Equal(t, 200, resp.Code)
+
+	// 500 scenario
+	resp = httptest.NewRecorder()
+
+	sendData = JSONChecksCatalog{}
+	body, _ = json.Marshal(&sendData)
+	req, err = http.NewRequest("PUT", "/api/checks/catalog", bytes.NewBuffer(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	app.webEngine.ServeHTTP(resp, req)
+
+	assert.Equal(t, 500, resp.Code)
+
+	mockChecksService.AssertExpectations(t)
+}
+
 func TestApiCheckGetSettingsByIdHandler(t *testing.T) {
 	expectedConnSettings := map[string]models.ConnectionSettings{
 		"node1": models.ConnectionSettings{ID: "group1", Node: "node1", User: "user1"},

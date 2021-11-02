@@ -1,6 +1,7 @@
 package services
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/mitchellh/mapstructure"
@@ -9,8 +10,6 @@ import (
 
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services/ara"
-
-	log "github.com/sirupsen/logrus"
 )
 
 //go:generate mockery --name=ChecksService --inpackage --filename=checks_mock.go
@@ -33,8 +32,12 @@ func (a *AggregatedCheckData) String() string {
 }
 
 type ChecksService interface {
-	GetChecksCatalog() (models.CheckList, error)
+	// Check catalog services
+	GetChecksCatalog() (models.ChecksCatalog, error)
 	GetChecksCatalogByGroup() (models.GroupedCheckList, error)
+	CreateChecksCatalogEntry(check *models.Check) error
+	CreateChecksCatalog(checkList models.ChecksCatalog) error
+	// Check result services
 	GetChecksResult() (map[string]*models.Results, error)
 	GetChecksResultByCluster(clusterId string) (*models.Results, error)
 	GetChecksResultAndMetadataByCluster(clusterId string) (*models.ClusterCheckResults, error)
@@ -54,36 +57,37 @@ type checksService struct {
 	db         *gorm.DB
 }
 
-func NewChecksService(araService ara.AraService, db *gorm.DB) ChecksService {
+func NewChecksService(araService ara.AraService, db *gorm.DB) *checksService {
 	return &checksService{araService: araService, db: db}
 }
 
-func (c *checksService) GetChecksCatalog() (models.CheckList, error) {
-	var checkData = models.CheckData{}
+/*
+Checks catalog services
+*/
 
-	records, err := c.araService.GetRecordList("key=trento-metadata&order=-id")
-	if err != nil {
-		return nil, err
+func (c *checksService) GetChecksCatalog() (models.ChecksCatalog, error) {
+	var checksRaw []*models.CheckRaw
+	result := c.db.Order("payload->>'name'").Find(&checksRaw)
+	if result.Error != nil {
+		return nil, result.Error
 	}
 
-	if len(records.Results) == 0 {
-		return nil, fmt.Errorf("Couldn't find any check catalog record. Check if the runner component is running")
+	var checksCatalog models.ChecksCatalog
+
+	for _, checkRaw := range checksRaw {
+		var check models.Check
+		err := json.Unmarshal(checkRaw.Payload, &check)
+		if err != nil {
+			return nil, err
+		}
+		checksCatalog = append(checksCatalog, &check)
 	}
 
-	record, err := c.araService.GetRecord(records.Results[0].ID)
-	if err != nil {
-		return nil, err
-	}
-
-	log.Debug(record.Value)
-
-	mapstructure.Decode(record.Value, &checkData)
-
-	return checkData.Metadata.Checks, nil
+	return checksCatalog, nil
 }
 
 func (c *checksService) GetChecksCatalogByGroup() (models.GroupedCheckList, error) {
-	groupedCheckMap := make(map[string]models.CheckList)
+	groupedCheckMap := make(map[string]models.ChecksCatalog)
 
 	checkList, err := c.GetChecksCatalog()
 	if err != nil {
@@ -92,7 +96,7 @@ func (c *checksService) GetChecksCatalogByGroup() (models.GroupedCheckList, erro
 
 	for _, c := range checkList {
 		if _, ok := groupedCheckMap[c.Group]; !ok {
-			groupedCheckMap[c.Group] = models.CheckList{}
+			groupedCheckMap[c.Group] = models.ChecksCatalog{}
 		}
 		groupedCheckMap[c.Group] = append(groupedCheckMap[c.Group], c)
 	}
@@ -106,6 +110,35 @@ func (c *checksService) GetChecksCatalogByGroup() (models.GroupedCheckList, erro
 
 	return groupedCheckList, nil
 }
+
+func (c *checksService) CreateChecksCatalogEntry(check *models.Check) error {
+	checkJson, err := json.Marshal(&check)
+	if err != nil {
+		return err
+	}
+
+	checkRaw := models.CheckRaw{ID: check.ID, Payload: checkJson}
+	result := c.db.Clauses(clause.OnConflict{
+		UpdateAll: true,
+	}).Create(&checkRaw)
+
+	return result.Error
+}
+
+func (c *checksService) CreateChecksCatalog(checkList models.ChecksCatalog) error {
+	for _, check := range checkList {
+		result := c.CreateChecksCatalogEntry(check)
+		if result != nil {
+			return result
+		}
+	}
+
+	return nil
+}
+
+/*
+Checks result services
+*/
 
 func (c *checksService) GetChecksResult() (map[string]*models.Results, error) {
 	var checkData = models.CheckData{}

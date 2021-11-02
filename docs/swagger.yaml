@@ -1,4 +1,25 @@
 definitions:
+  web.JSONCheck:
+    properties:
+      description:
+        type: string
+      group:
+        type: string
+      id:
+        type: string
+      implementation:
+        type: string
+      labels:
+        type: string
+      name:
+        type: string
+      remediation:
+        type: string
+    required:
+    - group
+    - id
+    - name
+    type: object
   web.JSONChecksSettings:
     properties:
       connection_settings:
@@ -76,6 +97,33 @@ paths:
               type: string
             type: object
       summary: Create the check settings
+  /api/checks/catalog:
+    put:
+      parameters:
+      - description: Checks catalog
+        in: body
+        name: Body
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/web.JSONCheck'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/web.JSONCheck'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create/Updates the checks catalog
   /api/clusters/{cluster_id}/results:
     get:
       parameters:
@@ -91,6 +139,12 @@ paths:
           description: OK
           schema:
             additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
             type: object
       summary: Get a specific cluster's check results
   /api/clusters/{id}/tags:

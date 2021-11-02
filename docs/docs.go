@@ -24,6 +24,48 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/checks/catalog": {
+            "put": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Create/Updates the checks catalog",
+                "parameters": [
+                    {
+                        "description": "Checks catalog",
+                        "name": "Body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/web.JSONCheck"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/web.JSONCheck"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/checks/{id}/settings": {
             "get": {
                 "consumes": [
@@ -126,6 +168,15 @@ var doc = `{
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }
@@ -572,6 +623,37 @@ var doc = `{
         }
     },
     "definitions": {
+        "web.JSONCheck": {
+            "type": "object",
+            "required": [
+                "group",
+                "id",
+                "name"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "implementation": {
+                    "type": "string"
+                },
+                "labels": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "remediation": {
+                    "type": "string"
+                }
+            }
+        },
         "web.JSONChecksSettings": {
             "type": "object",
             "required": [

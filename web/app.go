@@ -123,7 +123,9 @@ func InitDB() (*gorm.DB, error) {
 }
 
 func MigrateDB(db *gorm.DB) error {
-	err := db.AutoMigrate(models.Tag{}, models.SelectedChecks{}, models.ConnectionSettings{}, models.Cluster{}, datapipeline.DataCollectedEvent{}, datapipeline.Subscription{})
+	err := db.AutoMigrate(
+		models.Tag{}, models.SelectedChecks{}, models.ConnectionSettings{}, models.CheckRaw{},
+		models.Cluster{}, datapipeline.DataCollectedEvent{}, datapipeline.Subscription{})
 	if err != nil {
 		return err
 	}
@@ -192,6 +194,7 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 		apiGroup.DELETE("/databases/:id/tags/:tag", ApiDatabaseDeleteTagHandler(deps.sapSystemsService, deps.tagsService))
 		apiGroup.GET("/checks/:id/settings", ApiCheckGetSettingsByIdHandler(deps.checksService))
 		apiGroup.POST("/checks/:id/settings", ApiCheckCreateSettingsByIdHandler(deps.checksService))
+		apiGroup.PUT("/checks/catalog", ApiCreateChecksCatalogHandler(deps.checksService))
 	}
 
 	collectorEngine := deps.collectorEngine

@@ -289,7 +289,7 @@ func checksCatalogByGroup() models.GroupedCheckList {
 	checksByGroup := models.GroupedCheckList{
 		&models.GroupedChecks{
 			Group: "group 1",
-			Checks: models.CheckList{
+			Checks: models.ChecksCatalog{
 				&models.Check{
 					ID:             "ABCDEF",
 					Name:           "1.1.1",
@@ -339,7 +339,7 @@ func checksCatalogByGroup() models.GroupedCheckList {
 		},
 		&models.GroupedChecks{
 			Group: "group 2",
-			Checks: models.CheckList{
+			Checks: models.ChecksCatalog{
 				&models.Check{
 					ID:             "12345A",
 					Name:           "1.2.3",

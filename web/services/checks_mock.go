@@ -12,6 +12,34 @@ type MockChecksService struct {
 	mock.Mock
 }
 
+// CreateChecksCatalog provides a mock function with given fields: checkList
+func (_m *MockChecksService) CreateChecksCatalog(checkList models.ChecksCatalog) error {
+	ret := _m.Called(checkList)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(models.ChecksCatalog) error); ok {
+		r0 = rf(checkList)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// CreateChecksCatalogEntry provides a mock function with given fields: check
+func (_m *MockChecksService) CreateChecksCatalogEntry(check *models.Check) error {
+	ret := _m.Called(check)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*models.Check) error); ok {
+		r0 = rf(check)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // CreateConnectionSettings provides a mock function with given fields: node, cluster, user
 func (_m *MockChecksService) CreateConnectionSettings(node string, cluster string, user string) error {
 	ret := _m.Called(node, cluster, user)
@@ -87,15 +115,15 @@ func (_m *MockChecksService) GetAggregatedChecksResultByHost(clusterId string) (
 }
 
 // GetChecksCatalog provides a mock function with given fields:
-func (_m *MockChecksService) GetChecksCatalog() (models.CheckList, error) {
+func (_m *MockChecksService) GetChecksCatalog() (models.ChecksCatalog, error) {
 	ret := _m.Called()
 
-	var r0 models.CheckList
-	if rf, ok := ret.Get(0).(func() models.CheckList); ok {
+	var r0 models.ChecksCatalog
+	if rf, ok := ret.Get(0).(func() models.ChecksCatalog); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(models.CheckList)
+			r0 = ret.Get(0).(models.ChecksCatalog)
 		}
 	}
 

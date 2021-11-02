@@ -1,7 +1,6 @@
 package web
 
 import (
-	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -15,7 +14,7 @@ func TestApiPingTest(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/api/ping", nil)
+	req := httptest.NewRequest("GET", "/api/ping", nil)
 	app.webEngine.ServeHTTP(resp, req)
 
 	assert.Equal(t, 200, resp.Code)
@@ -29,13 +28,13 @@ func TestApiDocsRouteTest(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/api/docs/index.html", nil)
+	req := httptest.NewRequest("GET", "/api/docs/index.html", nil)
 	app.webEngine.ServeHTTP(resp, req)
 
 	assert.Equal(t, 200, resp.Code)
 
 	resp = httptest.NewRecorder()
-	req, _ = http.NewRequest("GET", "/api/docs/doc.json", nil)
+	req = httptest.NewRequest("GET", "/api/docs/doc.json", nil)
 	app.webEngine.ServeHTTP(resp, req)
 
 	assert.Equal(t, 200, resp.Code)

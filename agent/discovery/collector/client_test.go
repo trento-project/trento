@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/suite"
+	_ "github.com/trento-project/trento/test"
 	"github.com/trento-project/trento/test/helpers"
 )
 
@@ -35,9 +36,9 @@ func (suite *CollectorClientTestSuite) TestCollectorClient_NewClientWithTLS() {
 		EnablemTLS:    true,
 		CollectorHost: "localhost",
 		CollectorPort: 8081,
-		Cert:          "../../../test/certs/client-cert.pem",
-		Key:           "../../../test/certs/client-key.pem",
-		CA:            "../../../test/certs/ca-cert.pem",
+		Cert:          "./test/certs/client-cert.pem",
+		Key:           "./test/certs/client-key.pem",
+		CA:            "./test/certs/ca-cert.pem",
 	})
 
 	suite.NoError(err)
@@ -69,9 +70,9 @@ func (suite *CollectorClientTestSuite) TestCollectorClient_PublishingSuccess() {
 		EnablemTLS:    true,
 		CollectorHost: "localhost",
 		CollectorPort: 8081,
-		Cert:          "../../../test/certs/client-cert.pem",
-		Key:           "../../../test/certs/client-key.pem",
-		CA:            "../../../test/certs/ca-cert.pem",
+		Cert:          "./test/certs/client-cert.pem",
+		Key:           "./test/certs/client-key.pem",
+		CA:            "./test/certs/ca-cert.pem",
 	})
 
 	suite.NoError(err)

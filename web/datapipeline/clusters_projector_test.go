@@ -25,7 +25,7 @@ func TestClustersProjector_ClusterDiscoveryHandler(t *testing.T) {
 		ClusterType: models.ClusterTypeUnknown,
 	})
 
-	jsonFile, err := os.Open("../../test/fixtures/cluster_discovery_hana_scale_up.json")
+	jsonFile, err := os.Open("./test/fixtures/cluster_discovery_hana_scale_up.json")
 	if err != nil {
 		panic(err)
 	}
@@ -54,7 +54,7 @@ func TestClustersProjector_ClusterDiscoveryHandler(t *testing.T) {
 }
 
 func TestTransformClusterListData_HANAScaleUp(t *testing.T) {
-	jsonFile, err := os.Open("../../test/fixtures/cluster_discovery_hana_scale_up.json")
+	jsonFile, err := os.Open("./test/fixtures/cluster_discovery_hana_scale_up.json")
 	if err != nil {
 		panic(err)
 	}
@@ -76,7 +76,7 @@ func TestTransformClusterListData_HANAScaleUp(t *testing.T) {
 }
 
 func TestTransformClusterListData_Unknown(t *testing.T) {
-	jsonFile, err := os.Open("../../test/fixtures/cluster_discovery_unknown.json")
+	jsonFile, err := os.Open("./test/fixtures/cluster_discovery_unknown.json")
 	if err != nil {
 		panic(err)
 	}

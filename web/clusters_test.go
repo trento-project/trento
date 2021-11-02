@@ -2,7 +2,6 @@ package web
 
 import (
 	"fmt"
-	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"path"
@@ -527,10 +526,7 @@ func TestClustersListHandler(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/clusters", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	req := httptest.NewRequest("GET", "/clusters", nil)
 
 	app.webEngine.ServeHTTP(resp, req)
 
@@ -619,10 +615,7 @@ func TestClusterHandlerHANA(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/clusters/"+clusterId, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	req := httptest.NewRequest("GET", "/clusters/"+clusterId, nil)
 	req.Header.Set("Accept", "text/html")
 
 	app.webEngine.ServeHTTP(resp, req)
@@ -739,10 +732,7 @@ func TestClusterHandlerUnreachableNodes(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/clusters/"+clusterId, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	req := httptest.NewRequest("GET", "/clusters/"+clusterId, nil)
 	req.Header.Set("Accept", "text/html")
 
 	app.webEngine.ServeHTTP(resp, req)
@@ -823,10 +813,7 @@ func TestClusterHandlerAlert(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/clusters/"+clusterId, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	req := httptest.NewRequest("GET", "/clusters/"+clusterId, nil)
 	req.Header.Set("Accept", "text/html")
 
 	app.webEngine.ServeHTTP(resp, req)
@@ -878,10 +865,7 @@ func TestClusterHandlerGeneric(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/clusters/e2f2eb50aef748e586a7baa85e0162cf", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	req := httptest.NewRequest("GET", "/clusters/e2f2eb50aef748e586a7baa85e0162cf", nil)
 	req.Header.Set("Accept", "text/html")
 
 	app.webEngine.ServeHTTP(resp, req)
@@ -914,10 +898,7 @@ func TestClusterHandler404Error(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/clusters/foobar", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	req := httptest.NewRequest("GET", "/clusters/foobar", nil)
 	req.Header.Set("Accept", "text/html")
 
 	app.webEngine.ServeHTTP(resp, req)
@@ -950,10 +931,7 @@ func TestSaveChecksHandler(t *testing.T) {
 	data.Set("username-host2", "myuser2")
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("POST", "/clusters/foobar/settings", strings.NewReader(data.Encode()))
-	if err != nil {
-		t.Fatal(err)
-	}
+	req := httptest.NewRequest("POST", "/clusters/foobar/settings", strings.NewReader(data.Encode()))
 	req.Header.Set("Accept", "text/html")
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))

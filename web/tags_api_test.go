@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -55,7 +54,7 @@ func TestApiListTag(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/api/tags", nil)
+	req := httptest.NewRequest("GET", "/api/tags", nil)
 	app.webEngine.ServeHTTP(resp, req)
 
 	expectedBody, _ := json.Marshal(tags)
@@ -63,7 +62,7 @@ func TestApiListTag(t *testing.T) {
 	assert.Equal(t, expectedBody, resp.Body.Bytes())
 
 	resp = httptest.NewRecorder()
-	req, _ = http.NewRequest("GET", "/api/tags?resource_type=hosts", nil)
+	req = httptest.NewRequest("GET", "/api/tags?resource_type=hosts", nil)
 	app.webEngine.ServeHTTP(resp, req)
 
 	expectedBody, _ = json.Marshal([]string{
@@ -75,7 +74,7 @@ func TestApiListTag(t *testing.T) {
 	assert.Equal(t, expectedBody, resp.Body.Bytes())
 
 	resp = httptest.NewRecorder()
-	req, _ = http.NewRequest("GET", "/api/tags?resource_type=sapsystems", nil)
+	req = httptest.NewRequest("GET", "/api/tags?resource_type=sapsystems", nil)
 	app.webEngine.ServeHTTP(resp, req)
 
 	expectedBody, _ = json.Marshal([]string{})
@@ -176,10 +175,7 @@ func TestApiResourceTag(t *testing.T) {
 
 			body, _ := json.Marshal(&JSONTag{tag})
 			url := fmt.Sprintf("/api/%s/%s/tags", tc.resourceType, resourceID)
-			req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
-			if err != nil {
-				t.Fatal(err)
-			}
+			req := httptest.NewRequest("POST", url, bytes.NewBuffer(body))
 
 			app.webEngine.ServeHTTP(resp, req)
 
@@ -195,10 +191,7 @@ func TestApiResourceTag(t *testing.T) {
 
 			body, _ := json.Marshal(&JSONTag{tag})
 			url := fmt.Sprintf("/api/%s/%s/tags", tc.resourceType, notFoundResourceID)
-			req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
-			if err != nil {
-				t.Fatal(err)
-			}
+			req := httptest.NewRequest("POST", url, bytes.NewBuffer(body))
 
 			app.webEngine.ServeHTTP(resp, req)
 
@@ -210,10 +203,7 @@ func TestApiResourceTag(t *testing.T) {
 
 			invalidJSON := []byte("ABC€")
 			url := fmt.Sprintf("/api/%s/%s/tags", tc.resourceType, resourceID)
-			req, err := http.NewRequest("POST", url, bytes.NewBuffer(invalidJSON))
-			if err != nil {
-				t.Fatal(err)
-			}
+			req := httptest.NewRequest("POST", url, bytes.NewBuffer(invalidJSON))
 
 			app.webEngine.ServeHTTP(resp, req)
 
@@ -225,10 +215,7 @@ func TestApiResourceTag(t *testing.T) {
 
 			body, _ := json.Marshal(&JSONTag{errorTag})
 			url := fmt.Sprintf("/api/%s/%s/tags", tc.resourceType, resourceID)
-			req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
-			if err != nil {
-				t.Fatal(err)
-			}
+			req := httptest.NewRequest("POST", url, bytes.NewBuffer(body))
 
 			app.webEngine.ServeHTTP(resp, req)
 
@@ -239,10 +226,7 @@ func TestApiResourceTag(t *testing.T) {
 			resp := httptest.NewRecorder()
 
 			url := fmt.Sprintf("/api/%s/%s/tags/%s", tc.resourceType, resourceID, tag)
-			req, err := http.NewRequest("DELETE", url, nil)
-			if err != nil {
-				t.Fatal(err)
-			}
+			req := httptest.NewRequest("DELETE", url, nil)
 
 			app.webEngine.ServeHTTP(resp, req)
 
@@ -253,10 +237,7 @@ func TestApiResourceTag(t *testing.T) {
 			resp := httptest.NewRecorder()
 
 			url := fmt.Sprintf("/api/%s/%s/tags/%s", tc.resourceType, notFoundResourceID, tag)
-			req, err := http.NewRequest("DELETE", url, nil)
-			if err != nil {
-				t.Fatal(err)
-			}
+			req := httptest.NewRequest("DELETE", url, nil)
 
 			app.webEngine.ServeHTTP(resp, req)
 
@@ -267,10 +248,7 @@ func TestApiResourceTag(t *testing.T) {
 			resp := httptest.NewRecorder()
 
 			url := fmt.Sprintf("/api/%s/%s/tags/%s", tc.resourceType, resourceID, errorTag)
-			req, err := http.NewRequest("DELETE", url, nil)
-			if err != nil {
-				t.Fatal(err)
-			}
+			req := httptest.NewRequest("DELETE", url, nil)
 
 			app.webEngine.ServeHTTP(resp, req)
 

@@ -3,7 +3,6 @@ package web
 import (
 	"bytes"
 	"encoding/json"
-	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -32,10 +31,7 @@ func TestApiCollectDataHandler(t *testing.T) {
 		DiscoveryType: "discovery",
 		Payload:       []byte("{}"),
 	})
-	req, err := http.NewRequest("POST", "/api/collect", bytes.NewBuffer(body))
-	if err != nil {
-		t.Fatal(err)
-	}
+	req := httptest.NewRequest("POST", "/api/collect", bytes.NewBuffer(body))
 
 	app.collectorEngine.ServeHTTP(resp, req)
 

@@ -2,7 +2,6 @@ package web
 
 import (
 	"errors"
-	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -18,7 +17,7 @@ func TestErrorHandler(t *testing.T) {
 	})
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/", nil)
+	req := httptest.NewRequest("GET", "/", nil)
 	engine.ServeHTTP(w, req)
 
 	assert.Equal(t, 500, w.Code)
@@ -35,7 +34,7 @@ func TestErrorHandlerContentNegotiation(t *testing.T) {
 	})
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/", nil)
+	req := httptest.NewRequest("GET", "/", nil)
 	req.Header.Set("Accept", "text/html")
 
 	engine.ServeHTTP(w, req)
@@ -54,7 +53,7 @@ func TestErrorHandlerWithHttpError(t *testing.T) {
 	})
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/", nil)
+	req := httptest.NewRequest("GET", "/", nil)
 	engine.ServeHTTP(w, req)
 
 	assert.Equal(t, 404, w.Code)

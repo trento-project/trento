@@ -1,7 +1,6 @@
 package web
 
 import (
-	"net/http"
 	"net/http/httptest"
 	"regexp"
 	"testing"
@@ -30,10 +29,7 @@ func TestAboutHandlerPremium(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/about", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	req := httptest.NewRequest("GET", "/about", nil)
 
 	app.webEngine.ServeHTTP(resp, req)
 
@@ -73,10 +69,7 @@ func TestAboutHandlerFree(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/about", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	req := httptest.NewRequest("GET", "/about", nil)
 
 	app.webEngine.ServeHTTP(resp, req)
 

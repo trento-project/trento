@@ -1,7 +1,6 @@
 package web
 
 import (
-	"net/http"
 	"net/http/httptest"
 	"regexp"
 	"testing"
@@ -158,10 +157,7 @@ func TestHostsListHandler(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/hosts", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	req := httptest.NewRequest("GET", "/hosts", nil)
 
 	app.webEngine.ServeHTTP(resp, req)
 
@@ -317,10 +313,7 @@ func TestHostHandler(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/hosts/test_host", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	req := httptest.NewRequest("GET", "/hosts/test_host", nil)
 	req.Header.Set("Accept", "text/html")
 
 	app.webEngine.ServeHTTP(resp, req)
@@ -438,10 +431,7 @@ func TestHostHandlerAzure(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/hosts/test_host", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	req := httptest.NewRequest("GET", "/hosts/test_host", nil)
 	req.Header.Set("Accept", "text/html")
 
 	app.webEngine.ServeHTTP(resp, req)
@@ -483,10 +473,7 @@ func TestHostHandler404Error(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/hosts/foobar", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	req := httptest.NewRequest("GET", "/hosts/foobar", nil)
 	req.Header.Set("Accept", "text/html")
 
 	app.webEngine.ServeHTTP(resp, req)

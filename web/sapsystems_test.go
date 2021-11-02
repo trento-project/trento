@@ -1,7 +1,6 @@
 package web
 
 import (
-	"net/http"
 	"net/http/httptest"
 	"regexp"
 	"testing"
@@ -210,10 +209,7 @@ func TestSAPSystemsListHandler(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/sapsystems", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	req := httptest.NewRequest("GET", "/sapsystems", nil)
 
 	app.webEngine.ServeHTTP(resp, req)
 
@@ -263,10 +259,7 @@ func TestSAPDatabaseListHandler(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/databases", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	req := httptest.NewRequest("GET", "/databases", nil)
 
 	app.webEngine.ServeHTTP(resp, req)
 
@@ -462,11 +455,10 @@ func TestSAPResourceHandler(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/sapsystems/systemId", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	req := httptest.NewRequest("GET", "/sapsystems/systemId", nil)
+
 	app.webEngine.ServeHTTP(resp, req)
+
 	assert.Equal(t, 200, resp.Code)
 	responseBody := minifyHtml(resp.Body.String())
 
@@ -498,7 +490,7 @@ func TestSAPResourceHandler404Error(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/sapsystems/foobar", nil)
+	req := httptest.NewRequest("GET", "/sapsystems/foobar", nil)
 	req.Header.Set("Accept", "text/html")
 
 	app.webEngine.ServeHTTP(resp, req)

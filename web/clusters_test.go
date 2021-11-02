@@ -657,18 +657,6 @@ func TestClusterHandlerHANA(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("<td>sbd</td><td>stonith:external/sbd</td><td>Started</td><td>active</td><td>0</td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td>dummy_failed</td><td>dummy</td><td>Started</td><td>failed</td><td>0</td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<h4>Stopped resources</h4><div.*><div.*><span .*>dummy_failed</span>"), minified)
-	// Connection settings
-	assert.Regexp(t, regexp.MustCompile("<td>test_node_1</td>.*<td><input.*id=username-test_node_1.*value=myuser1.*<td>defuser1"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td>test_node_2</td>.*<td><input.*id=username-test_node_2.*value=myuser2.*<td>defuser2"), minified)
-	// Selected checks
-	assert.Regexp(t, regexp.MustCompile("id=0-ABCDEF checked>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td>ABCDEF</td><td>description 1</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("id=0-1ABCDE"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td>1ABCDE</td><td>description 1</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("id=0-12ABCD checked>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td>12ABCD</td><td>description 2</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("id=1-12345A>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td>12345A</td><td>description 3</td>"), minified)
 }
 
 func TestClusterHandlerUnreachableNodes(t *testing.T) {

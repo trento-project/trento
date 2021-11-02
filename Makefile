@@ -44,18 +44,15 @@ generate:
 ifeq (, $(shell command -v mockery 2> /dev/null))
 	$(error "'mockery' command not found. You can install it locally with 'go install github.com/vektra/mockery/v2'.")
 endif
-	go generate ./...
-
-swag:
 ifeq (, $(shell command -v swag 2> /dev/null))
-	$(error "'swag' command not found. You can install it locally with 'go install github.com/swaggo/swag/cmd/swag'.")
+	$(error "'swag' command not found. You can install it locally with 'go install github.com/swaggo/swag/cmd/swag@latest'.")
 endif
-	swag init
+	go generate ./...
 
 mod-tidy:
 	go mod tidy
 
-test: generate web-assets
+test: web-assets
 	GIN_MODE=test go test -v ./...
 
 test-coverage:
@@ -63,7 +60,7 @@ test-coverage:
 	GIN_MODE=test go test -cover -coverprofile=build/coverage.out ./...
 	go tool cover -html=build/coverage.out
 
-vet-check: generate web-assets
+vet-check: web-assets
 	go vet ./...
 
 web-deps: web/frontend/node_modules

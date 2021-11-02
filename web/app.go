@@ -165,9 +165,8 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 
 	apiGroup := webEngine.Group("/api")
 	{
-		webEngine.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+		apiGroup.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 		apiGroup.GET("/ping", ApiPingHandler)
-
 		apiGroup.GET("/tags", ApiListTag(deps.tagsService))
 		apiGroup.POST("/hosts/:name/tags", ApiHostCreateTagHandler(deps.consul, deps.tagsService))
 		apiGroup.DELETE("/hosts/:name/tags/:tag", ApiHostDeleteTagHandler(deps.consul, deps.tagsService))

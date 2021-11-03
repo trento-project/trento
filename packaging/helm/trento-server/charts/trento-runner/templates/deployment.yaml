@@ -33,6 +33,8 @@ spec:
           args:
             - runner
             - start
+            - --log-level
+            - {{ .Values.global.logLevel }}
             - --ara-server
             - http://{{ .Release.Name }}-ara:8000
             - --api-host

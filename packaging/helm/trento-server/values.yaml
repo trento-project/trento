@@ -1,5 +1,6 @@
 ### Global Values if any ###
-global: {}
+global:
+  logLevel: info
 
 ### Sub Charts Specific Values ###
 trento-web:
@@ -17,7 +18,7 @@ consul:
     bootstrapExpect: 1
     replicas: 1
     exposeGossipAndRPCPorts: true
-    
+
 postgresql:
   enabled: true
   postgresqlUsername: "postgres"

@@ -33,6 +33,8 @@ spec:
           args:
             - web
             - serve
+            - --log-level
+            - {{ .Values.global.logLevel }}
             - --ara-addr
             - {{ .Release.Name }}-ara:8000
             - --db-host

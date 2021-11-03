@@ -116,8 +116,11 @@ jobs:
           fi
       - name: Lint
         run: ct lint --config=ct.yaml
-      - name: Create kind cluster
-        uses: helm/kind-action@v1.2.0
+      - name: Create k3d cluster
+        uses: AbsaOSS/k3d-action@v1.5.0
+        with:
+          cluster-name: "trento-test-cluster"
+          args: --agents 1
         if: steps.list-changed.outputs.changed == 'true'
       - name: Install and test
         run: ct install --config=ct.yaml

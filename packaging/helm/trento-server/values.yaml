@@ -1,4 +1,4 @@
-### Global Values if any ###
+### Global Values ###
 global:
   logLevel: info
 

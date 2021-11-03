@@ -2,7 +2,9 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-# Trento Runner specific values
+global:
+  logLevel: info
+
 privateKey: ""
 checkIntervalMins: 5
 

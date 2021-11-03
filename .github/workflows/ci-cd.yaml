@@ -93,6 +93,35 @@ jobs:
       - name: trento checks ID sanity test
         run: python3 hack/id_checker.py
 
+  test-helm-charts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: azure/setup-helm@v1
+        with:
+          version: v3.4.0
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2.1.0
+      - name: Run chart-testing (list-changed)
+        id: list-changed
+        run: |
+          changed=$(ct list-changed)
+          if [[ -n "$changed" ]]; then
+            echo "::set-output name=changed::true"
+          fi
+      - name: Run chart-testing (lint)
+        run: ct lint
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.2.0
+        if: steps.list-changed.outputs.changed == 'true'
+      - name: Run chart-testing (install)
+        run: ct install
+
   build-static-binary:
     runs-on: ubuntu-20.04
     needs: [test-binary, test-checks]

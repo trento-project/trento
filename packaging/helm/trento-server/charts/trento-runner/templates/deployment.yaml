@@ -40,7 +40,7 @@ spec:
             - --api-port
             - "{{ .Values.trentoWeb.service.port }}"
             - -i
-            - "5"
+            - "{{ .Values.checkIntervalMins }}"
           env:
             - name: CONSUL_HTTP_ADDR
               value: {{ .Release.Name }}-consul-server:8500

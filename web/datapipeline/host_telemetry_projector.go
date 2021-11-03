@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 
 	log "github.com/sirupsen/logrus"
-	discoveryModels "github.com/trento-project/trento/agent/discovery/models"
 	"github.com/trento-project/trento/internal/cloud"
+	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/internal/subscription"
 	"github.com/trento-project/trento/web/models"
 	"gorm.io/datatypes"
@@ -27,7 +27,7 @@ func NewHostTelemetryProjector(db *gorm.DB) *projector {
 func hostTelemetryProjector_HostDiscoveryHandler(dataCollectedEvent *DataCollectedEvent, db *gorm.DB) error {
 	decoder := payloadDecoder(dataCollectedEvent.Payload)
 
-	var discoveredHost discoveryModels.DiscoveredHost
+	var discoveredHost hosts.DiscoveredHost
 	if err := decoder.Decode(&discoveredHost); err != nil {
 		log.Errorf("can't decode data: %s", err)
 		return err

@@ -1,4 +1,4 @@
-package models
+package hosts
 
 type DiscoveredHost struct {
 	HostIpAddresses []string `json:"ip_addresses"`

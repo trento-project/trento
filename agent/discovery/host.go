@@ -50,6 +50,7 @@ func (h HostDiscovery) Discover() (string, error) {
 	si.GetSysInfo()
 
 	host := hosts.DiscoveredHost{
+		OSVersion:       si.OS.Version,
 		HostIpAddresses: ipAddresses,
 		HostName:        h.discovery.host,
 		CPUCount:        int(si.CPU.Cpus) * int(si.CPU.Cores),

@@ -7,7 +7,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/trento-project/trento/internal/cloud"
 	"github.com/trento-project/trento/internal/hosts"
-	"github.com/trento-project/trento/internal/subscription"
 	"github.com/trento-project/trento/web/models"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -19,7 +18,6 @@ func NewHostTelemetryProjector(db *gorm.DB) *projector {
 
 	telemetryProjector.AddHandler(HostDiscovery, hostTelemetryProjector_HostDiscoveryHandler)
 	telemetryProjector.AddHandler(CloudDiscovery, hostTelemetryProjector_CloudDiscoveryHandler)
-	telemetryProjector.AddHandler(SubscriptionDiscovery, hostTelemetryProjector_SubscriptionDiscoveryHandler)
 
 	return telemetryProjector
 }
@@ -35,6 +33,7 @@ func hostTelemetryProjector_HostDiscoveryHandler(dataCollectedEvent *DataCollect
 
 	telemetryReadModel := models.HostTelemetry{
 		AgentID:       dataCollectedEvent.AgentID,
+		SLESVersion:   discoveredHost.OSVersion,
 		HostName:      discoveredHost.HostName,
 		CPUCount:      discoveredHost.CPUCount,
 		SocketCount:   discoveredHost.SocketCount,
@@ -42,6 +41,7 @@ func hostTelemetryProjector_HostDiscoveryHandler(dataCollectedEvent *DataCollect
 	}
 
 	return storeHostTelemetry(db, telemetryReadModel,
+		"sles_version",
 		"host_name",
 		"cpu_count",
 		"socket_count",
@@ -64,28 +64,6 @@ func hostTelemetryProjector_CloudDiscoveryHandler(dataCollectedEvent *DataCollec
 	}
 
 	return storeHostTelemetry(db, telemetryReadModel, "cloud_provider")
-}
-
-func hostTelemetryProjector_SubscriptionDiscoveryHandler(dataCollectedEvent *DataCollectedEvent, db *gorm.DB) error {
-	decoder := payloadDecoder(dataCollectedEvent.Payload)
-
-	var discoveredSubscription subscription.Subscriptions
-
-	if err := decoder.Decode(&discoveredSubscription); err != nil {
-		log.Errorf("can't decode data: %s", err)
-		return err
-	}
-
-	if len(discoveredSubscription) == 0 {
-		return nil
-	}
-
-	telemetryReadModel := models.HostTelemetry{
-		AgentID:     dataCollectedEvent.AgentID,
-		SLESVersion: discoveredSubscription[0].Version,
-	}
-
-	return storeHostTelemetry(db, telemetryReadModel, "sles_version")
 }
 
 func payloadDecoder(payload datatypes.JSON) *json.Decoder {

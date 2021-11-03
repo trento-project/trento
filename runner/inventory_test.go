@@ -144,6 +144,34 @@ func mockGetCloudUserName(client consul.Client, node string) (string, error) {
 	return "", nil
 }
 
+func TestGetCloudUserName(t *testing.T) {
+	consulInst := new(mocks.Client)
+	kv := new(mocks.KV)
+	host := "node1"
+
+	kvPath := fmt.Sprintf(consul.KvHostsClouddataPath, host)
+
+	listMap := map[string]interface{}{
+		"provider": "azure",
+		"metadata": map[string]interface{}{
+			"compute": map[string]interface{}{
+				"osProfile": map[string]interface{}{
+					"adminUsername": host,
+				},
+			},
+		},
+	}
+
+	kv.On("ListMap", kvPath, kvPath).Return(listMap, nil)
+	consulInst.On("WaitLock", path.Join(consul.KvHostsPath, host)+"/").Return(nil)
+	consulInst.On("KV").Return(kv)
+
+	name, err := getCloudUserName(consulInst, host)
+
+	assert.NoError(t, err)
+	assert.Equal(t, host, name)
+}
+
 func TestNewClusterInventoryContent(t *testing.T) {
 	consulInst := new(mocks.Client)
 	apiInst := new(apiMocks.TrentoApiService)

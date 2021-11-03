@@ -10,36 +10,43 @@ else
 	GO_BUILD = CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)"
 endif
 
-default: clean mod-tidy fmt vet-check test build
+.PHONY: default
+default: clean mod-tidy fmt vet-check web-check test build
 
-.PHONY: build clean clean-binary clean-frontend cross-compiled default fmt fmt-check generate swag mod-tidy test vet-check web-assets
-
+.PHONY: build
 build: trento
 trento: web-assets
 	$(GO_BUILD)
 
+.PHONY: cross-compiled $(ARCHS)
 cross-compiled: $(ARCHS)
 $(ARCHS): web-assets
 	@mkdir -p build/$@
 	GOOS=linux GOARCH=$@ $(GO_BUILD) -o build/$@/trento
 
+.PHONY: clean
 clean: clean-binary clean-frontend
 
+.PHONY: clean-binary
 clean-binary:
 	go clean
 	rm -rf build
 
+.PHONY: clean-frontend
 clean-frontend:
 	rm -rf web/frontend/assets
 	rm -rf web/frontend/node_modules
 
+.PHONY: fmt
 fmt:
 	go fmt ./...
 
+.PHONY: fmt-check
 fmt-check:
 	gofmt -l .
 	[ "`gofmt -l .`" = "" ]
 
+.PHONY: generate
 generate:
 ifeq (, $(shell command -v mockery 2> /dev/null))
 	$(error "'mockery' command not found. You can install it locally with 'go install github.com/vektra/mockery/v2'.")
@@ -49,33 +56,49 @@ ifeq (, $(shell command -v swag 2> /dev/null))
 endif
 	go generate ./...
 
+.PHONY: mod-tidy
 mod-tidy:
 	go mod tidy
 
+.PHONY: test
 test: web-assets
 	GIN_MODE=test go test -v ./...
 
-test-coverage:
+.PHONY: full-check
+full-check: generate vet-check test web-check
+
+.PHONY: test-coverage
+test-coverage: build/coverage.out
+build/coverage.out:
 	@mkdir -p build
 	GIN_MODE=test go test -cover -coverprofile=build/coverage.out ./...
 	go tool cover -html=build/coverage.out
 
+.PHONY: vet-check
 vet-check: web-assets
 	go vet ./...
 
+.PHONY: web-deps
 web-deps: web/frontend/node_modules
 web/frontend/node_modules:
 	cd web/frontend; npm install
 
-web-format: web/frontend/format
-web-check: web/frontend/format-check web/frontend/lint
-web/frontend/format:
+.PHONY: web-check
+web-check: web-format-check web-lint
+
+.PHONY: web-format
+web-format:
 	cd web/frontend; npx prettier --write .
-web/frontend/format-check:
+
+.PHONY: web-format-check
+web-format-check:
 	cd web/frontend; npx prettier --check .
-web/frontend/lint:
+
+.PHONY: web-lint
+web-lint:
 	cd web/frontend; npx eslint .
 
+.PHONY: web-assets
 web-assets: web/frontend/assets
 
 web/frontend/assets: web/frontend/assets/js web/frontend/assets/stylesheets web/frontend/assets/images

@@ -3,5 +3,5 @@ kind: Secret
 metadata:
   name: {{ include "trento-runner.fullname" . }}-privatekey
 data:
-  privatekey: |- 
+  privatekey: |-
     {{ .Values.privateKey | b64enc  }}

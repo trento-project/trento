@@ -9,6 +9,7 @@ import (
 	consulApi "github.com/hashicorp/consul/api"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/tdewolff/minify/v2"
 	"github.com/tdewolff/minify/v2/html"
 	"github.com/trento-project/trento/internal/cloud"
@@ -486,33 +487,54 @@ func azureMeta(userIndex int) map[string]interface{} {
 }
 
 func TestClustersListHandler(t *testing.T) {
-	consulInst := new(consulMocks.Client)
-	checksMocks := new(services.MockChecksService)
+	clustersList := models.ClusterList{
+		{
+			ID:                "47d1190ffb4f781974c8356d7f863b03",
+			Name:              "hana_cluster",
+			ClusterType:       ClusterTypeScaleUp,
+			SIDs:              []string{"PRD"},
+			ResourcesNumber:   5,
+			HostsNumber:       3,
+			Tags:              []string{"tag1"},
+			Health:            models.CheckPassing,
+			HasDuplicatedName: false,
+		},
+		{
+			ID:                "a615a35f65627be5a757319a0741127f",
+			Name:              "other_cluster",
+			ClusterType:       ClusterTypeUnknown,
+			SIDs:              []string{},
+			Tags:              []string{"tag1"},
+			Health:            models.CheckCritical,
+			HasDuplicatedName: false,
+		},
+		{
+			ID:                "e2f2eb50aef748e586a7baa85e0162cf",
+			Name:              "netweaver_cluster",
+			ClusterType:       ClusterTypeUnknown,
+			SIDs:              []string{},
+			ResourcesNumber:   10,
+			HostsNumber:       2,
+			Tags:              []string{"tag1"},
+			Health:            models.CheckCritical,
+			HasDuplicatedName: true,
+		},
+		{
+			ID:                "e27d313a674375b2066777a89ee346b9",
+			Name:              "netweaver_cluster",
+			ClusterType:       ClusterTypeUnknown,
+			SIDs:              []string{},
+			Tags:              []string{"tag1"},
+			Health:            models.CheckUndefined,
+			HasDuplicatedName: true,
+		},
+	}
 
-	kv := new(consulMocks.KV)
-	consulInst.On("KV").Return(kv)
-	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
-	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil)
-
-	checksMocks.On("GetAggregatedChecksResultByCluster", "47d1190ffb4f781974c8356d7f863b03").Return(
-		aggregatedByCluster(), nil)
-	checksMocks.On("GetAggregatedChecksResultByCluster", "a615a35f65627be5a757319a0741127f").Return(
-		aggregatedByClusterWarning(), nil)
-	checksMocks.On("GetAggregatedChecksResultByCluster", "e2f2eb50aef748e586a7baa85e0162cf").Return(
-		aggregatedByClusterCritical(), nil)
-	checksMocks.On("GetAggregatedChecksResultByCluster", "e27d313a674375b2066777a89ee346b9").Return(
-		aggregatedByClusterEmpty(), nil)
-
-	mockTagsService := new(services.MockTagsService)
-	mockTagsService.On("GetAllByResource", models.TagClusterResourceType, "47d1190ffb4f781974c8356d7f863b03").Return([]string{"tag1"}, nil)
-	mockTagsService.On("GetAllByResource", models.TagClusterResourceType, "a615a35f65627be5a757319a0741127f").Return([]string{"tag1"}, nil)
-	mockTagsService.On("GetAllByResource", models.TagClusterResourceType, "e2f2eb50aef748e586a7baa85e0162cf").Return([]string{"tag1"}, nil)
-	mockTagsService.On("GetAllByResource", models.TagClusterResourceType, "e27d313a674375b2066777a89ee346b9").Return(nil, nil)
+	mockClusterService := new(services.MockClustersService)
+	mockClusterService.On("GetAll", mock.Anything).Return(clustersList, nil)
 
 	deps := setupTestDependencies()
-	deps.consul = consulInst
-	deps.checksService = checksMocks
-	deps.tagsService = mockTagsService
+	deps.clustersService = mockClusterService
 
 	var err error
 	config := setupTestConfig()
@@ -525,10 +547,6 @@ func TestClustersListHandler(t *testing.T) {
 	req := httptest.NewRequest("GET", "/clusters", nil)
 
 	app.webEngine.ServeHTTP(resp, req)
-
-	consulInst.AssertExpectations(t)
-	checksMocks.AssertExpectations(t)
-	kv.AssertExpectations(t)
 
 	m := minify.New()
 	m.AddFunc("text/html", html.Minify)

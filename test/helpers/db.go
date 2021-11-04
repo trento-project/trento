@@ -1,11 +1,10 @@
 package helpers
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/spf13/viper"
-	"gorm.io/driver/postgres"
+	"github.com/trento-project/trento/internal/db"
 	"gorm.io/gorm"
 )
 
@@ -15,14 +14,15 @@ func SetupTestDatabase(t *testing.T) *gorm.DB {
 		t.SkipNow()
 	}
 
-	host := viper.GetString("db-host")
-	port := viper.GetString("db-port")
-	user := viper.GetString("db-user")
-	password := viper.GetString("db-password")
-	dbName := viper.GetString("db-name")
+	dbConfig := &db.Config{
+		Host:     viper.GetString("db-host"),
+		Port:     viper.GetString("db-port"),
+		User:     viper.GetString("db-user"),
+		Password: viper.GetString("db-password"),
+		DBName:   viper.GetString("db-name"),
+	}
 
-	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbName)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := db.InitDB(dbConfig)
 	if err != nil {
 		t.Fatal("could not open test database connection")
 	}

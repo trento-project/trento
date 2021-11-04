@@ -17,10 +17,10 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
-	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
 	"github.com/trento-project/trento/internal/consul"
+	"github.com/trento-project/trento/internal/db"
 	"github.com/trento-project/trento/web/datapipeline"
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
@@ -51,6 +51,7 @@ type Config struct {
 	Cert          string
 	Key           string
 	CA            string
+	DBConfig      *db.Config
 }
 type Dependencies struct {
 	consul               consul.Client
@@ -67,7 +68,7 @@ type Dependencies struct {
 	clustersService      services.ClustersService
 }
 
-func DefaultDependencies() Dependencies {
+func DefaultDependencies(config *Config) Dependencies {
 	consulClient, _ := consul.DefaultClient()
 	webEngine := gin.Default()
 	collectorEngine := gin.Default()
@@ -76,7 +77,7 @@ func DefaultDependencies() Dependencies {
 
 	gin.SetMode(mode)
 
-	db, err := InitDB()
+	db, err := db.InitDB(config.DBConfig)
 	if err != nil {
 		log.Fatalf("failed to connect database: %s", err)
 	}
@@ -104,24 +105,6 @@ func DefaultDependencies() Dependencies {
 	}
 }
 
-func InitDB() (*gorm.DB, error) {
-	// TODO: refactor this in a common infrastructure init package
-	host := viper.GetString("db-host")
-	port := viper.GetString("db-port")
-	user := viper.GetString("db-user")
-	password := viper.GetString("db-password")
-	dbName := viper.GetString("db-name")
-
-	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbName)
-
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	if err != nil {
-		return nil, err
-	}
-
-	return db, nil
-}
-
 func MigrateDB(db *gorm.DB) error {
 	err := db.AutoMigrate(models.Tag{}, models.SelectedChecks{}, models.ConnectionSettings{}, models.Cluster{}, datapipeline.DataCollectedEvent{}, datapipeline.Subscription{})
 	if err != nil {
@@ -133,7 +116,7 @@ func MigrateDB(db *gorm.DB) error {
 
 // shortcut to use default dependencies
 func NewApp(config *Config) (*App, error) {
-	return NewAppWithDeps(config, DefaultDependencies())
+	return NewAppWithDeps(config, DefaultDependencies(config))
 }
 
 // @title Trento API
@@ -287,8 +270,4 @@ func getTLSConfig(cert string, key string, ca string) (*tls.Config, error) {
 		ClientAuth:   tls.RequireAndVerifyClientCert,
 		Certificates: []tls.Certificate{certificate},
 	}, nil
-}
-
-func (a *App) PruneEvents(olderThan time.Duration) error {
-	return a.collectorService.PruneEvents(olderThan)
 }

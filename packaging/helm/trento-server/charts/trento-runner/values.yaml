@@ -82,7 +82,17 @@ tolerations: []
 
 affinity: {}
 
-# trento-web port
-trentoWeb:
-  service:
+# service dependencies to be consumed by the runner deployment
+dependencies:
+  trentoWeb:
+    name: trento-web
     port: 8080
+  trentoCollector:
+    name: trento-web-collector
+    port: 8081
+  ara:
+    name: ara
+    port: 8000
+  consul:
+    name: consul-server
+    port: 8500

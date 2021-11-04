@@ -10,6 +10,9 @@ trento-web:
 trento-runner:
   nameOverride: runner
   enabled: true
+  dependencies:
+    trentoWeb:
+      name: web
 
 ara:
   enabled: true

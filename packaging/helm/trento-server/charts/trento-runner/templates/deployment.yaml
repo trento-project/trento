@@ -36,16 +36,16 @@ spec:
             - --log-level
             - {{ .Values.global.logLevel }}
             - --ara-server
-            - http://{{ .Release.Name }}-ara:8000
+            - http://{{ .Release.Name }}-{{ .Values.dependencies.ara.name }}:{{ .Values.dependencies.ara.port }}
             - --api-host
-            - {{ .Release.Name }}-trento-web
+            - {{ .Release.Name }}-{{ .Values.dependencies.trentoWeb.name }}
             - --api-port
-            - "{{ .Values.trentoWeb.service.port }}"
+            - "{{ .Values.dependencies.trentoWeb.port }}"
             - -i
             - "{{ .Values.checkIntervalMins }}"
           env:
             - name: CONSUL_HTTP_ADDR
-              value: {{ .Release.Name }}-consul-server:8500
+              value: {{ .Release.Name }}-{{ .Values.dependencies.consul.name }}:{{ .Values.dependencies.consul.port }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

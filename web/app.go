@@ -69,8 +69,8 @@ type Dependencies struct {
 
 func DefaultDependencies(config *Config) Dependencies {
 	consulClient, _ := consul.DefaultClient()
-	webEngine := gin.Default()
-	collectorEngine := gin.Default()
+	webEngine := NewNamedEngine("public")
+	collectorEngine := NewNamedEngine("internal")
 	store := cookie.NewStore([]byte("secret"))
 	mode := os.Getenv(gin.EnvGinMode)
 
@@ -102,6 +102,13 @@ func DefaultDependencies(config *Config) Dependencies {
 		checksService, subscriptionsService, hostsService, sapSystemsService, tagsService,
 		collectorService, clustersService,
 	}
+}
+
+func NewNamedEngine(instance string) *gin.Engine {
+	engine := gin.New()
+	engine.Use(NewLogHandler(instance, log.StandardLogger()))
+	engine.Use(gin.Recovery())
+	return engine
 }
 
 func MigrateDB(db *gorm.DB) error {
@@ -168,6 +175,7 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 
 	collectorEngine := deps.collectorEngine
 	collectorEngine.POST("/api/collect", ApiCollectDataHandler(deps.collectorService))
+	collectorEngine.GET("/api/ping", ApiPingHandler)
 
 	return app, nil
 }

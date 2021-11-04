@@ -2,7 +2,6 @@ package services
 
 import (
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/suite"
 	"github.com/trento-project/trento/test/helpers"
@@ -60,39 +59,4 @@ func (suite *CollectorServiceTestSuite) TestCollectorService_StoreEvent() {
 	suite.EqualValues(eventFromChannel.AgentID, eventFromDB.AgentID)
 	suite.EqualValues(eventFromChannel.DiscoveryType, eventFromDB.DiscoveryType)
 	suite.EqualValues(eventFromChannel.Payload, eventFromDB.Payload)
-}
-
-func (suite *CollectorServiceTestSuite) TestCollectorService_PruneEvents() {
-	events := []datapipeline.DataCollectedEvent{
-		{
-			ID:            1,
-			AgentID:       "agent_id",
-			DiscoveryType: "test_discovery_type",
-			Payload:       []byte("{}"),
-			CreatedAt:     time.Now().Add(-24 * 15 * time.Hour),
-		},
-		{
-			ID:            2,
-			AgentID:       "agent_id",
-			DiscoveryType: "test_discovery_type",
-			Payload:       []byte("{}"),
-			CreatedAt:     time.Now().Add(-24 * 10 * time.Hour),
-		},
-		{
-			ID:            3,
-			AgentID:       "agent_id",
-			DiscoveryType: "test_discovery_type",
-			Payload:       []byte("{}"),
-			CreatedAt:     time.Now().Add(-24 * 6 * time.Hour),
-		},
-	}
-	suite.tx.Create(events)
-
-	suite.collectorService.PruneEvents(24 * 10 * time.Hour)
-
-	var prunedEvents []datapipeline.DataCollectedEvent
-	suite.tx.Find(&prunedEvents)
-
-	suite.Equal(1, len(prunedEvents))
-	suite.Equal(int64(3), prunedEvents[0].ID)
 }

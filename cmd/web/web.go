@@ -11,7 +11,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"github.com/trento-project/trento/internal/db"
 	"github.com/trento-project/trento/web"
+	"github.com/trento-project/trento/web/datapipeline"
 )
 
 func NewWebCmd() *cobra.Command {
@@ -91,7 +93,7 @@ func addPruneCmd(webCmd *cobra.Command) {
 	webCmd.AddCommand(pruneCmd)
 }
 
-func serve(cmd *cobra.Command, args []string) {
+func serve(_ *cobra.Command, _ []string) {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 
@@ -104,24 +106,6 @@ func serve(cmd *cobra.Command, args []string) {
 		cancel()
 	}()
 
-	app := initApp()
-	if err := app.Start(ctx); err != nil {
-		log.Fatal("Error while running the web application server: ", err)
-	}
-}
-
-func prune(cmd *cobra.Command, args []string) {
-	olderThan := time.Duration(viper.GetInt("older-than")) * 24 * time.Hour
-
-	app := initApp()
-	log.Infof("Pruning events older than %d days.", olderThan)
-	if err := app.PruneEvents(olderThan); err != nil {
-		log.Fatalf("Error while pruning older events: %s", err)
-	}
-	log.New().Infof("Events older than %d days pruned.", olderThan)
-}
-
-func initApp() *web.App {
 	config, err := LoadConfig()
 	if err != nil {
 		log.Fatal("Failed to configure the web application instance: ", err)
@@ -132,5 +116,23 @@ func initApp() *web.App {
 		log.Fatal("Failed to create the web application instance: ", err)
 	}
 
-	return app
+	if err := app.Start(ctx); err != nil {
+		log.Fatal("Error while running the web application server: ", err)
+	}
+}
+
+func prune(_ *cobra.Command, _ []string) {
+	olderThan := time.Duration(viper.GetInt("older-than")) * 24 * time.Hour
+
+	dbConfig := LoadDBConfig()
+	db, err := db.InitDB(dbConfig)
+	if err != nil {
+		log.Fatal("Error while initializing the database: ", err)
+	}
+
+	log.Infof("Pruning events older than %d days.", olderThan)
+	if err := datapipeline.PruneEvents(olderThan, db); err != nil {
+		log.Fatalf("Error while pruning older events: %s", err)
+	}
+	log.New().Infof("Events older than %d days pruned.", olderThan)
 }

@@ -46,7 +46,6 @@ func LoadConfig() (*web.Config, error) {
 
 func LoadDBConfig() *db.Config {
 	return &db.Config{
-		// TODO: refactor this in a common infrastructure init package
 		Host:     viper.GetString("db-host"),
 		Port:     viper.GetString("db-port"),
 		User:     viper.GetString("db-user"),

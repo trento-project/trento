@@ -32,6 +32,23 @@ var doc = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/api/checks/catalog": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get the whole checks' catalog",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.GroupedChecks"
+                            }
+                        }
+                    }
+                }
+            },
             "put": {
                 "produces": [
                     "application/json"
@@ -149,23 +166,6 @@ var doc = `{
                             "additionalProperties": {
                                 "type": "string"
                             }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/checks_catalog": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "summary": "Get the whole checks' catalog",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
                         }
                     }
                 }
@@ -647,6 +647,52 @@ var doc = `{
         }
     },
     "definitions": {
+        "models.Check": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "implementation": {
+                    "type": "string"
+                },
+                "labels": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "remediation": {
+                    "type": "string"
+                },
+                "result": {
+                    "type": "string"
+                },
+                "selected": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "models.GroupedChecks": {
+            "type": "object",
+            "properties": {
+                "checks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Check"
+                    }
+                },
+                "group": {
+                    "type": "string"
+                }
+            }
+        },
         "web.JSONCheck": {
             "type": "object",
             "required": [

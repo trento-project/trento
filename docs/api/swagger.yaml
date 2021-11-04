@@ -1,5 +1,35 @@
 basePath: /api
 definitions:
+  models.Check:
+    properties:
+      description:
+        type: string
+      group:
+        type: string
+      id:
+        type: string
+      implementation:
+        type: string
+      labels:
+        type: string
+      name:
+        type: string
+      remediation:
+        type: string
+      result:
+        type: string
+      selected:
+        type: boolean
+    type: object
+  models.GroupedChecks:
+    properties:
+      checks:
+        items:
+          $ref: '#/definitions/models.Check'
+        type: array
+      group:
+        type: string
+    type: object
   web.JSONCheck:
     properties:
       description:
@@ -148,6 +178,17 @@ paths:
             type: object
       summary: Create the check settings
   /api/checks/catalog:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.GroupedChecks'
+            type: array
+      summary: Get the whole checks' catalog
     put:
       parameters:
       - description: Checks catalog
@@ -174,17 +215,6 @@ paths:
               type: string
             type: object
       summary: Create/Updates the checks catalog
-  /api/checks_catalog:
-    get:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Get the whole checks' catalog
   /api/clusters/{cluster_id}/results:
     get:
       parameters:

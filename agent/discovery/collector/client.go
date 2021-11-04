@@ -15,7 +15,6 @@ import (
 	"github.com/trento-project/trento/internal"
 
 	"github.com/spf13/afero"
-	"github.com/spf13/viper"
 )
 
 type Client interface {
@@ -76,11 +75,6 @@ func NewCollectorClient(config *Config) (*client, error) {
 }
 
 func (c *client) Publish(discoveryType string, payload interface{}) error {
-	// TODO: remove this when we want to start collecting
-	if !viper.GetBool("collector-enabled") {
-		return nil
-	}
-
 	log.Debugf("Sending %s to data collector", discoveryType)
 
 	requestBody, err := json.Marshal(map[string]interface{}{

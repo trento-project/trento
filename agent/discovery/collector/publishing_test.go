@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/spf13/afero"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/suite"
 	"github.com/trento-project/trento/agent/discovery/mocks"
 	_ "github.com/trento-project/trento/test"
@@ -29,9 +28,6 @@ func (suite *PublishingTestSuite) SetupSuite() {
 	fileSystem = afero.NewMemMapFs()
 
 	afero.WriteFile(fileSystem, machineIdPath, []byte(DummyMachineID), 0644)
-
-	// this is read by an env variable called TRENTO_COLLECTOR_ENABLED
-	viper.Set("collector-enabled", true)
 
 	collectorClient, err := NewCollectorClient(&Config{
 		EnablemTLS:    true,

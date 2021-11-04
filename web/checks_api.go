@@ -33,21 +33,34 @@ type JSONCheck struct {
 	Labels         string `json:"labels,omitempty"`
 }
 
+type JSONChecksGroup struct {
+	Group  string          `json:"group"`
+	Checks []*models.Check `json:"checks"`
+}
+
+type JSONChecksGroupedCatalog []*JSONChecksGroup
+
 // ApiCheckCatalogHandler godoc
 // @Summary Get the whole checks' catalog
 // @Produce json
-// @Success 200 {object} models.GroupedCheckList
+// @Success 200 {object} JSONChecksGroupedCatalog
 // @Error 500
 // @Router /api/checks/catalog [get]
 func ApiChecksCatalogHandler(s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		var groupedCatalog JSONChecksGroupedCatalog
+
 		checkGroups, err := s.GetChecksCatalogByGroup()
 		if err != nil {
 			c.Error(err)
 			return
 		}
 
-		c.JSON(http.StatusOK, checkGroups)
+		for _, group := range checkGroups {
+			g := JSONChecksGroup{Group: group.Group, Checks: group.Checks}
+			groupedCatalog = append(groupedCatalog, &g)
+		}
+		c.JSON(http.StatusOK, groupedCatalog)
 	}
 }
 

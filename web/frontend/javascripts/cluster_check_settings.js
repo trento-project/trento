@@ -135,7 +135,7 @@ const SettingsButton = () => {
           </Accordion>
           <h6>Checks selection</h6>
           <Accordion>
-            {checksCatalog.map(({ Group: group, Checks: checks }) => (
+            {checksCatalog.map(({ group, checks }) => (
               <Card key={group}>
                 <Card.Header>
                   <Checkbox

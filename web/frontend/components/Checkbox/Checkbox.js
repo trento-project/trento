@@ -3,10 +3,6 @@ import Form from 'react-bootstrap/Form';
 
 const noop = () => {};
 
-// Custom Checkbox component. Why do we need this? Because our design system doesn't play
-// super-well with React. That said, our CSS styles the :before of the checkbox' label,
-// and places it _over_ the actual checkbox input. The result? The input doesn't trigger any
-// onChange event. 12 hours of my life wasted debugging this.
 const Checkbox = ({
   className = '',
   checked,

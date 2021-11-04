@@ -3,8 +3,6 @@ package web
 import (
 	"fmt"
 	"net/http"
-	"net/url"
-	"path"
 	"sort"
 	"strings"
 
@@ -617,59 +615,5 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 			"ChecksResult":          checksResult,
 			"Alerts":                GetAlerts(c),
 		})
-	}
-}
-
-type checkSelectionForm struct {
-	Ids []string `form:"check_ids[]"`
-}
-
-func getConnectionMap(form url.Values) map[string]string {
-	usernames := make(map[string]string)
-	for key, value := range form {
-		if strings.HasPrefix(key, "username") {
-			usernames[strings.Split(key, "username-")[1]] = value[0]
-		}
-	}
-
-	return usernames
-}
-
-func NewSaveClusterSettingsHandler(s services.ChecksService) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		var connErr error
-		var selectedChecks checkSelectionForm
-
-		clusterId := c.Param("id")
-
-		c.ShouldBind(&selectedChecks)
-
-		checkErr := s.CreateSelectedChecks(clusterId, selectedChecks.Ids)
-
-		usernames := getConnectionMap(c.Request.PostForm)
-		for node, user := range usernames {
-			connErr = s.CreateConnectionSettings(clusterId, node, user)
-			if connErr != nil {
-				break
-			}
-		}
-
-		var newAlert Alert
-		if checkErr == nil && connErr == nil {
-			newAlert = Alert{
-				Type:  "success",
-				Title: "Cluster settings saved",
-				Text:  "The cluster settings has been saved correctly.",
-			}
-		} else {
-			newAlert = Alert{
-				Type:  "danger",
-				Title: "Error saving cluster settings",
-				Text:  "The cluster settings couldn't be saved.",
-			}
-		}
-		StoreAlert(c, newAlert)
-
-		c.Redirect(http.StatusFound, path.Join("/clusters", clusterId))
 	}
 }

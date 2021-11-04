@@ -3,33 +3,60 @@ package services
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 	"github.com/trento-project/trento/test/helpers"
 	"github.com/trento-project/trento/web/datapipeline"
+	"github.com/trento-project/trento/web/models"
+	"gorm.io/gorm"
 )
 
-func TestCollectorService_StoreEvent(t *testing.T) {
-	db := helpers.SetupTestDatabase(t)
+type CollectorServiceTestSuite struct {
+	suite.Suite
+	db               *gorm.DB
+	tx               *gorm.DB
+	ch               chan *datapipeline.DataCollectedEvent
+	collectorService *collectorService
+}
 
-	tx := db.Begin()
-	tx.AutoMigrate(&datapipeline.DataCollectedEvent{})
-	defer tx.Rollback()
+func TestCollectorServiceTestSuite(t *testing.T) {
+	suite.Run(t, new(CollectorServiceTestSuite))
+}
+
+func (suite *CollectorServiceTestSuite) SetupSuite() {
+	suite.db = helpers.SetupTestDatabase(suite.T())
+
+	suite.db.AutoMigrate(&datapipeline.DataCollectedEvent{})
+}
+
+func (suite *CollectorServiceTestSuite) TearDownSuite() {
+	suite.db.Migrator().DropTable(models.Tag{})
+}
+
+func (suite *CollectorServiceTestSuite) SetupTest() {
+	suite.tx = suite.db.Begin()
 
 	ch := make(chan *datapipeline.DataCollectedEvent, 1)
-	collectorService := NewCollectorService(tx, ch)
+	suite.ch = ch
+	suite.collectorService = NewCollectorService(suite.tx, ch)
+}
 
-	collectorService.StoreEvent(&datapipeline.DataCollectedEvent{
+func (suite *CollectorServiceTestSuite) TearDownTest() {
+	suite.tx.Rollback()
+}
+
+func (suite *CollectorServiceTestSuite) TestCollectorService_StoreEvent() {
+	suite.collectorService.StoreEvent(&datapipeline.DataCollectedEvent{
 		AgentID:       "agent_id",
 		DiscoveryType: "test_discovery_type",
 		Payload:       []byte("{}"),
 	})
 
-	eventFromChannel := <-ch
+	eventFromChannel := <-suite.ch
 	var eventFromDB datapipeline.DataCollectedEvent
-	tx.First(&eventFromDB)
+	suite.tx.First(&eventFromDB)
 
-	assert.EqualValues(t, eventFromChannel.ID, eventFromDB.ID)
-	assert.EqualValues(t, eventFromChannel.AgentID, eventFromDB.AgentID)
-	assert.EqualValues(t, eventFromChannel.DiscoveryType, eventFromDB.DiscoveryType)
-	assert.EqualValues(t, eventFromChannel.Payload, eventFromDB.Payload)
+	suite.EqualValues(eventFromChannel.ID, eventFromDB.ID)
+	suite.EqualValues(eventFromChannel.AgentID, eventFromDB.AgentID)
+	suite.EqualValues(eventFromChannel.DiscoveryType, eventFromDB.DiscoveryType)
+	suite.EqualValues(eventFromChannel.Payload, eventFromDB.Payload)
 }

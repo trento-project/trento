@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "trento-web.fullname" . }}-prune-events-cronjob
+spec:
+  schedule: {{ .Values.pruneEventsCronjobSchedule }}
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: {{ .Chart.Name }}
+            image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+            imagePullPolicy: {{ .Values.image.pullPolicy }}
+            args:
+            - web
+            - prune-events
+            - --db-host
+            - {{ .Release.Name }}-postgresql
+          restartPolicy: OnFailure
+

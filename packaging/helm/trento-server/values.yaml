@@ -4,9 +4,11 @@ global:
 
 ### Sub Charts Specific Values ###
 trento-web:
+  nameOverride: web
   enabled: true
 
 trento-runner:
+  nameOverride: runner
   enabled: true
 
 ara:

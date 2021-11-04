@@ -1,11 +1,10 @@
 package mocks
 
-import (
-	"github.com/trento-project/trento/agent/discovery/models"
-)
+import "github.com/trento-project/trento/internal/hosts"
 
-func NewDiscoveredHostMock() models.DiscoveredHost {
-	return models.DiscoveredHost{
+func NewDiscoveredHostMock() hosts.DiscoveredHost {
+	return hosts.DiscoveredHost{
+		OSVersion:       "15.3",
 		HostIpAddresses: []string{"10.1.1.4", "10.1.1.5", "10.1.1.6"},
 		HostName:        "thehostnamewherethediscoveryhappened",
 		CPUCount:        64,

@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/suite"
 	"github.com/trento-project/trento/agent/discovery/mocks"
+	_ "github.com/trento-project/trento/test"
 	"github.com/trento-project/trento/test/helpers"
 )
 
@@ -36,9 +37,9 @@ func (suite *PublishingTestSuite) SetupSuite() {
 		EnablemTLS:    true,
 		CollectorHost: "localhost",
 		CollectorPort: 8443,
-		Cert:          "../../../test/certs/client-cert.pem",
-		Key:           "../../../test/certs/client-key.pem",
-		CA:            "../../../test/certs/ca-cert.pem",
+		Cert:          "./test/certs/client-cert.pem",
+		Key:           "./test/certs/client-key.pem",
+		CA:            "./test/certs/ca-cert.pem",
 	})
 	suite.NoError(err)
 
@@ -52,7 +53,7 @@ func (suite *PublishingTestSuite) TestCollectorClient_PublishingClusterDiscovery
 	discoveredCluster := mocks.NewDiscoveredClusterMock()
 
 	suite.runDiscoveryScenario(discoveryType, discoveredCluster, func(requestBodyAgainstCollector string) {
-		suite.assertJsonMatchesJsonFileContent("../../../test/fixtures/discovery/cluster/expected_published_cluster_discovery.json", requestBodyAgainstCollector)
+		suite.assertJsonMatchesJsonFileContent("./test/fixtures/discovery/cluster/expected_published_cluster_discovery.json", requestBodyAgainstCollector)
 	})
 }
 
@@ -61,7 +62,7 @@ func (suite *PublishingTestSuite) TestCollectorClient_PublishingCloudDiscovery()
 	discoveredCloudInstance := mocks.NewDiscoveredCloudMock()
 
 	suite.runDiscoveryScenario(discoveryType, discoveredCloudInstance, func(requestBodyAgainstCollector string) {
-		suite.assertJsonMatchesJsonFileContent("../../../test/fixtures/discovery/azure/expected_published_cloud_discovery.json", requestBodyAgainstCollector)
+		suite.assertJsonMatchesJsonFileContent("./test/fixtures/discovery/azure/expected_published_cloud_discovery.json", requestBodyAgainstCollector)
 	})
 }
 
@@ -70,7 +71,7 @@ func (suite *PublishingTestSuite) TestCollectorClient_PublishingHostDiscovery() 
 	discoveredHost := mocks.NewDiscoveredHostMock()
 
 	suite.runDiscoveryScenario(discoveryType, discoveredHost, func(requestBodyAgainstCollector string) {
-		suite.assertJsonMatchesJsonFileContent("../../../test/fixtures/discovery/host/expected_published_host_discovery.json", requestBodyAgainstCollector)
+		suite.assertJsonMatchesJsonFileContent("./test/fixtures/discovery/host/expected_published_host_discovery.json", requestBodyAgainstCollector)
 	})
 }
 
@@ -79,7 +80,7 @@ func (suite *PublishingTestSuite) TestCollectorClient_PublishingSubscriptionDisc
 	discoveredSubscriptions := mocks.NewDiscoveredSubscriptionsMock()
 
 	suite.runDiscoveryScenario(discoveryType, discoveredSubscriptions, func(requestBodyAgainstCollector string) {
-		suite.assertJsonMatchesJsonFileContent("../../../test/fixtures/discovery/subscriptions/expected_published_subscriptions_discovery.json", requestBodyAgainstCollector)
+		suite.assertJsonMatchesJsonFileContent("./test/fixtures/discovery/subscriptions/expected_published_subscriptions_discovery.json", requestBodyAgainstCollector)
 	})
 }
 

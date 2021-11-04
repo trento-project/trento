@@ -9,8 +9,11 @@ import (
 )
 
 const (
-	ClusterDiscovery   = "ha_cluster_discovery"
-	SAPsystemDiscovery = "sap_system_discovery"
+	ClusterDiscovery      = "ha_cluster_discovery"
+	SAPsystemDiscovery    = "sap_system_discovery"
+	HostDiscovery         = "host_discovery"
+	SubscriptionDiscovery = "subscription_discovery"
+	CloudDiscovery        = "cloud_discovery"
 )
 
 type DataCollectedEvent struct {

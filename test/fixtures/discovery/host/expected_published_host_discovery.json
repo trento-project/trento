@@ -2,6 +2,7 @@
     "agent_id": "the-machine-id",
     "discovery_type": "host_discovery",
     "payload": {
+        "os_version": "15.3",
         "ip_addresses": [
             "10.1.1.4",
             "10.1.1.5",

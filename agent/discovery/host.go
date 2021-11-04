@@ -7,7 +7,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/trento-project/trento/agent/discovery/collector"
-	"github.com/trento-project/trento/agent/discovery/models"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/version"
@@ -50,7 +49,8 @@ func (h HostDiscovery) Discover() (string, error) {
 	var si sysinfo.SysInfo
 	si.GetSysInfo()
 
-	host := models.DiscoveredHost{
+	host := hosts.DiscoveredHost{
+		OSVersion:       si.OS.Version,
 		HostIpAddresses: ipAddresses,
 		HostName:        h.discovery.host,
 		CPUCount:        int(si.CPU.Cpus) * int(si.CPU.Cores),

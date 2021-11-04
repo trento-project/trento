@@ -107,7 +107,8 @@ func DefaultDependencies(config *Config) Dependencies {
 func MigrateDB(db *gorm.DB) error {
 	err := db.AutoMigrate(
 		models.Tag{}, models.SelectedChecks{}, models.ConnectionSettings{}, models.CheckRaw{},
-		models.Cluster{}, datapipeline.DataCollectedEvent{}, datapipeline.Subscription{})
+		models.Cluster{}, datapipeline.DataCollectedEvent{}, datapipeline.Subscription{}, models.HostTelemetry{})
+
 	if err != nil {
 		return err
 	}

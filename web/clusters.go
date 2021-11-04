@@ -571,26 +571,6 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 			return
 		}
 
-		selectedChecks, getCheckErr := s.GetSelectedChecksById(clusterId)
-		if getCheckErr != nil {
-			StoreAlert(c, NoCheckSelected())
-		}
-
-		connectionData, getConnErr := s.GetConnectionSettingsById(clusterId)
-		defaultConnectionData, getDefConnErr := getDefaultConnectionSettings(client, clusterItem)
-		if getConnErr != nil || getDefConnErr != nil {
-			StoreAlert(c, AlertConnectionDataNotFound())
-		}
-
-		checksCatalog, errCatalog := getChecksCatalogWithSelected(
-			s, clusterId, selectedChecks.SelectedChecks)
-		checksResult, errResult := s.GetChecksResultByCluster(clusterItem.Id)
-		if errCatalog != nil {
-			StoreAlert(c, AlertCatalogNotFound())
-		} else if errResult != nil {
-			StoreAlert(c, CheckResultsNotFound())
-		}
-
 		nodes := NewNodes(s, clusterItem, hosts)
 		// It returns an empty aggretaged data in case of error
 		aCheckData, _ := s.GetAggregatedChecksResultByCluster(clusterId)
@@ -603,17 +583,13 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 		}
 
 		c.HTML(http.StatusOK, "cluster_hana.html.tmpl", gin.H{
-			"Cluster":               clusterItem,
-			"SID":                   getHanaSID(clusterItem),
-			"Nodes":                 nodes,
-			"StoppedResources":      stoppedResources(clusterItem),
-			"ClusterType":           clusterType,
-			"HealthContainer":       hContainer,
-			"ChecksCatalog":         checksCatalog,
-			"ConnectionData":        connectionData,
-			"DefaultConnectionData": defaultConnectionData,
-			"ChecksResult":          checksResult,
-			"Alerts":                GetAlerts(c),
+			"Cluster":          clusterItem,
+			"SID":              getHanaSID(clusterItem),
+			"Nodes":            nodes,
+			"StoppedResources": stoppedResources(clusterItem),
+			"ClusterType":      clusterType,
+			"HealthContainer":  hContainer,
+			"Alerts":           GetAlerts(c),
 		})
 	}
 }

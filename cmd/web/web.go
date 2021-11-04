@@ -88,7 +88,10 @@ func addPruneCmd(webCmd *cobra.Command) {
 		Run:   prune,
 	}
 
-	pruneCmd.Flags().UintVar(&olderThan, "older-than", 10, "Prune data discoveryu events older than <value> days.")
+	pruneCmd.Flags().UintVar(&olderThan, "older-than", 10, "Prune data discovery events older than <value> days.")
+	pruneCmd.Flags().VisitAll(func(f *pflag.Flag) {
+		viper.BindPFlag(f.Name, f)
+	})
 
 	webCmd.AddCommand(pruneCmd)
 }
@@ -122,7 +125,8 @@ func serve(_ *cobra.Command, _ []string) {
 }
 
 func prune(_ *cobra.Command, _ []string) {
-	olderThan := time.Duration(viper.GetInt("older-than")) * 24 * time.Hour
+	olderThan := viper.GetUint("older-than")
+	olderThanDuration := time.Duration(olderThan) * 24 * time.Hour
 
 	dbConfig := LoadDBConfig()
 	db, err := db.InitDB(dbConfig)
@@ -131,8 +135,8 @@ func prune(_ *cobra.Command, _ []string) {
 	}
 
 	log.Infof("Pruning events older than %d days.", olderThan)
-	if err := datapipeline.PruneEvents(olderThan, db); err != nil {
+	if err := datapipeline.PruneEvents(olderThanDuration, db); err != nil {
 		log.Fatalf("Error while pruning older events: %s", err)
 	}
-	log.New().Infof("Events older than %d days pruned.", olderThan)
+	log.Infof("Events older than %d days pruned.", olderThan)
 }

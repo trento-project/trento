@@ -3,6 +3,7 @@ package datapipeline
 import (
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
@@ -21,5 +22,8 @@ type DataCollectedEvent struct {
 }
 
 func PruneEvents(olderThan time.Duration, db *gorm.DB) error {
-	return db.Delete(DataCollectedEvent{}, "created_at < ?", time.Now().Add(-olderThan)).Error
+	prunedEvents := db.Delete(DataCollectedEvent{}, "created_at < ?", time.Now().Add(-olderThan))
+	log.Debugf("Pruned %d events", prunedEvents.RowsAffected)
+
+	return prunedEvents.Error
 }

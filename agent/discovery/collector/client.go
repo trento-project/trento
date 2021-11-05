@@ -10,7 +10,9 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
+	"github.com/trento-project/trento/internal"
 
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -22,7 +24,7 @@ type Client interface {
 
 type client struct {
 	config     *Config
-	machineID  string
+	agentID    string
 	httpClient *http.Client
 }
 
@@ -64,10 +66,12 @@ func NewCollectorClient(config *Config) (*client, error) {
 
 	machineID := strings.TrimSpace(string(machineIDBytes))
 
+	agentID := uuid.NewSHA1(internal.TrentoNamespace, []byte(machineID))
+
 	return &client{
 		config:     config,
 		httpClient: httpClient,
-		machineID:  machineID,
+		agentID:    agentID.String(),
 	}, nil
 }
 
@@ -80,7 +84,7 @@ func (c *client) Publish(discoveryType string, payload interface{}) error {
 	log.Debugf("Sending %s to data collector", discoveryType)
 
 	requestBody, err := json.Marshal(map[string]interface{}{
-		"agent_id":       c.machineID,
+		"agent_id":       c.agentID,
 		"discovery_type": discoveryType,
 		"payload":        payload,
 	})
@@ -102,7 +106,7 @@ func (c *client) Publish(discoveryType string, payload interface{}) error {
 	if resp.StatusCode != http.StatusAccepted {
 		return fmt.Errorf(
 			"something wrong happened while publishing data to the collector. Status: %d, Agent: %s, discovery: %s",
-			resp.StatusCode, c.machineID, discoveryType)
+			resp.StatusCode, c.agentID, discoveryType)
 	}
 
 	return nil

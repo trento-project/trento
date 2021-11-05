@@ -79,6 +79,6 @@ func storeHostTelemetry(db *gorm.DB, telemetryReadModel models.HostTelemetry, up
 		Columns: []clause.Column{
 			{Name: "agent_id"},
 		},
-		DoUpdates: clause.AssignmentColumns(updateColumns),
+		DoUpdates: clause.AssignmentColumns(append(updateColumns, "updated_at")),
 	}).Create(&telemetryReadModel).Error
 }

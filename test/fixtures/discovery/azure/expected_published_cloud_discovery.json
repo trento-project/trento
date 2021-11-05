@@ -1,5 +1,5 @@
 {
-    "agent_id":"the-machine-id",
+    "agent_id":"779cdd70-e9e2-58ca-b18a-bf3eb3f71244",
     "discovery_type":"cloud_discovery",
     "payload":{
        "Provider":"azure",

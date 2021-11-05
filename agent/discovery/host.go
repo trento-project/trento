@@ -3,14 +3,17 @@ package discovery
 import (
 	"fmt"
 	"net"
+	"strconv"
 	"strings"
 
+	"github.com/shirou/gopsutil/cpu"
+	"github.com/shirou/gopsutil/host"
+	"github.com/shirou/gopsutil/mem"
 	log "github.com/sirupsen/logrus"
 	"github.com/trento-project/trento/agent/discovery/collector"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/version"
-	"github.com/zcalusic/sysinfo"
 )
 
 const HostDiscoveryId string = "host_discovery"
@@ -46,16 +49,13 @@ func (h HostDiscovery) Discover() (string, error) {
 		return "", err
 	}
 
-	var si sysinfo.SysInfo
-	si.GetSysInfo()
-
 	host := hosts.DiscoveredHost{
-		OSVersion:       si.OS.Version,
+		OSVersion:       getOSVersion(),
 		HostIpAddresses: ipAddresses,
 		HostName:        h.discovery.host,
-		CPUCount:        int(si.CPU.Cpus) * int(si.CPU.Cores),
-		SocketCount:     int(si.CPU.Cpus),
-		TotalMemoryMB:   int(si.Memory.Size),
+		CPUCount:        getLogicalCPUs(),
+		SocketCount:     getCPUSocketCount(),
+		TotalMemoryMB:   getTotalMemoryMB(),
 		AgentVersion:    version.Version,
 	}
 
@@ -89,4 +89,50 @@ func getHostIpAddresses() ([]string, error) {
 	}
 
 	return ipAddrList, nil
+}
+
+func getOSVersion() string {
+	infoStat, err := host.Info()
+	if err != nil {
+		log.Errorf("Error while getting host info: %s", err)
+	}
+	return infoStat.PlatformVersion
+}
+
+func getTotalMemoryMB() int {
+	v, err := mem.VirtualMemory()
+	if err != nil {
+		log.Errorf("Error while getting memory info: %s", err)
+	}
+	return int(v.Total) / 1024 / 1024
+}
+
+func getLogicalCPUs() int {
+	logical, err := cpu.Counts(true)
+	if err != nil {
+		log.Errorf("Error while getting logical CPU count: %s", err)
+	}
+	return logical
+}
+
+func getCPUSocketCount() int {
+	info, err := cpu.Info()
+
+	if err != nil {
+		log.Errorf("Error while getting CPU info: %s", err)
+		return 0
+	}
+
+	// Get the last CPU info and get the physical ID of it
+	lastCpuInfo := info[len(info)-1]
+
+	physicalID, err := strconv.Atoi(lastCpuInfo.PhysicalID)
+
+	if err != nil {
+		log.Errorf("Unable to convert CPU socket count: %s", err)
+		return 0
+	}
+
+	// Increase by one as physicalIDs start in zero
+	return physicalID + 1
 }

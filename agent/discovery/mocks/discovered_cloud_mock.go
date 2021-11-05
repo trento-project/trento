@@ -20,7 +20,7 @@ func NewDiscoveredCloudMock() cloud.CloudInstance {
 	json.Unmarshal(byteValue, metadata)
 
 	return cloud.CloudInstance{
-		Provider: "7783-7084-3265-9085-8269-3286-77",
+		Provider: cloud.Azure,
 		Metadata: metadata,
 	}
 }

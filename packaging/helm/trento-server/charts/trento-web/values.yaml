@@ -92,11 +92,8 @@ tolerations: []
 
 affinity: {}
 
-# service dependencies to be consumed by the runner deployment
+# service dependencies to be consumed by the web deployment
 dependencies:
-  trentoWeb:
-    name: trento-web
-    port: 8080
   ara:
     name: ara
     port: 8000

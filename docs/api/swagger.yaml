@@ -1,5 +1,35 @@
 basePath: /api
 definitions:
+  models.Check:
+    properties:
+      description:
+        type: string
+      group:
+        type: string
+      id:
+        type: string
+      implementation:
+        type: string
+      labels:
+        type: string
+      name:
+        type: string
+      remediation:
+        type: string
+      result:
+        type: string
+      selected:
+        type: boolean
+    type: object
+  models.GroupedChecks:
+    properties:
+      checks:
+        items:
+          $ref: '#/definitions/models.Check'
+        type: array
+      group:
+        type: string
+    type: object
   web.JSONCheck:
     properties:
       description:
@@ -27,6 +57,10 @@ definitions:
         additionalProperties:
           type: string
         type: object
+      hosts:
+        items:
+          $ref: '#/definitions/web.Node'
+        type: array
       selected_checks:
         items:
           type: string
@@ -41,6 +75,42 @@ definitions:
         type: string
     required:
     - tag
+    type: object
+  web.Node:
+    properties:
+      attributes:
+        additionalProperties:
+          type: string
+        type: object
+      health:
+        type: string
+      ip:
+        type: string
+      name:
+        type: string
+      resources:
+        items:
+          $ref: '#/definitions/web.Resource'
+        type: array
+      sid:
+        type: string
+      virtualIps:
+        items:
+          type: string
+        type: array
+    type: object
+  web.Resource:
+    properties:
+      failCount:
+        type: integer
+      id:
+        type: string
+      role:
+        type: string
+      status:
+        type: string
+      type:
+        type: string
     type: object
 info:
   contact:
@@ -108,6 +178,17 @@ paths:
             type: object
       summary: Create the check settings
   /api/checks/catalog:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.GroupedChecks'
+            type: array
+      summary: Get the whole checks' catalog
     put:
       parameters:
       - description: Checks catalog

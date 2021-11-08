@@ -3,11 +3,7 @@ package web
 import (
 	"fmt"
 	"net/http/httptest"
-	"net/url"
-	"path"
 	"regexp"
-	"strconv"
-	"strings"
 	"testing"
 
 	consulApi "github.com/hashicorp/consul/api"
@@ -580,29 +576,10 @@ func TestClusterHandlerHANA(t *testing.T) {
 	catalog.On("Nodes", filter).Return(nodes, nil, nil)
 	consulInst.On("Catalog").Return(catalog)
 
-	cloudPath1 := fmt.Sprintf(consul.KvHostsClouddataPath, "test_node_1")
-	consulInst.On("WaitLock", path.Join(consul.KvHostsPath, "test_node_1")+"/").Return(nil)
-	kv.On("ListMap", cloudPath1, cloudPath1).Return(azureMeta(1), nil)
-
-	cloudPath2 := fmt.Sprintf(consul.KvHostsClouddataPath, "test_node_2")
-	consulInst.On("WaitLock", path.Join(consul.KvHostsPath, "test_node_2")+"/").Return(nil)
-	kv.On("ListMap", cloudPath2, cloudPath2).Return(azureMeta(2), nil)
-
-	checksMocks.On("GetChecksCatalogByGroup").Return(checksCatalogByGroup(), nil)
-	checksMocks.On("GetChecksResultByCluster", clusterId).Return(
-		checksResult(), nil)
 	checksMocks.On("GetAggregatedChecksResultByCluster", clusterId).Return(
 		aggregatedByClusterCritical(), nil)
 	checksMocks.On("GetAggregatedChecksResultByHost", clusterId).Return(
 		checksResultByHost(), nil)
-	checksMocks.On("GetSelectedChecksById", clusterId).Return(
-		models.SelectedChecks{ID: clusterId, SelectedChecks: []string{"ABCDEF", "12ABCD"}}, nil)
-
-	connData := map[string]models.ConnectionSettings{
-		"test_node_1": models.ConnectionSettings{ID: clusterId, Node: "test_node_1", User: "myuser1"},
-		"test_node_2": models.ConnectionSettings{ID: clusterId, Node: "test_node_2", User: "myuser2"},
-	}
-	checksMocks.On("GetConnectionSettingsById", clusterId).Return(connData, nil)
 
 	deps := setupTestDependencies()
 	deps.consul = consulInst
@@ -657,18 +634,6 @@ func TestClusterHandlerHANA(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("<td>sbd</td><td>stonith:external/sbd</td><td>Started</td><td>active</td><td>0</td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td>dummy_failed</td><td>dummy</td><td>Started</td><td>failed</td><td>0</td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<h4>Stopped resources</h4><div.*><div.*><span .*>dummy_failed</span>"), minified)
-	// Connection settings
-	assert.Regexp(t, regexp.MustCompile("<td>test_node_1</td>.*<td><input.*id=username-test_node_1.*value=myuser1.*<td>defuser1"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td>test_node_2</td>.*<td><input.*id=username-test_node_2.*value=myuser2.*<td>defuser2"), minified)
-	// Selected checks
-	assert.Regexp(t, regexp.MustCompile("id=0-ABCDEF checked>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td>ABCDEF</td><td>description 1</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("id=0-1ABCDE"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td>1ABCDE</td><td>description 1</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("id=0-12ABCD checked>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td>12ABCD</td><td>description 2</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("id=1-12345A>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td>12345A</td><td>description 3</td>"), minified)
 }
 
 func TestClusterHandlerUnreachableNodes(t *testing.T) {
@@ -698,28 +663,10 @@ func TestClusterHandlerUnreachableNodes(t *testing.T) {
 	catalog.On("Nodes", filter).Return(nodes, nil, nil)
 	consulInst.On("Catalog").Return(catalog)
 
-	cloudPath1 := fmt.Sprintf(consul.KvHostsClouddataPath, "test_node_1")
-	consulInst.On("WaitLock", path.Join(consul.KvHostsPath, "test_node_1")+"/").Return(nil)
-	kv.On("ListMap", cloudPath1, cloudPath1).Return(azureMeta(1), nil)
-
-	cloudPath2 := fmt.Sprintf(consul.KvHostsClouddataPath, "test_node_2")
-	consulInst.On("WaitLock", path.Join(consul.KvHostsPath, "test_node_2")+"/").Return(nil)
-	kv.On("ListMap", cloudPath2, cloudPath2).Return(azureMeta(2), nil)
-
-	checksMocks.On("GetChecksCatalogByGroup").Return(checksCatalogByGroup(), nil)
-	checksMocks.On("GetChecksResultByCluster", clusterId).Return(checksResultUnreachable(), nil)
 	checksMocks.On("GetAggregatedChecksResultByCluster", clusterId).Return(
 		aggregatedByClusterCritical(), nil)
 	checksMocks.On("GetAggregatedChecksResultByHost", clusterId).Return(
 		checksResultByHost(), nil)
-	checksMocks.On("GetSelectedChecksById", clusterId).Return(
-		models.SelectedChecks{ID: clusterId, SelectedChecks: []string{"ABCDEF", "12ABCD"}}, nil)
-
-	connData := map[string]models.ConnectionSettings{
-		"test_node_1": models.ConnectionSettings{ID: clusterId, Node: "test_node_1", User: "myuser1"},
-		"test_node_2": models.ConnectionSettings{ID: clusterId, Node: "test_node_2", User: "myuser2"},
-	}
-	checksMocks.On("GetConnectionSettingsById", clusterId).Return(connData, nil)
 
 	deps := setupTestDependencies()
 	deps.consul = consulInst
@@ -779,28 +726,10 @@ func TestClusterHandlerAlert(t *testing.T) {
 	catalog.On("Nodes", filter).Return(nodes, nil, nil)
 	consulInst.On("Catalog").Return(catalog)
 
-	cloudPath1 := fmt.Sprintf(consul.KvHostsClouddataPath, "test_node_1")
-	consulInst.On("WaitLock", path.Join(consul.KvHostsPath, "test_node_1")+"/").Return(nil)
-	kv.On("ListMap", cloudPath1, cloudPath1).Return(azureMeta(1), nil)
-
-	cloudPath2 := fmt.Sprintf(consul.KvHostsClouddataPath, "test_node_2")
-	consulInst.On("WaitLock", path.Join(consul.KvHostsPath, "test_node_2")+"/").Return(nil)
-	kv.On("ListMap", cloudPath2, cloudPath2).Return(azureMeta(2), nil)
-
-	checksMocks.On("GetChecksCatalogByGroup").Return(nil, fmt.Errorf("catalog error"))
-	checksMocks.On("GetChecksResultByCluster", clusterId).Return(nil, fmt.Errorf("catalog error"))
 	checksMocks.On("GetAggregatedChecksResultByCluster", clusterId).Return(
 		aggregatedByClusterCritical(), nil)
 	checksMocks.On("GetAggregatedChecksResultByHost", clusterId).Return(
 		checksResultByHost(), nil)
-	checksMocks.On("GetSelectedChecksById", clusterId).Return(
-		models.SelectedChecks{ID: clusterId, SelectedChecks: []string{"ABCDEF", "12ABCD"}}, nil)
-
-	connData := map[string]models.ConnectionSettings{
-		"test_node_1": models.ConnectionSettings{ID: clusterId, Node: "test_node_1", User: "myuser1"},
-		"test_node_2": models.ConnectionSettings{ID: clusterId, Node: "test_node_2", User: "myuser2"},
-	}
-	checksMocks.On("GetConnectionSettingsById", clusterId).Return(connData, nil)
 
 	deps := setupTestDependencies()
 	deps.consul = consulInst
@@ -828,17 +757,11 @@ func TestClusterHandlerAlert(t *testing.T) {
 		KeepDefaultAttrVals: true,
 		KeepEndTags:         true,
 	})
-	minified, err := m.String("text/html", resp.Body.String())
-	if err != nil {
-		panic(err)
-	}
 
 	assert.NoError(t, err)
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, resp.Body.String(), "Cluster details")
 
-	assert.Regexp(t, regexp.MustCompile("Error loading the checks catalog"), minified)
-	assert.Equal(t, 1, strings.Count(minified, "Error loading the checks catalog"))
 }
 
 func TestClusterHandlerGeneric(t *testing.T) {
@@ -906,40 +829,4 @@ func TestClusterHandler404Error(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 404, resp.Code)
 	assert.Contains(t, resp.Body.String(), "Not Found")
-}
-
-func TestSaveChecksHandler(t *testing.T) {
-	var err error
-
-	checkServInst := new(services.MockChecksService)
-	checkServInst.On("CreateSelectedChecks", "foobar", []string{"1.2.3"}).Return(nil)
-	checkServInst.On("CreateConnectionSettings", "foobar", "host1", "myuser1").Return(nil)
-	checkServInst.On("CreateConnectionSettings", "foobar", "host2", "myuser2").Return(nil)
-
-	deps := setupTestDependencies()
-	deps.checksService = checkServInst
-
-	config := setupTestConfig()
-	app, err := NewAppWithDeps(config, deps)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	data := url.Values{}
-	data.Set("check_ids[]", "1.2.3")
-	data.Set("username-host1", "myuser1")
-	data.Set("username-host2", "myuser2")
-
-	resp := httptest.NewRecorder()
-	req := httptest.NewRequest("POST", "/clusters/foobar/settings", strings.NewReader(data.Encode()))
-	req.Header.Set("Accept", "text/html")
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
-
-	app.webEngine.ServeHTTP(resp, req)
-
-	assert.NoError(t, err)
-	assert.Equal(t, 302, resp.Code)
-
-	checkServInst.AssertExpectations(t)
 }

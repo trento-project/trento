@@ -1,12 +1,16 @@
 package web
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/trento-project/trento/internal/consul"
+	log "github.com/sirupsen/logrus"
 
+	"github.com/trento-project/trento/internal/cluster"
+	"github.com/trento-project/trento/internal/consul"
+	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
 )
@@ -14,6 +18,7 @@ import (
 type JSONChecksSettings struct {
 	SelectedChecks     []string          `json:"selected_checks" binding:"required"`
 	ConnectionSettings map[string]string `json:"connection_settings" binding:"required"`
+	Hosts              Nodes             `json:"hosts"`
 }
 
 type JSONChecksCatalog []*JSONCheck
@@ -26,6 +31,37 @@ type JSONCheck struct {
 	Remediation    string `json:"remediation,omitempty"`
 	Implementation string `json:"implementation,omitempty"`
 	Labels         string `json:"labels,omitempty"`
+}
+
+type JSONChecksGroup struct {
+	Group  string          `json:"group"`
+	Checks []*models.Check `json:"checks"`
+}
+
+type JSONChecksGroupedCatalog []*JSONChecksGroup
+
+// ApiCheckCatalogHandler godoc
+// @Summary Get the whole checks' catalog
+// @Produce json
+// @Success 200 {object} JSONChecksGroupedCatalog
+// @Error 500
+// @Router /api/checks/catalog [get]
+func ApiChecksCatalogHandler(s services.ChecksService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var groupedCatalog JSONChecksGroupedCatalog
+
+		checkGroups, err := s.GetChecksCatalogByGroup()
+		if err != nil {
+			c.Error(err)
+			return
+		}
+
+		for _, group := range checkGroups {
+			g := JSONChecksGroup{Group: group.Group, Checks: group.Checks}
+			groupedCatalog = append(groupedCatalog, &g)
+		}
+		c.JSON(http.StatusOK, groupedCatalog)
+	}
 }
 
 // ApiCheckResultsHandler godoc
@@ -100,17 +136,38 @@ func ApiCreateChecksCatalogHandler(s services.ChecksService) gin.HandlerFunc {
 // @Success 200 {object} JSONChecksSettings
 // @Failure 404 {object} map[string]string
 // @Router /api/checks/{id}/settings [get]
-func ApiCheckGetSettingsByIdHandler(s services.ChecksService) gin.HandlerFunc {
+func ApiCheckGetSettingsByIdHandler(consul consul.Client, s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		id := c.Param("id")
+		resourceId := c.Param("id")
 
-		selectedChecks, err := s.GetSelectedChecksById(id)
+		// TODO: this has absolutely to be refactored once we've got the hosts service
+		clusters, err := cluster.Load(consul)
 		if err != nil {
-			_ = c.Error(NotFoundError("could not find check selection"))
+			_ = c.Error(err)
 			return
 		}
 
-		connSettings, err := s.GetConnectionSettingsById(id)
+		clusterItem, ok := clusters[resourceId]
+		if !ok {
+			_ = c.Error(NotFoundError("could not find cluster"))
+			return
+		}
+
+		filterQuery := fmt.Sprintf("Meta[\"trento-ha-cluster-id\"] == \"%s\"", resourceId)
+		hosts, err := hosts.Load(consul, filterQuery, nil)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
+		nodes := NewNodes(s, clusterItem, hosts)
+
+		selectedChecks, err := s.GetSelectedChecksById(resourceId)
+		if err != nil {
+			log.Error(err)
+		}
+
+		connSettings, err := s.GetConnectionSettingsById(resourceId)
 		if err != nil {
 			_ = c.Error(NotFoundError("could not find connection settings"))
 			return
@@ -120,10 +177,10 @@ func ApiCheckGetSettingsByIdHandler(s services.ChecksService) gin.HandlerFunc {
 		jsonCheckSetting.ConnectionSettings = make(map[string]string)
 
 		jsonCheckSetting.SelectedChecks = selectedChecks.SelectedChecks
+		jsonCheckSetting.Hosts = nodes
 		for node, settings := range connSettings {
 			jsonCheckSetting.ConnectionSettings[node] = settings.User
 		}
-
 		c.JSON(http.StatusOK, jsonCheckSetting)
 	}
 }
@@ -139,7 +196,7 @@ func ApiCheckGetSettingsByIdHandler(s services.ChecksService) gin.HandlerFunc {
 // @Router /api/checks/{id}/settings [post]
 func ApiCheckCreateSettingsByIdHandler(s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		id := c.Param("id")
+		resourceId := c.Param("id")
 
 		var r JSONChecksSettings
 
@@ -149,14 +206,14 @@ func ApiCheckCreateSettingsByIdHandler(s services.ChecksService) gin.HandlerFunc
 			return
 		}
 
-		err = s.CreateSelectedChecks(id, r.SelectedChecks)
+		err = s.CreateSelectedChecks(resourceId, r.SelectedChecks)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 
 		for node, user := range r.ConnectionSettings {
-			err = s.CreateConnectionSettings(id, node, user)
+			err = s.CreateConnectionSettings(resourceId, node, user)
 			if err != nil {
 				_ = c.Error(err)
 				return

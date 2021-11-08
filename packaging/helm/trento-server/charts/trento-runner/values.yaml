@@ -2,9 +2,13 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-replicaCount: 1
+global:
+  logLevel: info
 
 privateKey: ""
+checkIntervalMins: 5
+
+replicaCount: 1
 
 image:
   repository: ghcr.io/trento-project/trento-runner
@@ -78,7 +82,17 @@ tolerations: []
 
 affinity: {}
 
-# trento-web port
-trentoWeb:
-  service:
+# service dependencies to be consumed by the runner deployment
+dependencies:
+  trentoWeb:
+    name: trento-web
     port: 8080
+  trentoCollector:
+    name: trento-web-collector
+    port: 8081
+  ara:
+    name: ara
+    port: 8000
+  consul:
+    name: consul-server
+    port: 8500

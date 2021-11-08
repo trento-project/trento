@@ -243,10 +243,11 @@ Please refer to the [Helm official documentation](https://helm.sh/docs/intro/ins
 
 ### Install the Trento Server Helm chart
 
-Add HashiCorp Helm repository:
+Add third-party Helm repositories:
 
 ```
 helm repo add hashicorp https://helm.releases.hashicorp.com
+helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update
 ```
 

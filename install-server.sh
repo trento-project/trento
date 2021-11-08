@@ -111,6 +111,7 @@ install_helm() {
 update_helm_dependencies() {
     echo "Updating Helm dependencies..."
     helm repo add hashicorp https://helm.releases.hashicorp.com >/dev/null
+    helm repo add bitnami https://charts.bitnami.com/bitnami >/dev/null
     helm repo update >/dev/null
 }
 

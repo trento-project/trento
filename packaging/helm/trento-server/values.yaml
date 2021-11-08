@@ -1,12 +1,18 @@
-### Global Values if any ###
-global: {}
+### Global Values ###
+global:
+  logLevel: info
 
 ### Sub Charts Specific Values ###
 trento-web:
+  nameOverride: web
   enabled: true
 
 trento-runner:
+  nameOverride: runner
   enabled: true
+  dependencies:
+    trentoWeb:
+      name: web
 
 ara:
   enabled: true
@@ -17,7 +23,7 @@ consul:
     bootstrapExpect: 1
     replicas: 1
     exposeGossipAndRPCPorts: true
-    
+
 postgresql:
   enabled: true
   postgresqlUsername: "postgres"

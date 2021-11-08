@@ -131,3 +131,7 @@ web/frontend/assets/stylesheets: web/frontend/node_modules
 web/frontend/assets/images:
 	mkdir -p web/frontend/assets/images
 	cp -R web/frontend/images web/frontend/assets
+
+.PHONY: helm-lint
+helm-lint:
+	docker run --rm -ti --name trento-chart-test -w /workdir -v $(shell pwd):/workdir quay.io/helmpack/chart-testing:v3.4.0 ct lint

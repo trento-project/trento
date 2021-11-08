@@ -11,5 +11,5 @@ spec:
     - name: wget
       image: busybox
       command: ['wget']
-      args: ['{{ include "trento-web.fullname" . }}-collector:{{ .Values.collectorService.port }}']
+      args: ['{{ include "trento-web.fullname" . }}-collector:{{ .Values.collectorService.port }}/api/ping']
   restartPolicy: Never

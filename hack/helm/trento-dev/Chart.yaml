@@ -4,7 +4,7 @@ description: The trento dev chart
 type: application
 # This is the chart version. This version number should be incremented each time you make changes
 # to the chart and its templates
-version: 0.1.0
+version: 0.2.0
 
 dependencies:
   - name: trento-server

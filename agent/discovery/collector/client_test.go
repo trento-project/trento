@@ -14,6 +14,11 @@ import (
 	"github.com/trento-project/trento/test/helpers"
 )
 
+const (
+	DummyMachineID = "dummy-machine-id"
+	DummyAgentID   = "779cdd70-e9e2-58ca-b18a-bf3eb3f71244"
+)
+
 type CollectorClientTestSuite struct {
 	suite.Suite
 }
@@ -25,7 +30,7 @@ func TestCollectorClientTestSuite(t *testing.T) {
 func (suite *CollectorClientTestSuite) SetupSuite() {
 	fileSystem = afero.NewMemMapFs()
 
-	afero.WriteFile(fileSystem, machineIdPath, []byte("the-machine-id"), 0644)
+	afero.WriteFile(fileSystem, machineIdPath, []byte(DummyMachineID), 0644)
 
 	// this is read by an env variable called TRENTO_COLLECTOR_ENABLED
 	viper.Set("collector-enabled", true)
@@ -84,11 +89,10 @@ func (suite *CollectorClientTestSuite) TestCollectorClient_PublishingSuccess() {
 	}
 
 	discoveryType := "the_discovery_type"
-	agentID := "the-machine-id"
 
 	collectorClient.httpClient.Transport = helpers.RoundTripFunc(func(req *http.Request) *http.Response {
 		requestBody, _ := json.Marshal(map[string]interface{}{
-			"agent_id":       agentID,
+			"agent_id":       DummyAgentID,
 			"discovery_type": discoveryType,
 			"payload":        discoveredDataPayload,
 		})

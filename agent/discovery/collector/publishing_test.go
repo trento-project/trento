@@ -28,7 +28,7 @@ func TestPublishingTestSuite(t *testing.T) {
 func (suite *PublishingTestSuite) SetupSuite() {
 	fileSystem = afero.NewMemMapFs()
 
-	afero.WriteFile(fileSystem, machineIdPath, []byte("the-machine-id"), 0644)
+	afero.WriteFile(fileSystem, machineIdPath, []byte(DummyMachineID), 0644)
 
 	// this is read by an env variable called TRENTO_COLLECTOR_ENABLED
 	viper.Set("collector-enabled", true)
@@ -87,13 +87,11 @@ func (suite *PublishingTestSuite) TestCollectorClient_PublishingSubscriptionDisc
 type AssertionFunc func(requestBodyAgainstCollector string)
 
 func (suite *PublishingTestSuite) runDiscoveryScenario(discoveryType string, payload interface{}, assertion AssertionFunc) {
-	agentID := "the-machine-id"
-
 	collectorClient := suite.configuredClient
 
 	collectorClient.httpClient.Transport = helpers.RoundTripFunc(func(req *http.Request) *http.Response {
 		requestBody, _ := json.Marshal(map[string]interface{}{
-			"agent_id":       agentID,
+			"agent_id":       DummyAgentID,
 			"discovery_type": discoveryType,
 			"payload":        payload,
 		})

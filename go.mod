@@ -9,6 +9,7 @@ require (
 	github.com/go-openapi/jsonreference v0.19.6 // indirect
 	github.com/go-openapi/swag v0.19.15 // indirect
 	github.com/gomarkdown/markdown v0.0.0-20210514010506-3b9f47219fe7
+	github.com/google/uuid v1.3.0
 	github.com/hashicorp/consul-template v0.25.2
 	github.com/hashicorp/consul/api v1.4.0
 	github.com/hooklift/gowsdl v0.5.0

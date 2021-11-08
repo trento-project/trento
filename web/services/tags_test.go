@@ -44,22 +44,22 @@ func (suite *TagsServiceTestSuite) TearDownTest() {
 func loadTagsFixtures(db *gorm.DB) {
 	db.Create(&models.Tag{
 		ResourceType: models.TagSAPSystemResourceType,
-		ResourceId:   "HA1",
+		ResourceID:   "HA1",
 		Value:        "tag1",
 	})
 	db.Create(&models.Tag{
 		ResourceType: models.TagSAPSystemResourceType,
-		ResourceId:   "HA2",
+		ResourceID:   "HA2",
 		Value:        "tag1",
 	})
 	db.Create(&models.Tag{
 		ResourceType: models.TagClusterResourceType,
-		ResourceId:   "cluster_id",
+		ResourceID:   "cluster_id",
 		Value:        "tag2",
 	})
 	db.Create(&models.Tag{
 		ResourceType: models.TagHostResourceType,
-		ResourceId:   "suse",
+		ResourceID:   "suse",
 		Value:        "tag3",
 	})
 }
@@ -85,7 +85,7 @@ func (suite *TagsServiceTestSuite) TestTagsService_GetAllByResource() {
 func (suite *TagsServiceTestSuite) TestTagsService_Create() {
 	suite.tagsService.Create("newtag", models.TagHostResourceType, "suse")
 
-	expectedTag := models.Tag{Value: "newtag", ResourceType: models.TagHostResourceType, ResourceId: "suse"}
+	expectedTag := models.Tag{Value: "newtag", ResourceType: models.TagHostResourceType, ResourceID: "suse"}
 
 	var tags []models.Tag
 	suite.tx.Where(&expectedTag).Find(&tags)
@@ -103,17 +103,17 @@ func (suite *TagsServiceTestSuite) TestTagsService_Delete() {
 	suite.ElementsMatch([]models.Tag{
 		{
 			ResourceType: models.TagSAPSystemResourceType,
-			ResourceId:   "HA2",
+			ResourceID:   "HA2",
 			Value:        "tag1",
 		},
 		{
 			ResourceType: models.TagClusterResourceType,
-			ResourceId:   "cluster_id",
+			ResourceID:   "cluster_id",
 			Value:        "tag2",
 		},
 		{
 			ResourceType: models.TagHostResourceType,
-			ResourceId:   "suse",
+			ResourceID:   "suse",
 			Value:        "tag3",
 		}}, tags)
 }

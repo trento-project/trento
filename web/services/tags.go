@@ -41,7 +41,7 @@ func (r *tagsService) Create(value string, resourceType string, resourceId strin
 	tag := models.Tag{
 		Value:        value,
 		ResourceType: resourceType,
-		ResourceId:   resourceId,
+		ResourceID:   resourceId,
 	}
 
 	result := r.db.Create(&tag)
@@ -53,7 +53,7 @@ func (r *tagsService) Delete(value string, resourceType string, resourceId strin
 	tag := models.Tag{
 		Value:        value,
 		ResourceType: resourceType,
-		ResourceId:   resourceId,
+		ResourceID:   resourceId,
 	}
 
 	result := r.db.Delete(&tag)

@@ -1,0 +1,63 @@
+{{ define "hosts_table_next" }}
+    <div class='table-responsive'>
+        <table class='table eos-table'>
+            <thead>
+            <tr>
+                <th scope='col'></th>
+                <th scope='col'>Name</th>
+                <th scope='col'>Address</th>
+                <th scope='col'>Cloud provider</th>
+                <th scope='col'>Cluster</th>
+                <th scope='col'>System</th>
+                <th scope='col'>Agent version</th>
+                <th scope='col'>Tags</th>
+            </tr>
+            </thead>
+            <tbody>
+            {{- range .Hosts }}
+                <tr>
+                    <td class="row-status">
+                        {{ template "health_icon" .Health }}
+                    </td>
+                    <td>
+                        <a href='/hosts/{{ .Name }}'>
+                            {{ .Name }}
+                        </a>
+                    </td>
+                    <td>    
+                        {{- range $index, $ip := .IPAddresses}}
+                            {{- if $index }},{{- end }}
+                            {{ $ip }}
+                        {{- end }}
+                    </td>
+                    <td>{{ .CloudProvider }}</td>
+                    <td>
+                        <a href='/clusters/{{ .ClusterID }}'>
+                            {{ .ClusterName }}
+                        </a>
+                    </td>
+                    <td>
+                        {{- range $index, $sid := .SIDs}}
+                            {{- if $index }},{{- end }}
+                            {{ $sid }}
+                        {{- end }}
+                    </td>
+                    <td>
+                        {{ .AgentVersion }}
+                    </td>
+                        <td>
+                            <input class="tags-input"
+                                value="{{- range .Tags }}{{ . }},{{- end }}"
+                                data-resource-type="hosts"
+                                data-resource-id="{{ .ID }}"
+                                autocomplete="off">
+                            </input>
+                        </td>
+                </tr>
+            {{- else }}
+                {{ template "empty_table_body" 6 }}
+            {{- end }}
+            </tbody>
+        </table>
+    </div>
+{{ end }}

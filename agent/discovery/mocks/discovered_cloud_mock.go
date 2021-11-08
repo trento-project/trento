@@ -15,6 +15,7 @@ func NewDiscoveredCloudMock() cloud.CloudInstance {
 	if err != nil {
 		panic(err)
 	}
+	defer jsonFile.Close()
 	byteValue, _ := ioutil.ReadAll(jsonFile)
 
 	json.Unmarshal(byteValue, metadata)

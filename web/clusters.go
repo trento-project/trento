@@ -9,9 +9,7 @@ import (
 	"github.com/trento-project/trento/internal"
 
 	"github.com/gin-gonic/gin"
-	"github.com/mitchellh/mapstructure"
 
-	"github.com/trento-project/trento/internal/cloud"
 	"github.com/trento-project/trento/internal/cluster"
 	"github.com/trento-project/trento/internal/cluster/cib"
 	"github.com/trento-project/trento/internal/consul"
@@ -501,42 +499,6 @@ func NewClusterListHandler(client consul.Client, s services.ChecksService, t ser
 			"HealthContainer": healthContainer,
 		})
 	}
-}
-
-func getChecksCatalogWithSelected(s services.ChecksService, clusterId string, selectedChecks []string) (models.GroupedCheckList, error) {
-	checksCatalog, err := s.GetChecksCatalogByGroup()
-	if err != nil {
-		return checksCatalog, err
-	}
-
-	for _, groupedCheckList := range checksCatalog.OrderByName() {
-		for _, check := range groupedCheckList.Checks {
-			if internal.Contains(selectedChecks, check.ID) {
-				check.Selected = true
-			}
-		}
-	}
-
-	return checksCatalog, nil
-}
-
-func getDefaultConnectionSettings(client consul.Client, c *cluster.Cluster) (map[string]string, error) {
-	connData := make(map[string]string)
-	for _, n := range c.Crmmon.Nodes {
-		data, err := cloud.Load(client, n.Name)
-		if err != nil {
-			return connData, err
-		}
-		if data.Provider == cloud.Azure {
-			azureMetadata := &cloud.AzureMetadata{}
-			mapstructure.Decode(data.Metadata, &azureMetadata)
-			connData[n.Name] = azureMetadata.Compute.OsProfile.AdminUserName
-		} else {
-			connData[n.Name] = "root"
-		}
-	}
-
-	return connData, nil
 }
 
 func NewClusterHandler(client consul.Client, s services.ChecksService) gin.HandlerFunc {

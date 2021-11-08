@@ -3,6 +3,7 @@ module github.com/trento-project/trento
 go 1.16
 
 require (
+	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/gin-contrib/sessions v0.0.3
 	github.com/gin-gonic/gin v1.7.0
 	github.com/go-openapi/jsonreference v0.19.6 // indirect
@@ -16,6 +17,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/pkg/errors v0.9.1
+	github.com/shirou/gopsutil v3.21.10+incompatible
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/afero v1.1.2
 	github.com/spf13/cobra v1.1.3
@@ -26,10 +28,9 @@ require (
 	github.com/swaggo/gin-swagger v1.3.1
 	github.com/swaggo/swag v1.7.4
 	github.com/tdewolff/minify/v2 v2.9.16
+	github.com/tklauser/go-sysconf v0.3.9 // indirect
 	github.com/vektra/mockery/v2 v2.9.0
-	github.com/zcalusic/sysinfo v0.0.0-20210905121133-6fa2f969a900
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	golang.org/x/sys v0.0.0-20210809222454-d867a43fc93e // indirect
 	golang.org/x/tools v0.1.5 // indirect
 	gorm.io/datatypes v1.0.2
 	gorm.io/driver/postgres v1.1.2

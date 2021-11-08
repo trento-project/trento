@@ -2,15 +2,15 @@
     "agent_id": "the-machine-id",
     "discovery_type": "host_discovery",
     "payload": {
-        "os_version": "15.3",
+        "os_version": "15-SP2",
         "ip_addresses": [
             "10.1.1.4",
             "10.1.1.5",
             "10.1.1.6"
         ],
         "hostname": "thehostnamewherethediscoveryhappened",
-        "cpu_count": 64,
-        "socket_count": 16,
+        "cpu_count": 2,
+        "socket_count": 1,
         "total_memory_mb": 4096,
         "agent_version": "trento-agent-version"
     }

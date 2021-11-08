@@ -15,7 +15,10 @@ default: clean mod-tidy fmt vet-check web-check test build
 
 .PHONY: build
 build: trento
-trento: web-assets
+trento: web-assets go-build
+
+.PHONY: go-build
+go-build:
 	$(GO_BUILD)
 
 .PHONY: cross-compiled $(ARCHS)

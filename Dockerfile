@@ -6,7 +6,7 @@ RUN make web-assets
 FROM golang:1.16 as go-build
 COPY --from=node-build /build /build
 WORKDIR /build
-RUN make build
+RUN make go-build
 
 FROM python:3.7-slim AS trento-runner
 RUN ln -s /usr/local/bin/python /usr/bin/python \

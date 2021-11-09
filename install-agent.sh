@@ -113,6 +113,11 @@ Type=notify
 [Install]
 WantedBy=multi-user.target'
 
+AGENT_CONFIG_PATH="/etc/trento/agent.yaml"
+AGENT_CONFIG_TEMPLATE='
+collector-host: @COLLECTOR_HOST@
+'
+
 . /etc/os-release
 if [[ ! $PRETTY_NAME =~ "SUSE" ]]; then
     echo "Warning: non-SUSE operating system, forcing --use-tgz"
@@ -224,11 +229,20 @@ function install_trento_tgz() {
     rm trento-${ARCH}.tgz
 }
 
+function setup_trento() {
+    echo "* Generating trento-agent config..."
+
+    echo "$AGENT_CONFIG_TEMPLATE" |
+        sed "s|@COLLECTOR_HOST@|${SERVER_IP}|g" \
+            > ${AGENT_CONFIG_PATH}
+}
+
 check_installer_deps
 configure_installation
 install_consul
 setup_consul
 install_trento
+setup_trento
 
 echo -e "\e[92mDone.\e[97m"
 echo -e "Now you can start trento-agent with: \033[1msystemctl start trento-agent\033[0m"

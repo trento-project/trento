@@ -45,6 +45,7 @@ of existing clusters, rather than deploying new one.
       - [Setting up and starting ARA](#setting-up-and-starting-ara)
       - [Starting the Trento Runner](#starting-the-trento-runner)
     + [Trento Web UI](#trento-web-ui)
+- [Configuration](#configuration)
 - [Development](#development)
   * [Helm development chart](#helm-development-chart)
   * [Build system](#build-system)
@@ -444,6 +445,89 @@ At this point, we can start the web application as follows:
 ```
 
 Please consult the `help` CLI command for more insights on the various options.
+
+
+# Configuration
+
+Trento can be run with a config file in replacement of command-line arguments.
+
+## Locations
+Configuration, if not otherwise specified by the `--config=/path/to/config.yaml` option, would be searched in following locations:
+
+Note that order represents priority
+
+- `/etc/trento/` <-- first location looked
+- `/usr/etc/trento/` <-- fallback here if config not found in previous location
+- `~/.config/trento/` aka user's home <-- fallback here
+
+## Formats
+
+`yaml` is the only supported format at the moment.
+
+
+## Naming conventions
+Each component of trento supports its own configuration, so the expected config files in the chosen location must be called after the component it is supporting.
+
+So supported names are `(agent|web|runner).yaml`
+
+Example locations:
+
+`/etc/trento/agent.yaml`
+
+`/etc/trento/web.yaml`
+
+`/etc/trento/runner.yaml`
+
+or 
+
+`/usr/etc/trento/agent.yaml`
+
+`/usr/etc/trento/web.yaml`
+
+`/usr/etc/trento/runner.yaml`
+
+**Note**: `runner` still not supported for now
+
+## Examples
+
+```
+# /etc/trento/agent.yaml
+
+enable-mtls: true
+cert: /path/to/certs/client-cert.pem
+key: /path/to/certs/client-key.pem
+ca: /path/to/certs/ca-cert.pem
+collector-host: localhost
+collector-port: 8443
+```
+
+```
+# /etc/trento/web.yaml
+
+db-port: 5432
+
+collector-port: 8443
+enable-mtls: true
+cert: /path/to/certs/server-cert.pem
+key: /path/to/certs/server-key.pem
+ca: /path/to/certs/ca-cert.pem
+```
+
+## Environment Variables
+
+All of the options supported by the command line and configuration file can be provided as environment variables as well.
+
+The rule is: get the option name eg. `enable-mtls`, replace dashes `-` with underscores `_`, make it uppercase and add a `TRENTO_` prefix.
+
+Examples:
+
+`enable-mtls` -> `TRENTO_ENABLE_MTLS=true ./trento agent start`
+
+`collector-host` -> `TRENTO_COLLECTOR_HOST=localhost ./trento web serve`
+
+`cert` -> `TRENTO_CERT=/path/to/certs/server-cert.pem ./trento web serve`
+
+
 
 # Development
 

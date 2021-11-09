@@ -176,7 +176,13 @@ func ApiCheckGetSettingsByIdHandler(consul consul.Client, s services.ChecksServi
 		var jsonCheckSetting JSONChecksSettings
 		jsonCheckSetting.ConnectionSettings = make(map[string]string)
 
-		jsonCheckSetting.SelectedChecks = selectedChecks.SelectedChecks
+		if len(selectedChecks.SelectedChecks) == 0 {
+			jsonCheckSetting.SelectedChecks = make([]string, 0)
+
+		} else {
+			jsonCheckSetting.SelectedChecks = selectedChecks.SelectedChecks
+		}
+
 		jsonCheckSetting.Hosts = nodes
 		for node, settings := range connSettings {
 			jsonCheckSetting.ConnectionSettings[node] = settings.User

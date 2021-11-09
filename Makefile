@@ -33,9 +33,19 @@ clean-binary:
 	rm -rf build
 
 .PHONY: clean-frontend
-clean-frontend:
+clean-frontend: clean-web-assets clean-web-deps
+
+.PHONY: clean-web-assets
+clean-web-assets:
 	rm -rf web/frontend/assets
+
+.PHONY: clean-web-deps
+clean-web-deps:
 	rm -rf web/frontend/node_modules
+
+.PHONY: clean-web-assets-js
+clean-web-assets-js:
+	rm -rf web/frontend/assets/js
 
 .PHONY: fmt
 fmt:
@@ -100,6 +110,10 @@ web-lint:
 
 .PHONY: web-assets
 web-assets: web/frontend/assets
+
+# shortcut to always retrigger webpack
+.PHONY: webpack
+webpack: clean-web-assets-js web/frontend/assets/js
 
 web/frontend/assets: web/frontend/assets/js web/frontend/assets/stylesheets web/frontend/assets/images
 

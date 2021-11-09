@@ -3,6 +3,7 @@ package web
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -256,6 +257,11 @@ func TestApiCheckGetSettingsByIdHandler(t *testing.T) {
 	mockChecksService.On(
 		"GetConnectionSettingsById", "47d1190ffb4f781974c8356d7f863b03").Return(expectedConnSettings, nil)
 
+	mockChecksService.On(
+		"GetSelectedChecksById", "a615a35f65627be5a757319a0741127f").Return(models.SelectedChecks{}, errors.New("error"))
+	mockChecksService.On(
+		"GetConnectionSettingsById", "a615a35f65627be5a757319a0741127f").Return(expectedConnSettings, nil)
+
 	deps := setupTestDependencies()
 	deps.checksService = mockChecksService
 	deps.consul = consulInst
@@ -290,12 +296,31 @@ func TestApiCheckGetSettingsByIdHandler(t *testing.T) {
 	assert.Equal(t, expectedSelectedChecks, settings.SelectedChecks)
 	assert.Equal(t, expectedConnectionSettings, settings.ConnectionSettings)
 
-	// not found scenario, still 200 but returns an empty set
+	// 200 OK but the selected checks call gone bad scenario
+	resp = httptest.NewRecorder()
+
+	req, err = http.NewRequest("GET", "/api/checks/a615a35f65627be5a757319a0741127f/settings", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	emptySelectedChecks := []string{}
+
+	app.webEngine.ServeHTTP(resp, req)
+
+	var emptySettingsResponse *JSONChecksSettings
+	json.Unmarshal(resp.Body.Bytes(), &emptySettingsResponse)
+
+	assert.Equal(t, 200, resp.Code)
+	assert.Equal(t, emptySelectedChecks, emptySettingsResponse.SelectedChecks)
+	assert.Equal(t, expectedConnectionSettings, emptySettingsResponse.ConnectionSettings)
+
+	// 404 not found scenario
 	resp = httptest.NewRecorder()
 
 	req = httptest.NewRequest("GET", "/api/checks/otherId/settings", nil)
 
-	emptySelectedChecks := []string(nil)
+	emptySelectedChecks = []string(nil)
 	emptyConnectionSettings := map[string]string(nil)
 
 	app.webEngine.ServeHTTP(resp, req)

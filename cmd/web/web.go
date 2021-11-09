@@ -11,12 +11,14 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"github.com/trento-project/trento/internal"
 	"github.com/trento-project/trento/internal/db"
 	"github.com/trento-project/trento/web"
 	"github.com/trento-project/trento/web/datapipeline"
 )
 
 func NewWebCmd() *cobra.Command {
+
 	var dbHost string
 	var dbPort string
 	var dbUser string
@@ -26,6 +28,9 @@ func NewWebCmd() *cobra.Command {
 	webCmd := &cobra.Command{
 		Use:   "web",
 		Short: "Command tree related to the web application component",
+		PersistentPreRunE: func(*cobra.Command, []string) error {
+			return internal.InitConfig("web")
+		},
 	}
 
 	webCmd.PersistentFlags().StringVar(&dbHost, "db-host", "localhost", "The database host")

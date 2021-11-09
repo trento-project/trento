@@ -5,7 +5,8 @@
   register: facts_result
 
 - name: load environment variables
-  include_vars: "{{ env | default('azure') }}_env.yml"
+  include_vars:
+    dir: "/tmp/trento/ansible/vars/{{ env | default('azure') }}"
   delegate_to: localhost
   run_once: true
 

@@ -106,7 +106,6 @@ web-assets: web/frontend/assets
 
 web/frontend/assets: web/frontend/assets/js web/frontend/assets/stylesheets web/frontend/assets/images
 
-.PHONY: web/frontend/assets/js
 web/frontend/assets/js: web/frontend/node_modules
 	mkdir -p web/frontend/assets/js/eos-ds
 	cp web/frontend/javascripts/*.js web/frontend/assets/js/

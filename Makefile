@@ -15,10 +15,7 @@ default: clean mod-tidy fmt vet-check web-check test build
 
 .PHONY: build
 build: trento
-trento: web-assets go-build
-
-.PHONY: go-build
-go-build:
+trento: web-assets
 	$(GO_BUILD)
 
 .PHONY: cross-compiled $(ARCHS)
@@ -36,9 +33,19 @@ clean-binary:
 	rm -rf build
 
 .PHONY: clean-frontend
-clean-frontend:
+clean-frontend: clean-web-assets clean-web-deps
+
+.PHONY: clean-web-assets
+clean-web-assets:
 	rm -rf web/frontend/assets
+
+.PHONY: clean-web-deps
+clean-web-deps:
 	rm -rf web/frontend/node_modules
+
+.PHONY: clean-web-assets-js
+clean-web-assets-js:
+	rm -rf web/frontend/assets/js
 
 .PHONY: fmt
 fmt:
@@ -106,7 +113,6 @@ web-assets: web/frontend/assets
 
 web/frontend/assets: web/frontend/assets/js web/frontend/assets/stylesheets web/frontend/assets/images
 
-.PHONY: web/frontend/assets/js
 web/frontend/assets/js: web/frontend/node_modules
 	mkdir -p web/frontend/assets/js/eos-ds
 	cp web/frontend/javascripts/*.js web/frontend/assets/js/

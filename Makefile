@@ -111,10 +111,6 @@ web-lint:
 .PHONY: web-assets
 web-assets: web/frontend/assets
 
-# shortcut to always retrigger webpack
-.PHONY: webpack
-webpack: clean-web-assets-js web/frontend/assets/js
-
 web/frontend/assets: web/frontend/assets/js web/frontend/assets/stylesheets web/frontend/assets/images
 
 web/frontend/assets/js: web/frontend/node_modules

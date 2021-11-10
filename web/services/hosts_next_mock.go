@@ -80,3 +80,17 @@ func (_m *MockHostsNextService) GetAllTags() ([]string, error) {
 
 	return r0, r1
 }
+
+// Heartbeat provides a mock function with given fields: agentID
+func (_m *MockHostsNextService) Heartbeat(agentID string) error {
+	ret := _m.Called(agentID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(agentID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}

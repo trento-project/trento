@@ -1,17 +1,25 @@
 package services
 
 import (
+	"time"
+
 	"github.com/lib/pq"
 	"github.com/trento-project/trento/web/entities"
 	"github.com/trento-project/trento/web/models"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
+
+const HeartbeatTreshold = 5 * 2 * time.Second
+
+var timeSince = time.Since
 
 //go:generate mockery --name=HostsNextService --inpackage --filename=hosts_next_mock.go
 type HostsNextService interface {
 	GetAll(filters map[string][]string) (models.HostList, error)
 	GetAllSIDs() ([]string, error)
 	GetAllTags() ([]string, error)
+	Heartbeat(agentID string) error
 }
 
 type hostsNextService struct {
@@ -24,7 +32,7 @@ func NewHostsNextService(db *gorm.DB) *hostsNextService {
 
 func (s *hostsNextService) GetAll(filters map[string][]string) (models.HostList, error) {
 	var hosts []entities.Host
-	db := s.db.Preload("Tags")
+	db := s.db.Preload("Tags").Preload("Heartbeat")
 
 	if tags, ok := filters["tags"]; ok {
 		db = db.Where("agent_id IN (?)", s.db.Model(&models.Tag{}).
@@ -46,8 +54,11 @@ func (s *hostsNextService) GetAll(filters map[string][]string) (models.HostList,
 	}
 
 	var hostList models.HostList
-	for _, host := range hosts {
-		hostList = append(hostList, host.ToModel())
+	for _, h := range hosts {
+		host := h.ToModel()
+		host.Health = computeHealth(&h)
+
+		hostList = append(hostList, host)
 	}
 
 	return hostList, nil
@@ -86,4 +97,29 @@ func (s *hostsNextService) GetAllTags() ([]string, error) {
 	}
 
 	return tags, nil
+}
+
+func (s *hostsNextService) Heartbeat(agentID string) error {
+	heartbeat := &entities.HostHeartbeat{
+		AgentID: agentID,
+	}
+
+	return s.db.Clauses(clause.OnConflict{
+		Columns: []clause.Column{
+			{Name: "agent_id"},
+		},
+		DoUpdates: clause.AssignmentColumns([]string{"updated_at"}),
+	}).Create(heartbeat).Error
+}
+
+func computeHealth(host *entities.Host) string {
+	if host.Heartbeat == nil {
+		return models.HostHealthUnknown
+	}
+
+	if timeSince(host.Heartbeat.UpdatedAt) > HeartbeatTreshold {
+		return models.HostHealthCritical
+	}
+
+	return models.HostHealthPassing
 }

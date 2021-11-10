@@ -13,6 +13,7 @@ import { logError } from '@lib/log';
 import { toggle, hasOne, remove } from '@lib/lists';
 import Checkbox from '@components/Checkbox';
 import { AccordionToggle } from '@components/Accordion';
+import { showSuccessToast, showErrorToast } from '@components/Toast';
 
 const clusterId = window.location.pathname.split('/').pop();
 
@@ -62,6 +63,9 @@ const SettingsButton = () => {
         setSelectedChecks([]);
         setSettings({});
         setLoading(false);
+        showErrorToast({
+          content: 'Error fetching the checks data, please refresh.',
+        });
       });
   }, [modalOpen]);
 
@@ -74,10 +78,16 @@ const SettingsButton = () => {
     post(`/api/checks/${clusterId}/settings`, payload)
       .then(() => {
         setLoading(false);
+        showSuccessToast({
+          content: 'Cluster settings successfully saved.',
+        });
       })
       .catch((err) => {
         logError(err);
         setLoading(false);
+        showErrorToast({
+          content: 'Error saving the checks settings, please retry',
+        });
       });
   }, [selectedChecks, settings]);
 
@@ -200,7 +210,7 @@ const SettingsButton = () => {
           <Button variant="primary" disabled={loading} onClick={submit}>
             {loading && (
               <Spinner animation="border" role="status" as="span" size="sm" />
-            )}
+            )}{' '}
             Save Changes
           </Button>
         </Modal.Footer>

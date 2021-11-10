@@ -59,7 +59,7 @@ type Metadata struct {
 }
 
 type Results struct {
-	Hosts  map[string]*Host         `json:"hosts,omitempty" mapstructure:"hosts,omitempty"`
+	Hosts  map[string]*CheckHost    `json:"hosts,omitempty" mapstructure:"hosts,omitempty"`
 	Checks map[string]*ChecksByHost `json:"checks,omitempty" mapstructure:"checks,omitempty"`
 }
 
@@ -68,15 +68,15 @@ type ChecksByHost struct {
 	Hosts map[string]*Check `json:"hosts,omitempty" mapstructure:"hosts,omitempty"`
 }
 
-type Host struct {
+type CheckHost struct {
 	Reachable bool   `json:"reachable" mapstructure:"reachable"`
 	Msg       string `json:"msg" mapstructure:"msg"`
 }
 
 // Simplified models for the frontend
 type ClusterCheckResults struct {
-	Hosts  map[string]*Host     `json:"hosts" mapstructure:"hosts,omitempty"`
-	Checks []ClusterCheckResult `json:"checks" mapstructure:"checks,omitempty"`
+	Hosts  map[string]*CheckHost `json:"hosts" mapstructure:"hosts,omitempty"`
+	Checks []ClusterCheckResult  `json:"checks" mapstructure:"checks,omitempty"`
 }
 
 type ClusterCheckResult struct {

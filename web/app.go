@@ -22,6 +22,7 @@ import (
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/db"
 	"github.com/trento-project/trento/web/datapipeline"
+	"github.com/trento-project/trento/web/entities"
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
 	"github.com/trento-project/trento/web/services/ara"
@@ -65,6 +66,7 @@ type Dependencies struct {
 	tagsService          services.TagsService
 	collectorService     services.CollectorService
 	clustersService      services.ClustersService
+	hostsNextService     services.HostsNextService
 }
 
 func DefaultDependencies(config *Config) Dependencies {
@@ -93,6 +95,7 @@ func DefaultDependencies(config *Config) Dependencies {
 	checksService := services.NewChecksService(araService, db)
 	subscriptionsService := services.NewSubscriptionsService(consulClient)
 	hostsService := services.NewHostsService(consulClient)
+	hostsServiceNext := services.NewHostsNextService(db)
 	sapSystemsService := services.NewSAPSystemsService(consulClient)
 	clustersService := services.NewClustersService(db, checksService, tagsService)
 	collectorService := services.NewCollectorService(db, projectorWorkersPool.GetChannel())
@@ -100,7 +103,7 @@ func DefaultDependencies(config *Config) Dependencies {
 	return Dependencies{
 		consulClient, webEngine, collectorEngine, store, projectorWorkersPool,
 		checksService, subscriptionsService, hostsService, sapSystemsService, tagsService,
-		collectorService, clustersService,
+		collectorService, clustersService, hostsServiceNext,
 	}
 }
 
@@ -114,7 +117,9 @@ func NewNamedEngine(instance string) *gin.Engine {
 func MigrateDB(db *gorm.DB) error {
 	err := db.AutoMigrate(
 		models.Tag{}, models.SelectedChecks{}, models.ConnectionSettings{}, models.CheckRaw{},
-		models.Cluster{}, datapipeline.DataCollectedEvent{}, datapipeline.Subscription{}, models.HostTelemetry{})
+		models.Cluster{}, datapipeline.DataCollectedEvent{}, datapipeline.Subscription{}, models.HostTelemetry{},
+		entities.Host{},
+	)
 
 	if err != nil {
 		return err
@@ -143,6 +148,7 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 	webEngine.GET("/", HomeHandler)
 	webEngine.GET("/about", NewAboutHandler(deps.subscriptionsService))
 	webEngine.GET("/hosts", NewHostListHandler(deps.consul, deps.tagsService))
+	webEngine.GET("/hosts-next", NewHostListNextHandler(deps.hostsNextService))
 	webEngine.GET("/hosts/:name", NewHostHandler(deps.consul, deps.subscriptionsService))
 	webEngine.GET("/catalog", NewChecksCatalogHandler(deps.checksService))
 	webEngine.GET("/clusters", NewClusterListHandler(deps.consul, deps.checksService, deps.tagsService))

@@ -1,7 +1,11 @@
 package datapipeline
 
 import (
+	"bytes"
+	"encoding/json"
+
 	log "github.com/sirupsen/logrus"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -73,4 +77,12 @@ func (p *projector) Project(dataCollectedEvent *DataCollectedEvent) error {
 
 		return nil
 	})
+}
+
+func getPayloadDecoder(payload datatypes.JSON) *json.Decoder {
+	data, _ := payload.MarshalJSON()
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+
+	return decoder
 }

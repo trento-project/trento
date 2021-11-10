@@ -1,14 +1,10 @@
 package datapipeline
 
 import (
-	"bytes"
-	"encoding/json"
-
 	log "github.com/sirupsen/logrus"
 	"github.com/trento-project/trento/internal/cloud"
 	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/web/models"
-	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -23,7 +19,7 @@ func NewHostTelemetryProjector(db *gorm.DB) *projector {
 }
 
 func hostTelemetryProjector_HostDiscoveryHandler(dataCollectedEvent *DataCollectedEvent, db *gorm.DB) error {
-	decoder := payloadDecoder(dataCollectedEvent.Payload)
+	decoder := getPayloadDecoder(dataCollectedEvent.Payload)
 
 	var discoveredHost hosts.DiscoveredHost
 	if err := decoder.Decode(&discoveredHost); err != nil {
@@ -50,7 +46,7 @@ func hostTelemetryProjector_HostDiscoveryHandler(dataCollectedEvent *DataCollect
 }
 
 func hostTelemetryProjector_CloudDiscoveryHandler(dataCollectedEvent *DataCollectedEvent, db *gorm.DB) error {
-	decoder := payloadDecoder(dataCollectedEvent.Payload)
+	decoder := getPayloadDecoder(dataCollectedEvent.Payload)
 
 	var discoveredCloud cloud.CloudInstance
 	if err := decoder.Decode(&discoveredCloud); err != nil {
@@ -64,14 +60,6 @@ func hostTelemetryProjector_CloudDiscoveryHandler(dataCollectedEvent *DataCollec
 	}
 
 	return storeHostTelemetry(db, telemetryReadModel, "cloud_provider")
-}
-
-func payloadDecoder(payload datatypes.JSON) *json.Decoder {
-	data, _ := payload.MarshalJSON()
-	decoder := json.NewDecoder(bytes.NewReader(data))
-	decoder.DisallowUnknownFields()
-
-	return decoder
 }
 
 func storeHostTelemetry(db *gorm.DB, telemetryReadModel models.HostTelemetry, updateColumns ...string) error {

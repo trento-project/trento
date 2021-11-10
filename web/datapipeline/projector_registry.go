@@ -8,6 +8,7 @@ type ProjectorRegistry []Projector
 func InitProjectorsRegistry(db *gorm.DB) ProjectorRegistry {
 	return ProjectorRegistry{
 		NewClustersProjector(db),
+		NewHostsProjector(db),
 		NewHostTelemetryProjector(db),
 	}
 }

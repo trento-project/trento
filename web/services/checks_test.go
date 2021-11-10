@@ -777,12 +777,12 @@ func (suite *ChecksServiceTestSuite) TestChecksService_GetChecksResultAndMetadat
 	results, err := suite.checksService.GetChecksResultAndMetadataByCluster("myClusterId")
 
 	expectedResults := &models.ClusterCheckResults{
-		Hosts: map[string]*models.Host{
-			"host1": &models.Host{
+		Hosts: map[string]*models.CheckHost{
+			"host1": &models.CheckHost{
 				Reachable: true,
 				Msg:       "",
 			},
-			"host2": &models.Host{
+			"host2": &models.CheckHost{
 				Reachable: false,
 				Msg:       "error connecting",
 			},

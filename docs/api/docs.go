@@ -43,7 +43,7 @@ var doc = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.GroupedChecks"
+                                "$ref": "#/definitions/web.JSONChecksGroup"
                             }
                         }
                     }
@@ -679,20 +679,6 @@ var doc = `{
                 }
             }
         },
-        "models.GroupedChecks": {
-            "type": "object",
-            "properties": {
-                "checks": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Check"
-                    }
-                },
-                "group": {
-                    "type": "string"
-                }
-            }
-        },
         "web.JSONCheck": {
             "type": "object",
             "required": [
@@ -720,6 +706,20 @@ var doc = `{
                     "type": "string"
                 },
                 "remediation": {
+                    "type": "string"
+                }
+            }
+        },
+        "web.JSONChecksGroup": {
+            "type": "object",
+            "properties": {
+                "checks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Check"
+                    }
+                },
+                "group": {
                     "type": "string"
                 }
             }

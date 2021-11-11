@@ -22,12 +22,13 @@ import (
 const trentoAgentCheckId = "trentoAgent"
 
 type Agent struct {
-	config         *Config
-	discoveries    []discovery.Discovery
-	consul         consul.Client
-	ctx            context.Context
-	ctxCancel      context.CancelFunc
-	templateRunner *manager.Runner
+	config          *Config
+	collectorClient collector.Client
+	discoveries     []discovery.Discovery
+	consul          consul.Client
+	ctx             context.Context
+	ctxCancel       context.CancelFunc
+	templateRunner  *manager.Runner
 }
 
 type Config struct {
@@ -56,10 +57,11 @@ func NewAgent(config *Config) (*Agent, error) {
 
 	ctx, ctxCancel := context.WithCancel(context.Background())
 	agent := &Agent{
-		config:    config,
-		ctx:       ctx,
-		ctxCancel: ctxCancel,
-		consul:    consulClient,
+		config:          config,
+		collectorClient: collectorClient,
+		ctx:             ctx,
+		ctxCancel:       ctxCancel,
+		consul:          consulClient,
 		discoveries: []discovery.Discovery{
 			discovery.NewClusterDiscovery(consulClient, collectorClient),
 			discovery.NewSAPSystemsDiscovery(consulClient, collectorClient),
@@ -96,20 +98,29 @@ func (a *Agent) Start() error {
 	wg.Add(1)
 
 	go func(wg *sync.WaitGroup) {
-		log.Println("Starting Discover loop...")
+		log.Info("Starting Discover loop...")
 		defer wg.Done()
 		a.startDiscoverTicker()
-		log.Println("Discover loop stopped.")
+		log.Info("Discover loop stopped.")
 	}(&wg)
 
 	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
-		log.Println("Starting consul-template loop...")
+		log.Info("Starting consul-template loop...")
 		defer wg.Done()
 		a.startConsulTemplate()
-		log.Println("consul-template loop stopped.")
+		log.Info("consul-template loop stopped.")
 	}(&wg)
 
+	wg.Add(1)
+	go func(wg *sync.WaitGroup) {
+		log.Info("Starting heartbeat loop...")
+		defer wg.Done()
+		a.startHeartbeatTicker()
+		log.Info("heartbeat loop stopped.")
+	}(&wg)
+
+	// TODO: remove this once we migrated completely away from consul
 	storeAgentMetadata(a.consul, version.Version)
 
 	wg.Wait()
@@ -175,6 +186,17 @@ func (a *Agent) startDiscoverTicker() {
 
 	interval := a.config.DiscoveryPeriod
 	repeat(tick, interval, a.ctx)
+}
+
+func (a *Agent) startHeartbeatTicker() {
+	tick := func() {
+		err := a.collectorClient.Heartbeat()
+		if err != nil {
+			log.Errorf("Error while sending the heartbeat to the server: %s", err)
+		}
+	}
+
+	repeat(tick, 5*time.Second, a.ctx)
 }
 
 func repeat(tick func(), interval time.Duration, ctx context.Context) {

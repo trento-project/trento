@@ -49,7 +49,7 @@ func (s *hostsNextService) GetAll(filters map[string][]string) (models.HostList,
 		}
 	}
 
-	err := db.Find(&hosts).Error
+	err := db.Find(&hosts).Order("name").Error
 	if err != nil {
 		return nil, err
 	}

@@ -113,7 +113,8 @@ Type=notify
 [Install]
 WantedBy=multi-user.target'
 
-AGENT_CONFIG_PATH="/etc/trento/agent.yaml"
+AGENT_CONFIG_PATH="/etc/trento"
+AGENT_CONFIG_FILE="$AGENT_CONFIG_PATH/agent.yaml"
 AGENT_CONFIG_TEMPLATE='
 collector-host: @COLLECTOR_HOST@
 '
@@ -232,9 +233,11 @@ function install_trento_tgz() {
 function setup_trento() {
     echo "* Generating trento-agent config..."
 
+    mkdir -p ${AGENT_CONFIG_PATH} && touch ${AGENT_CONFIG_FILE}
+
     echo "$AGENT_CONFIG_TEMPLATE" |
         sed "s|@COLLECTOR_HOST@|${SERVER_IP}|g" \
-            > ${AGENT_CONFIG_PATH}
+            > ${AGENT_CONFIG_FILE}
 }
 
 check_installer_deps

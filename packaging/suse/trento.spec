@@ -70,6 +70,9 @@ install -D -m 0755 %{shortname} "%{buildroot}%{_bindir}/%{shortname}"
 # Install the systemd unit
 install -D -m 0644 packaging/systemd/trento-agent.service %{buildroot}%{_unitdir}/trento-agent.service
 
+# Install the default configuration files
+install -D -m 0640 packaging/config/agent.yaml %{buildroot}%{_distconfdir}/trento/agent.yaml
+
 %pre
 %service_add_pre trento-agent.service
 
@@ -89,5 +92,8 @@ install -D -m 0644 packaging/systemd/trento-agent.service %{buildroot}%{_unitdir
 %license LICENSE
 %{_bindir}/%{shortname}
 %{_unitdir}/trento-agent.service
+
+%dir %_distconfdir/trento
+%_distconfdir/trento/agent.yaml
 
 %changelog

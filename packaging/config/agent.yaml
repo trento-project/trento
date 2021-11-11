@@ -1,0 +1,64 @@
+################################################################################
+##                                                                            ##
+##                    $ Trento: Agent configuration $                         ##
+##                                                                            ##
+## This is the configuration for trento when running the agent.               ##
+##                                                                            ##
+## Launching ./trento agent start                                             ##
+##                                                                            ##
+## Looks for the configuration file in one of the following locations.        ##
+##                                                                            ##
+## /etc/trento/       <-- first location looked                               ##
+## /usr/etc/trento/   <-- fallback here if no file in previous location       ##
+## ~/.config/trento/  <-- fallback here if no file in previous location       ##
+##                                                                            ##
+## Priority goes from top to bottom.                                          ##
+## First found file is used, others, if any, are ignored.                     ##
+##                                                                            ##
+## Note: in this case the file must be named agent.yaml                       ##
+##                                                                            ##
+## Otherwise the config file can be explicitly provided via the command line  ##
+##                                                                            ##
+## ./trento agent start --config=/path/to/trento/agent-config.yaml            ##
+##                                                                            ##
+## Note: in this case there is no file name constraint.                       ##
+##                                                                            ##
+################################################################################
+
+
+## Path where Consul auto-loads configuration files: the node meta-data will be stored there as `trento-metadata.json`
+## Legacy, it will be removed in the future
+## defaults to ./consul.d
+
+# consul-config-dir: /srv/consul/consul.d
+
+###############################################################################
+
+## Discovery period configures the tick interval for the discovery loops.
+## Time unit is minutes
+## Defaults to 2.
+
+# discovery-period: 2
+
+###############################################################################
+
+## Application log level
+## Allowed values: error, warn, info, debug
+## defaults to info
+
+# log-level: info
+
+###############################################################################
+
+## Discovered Data Collector endpoint
+
+# collector-host: localhost
+# collector-port: 8081
+
+## Configure whether the communication with the Data Collector should be secured with mTLS
+## defaults to false, if true is provided, certificate configuration is required
+
+# enable-mtls: true
+# cert: /path/to/certs/client-cert.pem
+# key: /path/to/certs/client-key.pem
+# ca: /path/to/certs/ca-cert.pem

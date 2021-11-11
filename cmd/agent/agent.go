@@ -12,20 +12,20 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/trento-project/trento/agent"
+	"github.com/trento-project/trento/internal"
 )
 
-var consulConfigDir string
-var discoveryPeriod int
-
-var collectorHost string
-var collectorPort int
-
-var enablemTLS bool
-var cert string
-var key string
-var ca string
-
 func NewAgentCmd() *cobra.Command {
+	var consulConfigDir string
+	var discoveryPeriod int
+
+	var collectorHost string
+	var collectorPort int
+
+	var enablemTLS bool
+	var cert string
+	var key string
+	var ca string
 
 	agentCmd := &cobra.Command{
 		Use:   "agent",
@@ -36,6 +36,9 @@ func NewAgentCmd() *cobra.Command {
 		Use:   "start",
 		Short: "Start the agent",
 		Run:   start,
+		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
+			return internal.InitConfig("agent")
+		},
 	}
 	startCmd.Flags().StringVarP(&consulConfigDir, "consul-config-dir", "", "consul.d", "Consul configuration directory used to store node meta-data")
 	startCmd.Flags().IntVarP(&discoveryPeriod, "discovery-period", "", 2, "Discovery mechanism loop period on minutes")

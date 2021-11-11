@@ -1,6 +1,6 @@
 context('Trento About page', () => {
   beforeEach(() => {
-    cy.visit('http://demo.trento-project.io');
+    cy.visit('/');
   });
 
   it('should contain all relevant information', () => {

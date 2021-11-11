@@ -127,9 +127,14 @@ func (suite *HostsNextServiceTestSuite) TestHostsNextService_GetAll() {
 }
 
 func (suite *HostsNextServiceTestSuite) TestHostsNextService_GetAll_Filters() {
+	timeSince = func(_ time.Time) time.Duration {
+		return time.Duration(0)
+	}
+
 	hosts, _ := suite.hostsNextService.GetAll(map[string][]string{
-		"tags": {"tag1"},
-		"sids": {"DEV"},
+		"tags":   {"tag1"},
+		"sids":   {"DEV"},
+		"health": {"passing", "unknown"},
 	})
 	suite.Equal(1, len(hosts))
 	suite.Equal("1", hosts[0].ID)

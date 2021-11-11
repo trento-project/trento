@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/lib/pq"
+	"github.com/trento-project/trento/internal"
 	"github.com/trento-project/trento/web/entities"
 	"github.com/trento-project/trento/web/models"
 	"gorm.io/gorm"
@@ -58,6 +59,12 @@ func (s *hostsNextService) GetAll(filters map[string][]string) (models.HostList,
 		host := h.ToModel()
 		host.Health = computeHealth(&h)
 
+		health, ok := filters["health"]
+		if ok && len(health) > 0 {
+			if !internal.Contains(health, host.Health) {
+				continue
+			}
+		}
 		hostList = append(hostList, host)
 	}
 

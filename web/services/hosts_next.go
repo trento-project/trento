@@ -11,7 +11,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-const HeartbeatTreshold = 5 * 2 * time.Second
+const HeartbeatTreshold = internal.HeartbeatInterval * 2
 
 var timeSince = time.Since
 

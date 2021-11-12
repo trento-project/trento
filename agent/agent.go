@@ -14,6 +14,7 @@ import (
 
 	"github.com/trento-project/trento/agent/discovery"
 	"github.com/trento-project/trento/agent/discovery/collector"
+	"github.com/trento-project/trento/internal"
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/version"
@@ -196,7 +197,7 @@ func (a *Agent) startHeartbeatTicker() {
 		}
 	}
 
-	repeat(tick, 5*time.Second, a.ctx)
+	repeat(tick, internal.HeartbeatInterval, a.ctx)
 }
 
 func repeat(tick func(), interval time.Duration, ctx context.Context) {

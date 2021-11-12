@@ -180,3 +180,18 @@ td i.critical {
   border-left: 0.3rem solid #30ba78;
   padding-left: 1.2rem;
 }
+
+.toast-logo {
+  width: 20px;
+  height: 20px;
+}
+
+.trento-toast-body {
+  font-size: 0.9rem;
+  background-color: #ffffff;
+  border-radius: 0 0 0.25rem 0.25rem;
+}
+
+.color-red {
+  color: $eos-bc-red-500;
+}

@@ -127,3 +127,11 @@ footer.footer-side-menu ul.footer-list {
 .tags-look .tagify__dropdown__item:hover {
   background: $eos-bc-cerulean-500;
 }
+
+.Toastify__toast {
+  background: none !important;
+  box-shadow: none !important;
+  color: #141823 !important;
+  font-family: 'Lato', arial, helvetica, sans-serif !important;
+  font-size: 14px !important;
+}

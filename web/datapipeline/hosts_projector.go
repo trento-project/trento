@@ -116,6 +116,7 @@ func storeHost(db *gorm.DB, host entities.Host, updateColumns ...string) error {
 	}).Create(&host).Error
 }
 
+// filterIPAddresses filters out non-IPv4, loopback or invalid IP addresses
 func filterIPAddresses(ipAddresses []string) []string {
 	var filtered []string
 	for _, ipAddress := range ipAddresses {

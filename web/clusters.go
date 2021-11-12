@@ -293,7 +293,24 @@ func NewClusterListHandler(clustersService services.ClustersService) gin.Handler
 		query := c.Request.URL.Query()
 
 		clusterList, err := clustersService.GetAll(query)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
 
+		filterClusterTypes, err := clustersService.GetAllClusterTypes()
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
+		filterSIDs, err := clustersService.GetAllSIDs()
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
+		filterTags, err := clustersService.GetAllTags()
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -308,10 +325,13 @@ func NewClusterListHandler(clustersService services.ClustersService) gin.Handler
 		firstElem, lastElem := pagination.GetSliceNumbers()
 
 		c.HTML(http.StatusOK, "clusters.html.tmpl", gin.H{
-			"ClustersTable":   clusterList[firstElem:lastElem],
-			"AppliedFilters":  query,
-			"Pagination":      pagination,
-			"HealthContainer": healthContainer,
+			"ClustersTable":      clusterList[firstElem:lastElem],
+			"AppliedFilters":     query,
+			"FilterClusterTypes": filterClusterTypes,
+			"FilterSIDs":         filterSIDs,
+			"FilterTags":         filterTags,
+			"Pagination":         pagination,
+			"HealthContainer":    healthContainer,
 		})
 	}
 }

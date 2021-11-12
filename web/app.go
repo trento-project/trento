@@ -97,7 +97,7 @@ func DefaultDependencies(config *Config) Dependencies {
 	hostsService := services.NewHostsService(consulClient)
 	hostsServiceNext := services.NewHostsNextService(db)
 	sapSystemsService := services.NewSAPSystemsService(consulClient)
-	clustersService := services.NewClustersService(db, checksService, tagsService)
+	clustersService := services.NewClustersService(db, checksService)
 	collectorService := services.NewCollectorService(db, projectorWorkersPool.GetChannel())
 
 	return Dependencies{
@@ -117,8 +117,8 @@ func NewNamedEngine(instance string) *gin.Engine {
 func MigrateDB(db *gorm.DB) error {
 	err := db.AutoMigrate(
 		models.Tag{}, models.SelectedChecks{}, models.ConnectionSettings{}, models.CheckRaw{},
-		models.Cluster{}, datapipeline.DataCollectedEvent{}, datapipeline.Subscription{}, models.HostTelemetry{},
-		entities.Host{}, entities.HostHeartbeat{},
+		datapipeline.DataCollectedEvent{}, datapipeline.Subscription{}, models.HostTelemetry{},
+		entities.Cluster{}, entities.Host{}, entities.HostHeartbeat{},
 	)
 
 	if err != nil {

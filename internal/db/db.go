@@ -23,7 +23,12 @@ func InitDB(config *Config) (*gorm.DB, error) {
 		config.Password,
 		config.DBName)
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	// TODO: since we are dealing with eventual consistency, we can't enforce foreign key constraints in our projected models.
+	// This disables foreign key constraints enforcement at global level.
+	// In a future we will enable this on a per-model basis via dedicated migrations and disabling the automigration feature.
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		DisableForeignKeyConstraintWhenMigrating: true,
+	})
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"net/http/httptest"
 	"regexp"
 	"testing"
@@ -13,7 +14,7 @@ import (
 	"github.com/trento-project/trento/web/services"
 )
 
-func TestHostsListNextHandler(t *testing.T) {
+func TestHostListNextHandler(t *testing.T) {
 	hostList := models.HostList{
 		{
 			ID:            "1",
@@ -83,4 +84,27 @@ func TestHostsListNextHandler(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("</td><td>.*host1.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*PRD.*</td><td>v1</td><td>.*<input.*value=tag1.*>.*</td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td>.*host2.*</td><td>192.168.1.2</td><td>.*aws.*</td><td>.*QAS.*</td><td>v1</td><td>.*<input.*value=tag2.*>.*</td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td>.*host3.*</td><td>192.168.1.3</td><td>.*gcp.*</td><td>.*DEV.*</td><td>v1</td><td>.*<input.*value=tag3.*>.*</td>"), minified)
+}
+
+func TestApiHostHeartbeat(t *testing.T) {
+	agentID := "agent_id"
+
+	mockHostsService := new(services.MockHostsNextService)
+	mockHostsService.On("Heartbeat", agentID).Return(nil)
+
+	deps := setupTestDependencies()
+	deps.hostsNextService = mockHostsService
+
+	app, err := NewAppWithDeps(setupTestConfig(), deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp := httptest.NewRecorder()
+	url := fmt.Sprintf("/api/hosts/%s/heartbeat", agentID)
+	req := httptest.NewRequest("POST", url, nil)
+
+	app.collectorEngine.ServeHTTP(resp, req)
+
+	assert.Equal(t, 204, resp.Code)
 }

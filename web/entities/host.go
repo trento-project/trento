@@ -16,8 +16,14 @@ type Host struct {
 	ClusterName   string
 	SIDs          pq.StringArray `gorm:"column:sids; type:text[]"`
 	AgentVersion  string
-	Tags          []models.Tag `gorm:"polymorphic:Resource;polymorphicValue:hosts"`
+	Heartbeat     *HostHeartbeat `gorm:"foreignKey:AgentID"`
+	Tags          []*models.Tag  `gorm:"polymorphic:Resource;polymorphicValue:hosts"`
 	UpdatedAt     time.Time
+}
+
+type HostHeartbeat struct {
+	AgentID   string `gorm:"primaryKey"`
+	UpdatedAt time.Time
 }
 
 func (h *Host) ToModel() *models.Host {

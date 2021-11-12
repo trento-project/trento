@@ -118,7 +118,7 @@ func MigrateDB(db *gorm.DB) error {
 	err := db.AutoMigrate(
 		models.Tag{}, models.SelectedChecks{}, models.ConnectionSettings{}, models.CheckRaw{},
 		models.Cluster{}, datapipeline.DataCollectedEvent{}, datapipeline.Subscription{}, models.HostTelemetry{},
-		entities.Host{},
+		entities.Host{}, entities.HostHeartbeat{},
 	)
 
 	if err != nil {
@@ -180,6 +180,7 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 
 	collectorEngine := deps.collectorEngine
 	collectorEngine.POST("/api/collect", ApiCollectDataHandler(deps.collectorService))
+	collectorEngine.POST("/api/hosts/:id/heartbeat", ApiHostHeartbeatHandler(deps.hostsNextService))
 	collectorEngine.GET("/api/ping", ApiPingHandler)
 
 	return app, nil

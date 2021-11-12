@@ -178,5 +178,16 @@ func (s *HostsProjectorTestSuite) Test_TelemetryProjector() {
 	for _, m := range discoveredSAPSystemMock {
 		s.Contains(projectedHost.SIDs, m.SID)
 	}
+}
 
+func (s *HostsProjectorTestSuite) Test_filterIPAddresses() {
+	ipAddresses := []string{
+		"127.0.0.1",
+		"10.1.74.5",
+		"::1",
+		"fe80::6245:bdff:fe8b:5896",
+		"not_valid",
+	}
+
+	s.EqualValues([]string{"10.1.74.5"}, filterIPAddresses(ipAddresses))
 }

@@ -1,5 +1,12 @@
 package models
 
+const (
+	HostHealthPassing  = "passing"
+	HostHealthWarning  = "warning"
+	HostHealthCritical = "critical"
+	HostHealthUnknown  = ""
+)
+
 type Host struct {
 	ID            string
 	Name          string

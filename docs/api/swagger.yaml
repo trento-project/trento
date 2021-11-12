@@ -21,15 +21,6 @@ definitions:
       selected:
         type: boolean
     type: object
-  models.GroupedChecks:
-    properties:
-      checks:
-        items:
-          $ref: '#/definitions/models.Check'
-        type: array
-      group:
-        type: string
-    type: object
   web.JSONCheck:
     properties:
       description:
@@ -50,6 +41,15 @@ definitions:
     - group
     - id
     - name
+    type: object
+  web.JSONChecksGroup:
+    properties:
+      checks:
+        items:
+          $ref: '#/definitions/models.Check'
+        type: array
+      group:
+        type: string
     type: object
   web.JSONChecksSettings:
     properties:
@@ -186,7 +186,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.GroupedChecks'
+              $ref: '#/definitions/web.JSONChecksGroup'
             type: array
       summary: Get the whole checks' catalog
     put:

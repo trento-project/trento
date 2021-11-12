@@ -2,6 +2,7 @@ package datapipeline
 
 import (
 	"fmt"
+	"net"
 
 	log "github.com/sirupsen/logrus"
 
@@ -37,7 +38,7 @@ func hostsProjector_HostDiscoveryHandler(dataCollectedEvent *DataCollectedEvent,
 	host := entities.Host{
 		AgentID:      dataCollectedEvent.AgentID,
 		Name:         discoveredHost.HostName,
-		IPAddresses:  discoveredHost.HostIpAddresses,
+		IPAddresses:  filterIPAddresses(discoveredHost.HostIpAddresses),
 		AgentVersion: discoveredHost.AgentVersion,
 	}
 
@@ -113,4 +114,18 @@ func storeHost(db *gorm.DB, host entities.Host, updateColumns ...string) error {
 		},
 		DoUpdates: clause.AssignmentColumns(append(updateColumns, "updated_at")),
 	}).Create(&host).Error
+}
+
+// filterIPAddresses filters out non-IPv4, loopback or invalid IP addresses
+func filterIPAddresses(ipAddresses []string) []string {
+	var filtered []string
+	for _, ipAddress := range ipAddresses {
+		ip := net.ParseIP(ipAddress)
+		if ip == nil || ip.IsLoopback() || ip.To4() == nil {
+			continue
+		}
+
+		filtered = append(filtered, ipAddress)
+	}
+	return filtered
 }

@@ -181,7 +181,7 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 
 	collectorEngine := deps.collectorEngine
 	collectorEngine.POST("/api/collect", ApiCollectDataHandler(deps.collectorService))
-	collectorEngine.POST("/api/hosts/heartbeat", ApiHostHeartbeatHandler(deps.hostsNextService))
+	collectorEngine.POST("/api/hosts/:id/heartbeat", ApiHostHeartbeatHandler(deps.hostsNextService))
 	collectorEngine.GET("/api/ping", ApiPingHandler)
 
 	return app, nil

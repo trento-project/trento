@@ -1,8 +1,7 @@
 package web
 
 import (
-	"bytes"
-	"encoding/json"
+	"fmt"
 	"net/http/httptest"
 	"regexp"
 	"testing"
@@ -101,34 +100,11 @@ func TestApiHostHeartbeat(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	body, _ := json.Marshal(&SendHeartBeat{AgentID: agentID})
 	resp := httptest.NewRecorder()
-	req := httptest.NewRequest("POST", "/api/hosts/heartbeat", bytes.NewBuffer(body))
+	url := fmt.Sprintf("/api/hosts/%s/heartbeat", agentID)
+	req := httptest.NewRequest("POST", url, nil)
 
 	app.collectorEngine.ServeHTTP(resp, req)
 
 	assert.Equal(t, 204, resp.Code)
-}
-
-func TestApiHostHeartbeat400(t *testing.T) {
-	agentID := "agent_id"
-
-	mockHostsService := new(services.MockHostsNextService)
-	mockHostsService.On("Heartbeat", agentID).Return(nil)
-
-	deps := setupTestDependencies()
-	deps.hostsNextService = mockHostsService
-
-	app, err := NewAppWithDeps(setupTestConfig(), deps)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	malformedJSON := []byte{}
-	resp := httptest.NewRecorder()
-	req := httptest.NewRequest("POST", "/api/hosts/heartbeat", bytes.NewBuffer(malformedJSON))
-
-	app.collectorEngine.ServeHTTP(resp, req)
-
-	assert.Equal(t, 400, resp.Code)
 }

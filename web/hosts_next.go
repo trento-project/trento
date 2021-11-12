@@ -64,21 +64,11 @@ func NewHostListNextHandler(hostsService services.HostsNextService) gin.HandlerF
 	}
 }
 
-type SendHeartBeat struct {
-	AgentID string `json:"agent_id"`
-}
-
 func ApiHostHeartbeatHandler(hostService services.HostsNextService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var sendHeartBeat SendHeartBeat
+		agentID := c.Param("id")
 
-		err := c.BindJSON(&sendHeartBeat)
-		if err != nil {
-			_ = c.Error(BadRequestError("problems parsing JSON"))
-			return
-		}
-
-		err = hostService.Heartbeat(sendHeartBeat.AgentID)
+		err := hostService.Heartbeat(agentID)
 		if err != nil {
 			_ = c.Error(err)
 			return

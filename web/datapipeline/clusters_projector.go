@@ -7,6 +7,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/trento-project/trento/internal/cluster"
+	"github.com/trento-project/trento/web/entities"
 	"github.com/trento-project/trento/web/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -43,12 +44,12 @@ func clustersProjector_ClusterDiscoveryHandler(event *DataCollectedEvent, db *go
 }
 
 // transformClusterData transforms the cluster data into the read model
-func transformClusterData(cluster *cluster.Cluster) (*models.Cluster, error) {
+func transformClusterData(cluster *cluster.Cluster) (*entities.Cluster, error) {
 	if cluster.Id == "" {
 		return nil, fmt.Errorf("no cluster ID found")
 	}
 
-	return &models.Cluster{
+	return &entities.Cluster{
 		ID:          cluster.Id,
 		Name:        cluster.Name,
 		ClusterType: detectClusterType(cluster),

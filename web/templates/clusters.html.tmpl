@@ -38,23 +38,23 @@
                 {{- end }}
             {{- end}}
         </select>
-        <select name="sid" id="sid_filter" class="selectpicker" multiple
+        <select name="sids" id="sid_filter" class="selectpicker" multiple
                 data-selected-text-format="count > 3" data-actions-box="true" data-live-search="true" title="SID">
-            {{- range .ClustersTable.GetAllSIDs }}
+            {{- range .FilterSIDs }}
                 <option value="{{ . }}">{{ . }}</option>
             {{- end }}
         </select>
         <select name="cluster_type" id="cluster_type_filter" class="selectpicker" multiple
                 data-selected-text-format="count > 3" data-actions-box="true" data-live-search="true"
                 title="Cluster type">
-            {{- range .ClustersTable.GetAllClusterTypes }}
+            {{- range .FilterClusterTypes }}
                 <option value="{{ . }}">{{ . }}</option>
             {{- end}}
         </select>
         <select name="tags" id="tags_filter" class="selectpicker" multiple
                 data-selected-text-format="count > 3" data-actions-box="true" data-live-search="true"
                 title="Tags">
-            {{- range .ClustersTable.GetAllTags }}
+            {{- range .FilterTags }}
                 <option value="{{ . }}">{{ . }}</option>
             {{- end}}
         </select>

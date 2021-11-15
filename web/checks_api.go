@@ -45,7 +45,7 @@ type JSONChecksGroupedCatalog []*JSONChecksGroup
 // @Produce json
 // @Success 200 {object} JSONChecksGroupedCatalog
 // @Error 500
-// @Router /api/checks/catalog [get]
+// @Router /checks/catalog [get]
 func ApiChecksCatalogHandler(s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var groupedCatalog JSONChecksGroupedCatalog
@@ -70,7 +70,7 @@ func ApiChecksCatalogHandler(s services.ChecksService) gin.HandlerFunc {
 // @Param cluster_id path string true "Cluster Id"
 // @Success 200 {object} map[string]interface{}
 // @Failure 500 {object} map[string]string
-// @Router /api/clusters/{cluster_id}/results [get]
+// @Router /clusters/{cluster_id}/results [get]
 func ApiClusterCheckResultsHandler(client consul.Client, s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		clusterId := c.Param("cluster_id")
@@ -91,7 +91,7 @@ func ApiClusterCheckResultsHandler(client consul.Client, s services.ChecksServic
 // @Param Body body JSONChecksCatalog true "Checks catalog"
 // @Success 200 {object} JSONChecksCatalog
 // @Failure 500 {object} map[string]string
-// @Router /api/checks/catalog [put]
+// @Router /checks/catalog [put]
 func ApiCreateChecksCatalogHandler(s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
@@ -135,7 +135,7 @@ func ApiCreateChecksCatalogHandler(s services.ChecksService) gin.HandlerFunc {
 // @Param id path string true "Resource id"
 // @Success 200 {object} JSONChecksSettings
 // @Failure 404 {object} map[string]string
-// @Router /api/checks/{id}/settings [get]
+// @Router /checks/{id}/settings [get]
 func ApiCheckGetSettingsByIdHandler(consul consul.Client, s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		resourceId := c.Param("id")
@@ -199,7 +199,7 @@ func ApiCheckGetSettingsByIdHandler(consul consul.Client, s services.ChecksServi
 // @Param Body body JSONChecksSettings true "Checks settings"
 // @Success 201 {object} JSONChecksSettings
 // @Failure 500 {object} map[string]string
-// @Router /api/checks/{id}/settings [post]
+// @Router /checks/{id}/settings [post]
 func ApiCheckCreateSettingsByIdHandler(s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		resourceId := c.Param("id")

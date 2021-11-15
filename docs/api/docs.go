@@ -31,7 +31,7 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/checks/catalog": {
+        "/checks/catalog": {
             "get": {
                 "produces": [
                     "application/json"
@@ -90,7 +90,7 @@ var doc = `{
                 }
             }
         },
-        "/api/checks/{id}/settings": {
+        "/checks/{id}/settings": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -171,7 +171,7 @@ var doc = `{
                 }
             }
         },
-        "/api/clusters/{cluster_id}/results": {
+        "/clusters/{cluster_id}/results": {
             "get": {
                 "produces": [
                     "application/json"
@@ -206,7 +206,7 @@ var doc = `{
                 }
             }
         },
-        "/api/clusters/{id}/tags": {
+        "/clusters/{id}/tags": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -270,7 +270,7 @@ var doc = `{
                 }
             }
         },
-        "/api/clusters/{id}/tags/{tag}": {
+        "/clusters/{id}/tags/{tag}": {
             "delete": {
                 "consumes": [
                     "application/json"
@@ -306,7 +306,7 @@ var doc = `{
                 }
             }
         },
-        "/api/databases/{id}/tags": {
+        "/databases/{id}/tags": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -370,7 +370,7 @@ var doc = `{
                 }
             }
         },
-        "/api/databases/{id}/tags/{tag}": {
+        "/databases/{id}/tags/{tag}": {
             "delete": {
                 "consumes": [
                     "application/json"
@@ -406,7 +406,7 @@ var doc = `{
                 }
             }
         },
-        "/api/hosts/{name}/tags": {
+        "/hosts/{name}/tags": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -470,7 +470,7 @@ var doc = `{
                 }
             }
         },
-        "/api/hosts/{name}/tags/{tag}": {
+        "/hosts/{name}/tags/{tag}": {
             "delete": {
                 "consumes": [
                     "application/json"
@@ -506,7 +506,7 @@ var doc = `{
                 }
             }
         },
-        "/api/sapsystems/{id}/tags": {
+        "/sapsystems/{id}/tags": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -570,7 +570,7 @@ var doc = `{
                 }
             }
         },
-        "/api/sapsystems/{id}/tags/{tag}": {
+        "/sapsystems/{id}/tags/{tag}": {
             "delete": {
                 "consumes": [
                     "application/json"
@@ -606,7 +606,7 @@ var doc = `{
                 }
             }
         },
-        "/api/tags": {
+        "/tags": {
             "get": {
                 "consumes": [
                     "application/json"

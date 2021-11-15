@@ -137,7 +137,13 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          outputs: type=docker,dest=/tmp/trento-${{ matrix.image }}.tar
+      - name: Create image artifact
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: false
+          tags: ${{ env.IMAGE_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          outputs: type=docker,dest=/tmp/trento-${{ matrix.image }}.tar          
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:

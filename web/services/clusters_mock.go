@@ -12,13 +12,13 @@ type MockClustersService struct {
 	mock.Mock
 }
 
-// GetAll provides a mock function with given fields: filters
-func (_m *MockClustersService) GetAll(filters map[string][]string) (models.ClusterList, error) {
-	ret := _m.Called(filters)
+// GetAll provides a mock function with given fields: _a0, _a1
+func (_m *MockClustersService) GetAll(_a0 *ClustersFilter, _a1 *Page) (models.ClusterList, error) {
+	ret := _m.Called(_a0, _a1)
 
 	var r0 models.ClusterList
-	if rf, ok := ret.Get(0).(func(map[string][]string) models.ClusterList); ok {
-		r0 = rf(filters)
+	if rf, ok := ret.Get(0).(func(*ClustersFilter, *Page) models.ClusterList); ok {
+		r0 = rf(_a0, _a1)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(models.ClusterList)
@@ -26,8 +26,8 @@ func (_m *MockClustersService) GetAll(filters map[string][]string) (models.Clust
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(map[string][]string) error); ok {
-		r1 = rf(filters)
+	if rf, ok := ret.Get(1).(func(*ClustersFilter, *Page) error); ok {
+		r1 = rf(_a0, _a1)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -92,6 +92,27 @@ func (_m *MockClustersService) GetAllTags() ([]string, error) {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]string)
 		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetCount provides a mock function with given fields:
+func (_m *MockClustersService) GetCount() (int, error) {
+	ret := _m.Called()
+
+	var r0 int
+	if rf, ok := ret.Get(0).(func() int); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int)
 	}
 
 	var r1 error

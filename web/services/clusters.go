@@ -58,7 +58,7 @@ func (s *clustersService) GetAll(filters map[string][]string) (models.ClusterLis
 		}
 	}
 
-	err := db.Find(&clusters).Error
+	err := db.Order("name").Order("id").Find(&clusters).Error
 	if err != nil {
 		return nil, err
 	}

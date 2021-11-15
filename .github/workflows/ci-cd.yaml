@@ -172,7 +172,7 @@ jobs:
       - name: Load image
         run: docker load --input /tmp/trento-${{ matrix.image }}.tar
       - name: Test CLI
-        run: docker run --rm -ti ${{ env.IMAGE_REPOSITORY }}:${{ env.IMAGE_TAG }} version
+        run: docker run --rm ${{ env.IMAGE_REPOSITORY }}:${{ env.IMAGE_TAG }} version
 
   test-helm-charts:
     runs-on: ubuntu-20.04

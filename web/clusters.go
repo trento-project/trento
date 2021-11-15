@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -292,7 +293,29 @@ func NewClusterListHandler(clustersService services.ClustersService) gin.Handler
 	return func(c *gin.Context) {
 		query := c.Request.URL.Query()
 
-		clusterList, err := clustersService.GetAll(query)
+		clustersFilter := &services.ClustersFilter{
+			Name:        query["name"],
+			SIDs:        query["sids"],
+			ClusterType: query["cluster_type"],
+			Health:      query["health"],
+			Tags:        query["tags"],
+		}
+
+		pageNumber, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+		if err != nil {
+			pageNumber = 1
+		}
+		pageSize, err := strconv.Atoi(c.DefaultQuery("per_page", "10"))
+		if err != nil {
+			pageSize = 10
+		}
+
+		page := &services.Page{
+			Number: pageNumber,
+			Size:   pageSize,
+		}
+
+		clusterList, err := clustersService.GetAll(clustersFilter, page)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -319,13 +342,15 @@ func NewClusterListHandler(clustersService services.ClustersService) gin.Handler
 		healthContainer := NewClustersHealthContainer(clusterList)
 		healthContainer.Layout = "horizontal"
 
-		page := c.DefaultQuery("page", "1")
-		perPage := c.DefaultQuery("per_page", "10")
-		pagination := NewPaginationWithStrings(len(clusterList), page, perPage) // not nice here
-		firstElem, lastElem := pagination.GetSliceNumbers()
+		count, err := clustersService.GetCount()
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+		pagination := NewPagination(count, pageNumber, pageSize)
 
 		c.HTML(http.StatusOK, "clusters.html.tmpl", gin.H{
-			"ClustersTable":      clusterList[firstElem:lastElem],
+			"ClustersTable":      clusterList,
 			"AppliedFilters":     query,
 			"FilterClusterTypes": filterClusterTypes,
 			"FilterSIDs":         filterSIDs,

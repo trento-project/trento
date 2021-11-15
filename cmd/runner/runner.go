@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
+	"github.com/trento-project/trento/internal"
 	"github.com/trento-project/trento/runner"
 )
 
@@ -30,6 +31,9 @@ func NewRunnerCmd() *cobra.Command {
 		Use:   "start",
 		Short: "Starts the runner process. This process takes care of running the checks",
 		Run:   start,
+		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
+			return internal.InitConfig("runner")
+		},
 	}
 
 	startCmd.Flags().StringVar(&araServer, "ara-server", "http://127.0.0.1:8000", "ARA server url (ex: http://localhost:8000)")

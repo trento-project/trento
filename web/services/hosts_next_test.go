@@ -95,7 +95,7 @@ func (suite *HostsNextServiceTestSuite) TestHostsNextService_GetAll() {
 		return time.Duration(0)
 	}
 
-	hosts, err := suite.hostsNextService.GetAll(map[string][]string{})
+	hosts, err := suite.hostsNextService.GetAll(nil, nil)
 	suite.NoError(err)
 
 	suite.ElementsMatch(models.HostList{
@@ -131,13 +131,20 @@ func (suite *HostsNextServiceTestSuite) TestHostsNextService_GetAll_Filters() {
 		return time.Duration(0)
 	}
 
-	hosts, _ := suite.hostsNextService.GetAll(map[string][]string{
-		"tags":   {"tag1"},
-		"sids":   {"DEV"},
-		"health": {"passing", "unknown"},
-	})
+	hosts, _ := suite.hostsNextService.GetAll(&HostsFilter{
+		Tags:   []string{"tag1"},
+		SIDs:   []string{"DEV"},
+		Health: []string{"passing", "unknown"},
+	}, nil)
 	suite.Equal(1, len(hosts))
 	suite.Equal("1", hosts[0].ID)
+}
+
+func (suite *HostsNextServiceTestSuite) TestHostsNextService_GetClustersCount() {
+	count, err := suite.hostsNextService.GetCount()
+
+	suite.NoError(err)
+	suite.Equal(2, count)
 }
 
 func (suite *HostsNextServiceTestSuite) TestHostsNextService_GetAllTags() {

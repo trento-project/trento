@@ -12,13 +12,13 @@ type MockHostsNextService struct {
 	mock.Mock
 }
 
-// GetAll provides a mock function with given fields: filters
-func (_m *MockHostsNextService) GetAll(filters map[string][]string) (models.HostList, error) {
-	ret := _m.Called(filters)
+// GetAll provides a mock function with given fields: _a0, _a1
+func (_m *MockHostsNextService) GetAll(_a0 *HostsFilter, _a1 *Page) (models.HostList, error) {
+	ret := _m.Called(_a0, _a1)
 
 	var r0 models.HostList
-	if rf, ok := ret.Get(0).(func(map[string][]string) models.HostList); ok {
-		r0 = rf(filters)
+	if rf, ok := ret.Get(0).(func(*HostsFilter, *Page) models.HostList); ok {
+		r0 = rf(_a0, _a1)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(models.HostList)
@@ -26,8 +26,8 @@ func (_m *MockHostsNextService) GetAll(filters map[string][]string) (models.Host
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(map[string][]string) error); ok {
-		r1 = rf(filters)
+	if rf, ok := ret.Get(1).(func(*HostsFilter, *Page) error); ok {
+		r1 = rf(_a0, _a1)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -69,6 +69,27 @@ func (_m *MockHostsNextService) GetAllTags() ([]string, error) {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]string)
 		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetCount provides a mock function with given fields:
+func (_m *MockHostsNextService) GetCount() (int, error) {
+	ret := _m.Called()
+
+	var r0 int
+	if rf, ok := ret.Get(0).(func() int); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int)
 	}
 
 	var r1 error

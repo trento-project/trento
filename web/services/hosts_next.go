@@ -17,10 +17,17 @@ var timeSince = time.Since
 
 //go:generate mockery --name=HostsNextService --inpackage --filename=hosts_next_mock.go
 type HostsNextService interface {
-	GetAll(filters map[string][]string) (models.HostList, error)
+	GetAll(*HostsFilter, *Page) (models.HostList, error)
+	GetCount() (int, error)
 	GetAllSIDs() ([]string, error)
 	GetAllTags() ([]string, error)
 	Heartbeat(agentID string) error
+}
+
+type HostsFilter struct {
+	SIDs   []string
+	Tags   []string
+	Health []string
 }
 
 type hostsNextService struct {
@@ -31,21 +38,21 @@ func NewHostsNextService(db *gorm.DB) *hostsNextService {
 	return &hostsNextService{db}
 }
 
-func (s *hostsNextService) GetAll(filters map[string][]string) (models.HostList, error) {
+func (s *hostsNextService) GetAll(filter *HostsFilter, page *Page) (models.HostList, error) {
 	var hosts []entities.Host
 	db := s.db.Preload("Tags").Preload("Heartbeat")
 
-	if tags, ok := filters["tags"]; ok {
-		db = db.Where("agent_id IN (?)", s.db.Model(&models.Tag{}).
-			Select("resource_id").
-			Where("resource_type = ?", models.TagHostResourceType).
-			Where("value IN ?", tags),
-		)
-	}
+	if filter != nil {
+		if len(filter.SIDs) > 0 {
+			db = db.Where("sids && ?", pq.Array(filter.SIDs))
+		}
 
-	if sids, ok := filters["sids"]; ok {
-		if len(sids) > 0 {
-			db = db.Where("sids && ?", pq.Array(sids))
+		if len(filter.Tags) > 0 {
+			db = db.Where("agent_id IN (?)", s.db.Model(&models.Tag{}).
+				Select("resource_id").
+				Where("resource_type = ?", models.TagHostResourceType).
+				Where("value IN ?", filter.Tags),
+			)
 		}
 	}
 
@@ -59,9 +66,8 @@ func (s *hostsNextService) GetAll(filters map[string][]string) (models.HostList,
 		host := h.ToModel()
 		host.Health = computeHealth(&h)
 
-		health, ok := filters["health"]
-		if ok && len(health) > 0 {
-			if !internal.Contains(health, host.Health) {
+		if filter != nil && len(filter.Health) > 0 {
+			if !internal.Contains(filter.Health, host.Health) {
 				continue
 			}
 		}
@@ -69,6 +75,13 @@ func (s *hostsNextService) GetAll(filters map[string][]string) (models.HostList,
 	}
 
 	return hostList, nil
+}
+
+func (s *hostsNextService) GetCount() (int, error) {
+	var count int64
+	err := s.db.Model(&entities.Host{}).Count(&count).Error
+
+	return int(count), err
 }
 
 func (s *hostsNextService) GetAllSIDs() ([]string, error) {

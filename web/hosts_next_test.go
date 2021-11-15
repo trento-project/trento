@@ -46,7 +46,8 @@ func TestHostListNextHandler(t *testing.T) {
 	}
 
 	mockHostsService := new(services.MockHostsNextService)
-	mockHostsService.On("GetAll", mock.Anything).Return(hostList, nil)
+	mockHostsService.On("GetAll", mock.Anything, mock.Anything).Return(hostList, nil)
+	mockHostsService.On("GetCount").Return(3, nil)
 	mockHostsService.On("GetAllSIDs", mock.Anything).Return([]string{"PRD", "QAS", "DEV"}, nil)
 	mockHostsService.On("GetAllTags", mock.Anything).Return([]string{"tag1", "tag2", "tag3"}, nil)
 

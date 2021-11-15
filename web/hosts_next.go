@@ -2,6 +2,7 @@ package web
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/trento-project/trento/web/models"
@@ -27,7 +28,27 @@ func NewHostListNextHandler(hostsService services.HostsNextService) gin.HandlerF
 	return func(c *gin.Context) {
 		query := c.Request.URL.Query()
 
-		hostList, err := hostsService.GetAll(query)
+		hostsFilter := &services.HostsFilter{
+			SIDs:   query["sids"],
+			Health: query["health"],
+			Tags:   query["tags"],
+		}
+
+		pageNumber, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+		if err != nil {
+			pageNumber = 1
+		}
+		pageSize, err := strconv.Atoi(c.DefaultQuery("per_page", "10"))
+		if err != nil {
+			pageSize = 10
+		}
+
+		page := &services.Page{
+			Number: pageNumber,
+			Size:   pageSize,
+		}
+
+		hostList, err := hostsService.GetAll(hostsFilter, page)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -45,16 +66,18 @@ func NewHostListNextHandler(hostsService services.HostsNextService) gin.HandlerF
 			return
 		}
 
-		page := c.DefaultQuery("page", "1")
-		perPage := c.DefaultQuery("per_page", "10")
-		pagination := NewPaginationWithStrings(len(hostList), page, perPage)
-		firstElem, lastElem := pagination.GetSliceNumbers()
+		count, err := hostsService.GetCount()
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+		pagination := NewPagination(count, pageNumber, pageSize)
 
 		hContainer := NewHostsNextHealthContainer(hostList)
 		hContainer.Layout = "horizontal"
 
 		c.HTML(http.StatusOK, "hosts_next.html.tmpl", gin.H{
-			"Hosts":           hostList[firstElem:lastElem],
+			"Hosts":           hostList,
 			"AppliedFilters":  query,
 			"FilterSIDs":      filterSIDs,
 			"FilterTags":      filterTags,

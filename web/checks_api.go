@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"net/http"
+	"sort"
 
 	"github.com/gin-gonic/gin"
 
@@ -60,6 +61,11 @@ func ApiChecksCatalogHandler(s services.ChecksService) gin.HandlerFunc {
 			g := JSONChecksGroup{Group: group.Group, Checks: group.Checks}
 			groupedCatalog = append(groupedCatalog, &g)
 		}
+
+		sort.SliceStable(groupedCatalog, func(i, j int) bool {
+			return groupedCatalog[i].Group < groupedCatalog[j].Group
+		})
+
 		c.JSON(http.StatusOK, groupedCatalog)
 	}
 }

@@ -33,6 +33,7 @@ func subsProjector_SubscriptionDiscoveryHandler(dataCollectedEvent *DataCollecte
 			AgentID:            dataCollectedEvent.AgentID,
       ID:                 subscription.Identifier,
     	Version:            subscription.Version,
+			Type:               subscription.Type,
     	Arch:               subscription.Arch,
     	Status:             subscription.Status,
     	StartsAt:           subscription.StartsAt,

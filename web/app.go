@@ -93,7 +93,7 @@ func DefaultDependencies(config *Config) Dependencies {
 	tagsService := services.NewTagsService(db)
 	araService := ara.NewAraService(viper.GetString("ara-addr"))
 	checksService := services.NewChecksService(araService, db)
-	subscriptionsService := services.NewSubscriptionsService(consulClient)
+	subscriptionsService := services.NewSubscriptionsService(db, consulClient)
 	hostsService := services.NewHostsService(consulClient)
 	hostsServiceNext := services.NewHostsNextService(db)
 	sapSystemsService := services.NewSAPSystemsService(consulClient)

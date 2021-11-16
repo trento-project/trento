@@ -4,3 +4,4 @@
 /web/frontend/node_modules
 /packaging/helm/trento-server/charts/*.tgz
 /hack/helm/trento-dev/charts/*.tgz
+/test/e2e/cypress/videos

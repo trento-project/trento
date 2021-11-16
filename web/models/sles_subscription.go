@@ -1,9 +1,9 @@
 package models
 
 type SlesSubscription struct {
-  ID                 string
+	ID                 string
 	Version            string
-  Type               string
+	Type               string
 	Arch               string
 	Status             string
 	StartsAt           string

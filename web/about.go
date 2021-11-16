@@ -10,7 +10,7 @@ import (
 
 func NewAboutHandler(s services.SubscriptionsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		isPremium, subscribedCount, err := s.IsPremium()
+		isPremium, subscribedCount, err := s.IsTrentoPremium()
 		if err != nil {
 			_ = c.Error(err)
 			return

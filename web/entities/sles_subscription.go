@@ -6,7 +6,7 @@ import (
 
 type SlesSubscription struct {
 	AgentID            string `gorm:"primaryKey"`
-  ID                 string `gorm:"primaryKey"`
+	ID                 string `gorm:"primaryKey"`
 	Version            string
 	Type               string
 	Arch               string

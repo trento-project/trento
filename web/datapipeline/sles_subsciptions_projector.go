@@ -28,21 +28,21 @@ func subsProjector_SubscriptionDiscoveryHandler(dataCollectedEvent *DataCollecte
 
 	var subEntities []entities.SlesSubscription
 
-  for _, subscription := range discoveredSubscriptions {
-    subEntity := entities.SlesSubscription{
+	for _, subscription := range discoveredSubscriptions {
+		subEntity := entities.SlesSubscription{
 			AgentID:            dataCollectedEvent.AgentID,
-      ID:                 subscription.Identifier,
-    	Version:            subscription.Version,
+			ID:                 subscription.Identifier,
+			Version:            subscription.Version,
 			Type:               subscription.Type,
-    	Arch:               subscription.Arch,
-    	Status:             subscription.Status,
-    	StartsAt:           subscription.StartsAt,
-    	ExpiresAt:          subscription.ExpiresAt,
-    	SubscriptionStatus: subscription.SubscriptionStatus,
-  	}
+			Arch:               subscription.Arch,
+			Status:             subscription.Status,
+			StartsAt:           subscription.StartsAt,
+			ExpiresAt:          subscription.ExpiresAt,
+			SubscriptionStatus: subscription.SubscriptionStatus,
+		}
 
 		subEntities = append(subEntities, subEntity)
-  }
+	}
 
 	return db.Clauses(clause.OnConflict{
 		UpdateAll: true,

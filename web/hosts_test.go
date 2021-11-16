@@ -11,7 +11,6 @@ import (
 	"github.com/tdewolff/minify/v2/html"
 	consulMocks "github.com/trento-project/trento/internal/consul/mocks"
 	"github.com/trento-project/trento/internal/hosts"
-	"github.com/trento-project/trento/internal/subscription"
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
 )
@@ -281,9 +280,9 @@ func TestHostHandler(t *testing.T) {
 	consulInst.On("WaitLock", cloudPath).Return(nil)
 	kv.On("ListMap", cloudListMapPath, cloudListMapPath).Return(cloudListMap, nil)
 
-	subscriptionsList := subscription.Subscriptions{
-		&subscription.Subscription{
-			Identifier:         "SLES_SAP",
+	subscriptionsList := []*models.SlesSubscription{
+		&models.SlesSubscription{
+			ID:                 "SLES_SAP",
 			Version:            "15.2",
 			Arch:               "x64_84",
 			Status:             "Registered",
@@ -292,11 +291,11 @@ func TestHostHandler(t *testing.T) {
 			SubscriptionStatus: "ACTIVE",
 			Type:               "internal",
 		},
-		&subscription.Subscription{
-			Identifier: "sle-module-desktop-applications",
-			Version:    "15.2",
-			Arch:       "x64_84",
-			Status:     "Registered",
+		&models.SlesSubscription{
+			ID:      "sle-module-desktop-applications",
+			Version: "15.2",
+			Arch:    "x64_84",
+			Status:  "Registered",
 		},
 	}
 
@@ -418,7 +417,7 @@ func TestHostHandlerAzure(t *testing.T) {
 	consulInst.On("WaitLock", cloudPath).Return(nil)
 	kv.On("ListMap", cloudListMapPath, cloudListMapPath).Return(cloudListMap, nil)
 	subscriptionsMocks.On(
-		"GetHostSubscriptions", "test_host").Return(subscription.Subscriptions{}, nil)
+		"GetHostSubscriptions", "test_host").Return([]*models.SlesSubscription{}, nil)
 
 	deps := setupTestDependencies()
 	deps.consul = consulInst

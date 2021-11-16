@@ -14,9 +14,7 @@ import (
 
 func TestAboutHandlerPremium(t *testing.T) {
 	subscriptionsMocks := new(services.MockSubscriptionsService)
-
-	subscriptionsMocks.On("GetSubscriptionData").Return(
-		&services.SubscriptionData{Type: services.Premium, SubscribedCount: 2}, nil)
+	subscriptionsMocks.On("IsTrentoPremium").Return(true, int64(2), nil)
 
 	deps := setupTestDependencies()
 	deps.subscriptionsService = subscriptionsMocks
@@ -52,11 +50,9 @@ func TestAboutHandlerPremium(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("<dt.*>SLES_SAP machines</dt><dd.*>2.*</dd>"), minified)
 }
 
-func TestAboutHandlerFree(t *testing.T) {
+func TestAboutHandlerCommunity(t *testing.T) {
 	subscriptionsMocks := new(services.MockSubscriptionsService)
-
-	subscriptionsMocks.On("GetSubscriptionData").Return(
-		&services.SubscriptionData{Type: services.Free, SubscribedCount: 0}, nil)
+	subscriptionsMocks.On("IsTrentoPremium").Return(false, int64(0), nil)
 
 	deps := setupTestDependencies()
 	deps.subscriptionsService = subscriptionsMocks
@@ -88,6 +84,6 @@ func TestAboutHandlerFree(t *testing.T) {
 
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, minified, "About")
-	assert.Regexp(t, regexp.MustCompile("<dt.*>Subscription</dt><dd.*>Free.*</dd>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<dt.*>Subscription</dt><dd.*>Community.*</dd>"), minified)
 	assert.NotContains(t, minified, "SLES_SAP machine")
 }

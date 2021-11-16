@@ -8,7 +8,10 @@ const AccordionToggle = ({ className = '', eventKey, callback = () => {} }) => {
   );
 
   return (
-    <i className={`eos-icons eos-18 ${className}`} onClick={decoratedOnClick}>
+    <i
+      className={`eos-icons eos-18 trento-pointer ${className}`}
+      onClick={decoratedOnClick}
+    >
       keyboard_arrow_down
     </i>
   );

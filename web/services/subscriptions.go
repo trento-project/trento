@@ -67,8 +67,17 @@ func (s *subscriptionsService) GetSubscriptionData() (*SubscriptionData, error) 
 }
 
 func (s *subscriptionsService) GetHostSubscriptions(host string) ([]*models.SlesSubscription, error) {
+	// Get the agent id by host name. This should be removed once the host page uses the agent id
+	// to go the host details page
+	var hostEntity *entities.Host
+	result := s.db.Where("name", host).Find(&hostEntity)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	agent_id := hostEntity.ToModel().ID
+
 	var subEntities []*entities.SlesSubscription
-	result := s.db.Where("agent_id", host).Find(&subEntities)
+	result = s.db.Where("agent_id", agent_id).Find(&subEntities)
 	if result.Error != nil {
 		return nil, result.Error
 	}

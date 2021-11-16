@@ -6,9 +6,11 @@ import (
 	"os"
 	"testing"
 
+	"github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 	"github.com/trento-project/trento/internal/cluster"
 	"github.com/trento-project/trento/test/helpers"
+	"github.com/trento-project/trento/web/entities"
 	"github.com/trento-project/trento/web/models"
 )
 
@@ -18,8 +20,8 @@ func TestClustersProjector_ClusterDiscoveryHandler(t *testing.T) {
 	tx := db.Begin()
 	defer tx.Rollback()
 
-	tx.AutoMigrate(&models.Cluster{})
-	tx.Create(&models.Cluster{
+	tx.AutoMigrate(&entities.Cluster{})
+	tx.Create(&entities.Cluster{
 		Name:        "test_cluster",
 		ID:          "test_id",
 		ClusterType: models.ClusterTypeUnknown,
@@ -39,18 +41,14 @@ func TestClustersProjector_ClusterDiscoveryHandler(t *testing.T) {
 
 	clustersProjector_ClusterDiscoveryHandler(dataCollectedEvent, tx)
 
-	var cluster models.Cluster
+	var cluster entities.Cluster
 	tx.First(&cluster)
 
-	assert.EqualValues(t,
-		models.Cluster{
-			Name:            "test_cluster",
-			ID:              "test_id",
-			ClusterType:     models.ClusterTypeScaleUp,
-			SIDs:            []string{"DEV"},
-			ResourcesNumber: 5,
-			HostsNumber:     3,
-		}, cluster)
+	assert.Equal(t, "test_id", cluster.ID)
+	assert.Equal(t, models.ClusterTypeScaleUp, cluster.ClusterType)
+	assert.Equal(t, pq.StringArray{"DEV"}, cluster.SIDs)
+	assert.Equal(t, 5, cluster.ResourcesNumber)
+	assert.Equal(t, 3, cluster.HostsNumber)
 }
 
 func TestTransformClusterListData_HANAScaleUp(t *testing.T) {
@@ -65,7 +63,7 @@ func TestTransformClusterListData_HANAScaleUp(t *testing.T) {
 	clusterOut, _ := transformClusterData(&clusterIn)
 
 	assert.EqualValues(t,
-		&models.Cluster{
+		&entities.Cluster{
 			Name:            "test_cluster",
 			ID:              "test_id",
 			ClusterType:     models.ClusterTypeScaleUp,
@@ -87,7 +85,7 @@ func TestTransformClusterListData_Unknown(t *testing.T) {
 	clusterOut, _ := transformClusterData(&clusterIn)
 
 	assert.EqualValues(t,
-		&models.Cluster{
+		&entities.Cluster{
 			Name:        "test_cluster",
 			ID:          "test_id",
 			ClusterType: models.ClusterTypeUnknown,

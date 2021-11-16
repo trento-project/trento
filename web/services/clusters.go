@@ -5,6 +5,7 @@ import (
 
 	"github.com/lib/pq"
 	"github.com/trento-project/trento/internal"
+	"github.com/trento-project/trento/web/entities"
 	"github.com/trento-project/trento/web/models"
 	"gorm.io/gorm"
 )
@@ -13,27 +14,36 @@ import (
 
 type ClustersService interface {
 	GetAll(filters map[string][]string) (models.ClusterList, error)
+	GetAllClusterTypes() ([]string, error)
+	GetAllSIDs() ([]string, error)
+	GetAllTags() ([]string, error)
 }
 
 type clustersService struct {
 	db            *gorm.DB
 	checksService ChecksService
-	tagsService   TagsService
 }
 
-func NewClustersService(db *gorm.DB, checksService ChecksService, tagsService TagsService) *clustersService {
+func NewClustersService(db *gorm.DB, checksService ChecksService) *clustersService {
 	return &clustersService{
 		db:            db,
 		checksService: checksService,
-		tagsService:   tagsService,
 	}
 }
 
 func (s *clustersService) GetAll(filters map[string][]string) (models.ClusterList, error) {
-	var clusterList models.ClusterList
-	db := s.db
+	var clusters []entities.Cluster
+	db := s.db.Preload("Tags")
 
-	if sids, ok := filters["sid"]; ok {
+	if tags, ok := filters["tags"]; ok {
+		db = db.Where("id IN (?)", s.db.Model(&models.Tag{}).
+			Select("resource_id").
+			Where("resource_type = ?", models.TagClusterResourceType).
+			Where("value IN ?", tags),
+		)
+	}
+
+	if sids, ok := filters["sids"]; ok {
 		if len(sids) > 0 {
 			db = s.db.Where("sids && ?", pq.Array(sids))
 		}
@@ -48,9 +58,14 @@ func (s *clustersService) GetAll(filters map[string][]string) (models.ClusterLis
 		}
 	}
 
-	err := db.Find(&clusterList).Error
+	err := db.Order("name").Order("id").Find(&clusters).Error
 	if err != nil {
 		return nil, err
+	}
+
+	var clusterList models.ClusterList
+	for _, cluster := range clusters {
+		clusterList = append(clusterList, cluster.ToModel())
 	}
 
 	err = s.enrichClusterData(clusterList)
@@ -58,16 +73,59 @@ func (s *clustersService) GetAll(filters map[string][]string) (models.ClusterLis
 		return nil, err
 	}
 
-	if tagsFilter, ok := filters["tags"]; ok {
-		clusterList = filterByTags(clusterList, tagsFilter)
-	}
-
 	if healthFilter, ok := filters["health"]; ok {
 		clusterList = filterByHealth(clusterList, healthFilter)
 	}
 
-	//db.Model(&User{}).Where("name = ?", "jinzhu").Count(&count) > 0
 	return clusterList, nil
+}
+
+func (s *clustersService) GetAllClusterTypes() ([]string, error) {
+	var clusterTypes []string
+
+	err := s.db.Model(&entities.Cluster{}).
+		Distinct().
+		Pluck("cluster_type", &clusterTypes).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return clusterTypes, nil
+}
+
+func (s *clustersService) GetAllSIDs() ([]string, error) {
+	var sids pq.StringArray
+
+	err := s.db.Model(&entities.Cluster{}).
+		Where("sids IS NOT NULL").
+		Distinct().
+		Pluck("unnest(sids)", &sids).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return []string(sids), nil
+}
+
+func (s *clustersService) GetAllTags() ([]string, error) {
+	var tags []string
+
+	err := s.db.
+		Model(&models.Tag{ResourceType: models.TagClusterResourceType}).
+		Distinct().
+		Pluck("value", &tags).
+		Error
+
+	if err != nil {
+		return nil, err
+
+	}
+
+	return tags, nil
 }
 
 func (s *clustersService) enrichClusterData(clusterList models.ClusterList) error {
@@ -82,30 +140,9 @@ func (s *clustersService) enrichClusterData(clusterList models.ClusterList) erro
 		}
 		health, _ := s.checksService.GetAggregatedChecksResultByCluster(c.ID)
 		c.Health = health.String()
-
-		tags, err := s.tagsService.GetAllByResource(models.TagClusterResourceType, c.ID)
-		if err != nil {
-			return err
-		}
-		c.Tags = tags
 	}
 
 	return nil
-}
-
-func filterByTags(clusterList models.ClusterList, tags []string) models.ClusterList {
-	var filteredClusterList models.ClusterList
-
-	for _, c := range clusterList {
-		for _, t := range tags {
-			if internal.Contains(c.Tags, t) {
-				filteredClusterList = append(filteredClusterList, c)
-				break
-			}
-		}
-	}
-
-	return filteredClusterList
 }
 
 func filterByHealth(clusterList models.ClusterList, health []string) models.ClusterList {

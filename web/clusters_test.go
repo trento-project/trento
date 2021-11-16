@@ -491,7 +491,7 @@ func TestClustersListHandler(t *testing.T) {
 		{
 			ID:                "47d1190ffb4f781974c8356d7f863b03",
 			Name:              "hana_cluster",
-			ClusterType:       ClusterTypeScaleUp,
+			ClusterType:       models.ClusterTypeScaleUp,
 			SIDs:              []string{"PRD"},
 			ResourcesNumber:   5,
 			HostsNumber:       3,
@@ -502,7 +502,7 @@ func TestClustersListHandler(t *testing.T) {
 		{
 			ID:                "a615a35f65627be5a757319a0741127f",
 			Name:              "other_cluster",
-			ClusterType:       ClusterTypeUnknown,
+			ClusterType:       models.ClusterTypeUnknown,
 			SIDs:              []string{},
 			Tags:              []string{"tag1"},
 			Health:            models.CheckCritical,
@@ -511,7 +511,7 @@ func TestClustersListHandler(t *testing.T) {
 		{
 			ID:                "e2f2eb50aef748e586a7baa85e0162cf",
 			Name:              "netweaver_cluster",
-			ClusterType:       ClusterTypeUnknown,
+			ClusterType:       models.ClusterTypeUnknown,
 			SIDs:              []string{},
 			ResourcesNumber:   10,
 			HostsNumber:       2,
@@ -522,7 +522,7 @@ func TestClustersListHandler(t *testing.T) {
 		{
 			ID:                "e27d313a674375b2066777a89ee346b9",
 			Name:              "netweaver_cluster",
-			ClusterType:       ClusterTypeUnknown,
+			ClusterType:       models.ClusterTypeUnknown,
 			SIDs:              []string{},
 			Tags:              []string{"tag1"},
 			Health:            models.CheckUndefined,
@@ -532,7 +532,12 @@ func TestClustersListHandler(t *testing.T) {
 
 	mockClusterService := new(services.MockClustersService)
 	mockClusterService.On("GetAll", mock.Anything).Return(clustersList, nil)
-
+	mockClusterService.On("GetAllClusterTypes", mock.Anything).Return(
+		[]string{models.ClusterTypeScaleUp, models.ClusterTypeUnknown},
+		nil,
+	)
+	mockClusterService.On("GetAllSIDs", mock.Anything).Return([]string{"PRD"}, nil)
+	mockClusterService.On("GetAllTags", mock.Anything).Return([]string{"tag1"}, nil)
 	deps := setupTestDependencies()
 	deps.clustersService = mockClusterService
 

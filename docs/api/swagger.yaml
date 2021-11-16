@@ -124,7 +124,7 @@ info:
   title: Trento API
   version: "1.0"
 paths:
-  /api/checks/{id}/settings:
+  /checks/{id}/settings:
     get:
       consumes:
       - application/json
@@ -177,7 +177,7 @@ paths:
               type: string
             type: object
       summary: Create the check settings
-  /api/checks/catalog:
+  /checks/catalog:
     get:
       produces:
       - application/json
@@ -215,7 +215,7 @@ paths:
               type: string
             type: object
       summary: Create/Updates the checks catalog
-  /api/clusters/{cluster_id}/results:
+  /clusters/{cluster_id}/results:
     get:
       parameters:
       - description: Cluster Id
@@ -238,7 +238,7 @@ paths:
               type: string
             type: object
       summary: Get a specific cluster's check results
-  /api/clusters/{id}/tags:
+  /clusters/{id}/tags:
     post:
       consumes:
       - application/json
@@ -280,7 +280,7 @@ paths:
               type: string
             type: object
       summary: Add tag to Cluster
-  /api/clusters/{id}/tags/{tag}:
+  /clusters/{id}/tags/{tag}:
     delete:
       consumes:
       - application/json
@@ -304,7 +304,7 @@ paths:
             additionalProperties: true
             type: object
       summary: Delete a specific tag that belongs to a cluster
-  /api/databases/{id}/tags:
+  /databases/{id}/tags:
     post:
       consumes:
       - application/json
@@ -346,7 +346,7 @@ paths:
               type: string
             type: object
       summary: Add tag to a HANA database
-  /api/databases/{id}/tags/{tag}:
+  /databases/{id}/tags/{tag}:
     delete:
       consumes:
       - application/json
@@ -370,7 +370,7 @@ paths:
             additionalProperties: true
             type: object
       summary: Delete a specific tag that belongs to a HANA database
-  /api/hosts/{name}/tags:
+  /hosts/{name}/tags:
     post:
       consumes:
       - application/json
@@ -412,7 +412,7 @@ paths:
               type: string
             type: object
       summary: Add tag to host
-  /api/hosts/{name}/tags/{tag}:
+  /hosts/{name}/tags/{tag}:
     delete:
       consumes:
       - application/json
@@ -436,7 +436,7 @@ paths:
             additionalProperties: true
             type: object
       summary: Delete a specific tag that belongs to a host
-  /api/sapsystems/{id}/tags:
+  /sapsystems/{id}/tags:
     post:
       consumes:
       - application/json
@@ -478,7 +478,7 @@ paths:
               type: string
             type: object
       summary: Add tag to SAPSystem
-  /api/sapsystems/{id}/tags/{tag}:
+  /sapsystems/{id}/tags/{tag}:
     delete:
       consumes:
       - application/json
@@ -502,7 +502,7 @@ paths:
             additionalProperties: true
             type: object
       summary: Delete a specific tag that belongs to a SAPSystem
-  /api/tags:
+  /tags:
     get:
       consumes:
       - application/json

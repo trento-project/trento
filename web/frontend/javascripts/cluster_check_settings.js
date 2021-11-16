@@ -78,6 +78,7 @@ const SettingsButton = () => {
     post(`/api/checks/${clusterId}/settings`, payload)
       .then(() => {
         setLoading(false);
+        setModalOpen(false);
         showSuccessToast({
           content: 'Cluster settings successfully saved.',
         });
@@ -96,8 +97,8 @@ const SettingsButton = () => {
       <Button variant="secondary" size="sm" onClick={() => setModalOpen(true)}>
         <i className="eos-icons eos-18">settings</i>Settings
       </Button>
-      <Modal show={modalOpen}>
-        <Modal.Header>
+      <Modal show={modalOpen} onHide={() => setModalOpen(false)}>
+        <Modal.Header closeButton>
           <Modal.Title>Cluster settings</Modal.Title>
         </Modal.Header>
         <Modal.Body>

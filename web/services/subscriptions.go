@@ -1,13 +1,7 @@
 package services
 
 import (
-	log "github.com/sirupsen/logrus"
-
 	"gorm.io/gorm"
-
-	consulApi "github.com/hashicorp/consul/api"
-	"github.com/trento-project/trento/internal/consul"
-	"github.com/trento-project/trento/internal/subscription"
 
 	"github.com/trento-project/trento/web/entities"
 	"github.com/trento-project/trento/web/models"
@@ -15,55 +9,30 @@ import (
 
 const (
 	SlesIdentifier string = "SLES_SAP"
-	Premium        string = "Premium"
-	Free           string = "Free"
 )
-
-type SubscriptionData struct {
-	Type            string
-	SubscribedCount int
-}
 
 //go:generate mockery --name=SubscriptionsService --inpackage --filename=subscriptions_mock.go
 type SubscriptionsService interface {
-	GetSubscriptionData() (*SubscriptionData, error)
+	IsPremium() (bool, int64, error)
 	GetHostSubscriptions(host string) ([]*models.SlesSubscription, error)
 }
 
 type subscriptionsService struct {
 	db *gorm.DB
-	consul consul.Client
 }
 
-func NewSubscriptionsService(db *gorm.DB, client consul.Client) SubscriptionsService {
-	return &subscriptionsService{db: db, consul: client}
+func NewSubscriptionsService(db *gorm.DB) SubscriptionsService {
+	return &subscriptionsService{db: db}
 }
 
-func (s *subscriptionsService) GetSubscriptionData() (*SubscriptionData, error) {
-	query := &consulApi.QueryOptions{}
-	consulNodes, _, err := s.consul.Catalog().Nodes(query)
-	if err != nil {
-		return nil, err
+func (s *subscriptionsService) IsPremium() (bool, int64, error) {
+	var count int64
+	result := s.db.Table("sles_subscriptions").Where("id", SlesIdentifier).Count(&count)
+	if result.Error != nil {
+		return false, 0, result.Error
 	}
 
-	var subData = &SubscriptionData{Type: Free}
-
-	for _, node := range consulNodes {
-		subs, err := subscription.Load(s.consul, node.Node)
-		if err != nil {
-			log.Errorf("Couldn't get subscriptions data from node %s", node.Node)
-			continue
-		}
-
-		for _, sub := range subs {
-			if sub.Identifier == SlesIdentifier {
-				subData.SubscribedCount += 1
-				subData.Type = Premium
-			}
-		}
-	}
-
-	return subData, nil
+	return count>0, count, nil
 }
 
 func (s *subscriptionsService) GetHostSubscriptions(host string) ([]*models.SlesSubscription, error) {

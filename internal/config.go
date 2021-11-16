@@ -6,6 +6,8 @@ import (
 	"path"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 )
@@ -62,6 +64,10 @@ func InitConfig(configName string) error {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 			return err
 		}
+	}
+
+	if configFile := viper.ConfigFileUsed(); configFile != "" {
+		log.Infof("Using config file: %s", configFile)
 	}
 
 	return nil

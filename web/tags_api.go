@@ -22,7 +22,7 @@ type JSONTag struct {
 // @Param resource_type query string false "Filter by resource type"
 // @Success 200 {object} []string
 // @Failure 500 {object} map[string]string
-// @Router /api/tags [get]
+// @Router /tags [get]
 func ApiListTag(tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		query := c.Request.URL.Query()
@@ -53,7 +53,7 @@ func ApiListTag(tagsService services.TagsService) gin.HandlerFunc {
 // @Failure 404 {object} map[string]string
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router /api/hosts/{name}/tags [post]
+// @Router /hosts/{name}/tags [post]
 func ApiHostCreateTagHandler(client consul.Client, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		name := c.Param("name")
@@ -94,7 +94,7 @@ func ApiHostCreateTagHandler(client consul.Client, tagsService services.TagsServ
 // @Param name path string true "Host name"
 // @Param tag path string true "Tag"
 // @Success 204 {object} map[string]interface{}
-// @Router /api/hosts/{name}/tags/{tag} [delete]
+// @Router /hosts/{name}/tags/{tag} [delete]
 func ApiHostDeleteTagHandler(client consul.Client, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		name := c.Param("name")
@@ -131,7 +131,7 @@ func ApiHostDeleteTagHandler(client consul.Client, tagsService services.TagsServ
 // @Failure 404 {object} map[string]string
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router /api/clusters/{id}/tags [post]
+// @Router /clusters/{id}/tags [post]
 func ApiClusterCreateTagHandler(client consul.Client, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
@@ -172,7 +172,7 @@ func ApiClusterCreateTagHandler(client consul.Client, tagsService services.TagsS
 // @Param id path string true "Cluster id"
 // @Param tag path string true "Tag"
 // @Success 204 {object} map[string]interface{}
-// @Router /api/clusters/{id}/tags/{tag} [delete]
+// @Router /clusters/{id}/tags/{tag} [delete]
 func ApiClusterDeleteTagHandler(client consul.Client, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
@@ -209,7 +209,7 @@ func ApiClusterDeleteTagHandler(client consul.Client, tagsService services.TagsS
 // @Failure 404 {object} map[string]string
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router /api/sapsystems/{id}/tags [post]
+// @Router /sapsystems/{id}/tags [post]
 func ApiSAPSystemCreateTagHandler(sapSystemsService services.SAPSystemsService, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
@@ -250,7 +250,7 @@ func ApiSAPSystemCreateTagHandler(sapSystemsService services.SAPSystemsService, 
 // @Param id path string true "SAPSystem id"
 // @Param tag path string true "Tag"
 // @Success 204 {object} map[string]interface{}
-// @Router /api/sapsystems/{id}/tags/{tag} [delete]
+// @Router /sapsystems/{id}/tags/{tag} [delete]
 func ApiSAPSystemDeleteTagHandler(sapSystemsService services.SAPSystemsService, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
@@ -287,7 +287,7 @@ func ApiSAPSystemDeleteTagHandler(sapSystemsService services.SAPSystemsService, 
 // @Failure 404 {object} map[string]string
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router /api/databases/{id}/tags [post]
+// @Router /databases/{id}/tags [post]
 func ApiDatabaseCreateTagHandler(sapSystemsService services.SAPSystemsService, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
@@ -328,7 +328,7 @@ func ApiDatabaseCreateTagHandler(sapSystemsService services.SAPSystemsService, t
 // @Param id path string true "Database id"
 // @Param tag path string true "Tag"
 // @Success 204 {object} map[string]interface{}
-// @Router /api/databases/{id}/tags/{tag} [delete]
+// @Router /databases/{id}/tags/{tag} [delete]
 func ApiDatabaseDeleteTagHandler(sapSystemsService services.SAPSystemsService, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")

@@ -118,7 +118,7 @@ func MigrateDB(db *gorm.DB) error {
 	err := db.AutoMigrate(
 		models.Tag{}, models.SelectedChecks{}, models.ConnectionSettings{}, models.CheckRaw{},
 		datapipeline.DataCollectedEvent{}, datapipeline.Subscription{}, models.HostTelemetry{},
-		entities.Cluster{}, entities.Host{}, entities.HostHeartbeat{},
+		entities.Cluster{}, entities.Host{}, entities.HostHeartbeat{}, entities.SlesSubscription{},
 	)
 
 	if err != nil {

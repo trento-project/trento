@@ -17,6 +17,7 @@ type Host struct {
 	SIDs          pq.StringArray `gorm:"column:sids; type:text[]"`
 	AgentVersion  string
 	Heartbeat     *HostHeartbeat `gorm:"foreignKey:AgentID"`
+	Subscription  *SlesSubscription `gorm:"foreignKey:AgentID"`
 	Tags          []*models.Tag  `gorm:"polymorphic:Resource;polymorphicValue:hosts"`
 	UpdatedAt     time.Time
 }

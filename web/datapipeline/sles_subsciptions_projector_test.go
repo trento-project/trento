@@ -10,6 +10,7 @@ import (
 	_ "github.com/trento-project/trento/test"
 	"github.com/trento-project/trento/test/helpers"
 	"github.com/trento-project/trento/web/entities"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -49,6 +50,18 @@ func (suite *SlesSubscriptionsProjectorTestSuite) SetupTest() {
 		SubscriptionStatus: "ACTIVE",
 		Type:               "internal",
 	})
+
+	suite.tx.Create(&entities.SlesSubscription{
+		AgentID:            "879cdd70-e9e2-58ca-b18a-bf3eb3f71244",
+		ID:                 "SLES_SAP",
+		Version:            "15.2",
+		Arch:               "x86_64",
+		Status:             "Registered",
+		StartsAt:           "2017-03-20 09:55:32 UTC",
+		ExpiresAt:          "2021-03-20 09:55:32 UTC",
+		SubscriptionStatus: "ACTIVE",
+		Type:               "internal",
+	})
 }
 
 func (suite *SlesSubscriptionsProjectorTestSuite) TearDownTest() {
@@ -68,7 +81,7 @@ func (suite *SlesSubscriptionsProjectorTestSuite) Test_SlesSubscriptionsProjecto
 	subsProjector_SubscriptionDiscoveryHandler(dataCollectedEvent, suite.tx)
 
 	var projectedSub entities.SlesSubscription
-	suite.tx.Last(&projectedSub)
+	suite.tx.Where("agent_id", "779cdd70-e9e2-58ca-b18a-bf3eb3f71244").Last(&projectedSub)
 
 	expectedSub := entities.SlesSubscription{
 		AgentID:            "779cdd70-e9e2-58ca-b18a-bf3eb3f71244",
@@ -83,4 +96,32 @@ func (suite *SlesSubscriptionsProjectorTestSuite) Test_SlesSubscriptionsProjecto
 	}
 
 	suite.Equal(expectedSub, projectedSub)
+
+	var projectedSubs []*entities.SlesSubscription
+	suite.tx.Where("agent_id", "779cdd70-e9e2-58ca-b18a-bf3eb3f71244").Find(&projectedSubs)
+	suite.Equal(7, len(projectedSubs))
+}
+
+func (suite *SlesSubscriptionsProjectorTestSuite) Test_SlesSubscriptionsProjectorDelete() {
+
+	jsonFile, err := os.Open("./test/fixtures/discovery/subscriptions/expected_published_subscriptions_discovery.json")
+	if err != nil {
+		panic(err)
+	}
+	byteValue, _ := ioutil.ReadAll(jsonFile)
+	var dataCollectedEvent *DataCollectedEvent
+	json.Unmarshal(byteValue, &dataCollectedEvent)
+
+	subsProjector_SubscriptionDiscoveryHandler(dataCollectedEvent, suite.tx)
+
+	// Send a new discovery with empty data
+	dataCollectedEvent.Payload = datatypes.JSON([]byte(`[]`))
+	subsProjector_SubscriptionDiscoveryHandler(dataCollectedEvent, suite.tx)
+
+	var count int64
+	suite.tx.Table("sles_subscriptions").Where("agent_id", "779cdd70-e9e2-58ca-b18a-bf3eb3f71244").Count(&count)
+	suite.Equal(int64(0), count)
+
+	suite.tx.Table("sles_subscriptions").Where("agent_id", "879cdd70-e9e2-58ca-b18a-bf3eb3f71244").Count(&count)
+	suite.Equal(int64(1), count)
 }

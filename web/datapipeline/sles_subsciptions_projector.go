@@ -6,7 +6,6 @@ import (
 	"github.com/trento-project/trento/internal/subscription"
 	"github.com/trento-project/trento/web/entities"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 func NewSlesSubscriptionsProjector(db *gorm.DB) *projector {
@@ -44,7 +43,14 @@ func subsProjector_SubscriptionDiscoveryHandler(dataCollectedEvent *DataCollecte
 		subEntities = append(subEntities, subEntity)
 	}
 
-	return db.Clauses(clause.OnConflict{
-		UpdateAll: true,
-	}).Create(&subEntities).Error
+	return db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("agent_id", dataCollectedEvent.AgentID).Delete(&entities.SlesSubscription{}).Error; err != nil {
+			return err
+		}
+		if len(subEntities) > 0 {
+			return tx.Create(&subEntities).Error
+		}
+
+		return nil
+	})
 }

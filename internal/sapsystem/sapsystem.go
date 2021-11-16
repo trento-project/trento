@@ -32,6 +32,11 @@ const (
 	sappfparCmd          string = "sappfpar SAPSYSTEMNAME SAPGLOBALHOST SAPFQDN SAPDBHOST dbs/hdb/dbname dbs/hdb/schema rdisp/msp/msserv rdisp/msserv_internal name=%s"
 )
 
+const (
+	SAPSystemsApplication string = "application"
+	SAPSystemsDatabase    string = "database"
+)
+
 var systemTypes = map[int]string{
 	0: "Unknown",
 	1: "Database",

@@ -119,6 +119,7 @@ func MigrateDB(db *gorm.DB) error {
 		models.Tag{}, models.SelectedChecks{}, models.ConnectionSettings{}, models.CheckRaw{},
 		datapipeline.DataCollectedEvent{}, datapipeline.Subscription{}, models.HostTelemetry{},
 		entities.Cluster{}, entities.Host{}, entities.HostHeartbeat{}, entities.SlesSubscription{},
+		entities.SAPSystemInstance{},
 	)
 
 	if err != nil {

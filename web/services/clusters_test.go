@@ -96,7 +96,7 @@ func (suite *ClustersServiceTestSuite) TestClustersService_GetAll() {
 	suite.checksService.On("GetAggregatedChecksResultByCluster", "2").Return(&AggregatedCheckData{WarningCount: 1}, nil)
 	suite.checksService.On("GetAggregatedChecksResultByCluster", "3").Return(&AggregatedCheckData{CriticalCount: 1}, nil)
 
-	clusters, _ := suite.clustersService.GetAll(map[string][]string{})
+	clusters, _ := suite.clustersService.GetAll(nil, nil)
 
 	suite.ElementsMatch(models.ClusterList{
 		&models.Cluster{
@@ -135,15 +135,23 @@ func (suite *ClustersServiceTestSuite) TestClustersService_GetAll() {
 func (suite *ClustersServiceTestSuite) TestClustersService_GetAll_Filter() {
 	suite.checksService.On("GetAggregatedChecksResultByCluster", "1").Return(&AggregatedCheckData{PassingCount: 1}, nil)
 
-	clusters, _ := suite.clustersService.GetAll(map[string][]string{
-		"health":       {models.CheckPassing},
-		"cluster_type": {models.ClusterTypeScaleUp},
-		"sids":         {"DEV"},
-		"tags":         {"tag1"},
-	})
+	clusters, _ := suite.clustersService.GetAll(&ClustersFilter{
+		Name:        []string{"cluster1"},
+		SIDs:        []string{"DEV"},
+		ClusterType: []string{models.ClusterTypeScaleUp},
+		Health:      []string{models.CheckPassing},
+		Tags:        []string{"tag1"},
+	}, nil)
 
 	suite.Equal(1, len(clusters))
 	suite.Equal(clusters[0].ID, "1")
+}
+
+func (suite *ClustersServiceTestSuite) TestClustersService_GetClustersCount() {
+	count, err := suite.clustersService.GetCount()
+
+	suite.NoError(err)
+	suite.Equal(3, count)
 }
 
 func (suite *ClustersServiceTestSuite) TestClustersService_GetAllClusterTypes() {

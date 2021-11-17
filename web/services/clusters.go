@@ -1,8 +1,6 @@
 package services
 
 import (
-	"fmt"
-
 	"github.com/lib/pq"
 	"github.com/trento-project/trento/internal"
 	"github.com/trento-project/trento/web/entities"
@@ -13,10 +11,19 @@ import (
 //go:generate mockery --name=ClustersService --inpackage --filename=clusters_mock.go
 
 type ClustersService interface {
-	GetAll(filters map[string][]string) (models.ClusterList, error)
+	GetAll(*ClustersFilter, *Page) (models.ClusterList, error)
+	GetCount() (int, error)
 	GetAllClusterTypes() ([]string, error)
 	GetAllSIDs() ([]string, error)
 	GetAllTags() ([]string, error)
+}
+
+type ClustersFilter struct {
+	Name        []string
+	ClusterType []string
+	SIDs        []string
+	Tags        []string
+	Health      []string
 }
 
 type clustersService struct {
@@ -31,30 +38,29 @@ func NewClustersService(db *gorm.DB, checksService ChecksService) *clustersServi
 	}
 }
 
-func (s *clustersService) GetAll(filters map[string][]string) (models.ClusterList, error) {
+func (s *clustersService) GetAll(filter *ClustersFilter, page *Page) (models.ClusterList, error) {
 	var clusters []entities.Cluster
-	db := s.db.Preload("Tags")
+	db := s.db.Preload("Tags").Scopes(Paginate(page))
 
-	if tags, ok := filters["tags"]; ok {
-		db = db.Where("id IN (?)", s.db.Model(&models.Tag{}).
-			Select("resource_id").
-			Where("resource_type = ?", models.TagClusterResourceType).
-			Where("value IN ?", tags),
-		)
-	}
-
-	if sids, ok := filters["sids"]; ok {
-		if len(sids) > 0 {
-			db = s.db.Where("sids && ?", pq.Array(sids))
+	if filter != nil {
+		if len(filter.Name) > 0 {
+			db = s.db.Where("name IN (?)", filter.Name)
 		}
-	}
 
-	for _, f := range []string{"name", "cluster_type"} {
-		if v, ok := filters[f]; ok {
-			if len(v) > 0 {
-				q := fmt.Sprintf("%s IN (?)", f)
-				db = s.db.Where(q, v)
-			}
+		if len(filter.ClusterType) > 0 {
+			db = s.db.Where("cluster_type IN (?)", filter.ClusterType)
+		}
+
+		if len(filter.SIDs) > 0 {
+			db = s.db.Where("sids && ?", pq.Array(filter.SIDs))
+		}
+
+		if len(filter.Tags) > 0 {
+			db = db.Where("id IN (?)", s.db.Model(&models.Tag{}).
+				Select("resource_id").
+				Where("resource_type = ?", models.TagClusterResourceType).
+				Where("value IN ?", filter.Tags),
+			)
 		}
 	}
 
@@ -73,11 +79,18 @@ func (s *clustersService) GetAll(filters map[string][]string) (models.ClusterLis
 		return nil, err
 	}
 
-	if healthFilter, ok := filters["health"]; ok {
-		clusterList = filterByHealth(clusterList, healthFilter)
+	if filter != nil && len(filter.Health) > 0 {
+		clusterList = filterByHealth(clusterList, filter.Health)
 	}
 
 	return clusterList, nil
+}
+
+func (s *clustersService) GetCount() (int, error) {
+	var count int64
+	err := s.db.Model(&entities.Cluster{}).Count(&count).Error
+
+	return int(count), err
 }
 
 func (s *clustersService) GetAllClusterTypes() ([]string, error) {

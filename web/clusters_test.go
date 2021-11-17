@@ -531,7 +531,8 @@ func TestClustersListHandler(t *testing.T) {
 	}
 
 	mockClusterService := new(services.MockClustersService)
-	mockClusterService.On("GetAll", mock.Anything).Return(clustersList, nil)
+	mockClusterService.On("GetAll", mock.Anything, mock.Anything).Return(clustersList, nil)
+	mockClusterService.On("GetCount").Return(4, nil)
 	mockClusterService.On("GetAllClusterTypes", mock.Anything).Return(
 		[]string{models.ClusterTypeScaleUp, models.ClusterTypeUnknown},
 		nil,

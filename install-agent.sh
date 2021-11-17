@@ -98,11 +98,11 @@ Description="HashiCorp Consul - A service mesh solution"
 Documentation=https://www.consul.io/
 Requires=network-online.target
 After=network-online.target
-ConditionFileNotEmpty=/srv/consul/consul.d/consul.hcl
+ConditionFileNotEmpty=@CONFIG_PATH@/consul.hcl
 PartOf=trento-agent.service
 
 [Service]
-ExecStart=/srv/consul/consul agent -config-dir=/srv/consul/consul.d
+ExecStart=/srv/consul/consul agent -config-dir=@CONFIG_PATH@
 ExecReload=/bin/kill --signal HUP $MAINPID
 KillMode=process
 Restart=on-failure
@@ -116,6 +116,7 @@ WantedBy=multi-user.target'
 AGENT_CONFIG_PATH="/etc/trento"
 AGENT_CONFIG_FILE="$AGENT_CONFIG_PATH/agent.yaml"
 AGENT_CONFIG_TEMPLATE='
+consul-config-dir: @CONFIG_PATH@
 collector-host: @COLLECTOR_HOST@
 '
 
@@ -168,7 +169,9 @@ function setup_consul() {
         rm "/usr/lib/systemd/system/$CONSUL_SERVICE_NAME"
     fi
 
-    echo "$CONSUL_SERVICE_TEMPLATE" >/usr/lib/systemd/system/$CONSUL_SERVICE_NAME
+    echo "$CONSUL_SERVICE_TEMPLATE" |
+        sed "s|@CONFIG_PATH@|${CONFIG_PATH}|g" \
+            >/usr/lib/systemd/system/$CONSUL_SERVICE_NAME
     systemctl daemon-reload
 }
 
@@ -236,6 +239,7 @@ function setup_trento() {
     mkdir -p ${AGENT_CONFIG_PATH} && touch ${AGENT_CONFIG_FILE}
 
     echo "$AGENT_CONFIG_TEMPLATE" |
+        sed "s|@CONFIG_PATH@|${CONFIG_PATH}|g" |
         sed "s|@COLLECTOR_HOST@|${SERVER_IP}|g" \
             > ${AGENT_CONFIG_FILE}
 }

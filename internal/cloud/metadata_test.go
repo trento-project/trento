@@ -50,6 +50,29 @@ func TestIdentifyCloudProviderAzure(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func mockDmidecodeAws() *exec.Cmd {
+	return exec.Command("echo", "4.11.amazon")
+}
+
+func TestIdentifyCloudProviderAws(t *testing.T) {
+	mockCommand := new(mocks.CustomCommand)
+
+	customExecCommand = mockCommand.Execute
+
+	mockCommand.On("Execute", "dmidecode", "-s", "chassis-asset-tag").Return(
+		mockDmidecodeNoCloud(),
+	)
+
+	mockCommand.On("Execute", "dmidecode", "-s", "system-version").Return(
+		mockDmidecodeAws(),
+	)
+
+	provider, err := IdentifyCloudProvider()
+
+	assert.Equal(t, "aws", provider)
+	assert.NoError(t, err)
+}
+
 func mockDmidecodeNoCloud() *exec.Cmd {
 	return exec.Command("echo", "")
 }
@@ -60,6 +83,10 @@ func TestIdentifyCloudProviderNoCloud(t *testing.T) {
 	customExecCommand = mockCommand.Execute
 
 	mockCommand.On("Execute", "dmidecode", "-s", "chassis-asset-tag").Return(
+		mockDmidecodeNoCloud(),
+	)
+
+	mockCommand.On("Execute", "dmidecode", "-s", "system-version").Return(
 		mockDmidecodeNoCloud(),
 	)
 
@@ -107,6 +134,10 @@ func TestNewCloudInstanceNoCloud(t *testing.T) {
 	customExecCommand = mockCommand.Execute
 
 	mockCommand.On("Execute", "dmidecode", "-s", "chassis-asset-tag").Return(
+		mockDmidecodeNoCloud(),
+	)
+
+	mockCommand.On("Execute", "dmidecode", "-s", "system-version").Return(
 		mockDmidecodeNoCloud(),
 	)
 

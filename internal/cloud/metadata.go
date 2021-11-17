@@ -11,6 +11,7 @@ import (
 const (
 	Azure = "azure"
 	Aws   = "aws"
+	Gcp   = "gcp"
 	// DMI chassis asset tag for Azure machines, needed to identify wether or not we are running on Azure
 	// This is actually ASCII-encoded, the decoding into a string results in "MSFT AZURE VM"
 	azureDmiTag = "7783-7084-3265-9085-8269-3286-77"
@@ -24,6 +25,9 @@ type CloudInstance struct {
 type CustomCommand func(name string, arg ...string) *exec.Cmd
 
 var customExecCommand CustomCommand = exec.Command
+
+// All these detection methods are based in crmsh code, which has been refined over the years
+// https://github.com/ClusterLabs/crmsh/blob/master/crmsh/utils.py#L2009
 
 func identifyAzure() (bool, error) {
 	log.Debug("Checking if the VM is running on Azure...")
@@ -51,6 +55,19 @@ func identifyAws() (bool, error) {
 	return regexp.MatchString(".*amazon.*", provider)
 }
 
+func identifyGcp() (bool, error) {
+	log.Debug("Checking if the VM is running on Gcp...")
+	output, err := customExecCommand("dmidecode", "-s", "bios-vendor").Output()
+	if err != nil {
+		return false, err
+	}
+
+	provider := strings.TrimSpace(string(output))
+	log.Debugf("dmidecode output: %s", provider)
+
+	return regexp.MatchString(".*Google.*", provider)
+}
+
 func IdentifyCloudProvider() (string, error) {
 	log.Info("Identifying if the VM is running in a cloud environment...")
 
@@ -66,6 +83,13 @@ func IdentifyCloudProvider() (string, error) {
 	} else if result {
 		log.Infof("VM is running on %s", Aws)
 		return Aws, nil
+	}
+
+	if result, err := identifyGcp(); err != nil {
+		return "", err
+	} else if result {
+		log.Infof("VM is running on %s", Gcp)
+		return Gcp, nil
 	}
 
 	log.Info("VM is not running in any recognized cloud provider")

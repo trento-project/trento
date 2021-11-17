@@ -142,6 +142,7 @@ jobs:
         with:
           context: .
           push: false
+          target: ${{ matrix.image }}
           tags: ${{ env.IMAGE_REPOSITORY }}:${{ env.IMAGE_TAG }}
           outputs: type=docker,dest=/tmp/trento-${{ matrix.image }}.tar          
       - name: Upload artifact

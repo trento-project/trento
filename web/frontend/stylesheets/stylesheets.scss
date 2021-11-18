@@ -63,6 +63,12 @@ dt {
   pre code {
     color: $eos-bc-red-900;
   }
+  pre {
+    overflow-x: scroll;
+    overflow-y: scroll;
+    max-width: 80rem;
+    max-height: 30rem;
+  }
 }
 
 .nav-title {

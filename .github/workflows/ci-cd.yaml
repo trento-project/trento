@@ -94,7 +94,7 @@ jobs:
       - name: trento checks ID sanity test
         run: python3 hack/id_checker.py
 
-  build-container-images:
+  build-and-push-container-images:
     runs-on: ubuntu-20.04
     if: github.event_name == 'release' || (github.event_name == 'push' && github.ref_name == 'main') || github.event_name == 'workflow_dispatch'
     needs: [test-binary, test-checks]
@@ -137,7 +137,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  build-container-assets:
+  build-and-export-container-images:
     runs-on: ubuntu-20.04
     needs: [test-binary, test-checks]
     strategy:
@@ -179,7 +179,7 @@ jobs:
 
   smoke-test-container-images:
     runs-on: ubuntu-20.04
-    needs: build-container-images
+    needs: build-and-export-container-images
     strategy:
       matrix:
         image:
@@ -297,7 +297,7 @@ jobs:
 
   deploy-server:
     runs-on: [ self-hosted, trento-gh-runner ]
-    needs: [ smoke-test-container-images, test-helm-charts, release-rolling ]
+    needs: [ smoke-test-container-images, build-and-push-container-images, test-helm-charts, release-rolling ]
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
     environment: AZURE_DEMO
     env:

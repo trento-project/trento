@@ -6,7 +6,7 @@
 
 - name: load environment variables
   include_vars:
-    dir: "/tmp/trento/ansible/vars/{{ env | default('azure') }}"
+    dir: "{{ playbook_dir }}/vars/{{ env | default('azure') }}"
   delegate_to: localhost
   run_once: true
 

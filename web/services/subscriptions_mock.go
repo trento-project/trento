@@ -35,8 +35,31 @@ func (_m *MockSubscriptionsService) GetHostSubscriptions(host string) ([]*models
 	return r0, r1
 }
 
+// GetPremiumData provides a mock function with given fields:
+func (_m *MockSubscriptionsService) GetPremiumData() (*models.PremiumData, error) {
+	ret := _m.Called()
+
+	var r0 *models.PremiumData
+	if rf, ok := ret.Get(0).(func() *models.PremiumData); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.PremiumData)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // IsTrentoPremium provides a mock function with given fields:
-func (_m *MockSubscriptionsService) IsTrentoPremium() (bool, int64, error) {
+func (_m *MockSubscriptionsService) IsTrentoPremium() (bool, error) {
 	ret := _m.Called()
 
 	var r0 bool
@@ -46,19 +69,12 @@ func (_m *MockSubscriptionsService) IsTrentoPremium() (bool, int64, error) {
 		r0 = ret.Get(0).(bool)
 	}
 
-	var r1 int64
-	if rf, ok := ret.Get(1).(func() int64); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
 		r1 = rf()
 	} else {
-		r1 = ret.Get(1).(int64)
+		r1 = ret.Error(1)
 	}
 
-	var r2 error
-	if rf, ok := ret.Get(2).(func() error); ok {
-		r2 = rf()
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
+	return r0, r1
 }

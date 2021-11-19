@@ -13,7 +13,8 @@ const (
 
 //go:generate mockery --name=SubscriptionsService --inpackage --filename=subscriptions_mock.go
 type SubscriptionsService interface {
-	IsTrentoPremium() (bool, int64, error) // Returns if trento is premium or not and the number of subscribed SLES_SAP machines
+	IsTrentoPremium() (bool, error)
+	GetPremiumData() (*models.PremiumData, error)
 	GetHostSubscriptions(host string) ([]*models.SlesSubscription, error)
 }
 
@@ -25,14 +26,28 @@ func NewSubscriptionsService(db *gorm.DB) *subscriptionsService {
 	return &subscriptionsService{db: db}
 }
 
-func (s *subscriptionsService) IsTrentoPremium() (bool, int64, error) {
+func (s *subscriptionsService) IsTrentoPremium() (bool, error) {
+	premiumData, err := s.GetPremiumData()
+	if err != nil {
+		return false, err
+	}
+
+	return premiumData.IsPremium, nil
+}
+
+func (s *subscriptionsService) GetPremiumData() (*models.PremiumData, error) {
 	var count int64
 	result := s.db.Table("sles_subscriptions").Where("id", SlesIdentifier).Count(&count)
 	if result.Error != nil {
-		return false, 0, result.Error
+		return nil, result.Error
 	}
 
-	return count > 0, count, nil
+	premiumData := &models.PremiumData{
+		IsPremium:     count > 0,
+		Sles4SapCount: int(count),
+	}
+
+	return premiumData, nil
 }
 
 func (s *subscriptionsService) GetHostSubscriptions(host string) ([]*models.SlesSubscription, error) {

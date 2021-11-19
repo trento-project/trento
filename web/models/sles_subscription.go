@@ -10,3 +10,8 @@ type SlesSubscription struct {
 	ExpiresAt          string
 	SubscriptionStatus string
 }
+
+type PremiumData struct {
+	IsPremium     bool
+	Sles4SapCount int
+}

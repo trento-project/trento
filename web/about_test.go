@@ -9,12 +9,17 @@ import (
 	"github.com/tdewolff/minify/v2"
 	"github.com/tdewolff/minify/v2/html"
 
+	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
 )
 
 func TestAboutHandlerPremium(t *testing.T) {
 	subscriptionsMocks := new(services.MockSubscriptionsService)
-	subscriptionsMocks.On("IsTrentoPremium").Return(true, int64(2), nil)
+	premiumData := &models.PremiumData{
+		IsPremium:     true,
+		Sles4SapCount: 2,
+	}
+	subscriptionsMocks.On("GetPremiumData").Return(premiumData, nil)
 
 	deps := setupTestDependencies()
 	deps.subscriptionsService = subscriptionsMocks
@@ -52,7 +57,11 @@ func TestAboutHandlerPremium(t *testing.T) {
 
 func TestAboutHandlerCommunity(t *testing.T) {
 	subscriptionsMocks := new(services.MockSubscriptionsService)
-	subscriptionsMocks.On("IsTrentoPremium").Return(false, int64(0), nil)
+	premiumData := &models.PremiumData{
+		IsPremium:     false,
+		Sles4SapCount: 0,
+	}
+	subscriptionsMocks.On("GetPremiumData").Return(premiumData, nil)
 
 	deps := setupTestDependencies()
 	deps.subscriptionsService = subscriptionsMocks

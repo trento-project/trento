@@ -81,18 +81,38 @@ func loadSubsFixtures(db *gorm.DB) {
 }
 
 func (suite *SubscriptionServiceTestSuite) TestSubscriptionService_IsTrentoPremium() {
-	premium, count, err := suite.subsService.IsTrentoPremium()
+	premium, err := suite.subsService.IsTrentoPremium()
 
 	suite.Equal(premium, true)
-	suite.Equal(count, int64(2))
 	suite.NoError(err)
 
 	suite.tx.Where("id", "SLES_SAP").Delete(&entities.SlesSubscription{})
 
-	premium, count, err = suite.subsService.IsTrentoPremium()
+	premium, err = suite.subsService.IsTrentoPremium()
 
 	suite.Equal(premium, false)
-	suite.Equal(count, int64(0))
+	suite.NoError(err)
+}
+
+func (suite *SubscriptionServiceTestSuite) TestSubscriptionService_GetPremiumData() {
+	premiumData, err := suite.subsService.GetPremiumData()
+
+	expectedPremiumData := &models.PremiumData{
+		IsPremium:     true,
+		Sles4SapCount: 2,
+	}
+	suite.Equal(expectedPremiumData, premiumData)
+	suite.NoError(err)
+
+	suite.tx.Where("id", "SLES_SAP").Delete(&entities.SlesSubscription{})
+
+	premiumData, err = suite.subsService.GetPremiumData()
+
+	expectedPremiumData = &models.PremiumData{
+		IsPremium:     false,
+		Sles4SapCount: 0,
+	}
+	suite.Equal(expectedPremiumData, premiumData)
 	suite.NoError(err)
 }
 

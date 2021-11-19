@@ -5,7 +5,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/trento-project/trento/agent/discovery/collector"
-	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/subscription"
 )
 
@@ -16,10 +15,10 @@ type SubscriptionDiscovery struct {
 	discovery BaseDiscovery
 }
 
-func NewSubscriptionDiscovery(consulClient consul.Client, collectorClient collector.Client) SubscriptionDiscovery {
+func NewSubscriptionDiscovery(collectorClient collector.Client) SubscriptionDiscovery {
 	r := SubscriptionDiscovery{}
 	r.id = SubscriptionDiscoveryId
-	r.discovery = NewDiscovery(consulClient, collectorClient)
+	r.discovery = NewDiscovery(nil, collectorClient)
 	return r
 }
 
@@ -29,11 +28,6 @@ func (d SubscriptionDiscovery) GetId() string {
 
 func (d SubscriptionDiscovery) Discover() (string, error) {
 	subsData, err := subscription.NewSubscriptions()
-	if err != nil {
-		return "", err
-	}
-
-	err = subsData.Store(d.discovery.consulClient)
 	if err != nil {
 		return "", err
 	}

@@ -10,16 +10,16 @@ import (
 
 func NewAboutHandler(s services.SubscriptionsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		subData, err := s.GetSubscriptionData()
+		premiumData, err := s.GetPremiumData()
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 
 		c.HTML(http.StatusOK, "about.html.tmpl", gin.H{
-			"Title":            defaultLayoutData.Title,
-			"Version":          defaultLayoutData.Version,
-			"SubscriptionData": subData,
+			"Title":       defaultLayoutData.Title,
+			"Version":     defaultLayoutData.Version,
+			"PremiumData": premiumData,
 		})
 	}
 }

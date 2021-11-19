@@ -12,10 +12,10 @@
                     <dt class="col-sm-3">Github repository</dt>
                     <dd class="col-sm-9"><a href="https://github.com/trento-project/trento" target="_blank">https://github.com/trento-project/trento</a></dd>
                     <dt class="col-sm-3">Subscription</dt>
-                    <dd class="col-sm-9"><span class='badge badge-{{ if eq .SubscriptionData.Type "Premium" }}success{{ else }}secondary{{ end }}'>{{ .SubscriptionData.Type }}</span></dd>
-                    {{- if eq .SubscriptionData.Type "Premium" }}
+                    <dd class="col-sm-9"><span class='badge badge-{{ if .PremiumData.IsPremium }}success{{ else }}secondary{{ end }}'>{{ if .PremiumData.IsPremium }}Premium{{ else }}Community{{ end }}</span></dd>
+                    {{- if .PremiumData.IsPremium }}
                     <dt class="col-sm-3">SLES_SAP machines</dt>
-                    <dd class="col-sm-9">{{ .SubscriptionData.SubscribedCount }}</dd>
+                    <dd class="col-sm-9">{{ .PremiumData.Sles4SapCount }}</dd>
                     {{- end }}
                 </dl>
             </div>

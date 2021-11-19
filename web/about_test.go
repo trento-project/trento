@@ -9,14 +9,17 @@ import (
 	"github.com/tdewolff/minify/v2"
 	"github.com/tdewolff/minify/v2/html"
 
+	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
 )
 
 func TestAboutHandlerPremium(t *testing.T) {
 	subscriptionsMocks := new(services.MockSubscriptionsService)
-
-	subscriptionsMocks.On("GetSubscriptionData").Return(
-		&services.SubscriptionData{Type: services.Premium, SubscribedCount: 2}, nil)
+	premiumData := &models.PremiumData{
+		IsPremium:     true,
+		Sles4SapCount: 2,
+	}
+	subscriptionsMocks.On("GetPremiumData").Return(premiumData, nil)
 
 	deps := setupTestDependencies()
 	deps.subscriptionsService = subscriptionsMocks
@@ -52,11 +55,13 @@ func TestAboutHandlerPremium(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("<dt.*>SLES_SAP machines</dt><dd.*>2.*</dd>"), minified)
 }
 
-func TestAboutHandlerFree(t *testing.T) {
+func TestAboutHandlerCommunity(t *testing.T) {
 	subscriptionsMocks := new(services.MockSubscriptionsService)
-
-	subscriptionsMocks.On("GetSubscriptionData").Return(
-		&services.SubscriptionData{Type: services.Free, SubscribedCount: 0}, nil)
+	premiumData := &models.PremiumData{
+		IsPremium:     false,
+		Sles4SapCount: 0,
+	}
+	subscriptionsMocks.On("GetPremiumData").Return(premiumData, nil)
 
 	deps := setupTestDependencies()
 	deps.subscriptionsService = subscriptionsMocks
@@ -88,6 +93,6 @@ func TestAboutHandlerFree(t *testing.T) {
 
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, minified, "About")
-	assert.Regexp(t, regexp.MustCompile("<dt.*>Subscription</dt><dd.*>Free.*</dd>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<dt.*>Subscription</dt><dd.*>Community.*</dd>"), minified)
 	assert.NotContains(t, minified, "SLES_SAP machine")
 }

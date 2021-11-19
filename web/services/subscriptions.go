@@ -1,70 +1,75 @@
 package services
 
 import (
-	log "github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 
-	consulApi "github.com/hashicorp/consul/api"
-	"github.com/trento-project/trento/internal/consul"
-	"github.com/trento-project/trento/internal/subscription"
+	"github.com/trento-project/trento/web/entities"
+	"github.com/trento-project/trento/web/models"
 )
 
 const (
 	SlesIdentifier string = "SLES_SAP"
-	Premium        string = "Premium"
-	Free           string = "Free"
 )
-
-type SubscriptionData struct {
-	Type            string
-	SubscribedCount int
-}
 
 //go:generate mockery --name=SubscriptionsService --inpackage --filename=subscriptions_mock.go
 type SubscriptionsService interface {
-	GetSubscriptionData() (*SubscriptionData, error)
-	GetHostSubscriptions(host string) (subscription.Subscriptions, error)
+	IsTrentoPremium() (bool, error)
+	GetPremiumData() (*models.PremiumData, error)
+	GetHostSubscriptions(host string) ([]*models.SlesSubscription, error)
 }
 
 type subscriptionsService struct {
-	consul consul.Client
+	db *gorm.DB
 }
 
-func NewSubscriptionsService(client consul.Client) SubscriptionsService {
-	return &subscriptionsService{consul: client}
+func NewSubscriptionsService(db *gorm.DB) *subscriptionsService {
+	return &subscriptionsService{db: db}
 }
 
-func (s *subscriptionsService) GetSubscriptionData() (*SubscriptionData, error) {
-	query := &consulApi.QueryOptions{}
-	consulNodes, _, err := s.consul.Catalog().Nodes(query)
+func (s *subscriptionsService) IsTrentoPremium() (bool, error) {
+	premiumData, err := s.GetPremiumData()
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
-	var subData = &SubscriptionData{Type: Free}
-
-	for _, node := range consulNodes {
-		subs, err := subscription.Load(s.consul, node.Node)
-		if err != nil {
-			log.Errorf("Couldn't get subscriptions data from node %s", node.Node)
-			continue
-		}
-
-		for _, sub := range subs {
-			if sub.Identifier == SlesIdentifier {
-				subData.SubscribedCount += 1
-				subData.Type = Premium
-			}
-		}
-	}
-
-	return subData, nil
+	return premiumData.IsPremium, nil
 }
 
-func (s *subscriptionsService) GetHostSubscriptions(host string) (subscription.Subscriptions, error) {
-	subs, err := subscription.Load(s.consul, host)
-	if err != nil {
-		return nil, err
+func (s *subscriptionsService) GetPremiumData() (*models.PremiumData, error) {
+	var count int64
+	result := s.db.Table("sles_subscriptions").Where("id", SlesIdentifier).Count(&count)
+	if result.Error != nil {
+		return nil, result.Error
 	}
 
-	return subs, nil
+	premiumData := &models.PremiumData{
+		IsPremium:     count > 0,
+		Sles4SapCount: int(count),
+	}
+
+	return premiumData, nil
+}
+
+func (s *subscriptionsService) GetHostSubscriptions(host string) ([]*models.SlesSubscription, error) {
+	// Get the agent id by host name. This should be removed once the host page uses the agent id
+	// to go the host details page
+	var hostEntity *entities.Host
+	result := s.db.Where("name", host).Find(&hostEntity)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	agent_id := hostEntity.ToModel().ID
+
+	var subEntities []*entities.SlesSubscription
+	result = s.db.Where("agent_id", agent_id).Find(&subEntities)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	var subModels []*models.SlesSubscription
+	for _, sub := range subEntities {
+		subModels = append(subModels, sub.ToModel())
+	}
+
+	return subModels, nil
 }

@@ -93,7 +93,7 @@ func DefaultDependencies(config *Config) Dependencies {
 	tagsService := services.NewTagsService(db)
 	araService := ara.NewAraService(viper.GetString("ara-addr"))
 	checksService := services.NewChecksService(araService, db)
-	subscriptionsService := services.NewSubscriptionsService(consulClient)
+	subscriptionsService := services.NewSubscriptionsService(db)
 	hostsService := services.NewHostsService(consulClient)
 	hostsServiceNext := services.NewHostsNextService(db)
 	sapSystemsService := services.NewSAPSystemsService(consulClient)
@@ -118,7 +118,7 @@ func MigrateDB(db *gorm.DB) error {
 	err := db.AutoMigrate(
 		models.Tag{}, models.SelectedChecks{}, models.ConnectionSettings{}, models.CheckRaw{},
 		datapipeline.DataCollectedEvent{}, datapipeline.Subscription{}, models.HostTelemetry{},
-		entities.Cluster{}, entities.Host{}, entities.HostHeartbeat{},
+		entities.Cluster{}, entities.Host{}, entities.HostHeartbeat{}, entities.SlesSubscription{},
 	)
 
 	if err != nil {

@@ -10,5 +10,6 @@ func InitProjectorsRegistry(db *gorm.DB) ProjectorRegistry {
 		NewClustersProjector(db),
 		NewHostsProjector(db),
 		NewHostTelemetryProjector(db),
+		NewSlesSubscriptionsProjector(db),
 	}
 }

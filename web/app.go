@@ -67,6 +67,7 @@ type Dependencies struct {
 	collectorService     services.CollectorService
 	clustersService      services.ClustersService
 	hostsNextService     services.HostsNextService
+	settingsService      services.SettingsService
 }
 
 func DefaultDependencies(config *Config) Dependencies {
@@ -99,11 +100,12 @@ func DefaultDependencies(config *Config) Dependencies {
 	sapSystemsService := services.NewSAPSystemsService(consulClient)
 	clustersService := services.NewClustersService(db, checksService)
 	collectorService := services.NewCollectorService(db, projectorWorkersPool.GetChannel())
+	settingsService := services.NewSettingsService(db)
 
 	return Dependencies{
 		consulClient, webEngine, collectorEngine, store, projectorWorkersPool,
 		checksService, subscriptionsService, hostsService, sapSystemsService, tagsService,
-		collectorService, clustersService, hostsServiceNext,
+		collectorService, clustersService, hostsServiceNext, settingsService,
 	}
 }
 
@@ -116,10 +118,10 @@ func NewNamedEngine(instance string) *gin.Engine {
 
 func MigrateDB(db *gorm.DB) error {
 	err := db.AutoMigrate(
-		models.Tag{}, models.SelectedChecks{}, models.ConnectionSettings{}, models.CheckRaw{},
-		datapipeline.DataCollectedEvent{}, datapipeline.Subscription{}, models.HostTelemetry{},
-		entities.Cluster{}, entities.Host{}, entities.HostHeartbeat{}, entities.SlesSubscription{},
-		entities.SAPSystemInstance{},
+		entities.Settings{}, models.Tag{}, models.SelectedChecks{}, models.ConnectionSettings{},
+		models.CheckRaw{}, datapipeline.DataCollectedEvent{}, datapipeline.Subscription{},
+		models.HostTelemetry{}, entities.Cluster{}, entities.Host{}, entities.HostHeartbeat{},
+		entities.SlesSubscription{}, entities.SAPSystemInstance{},
 	)
 
 	if err != nil {
@@ -138,6 +140,11 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 	app := &App{
 		config:       config,
 		Dependencies: deps,
+	}
+
+	if _, err := deps.settingsService.InitializeIdentifier(); err != nil {
+		log.Errorf("failed to initialize installation identifier: %s", err)
+		return nil, err
 	}
 
 	InitAlerts()

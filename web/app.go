@@ -14,6 +14,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
@@ -26,6 +27,7 @@ import (
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
 	"github.com/trento-project/trento/web/services/ara"
+	"github.com/trento-project/trento/web/telemetry"
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -39,7 +41,8 @@ var assetsFS embed.FS
 var templatesFS embed.FS
 
 type App struct {
-	config *Config
+	InstallationID uuid.UUID
+	config         *Config
 	Dependencies
 }
 
@@ -68,6 +71,8 @@ type Dependencies struct {
 	clustersService      services.ClustersService
 	hostsNextService     services.HostsNextService
 	settingsService      services.SettingsService
+	telemetryRegistry    *telemetry.TelemetryRegistry
+	telemetryPublisher   telemetry.Publisher
 }
 
 func DefaultDependencies(config *Config) Dependencies {
@@ -101,11 +106,14 @@ func DefaultDependencies(config *Config) Dependencies {
 	clustersService := services.NewClustersService(db, checksService)
 	collectorService := services.NewCollectorService(db, projectorWorkersPool.GetChannel())
 	settingsService := services.NewSettingsService(db)
+	telemetryRegistry := telemetry.NewTelemetryRegistry(db)
+	telemetryPublisher := telemetry.NewTelemetryPublisher()
 
 	return Dependencies{
 		consulClient, webEngine, collectorEngine, store, projectorWorkersPool,
 		checksService, subscriptionsService, hostsService, sapSystemsService, tagsService,
 		collectorService, clustersService, hostsServiceNext, settingsService,
+		telemetryRegistry, telemetryPublisher,
 	}
 }
 
@@ -142,10 +150,13 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 		Dependencies: deps,
 	}
 
-	if _, err := deps.settingsService.InitializeIdentifier(); err != nil {
+	installationID, err := deps.settingsService.InitializeIdentifier()
+	if err != nil {
 		log.Errorf("failed to initialize installation identifier: %s", err)
 		return nil, err
 	}
+
+	app.InstallationID = installationID
 
 	InitAlerts()
 	webEngine := deps.webEngine
@@ -249,6 +260,17 @@ func (a *App) Start(ctx context.Context) error {
 
 	g.Go(func() error {
 		a.projectorWorkersPool.Run(ctx)
+		return nil
+	})
+
+	telemetryEngine := telemetry.NewEngine(
+		a.InstallationID,
+		a.Dependencies.telemetryPublisher,
+		a.Dependencies.telemetryRegistry,
+	)
+
+	g.Go(func() error {
+		telemetryEngine.Start(ctx)
 		return nil
 	})
 

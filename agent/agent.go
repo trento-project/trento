@@ -186,7 +186,7 @@ func (a *Agent) startDiscoverTicker() {
 	}
 
 	interval := a.config.DiscoveryPeriod
-	repeat(tick, interval, a.ctx)
+	internal.Repeat("agent.discovery", tick, interval, a.ctx)
 }
 
 func (a *Agent) startHeartbeatTicker() {
@@ -197,23 +197,7 @@ func (a *Agent) startHeartbeatTicker() {
 		}
 	}
 
-	repeat(tick, internal.HeartbeatInterval, a.ctx)
-}
-
-func repeat(tick func(), interval time.Duration, ctx context.Context) {
-	// run the first tick immediately
-	tick()
-
-	ticker := time.NewTicker(interval)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ticker.C:
-			tick()
-		case <-ctx.Done():
-			return
-		}
-	}
+	internal.Repeat("agent.heartbeat", tick, internal.HeartbeatInterval, a.ctx)
 }
 
 func storeAgentMetadata(client consul.Client, version string) error {

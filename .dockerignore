@@ -1,3 +1,6 @@
-web/frontend/node_modules
-web/frontend/assets
-trento
+/*.sh
+/.github
+/packaging
+/trento
+/web/frontend/assets
+/web/frontend/node_modules

@@ -1,11 +1,19 @@
 FROM node:16 AS node-build
 WORKDIR /build
-ADD . /build
+ADD Makefile /build
+# we add what's needed to run install node packages so that dependencies can be cached in a dedicate layer
+ADD web/frontend/package.json web/frontend/package-lock.json /build/web/frontend/
+RUN make web-deps
+ADD web/frontend /build/web/frontend
 RUN make web-assets
 
 FROM golang:1.16 as go-build
-COPY --from=node-build /build /build
 WORKDIR /build
+# we add what's needed to download go modules so that dependencies can be cached in a dedicate layer
+ADD go.mod go.sum /build/
+RUN go mod download
+ADD . /build
+COPY --from=node-build /build /build
 RUN make build
 
 FROM python:3.7-slim AS trento-runner

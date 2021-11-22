@@ -19,6 +19,7 @@ import (
 
 type Client interface {
 	Publish(discoveryType string, payload interface{}) error
+	Heartbeat() error
 }
 
 type client struct {
@@ -86,13 +87,8 @@ func (c *client) Publish(discoveryType string, payload interface{}) error {
 		return err
 	}
 
-	protocol := "http"
-	if c.config.EnablemTLS {
-		protocol = "https"
-	}
-
-	endpoint := fmt.Sprintf("%s://%s:%d/api/collect", protocol, c.config.CollectorHost, c.config.CollectorPort)
-	resp, err := c.httpClient.Post(endpoint, "application/json", bytes.NewBuffer(requestBody))
+	url := fmt.Sprintf("%s/api/collect", c.getBaseURL())
+	resp, err := c.httpClient.Post(url, "application/json", bytes.NewBuffer(requestBody))
 	if err != nil {
 		return err
 	}
@@ -104,6 +100,28 @@ func (c *client) Publish(discoveryType string, payload interface{}) error {
 	}
 
 	return nil
+}
+
+func (c *client) Heartbeat() error {
+	url := fmt.Sprintf("%s/api/hosts/%s/heartbeat", c.getBaseURL(), c.agentID)
+	resp, err := c.httpClient.Post(url, "application/json", nil)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusNoContent {
+		return fmt.Errorf("server responded with status code %d while sending heartbeat", resp.StatusCode)
+	}
+
+	return nil
+}
+
+func (c *client) getBaseURL() string {
+	protocol := "http"
+	if c.config.EnablemTLS {
+		protocol = "https"
+	}
+	return fmt.Sprintf("%s://%s:%d", protocol, c.config.CollectorHost, c.config.CollectorPort)
 }
 
 func getTLSConfig(cert, key, ca string) (*tls.Config, error) {

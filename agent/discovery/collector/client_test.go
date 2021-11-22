@@ -3,6 +3,7 @@ package collector
 import (
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"testing"
@@ -127,4 +128,27 @@ func (suite *CollectorClientTestSuite) TestCollectorClient_PublishingFailure() {
 	err = collectorClient.Publish("some_discovery_type", struct{}{})
 
 	suite.Error(err)
+}
+
+func (suite *CollectorClientTestSuite) TestCollectorClient_Heartbeat() {
+	collectorClient, err := NewCollectorClient(&Config{
+		EnablemTLS:    true,
+		CollectorHost: "localhost",
+		CollectorPort: 8081,
+		Cert:          "./test/certs/client-cert.pem",
+		Key:           "./test/certs/client-key.pem",
+		CA:            "./test/certs/ca-cert.pem",
+	})
+
+	suite.NoError(err)
+
+	collectorClient.httpClient.Transport = helpers.RoundTripFunc(func(req *http.Request) *http.Response {
+		suite.Equal(req.URL.String(), fmt.Sprintf("https://localhost:8081/api/hosts/%s/heartbeat", DummyAgentID))
+		return &http.Response{
+			StatusCode: 204,
+		}
+	})
+	err = collectorClient.Heartbeat()
+
+	suite.NoError(err)
 }

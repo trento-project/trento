@@ -109,7 +109,7 @@ jobs:
     env:
       REGISTRY: ghcr.io
       IMAGE_REPOSITORY: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
-      IMAGE_TAG: "${{ (github.event_name == 'release' && github.event.release.tag_name) || (github.event_name == 'push' && github.ref_name == 'main' && 'rolling') || github.sha }}"      
+      IMAGE_TAG: "${{ (github.event_name == 'release' && github.event.release.tag_name) || (github.event_name == 'push' && github.ref_name == 'main' && 'rolling') || github.sha }}"
     steps:
       - uses: actions/checkout@v2
         with:
@@ -170,12 +170,12 @@ jobs:
           target: ${{ matrix.image }}
           tags: ${{ env.IMAGE_REPOSITORY }}:${{ env.IMAGE_TAG }}
           labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=docker,dest=/tmp/trento-${{ matrix.image }}.tar          
+          outputs: type=docker,dest=/tmp/${{ matrix.image }}.tar
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: trento-${{ matrix.image }}
-          path: /tmp/trento-${{ matrix.image }}.tar
+          name: ${{ matrix.image }}
+          path: /tmp/${{ matrix.image }}.tar
 
   smoke-test-container-images:
     runs-on: ubuntu-20.04
@@ -194,10 +194,10 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v2
         with:
-          name: trento-${{ matrix.image }}
+          name: ${{ matrix.image }}
           path: /tmp
       - name: Load image
-        run: docker load --input /tmp/trento-${{ matrix.image }}.tar
+        run: docker load --input /tmp/${{ matrix.image }}.tar
       - name: Test CLI
         run: docker run --rm ${{ env.IMAGE_REPOSITORY }}:${{ env.IMAGE_TAG }} version
 

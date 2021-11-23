@@ -6,6 +6,7 @@
 package runner
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"os"
@@ -177,13 +178,16 @@ func (a *AnsibleRunner) RunPlaybook() error {
 		cmd.Env = append(cmd.Env, newEnv)
 	}
 
-	output, err := cmd.CombinedOutput()
-
-	log.Debugf("Ansible output:\n%s:", output)
+	var b bytes.Buffer
+	cmd.Stdout = &b
+	cmd.Stderr = &b
+	err := cmd.Run()
+	go func() {
+		log.Info("Ansible output:\n%s", b.String())
+	}()
 
 	if err != nil {
 		log.Errorf("An error occurred while running ansible: %s", err)
-		return err
 	}
 
 	log.Info("Ansible playbook execution finished successfully")

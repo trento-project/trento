@@ -128,7 +128,7 @@ func MigrateDB(db *gorm.DB) error {
 	err := db.AutoMigrate(
 		entities.Settings{}, models.Tag{}, models.SelectedChecks{}, models.ConnectionSettings{},
 		models.CheckRaw{}, datapipeline.DataCollectedEvent{}, datapipeline.Subscription{},
-		models.HostTelemetry{}, entities.Cluster{}, entities.Host{}, entities.HostHeartbeat{},
+		entities.HostTelemetry{}, entities.Cluster{}, entities.Host{}, entities.HostHeartbeat{},
 		entities.SlesSubscription{}, entities.SAPSystemInstance{},
 	)
 

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/trento-project/trento/web/models"
+	"github.com/trento-project/trento/web/entities"
 	"gorm.io/gorm"
 )
 
@@ -27,7 +27,7 @@ type HostTelemetryExtractor struct {
 }
 
 func (ex *HostTelemetryExtractor) Extract() (interface{}, error) {
-	var collectedHostsTelemetry []models.HostTelemetry
+	var collectedHostsTelemetry []entities.HostTelemetry
 	var publishableHostTelemetries HostTelemetries
 
 	if err := ex.db.Find(&collectedHostsTelemetry).Error; err != nil {

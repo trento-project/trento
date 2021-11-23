@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/trento-project/trento/test/helpers"
-	"github.com/trento-project/trento/web/models"
+	"github.com/trento-project/trento/web/entities"
 	"gorm.io/gorm"
 )
 
@@ -23,11 +23,11 @@ func TestHostTelemetryTestSuite(t *testing.T) {
 func (suite *HostTelemetryTestSuite) SetupSuite() {
 	suite.db = helpers.SetupTestDatabase(suite.T())
 
-	suite.db.AutoMigrate(&models.HostTelemetry{})
+	suite.db.AutoMigrate(&entities.HostTelemetry{})
 }
 
 func (suite *HostTelemetryTestSuite) TearDownSuite() {
-	suite.db.Migrator().DropTable(models.HostTelemetry{})
+	suite.db.Migrator().DropTable(entities.HostTelemetry{})
 }
 
 func (suite *HostTelemetryTestSuite) SetupTest() {
@@ -76,11 +76,11 @@ func (suite *HostTelemetryTestSuite) Test_ExtractsEmptyHostTelemetry() {
 	suite.Nil(extracted)
 }
 
-func hostTelemetryFixtures() []models.HostTelemetry {
+func hostTelemetryFixtures() []entities.HostTelemetry {
 	t1 := time.Date(2020, 11, 12, 11, 45, 26, 0, time.UTC)
 	t2 := time.Date(2020, 11, 13, 11, 45, 26, 0, time.UTC)
 
-	return []models.HostTelemetry{
+	return []entities.HostTelemetry{
 		{
 			AgentID:       "some-agent-id",
 			SLESVersion:   "15-sp2",

@@ -24,6 +24,7 @@ EOF
 
 cmdline() {
     local arg=
+    local private_key_absolute_path=
     for arg
     do
         local delim=""
@@ -63,6 +64,14 @@ cmdline() {
     if [[ -z "$PRIVATE_KEY" ]]; then
         read -rp "Please provide the path of the runner private key: " PRIVATE_KEY </dev/tty
     fi
+
+    # Replace tilde with the current home:
+    PRIVATE_KEY="${PRIVATE_KEY/#\~/$HOME}"
+    private_key_absolute_path=$(realpath -q -e "$PRIVATE_KEY" || {
+         echo "Path '${PRIVATE_KEY}' to private SSH key does not exist, please try again."
+         exit 1
+    })
+    PRIVATE_KEY="$private_key_absolute_path"
 
     if [[ "$ROLLING" == "true" ]]; then
         TRENTO_VERSION="rolling"

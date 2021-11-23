@@ -188,6 +188,7 @@ func (a *AnsibleRunner) RunPlaybook() error {
 
 	if err != nil {
 		log.Errorf("An error occurred while running ansible: %s", err)
+		return err
 	}
 
 	log.Info("Ansible playbook execution finished successfully")

@@ -169,6 +169,7 @@ func (a *AnsibleRunner) RunPlaybook() error {
 	}
 
 	cmd := customExecCommand("ansible-playbook", cmdItems...)
+
 	cmd.Env = os.Environ()
 	for key, value := range a.Envs {
 		newEnv := fmt.Sprintf("%s=%s", key, value)
@@ -177,8 +178,8 @@ func (a *AnsibleRunner) RunPlaybook() error {
 	}
 
 	output, err := cmd.CombinedOutput()
-	os.Stdout.Write(output)
-	log.Infof("Ansible output:\n%s:", output)
+
+	log.Debugf("Ansible output:\n%s:", output)
 
 	if err != nil {
 		log.Errorf("An error occurred while running ansible: %s", err)

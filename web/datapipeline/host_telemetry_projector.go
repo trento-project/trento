@@ -4,7 +4,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/trento-project/trento/internal/cloud"
 	"github.com/trento-project/trento/internal/hosts"
-	"github.com/trento-project/trento/web/models"
+	"github.com/trento-project/trento/web/entities"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -27,7 +27,7 @@ func hostTelemetryProjector_HostDiscoveryHandler(dataCollectedEvent *DataCollect
 		return err
 	}
 
-	telemetryReadModel := models.HostTelemetry{
+	telemetryReadModel := entities.HostTelemetry{
 		AgentID:       dataCollectedEvent.AgentID,
 		SLESVersion:   discoveredHost.OSVersion,
 		HostName:      discoveredHost.HostName,
@@ -54,7 +54,7 @@ func hostTelemetryProjector_CloudDiscoveryHandler(dataCollectedEvent *DataCollec
 		return err
 	}
 
-	telemetryReadModel := models.HostTelemetry{
+	telemetryReadModel := entities.HostTelemetry{
 		AgentID:       dataCollectedEvent.AgentID,
 		CloudProvider: discoveredCloud.Provider,
 	}
@@ -62,7 +62,7 @@ func hostTelemetryProjector_CloudDiscoveryHandler(dataCollectedEvent *DataCollec
 	return storeHostTelemetry(db, telemetryReadModel, "cloud_provider")
 }
 
-func storeHostTelemetry(db *gorm.DB, telemetryReadModel models.HostTelemetry, updateColumns ...string) error {
+func storeHostTelemetry(db *gorm.DB, telemetryReadModel entities.HostTelemetry, updateColumns ...string) error {
 	return db.Clauses(clause.OnConflict{
 		Columns: []clause.Column{
 			{Name: "agent_id"},

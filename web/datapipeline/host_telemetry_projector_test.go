@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	_ "github.com/trento-project/trento/test"
 	"github.com/trento-project/trento/test/helpers"
-	"github.com/trento-project/trento/web/models"
+	"github.com/trento-project/trento/web/entities"
 	"gorm.io/gorm"
 )
 
@@ -26,11 +26,11 @@ func TestHostTelemetryProjectorTestSuite(t *testing.T) {
 func (suite *HostTelemetryProjectorTestSuite) SetupSuite() {
 	suite.db = helpers.SetupTestDatabase(suite.T())
 
-	suite.db.AutoMigrate(&Subscription{}, &models.HostTelemetry{})
+	suite.db.AutoMigrate(&Subscription{}, &entities.HostTelemetry{})
 }
 
 func (suite *HostTelemetryProjectorTestSuite) TearDownSuite() {
-	suite.db.Migrator().DropTable(Subscription{}, models.HostTelemetry{})
+	suite.db.Migrator().DropTable(Subscription{}, entities.HostTelemetry{})
 }
 
 func (suite *HostTelemetryProjectorTestSuite) SetupTest() {
@@ -54,7 +54,7 @@ func (s *HostTelemetryProjectorTestSuite) Test_HostDiscoveryHandler() {
 		Payload:       requestBody,
 	}, s.tx)
 
-	var projectedTelemetry models.HostTelemetry
+	var projectedTelemetry entities.HostTelemetry
 	s.tx.First(&projectedTelemetry)
 
 	s.Equal(discoveredHostMock.HostName, projectedTelemetry.HostName)
@@ -78,7 +78,7 @@ func (s *HostTelemetryProjectorTestSuite) Test_CloudDiscoveryHandler() {
 		Payload:       requestBody,
 	}, s.tx)
 
-	var projectedTelemetry models.HostTelemetry
+	var projectedTelemetry entities.HostTelemetry
 	s.tx.First(&projectedTelemetry)
 
 	s.Equal("", projectedTelemetry.HostName)
@@ -116,7 +116,7 @@ func (s *HostTelemetryProjectorTestSuite) Test_TelemetryProjector() {
 		evtID++
 	}
 
-	var projectedTelemetry models.HostTelemetry
+	var projectedTelemetry entities.HostTelemetry
 	s.tx.First(&projectedTelemetry)
 
 	s.Equal(discoveredHostMock.HostName, projectedTelemetry.HostName)

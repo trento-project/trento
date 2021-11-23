@@ -12,6 +12,7 @@ import (
 
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"github.com/trento-project/trento/internal"
 	"github.com/trento-project/trento/internal/consul"
 
 	"github.com/trento-project/trento/api"
@@ -226,24 +227,5 @@ func (c *Runner) startCheckRunnerTicker() {
 	}
 
 	interval := c.config.Interval
-
-	repeat(tick, interval, c.ctx)
-}
-
-func repeat(tick func(), interval time.Duration, ctx context.Context) {
-	// run the first tick immediately
-	tick()
-
-	ticker := time.NewTicker(interval)
-	log.Debugf("Next execution in %s", interval)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ticker.C:
-			tick()
-			log.Debugf("Next execution in %s", interval)
-		case <-ctx.Done():
-			return
-		}
-	}
+	internal.Repeat("runner.ansible_playbook", tick, interval, c.ctx)
 }

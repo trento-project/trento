@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"context"
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -94,4 +96,25 @@ func CRC32hash(input []byte) int {
 	crc32Table := crc32.MakeTable(crc32.IEEE)
 	return int(crc32.Checksum(input, crc32Table))
 
+}
+
+// Repeat executes a function at a given interval.
+// the first tick runs immediately
+func Repeat(operation string, tick func(), interval time.Duration, ctx context.Context) {
+	tick()
+
+	ticker := time.NewTicker(interval)
+	msg := fmt.Sprintf("Next execution for operation %s in %s", operation, interval)
+	log.Debugf(msg)
+
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			tick()
+			log.Debugf(msg)
+		case <-ctx.Done():
+			return
+		}
+	}
 }

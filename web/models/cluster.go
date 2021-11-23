@@ -1,9 +1,13 @@
 package models
 
+import "time"
+
 const (
-	ClusterTypeScaleUp  = "HANA scale-up"
-	ClusterTypeScaleOut = "HANA scale-out"
-	ClusterTypeUnknown  = "Unknown"
+	ClusterTypeHANAScaleUp  = "HANA scale-up"
+	ClusterTypeHANAScaleOut = "HANA scale-out"
+	ClusterTypeUnknown      = "Unknown"
+	HANAStatusPrimary       = "Primary"
+	HANAStatusSecondary     = "Secondary"
 )
 
 type Cluster struct {
@@ -17,6 +21,53 @@ type Cluster struct {
 	Tags            []string
 	// TODO: this is frontend specific, should be removed
 	HasDuplicatedName bool
+	Details           interface{}
 }
 
 type ClusterList []*Cluster
+
+type HANAClusterDetails struct {
+	SystemReplicationMode          string
+	SystemReplicationOperationMode string
+	SecondarySyncState             string
+	SRHealthState                  string
+	CIBLastWritten                 time.Time
+	StonithType                    string
+	StoppedResources               []*ClusterResource
+	Nodes                          ClusterNodes
+	SBDDevices                     []*SBDDevice
+}
+
+type ClusterResource struct {
+	ID        string
+	Type      string
+	Role      string
+	Status    string
+	FailCount int
+}
+
+type HANAClusterNode struct {
+	Name        string
+	Site        string
+	IPAddresses []string
+	VirtualIPs  []string
+	Health      string
+	HANAStatus  string
+	Attributes  map[string]string
+	Resources   []*ClusterResource
+}
+
+type SBDDevice struct {
+	Device string
+}
+
+type ClusterNodes []*HANAClusterNode
+
+func (n ClusterNodes) GroupBySite() map[string]ClusterNodes {
+	sites := make(map[string]ClusterNodes)
+	for _, node := range n {
+		sites[node.Site] = append(sites[node.Site], node)
+	}
+
+	return sites
+}

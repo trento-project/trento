@@ -47,11 +47,11 @@ func loadClustersFixtures(db *gorm.DB) {
 	db.Create(&entities.Cluster{
 		ID:              "1",
 		Name:            "cluster1",
-		ClusterType:     models.ClusterTypeScaleUp,
+		ClusterType:     models.ClusterTypeHANAScaleUp,
 		SIDs:            []string{"DEV"},
 		ResourcesNumber: 10,
 		HostsNumber:     2,
-		Tags: []models.Tag{
+		Tags: []*models.Tag{
 			{
 				ResourceID:   "1",
 				ResourceType: models.TagClusterResourceType,
@@ -62,11 +62,11 @@ func loadClustersFixtures(db *gorm.DB) {
 	db.Create(&entities.Cluster{
 		ID:              "2",
 		Name:            "cluster2",
-		ClusterType:     models.ClusterTypeScaleOut,
+		ClusterType:     models.ClusterTypeHANAScaleOut,
 		SIDs:            []string{"QAS"},
 		ResourcesNumber: 11,
 		HostsNumber:     2,
-		Tags: []models.Tag{
+		Tags: []*models.Tag{
 			{
 				ResourceID:   "2",
 				ResourceType: models.TagClusterResourceType,
@@ -81,7 +81,7 @@ func loadClustersFixtures(db *gorm.DB) {
 		SIDs:            []string{"PRD", "PRD2"},
 		ResourcesNumber: 3,
 		HostsNumber:     5,
-		Tags: []models.Tag{
+		Tags: []*models.Tag{
 			{
 				ResourceID:   "3",
 				ResourceType: models.TagClusterResourceType,
@@ -102,7 +102,7 @@ func (suite *ClustersServiceTestSuite) TestClustersService_GetAll() {
 		&models.Cluster{
 			ID:              "1",
 			Name:            "cluster1",
-			ClusterType:     models.ClusterTypeScaleUp,
+			ClusterType:     models.ClusterTypeHANAScaleUp,
 			SIDs:            []string{"DEV"},
 			ResourcesNumber: 10,
 			HostsNumber:     2,
@@ -112,7 +112,7 @@ func (suite *ClustersServiceTestSuite) TestClustersService_GetAll() {
 		&models.Cluster{
 			ID:              "2",
 			Name:            "cluster2",
-			ClusterType:     models.ClusterTypeScaleOut,
+			ClusterType:     models.ClusterTypeHANAScaleOut,
 			SIDs:            []string{"QAS"},
 			ResourcesNumber: 11,
 			HostsNumber:     2,
@@ -138,7 +138,7 @@ func (suite *ClustersServiceTestSuite) TestClustersService_GetAll_Filter() {
 	clusters, _ := suite.clustersService.GetAll(&ClustersFilter{
 		Name:        []string{"cluster1"},
 		SIDs:        []string{"DEV"},
-		ClusterType: []string{models.ClusterTypeScaleUp},
+		ClusterType: []string{models.ClusterTypeHANAScaleUp},
 		Health:      []string{models.CheckPassing},
 		Tags:        []string{"tag1"},
 	}, nil)
@@ -157,8 +157,8 @@ func (suite *ClustersServiceTestSuite) TestClustersService_GetClustersCount() {
 func (suite *ClustersServiceTestSuite) TestClustersService_GetAllClusterTypes() {
 	clusterTypes, _ := suite.clustersService.GetAllClusterTypes()
 	suite.ElementsMatch(
-		[]string{models.ClusterTypeScaleUp,
-			models.ClusterTypeScaleOut,
+		[]string{models.ClusterTypeHANAScaleUp,
+			models.ClusterTypeHANAScaleOut,
 			models.ClusterTypeUnknown}, clusterTypes)
 }
 

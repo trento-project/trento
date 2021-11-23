@@ -5,6 +5,7 @@ import (
 
 	"github.com/lib/pq"
 	"github.com/trento-project/trento/web/models"
+	"gorm.io/datatypes"
 )
 
 type Cluster struct {
@@ -14,24 +15,120 @@ type Cluster struct {
 	SIDs            pq.StringArray `gorm:"column:sids; type:text[]"`
 	ResourcesNumber int
 	HostsNumber     int
-	Tags            []models.Tag `gorm:"polymorphic:Resource;polymorphicValue:clusters"`
+	Tags            []*models.Tag `gorm:"polymorphic:Resource;polymorphicValue:clusters"`
 	UpdatedAt       time.Time
+	Hosts           []*Host        `gorm:"foreignkey:cluster_id"`
+	Details         datatypes.JSON `json:"payload" binding:"required"`
 }
 
-func (h *Cluster) ToModel() *models.Cluster {
+type HANAClusterDetails struct {
+	SystemReplicationMode          string             `json:"system_replication_mode"`
+	SystemReplicationOperationMode string             `json:"system_replication_operation_mode"`
+	SecondarySyncState             string             `json:"secondary_sync_state"`
+	SRHealthState                  string             `json:"sr_health_state"`
+	CIBLastWritten                 time.Time          `json:"cib_last_written"`
+	StonithType                    string             `json:"stonith_type"`
+	StoppedResources               []*ClusterResource `json:"stopped_resources"`
+	Nodes                          []*HANAClusterNode `json:"nodes"`
+	SBDDevices                     []*SBDDevice       `json:"sbd_devices"`
+}
+
+type ClusterResource struct {
+	ID        string `json:"id"`
+	Type      string `json:"type"`
+	Role      string `json:"role"`
+	Status    string `json:"status"`
+	FailCount int    `json:"fail_count"`
+}
+
+type HANAClusterNode struct {
+	Name       string             `json:"name"`
+	Site       string             `json:"site"`
+	Attributes map[string]string  `json:"attributes"`
+	Resources  []*ClusterResource `json:"resources"`
+	VirtualIPs []string           `json:"virtual_ips"`
+	HANAStatus string             `json:"hana_status"`
+}
+
+type SBDDevice struct {
+	Device string `json:"device"`
+}
+
+func (c *Cluster) ToModel() *models.Cluster {
 	// TODO: move to Tags entity when we will have it
 	var tags []string
-	for _, tag := range h.Tags {
+	for _, tag := range c.Tags {
 		tags = append(tags, tag.Value)
 	}
 
 	return &models.Cluster{
-		ID:              h.ID,
-		Name:            h.Name,
-		ClusterType:     h.ClusterType,
-		SIDs:            h.SIDs,
-		ResourcesNumber: h.ResourcesNumber,
-		HostsNumber:     h.HostsNumber,
+		ID:              c.ID,
+		Name:            c.Name,
+		ClusterType:     c.ClusterType,
+		SIDs:            c.SIDs,
+		ResourcesNumber: c.ResourcesNumber,
+		HostsNumber:     c.HostsNumber,
 		Tags:            tags,
+	}
+}
+
+func (h *HANAClusterDetails) ToModel() *models.HANAClusterDetails {
+	var stoppedResources []*models.ClusterResource
+	for _, r := range h.StoppedResources {
+		stoppedResources = append(stoppedResources, r.ToModel())
+	}
+
+	var nodes []*models.HANAClusterNode
+	for _, n := range h.Nodes {
+		nodes = append(nodes, n.ToModel())
+	}
+
+	var sbdDevices []*models.SBDDevice
+	for _, s := range h.SBDDevices {
+		sbdDevices = append(sbdDevices, s.ToModel())
+	}
+
+	return &models.HANAClusterDetails{
+		SystemReplicationMode:          h.SystemReplicationMode,
+		SystemReplicationOperationMode: h.SystemReplicationOperationMode,
+		SecondarySyncState:             h.SecondarySyncState,
+		SRHealthState:                  h.SRHealthState,
+		CIBLastWritten:                 h.CIBLastWritten,
+		StonithType:                    h.StonithType,
+		StoppedResources:               stoppedResources,
+		Nodes:                          nodes,
+		SBDDevices:                     sbdDevices,
+	}
+}
+
+func (r *ClusterResource) ToModel() *models.ClusterResource {
+	return &models.ClusterResource{
+		ID:        r.ID,
+		Type:      r.Type,
+		Role:      r.Role,
+		Status:    r.Status,
+		FailCount: r.FailCount,
+	}
+}
+
+func (s *SBDDevice) ToModel() *models.SBDDevice {
+	return &models.SBDDevice{
+		Device: s.Device,
+	}
+}
+
+func (n *HANAClusterNode) ToModel() *models.HANAClusterNode {
+	var resources []*models.ClusterResource
+	for _, r := range n.Resources {
+		resources = append(resources, r.ToModel())
+	}
+
+	return &models.HANAClusterNode{
+		Name:       n.Name,
+		Site:       n.Site,
+		Attributes: n.Attributes,
+		Resources:  resources,
+		VirtualIPs: n.VirtualIPs,
+		HANAStatus: n.HANAStatus,
 	}
 }

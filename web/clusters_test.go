@@ -491,7 +491,7 @@ func TestClustersListHandler(t *testing.T) {
 		{
 			ID:                "47d1190ffb4f781974c8356d7f863b03",
 			Name:              "hana_cluster",
-			ClusterType:       models.ClusterTypeScaleUp,
+			ClusterType:       models.ClusterTypeHANAScaleUp,
 			SIDs:              []string{"PRD"},
 			ResourcesNumber:   5,
 			HostsNumber:       3,
@@ -534,7 +534,7 @@ func TestClustersListHandler(t *testing.T) {
 	mockClusterService.On("GetAll", mock.Anything, mock.Anything).Return(clustersList, nil)
 	mockClusterService.On("GetCount").Return(4, nil)
 	mockClusterService.On("GetAllClusterTypes", mock.Anything).Return(
-		[]string{models.ClusterTypeScaleUp, models.ClusterTypeUnknown},
+		[]string{models.ClusterTypeHANAScaleUp, models.ClusterTypeUnknown},
 		nil,
 	)
 	mockClusterService.On("GetAllSIDs", mock.Anything).Return([]string{"PRD"}, nil)

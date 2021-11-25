@@ -14,5 +14,6 @@ func LoadConfig() *runner.Config {
 		AraServer:     viper.GetString("ara-server"),
 		Interval:      time.Duration(interval) * time.Minute,
 		AnsibleFolder: viper.GetString("ansible-folder"),
+		LogLevel:      viper.GetString("log-level"),
 	}
 }

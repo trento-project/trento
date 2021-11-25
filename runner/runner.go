@@ -41,6 +41,7 @@ type Config struct {
 	AraServer     string
 	Interval      time.Duration
 	AnsibleFolder string
+	LogLevel 	  string
 }
 
 func NewRunner(config *Config) (*Runner, error) {
@@ -84,7 +85,7 @@ func (c *Runner) Start() error {
 		return fmt.Errorf("ARA server not available")
 	}
 
-	if err = metaRunner.RunPlaybook(); err != nil {
+	if err = metaRunner.RunPlaybook(c.config.LogLevel); err != nil {
 		return err
 	}
 
@@ -222,7 +223,7 @@ func (c *Runner) startCheckRunnerTicker() {
 			log.Error("ARA server not found. Skipping ansible execution as the data is not recorded")
 			return
 		}
-		checkRunner.RunPlaybook()
+		checkRunner.RunPlaybook(c.config.LogLevel)
 	}
 
 	interval := c.config.Interval

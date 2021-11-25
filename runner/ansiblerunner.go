@@ -8,6 +8,7 @@ package runner
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"os/exec"
@@ -153,7 +154,7 @@ func (a *AnsibleRunner) IsAraServerUp() bool {
 	return true
 }
 
-func (a *AnsibleRunner) RunPlaybook() error {
+func (a *AnsibleRunner) RunPlaybook(LogLevel string) error {
 	var cmdItems []string
 
 	log.Infof("Ansible playbook %s", a.Playbook)
@@ -178,20 +179,27 @@ func (a *AnsibleRunner) RunPlaybook() error {
 		cmd.Env = append(cmd.Env, newEnv)
 	}
 
-	var b bytes.Buffer
-	cmd.Stdout = &b
-	cmd.Stderr = &b
-	err := cmd.Run()
-	go func() {
-		log.Info("Ansible output:\n%s", b.String())
-	}()
-
-	if err != nil {
+	var stdBuffer bytes.Buffer
+	mw := io.MultiWriter(os.Stdout, &stdBuffer)
+	switch LogLevel {
+	case "error":
+		cmd.Stderr = mw
+		err := cmd.Run()
+		if err != nil {
 		log.Errorf("An error occurred while running ansible: %s", err)
 		return err
 	}
+	case "info":
+		cmd.Stdout = mw
+		err := cmd.Run()
+		if err != nil {
+		log.Errorf("An error occurred while running ansible: %s", err)
+		return err
+	}
+	}
 
 	log.Info("Ansible playbook execution finished successfully")
+	fmt.Printf("THE LOG LEVEL: %s", LogLevel)
 
 	return nil
 }

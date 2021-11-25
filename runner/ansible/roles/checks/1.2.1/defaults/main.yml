@@ -15,7 +15,7 @@ remediation: |
   crm configure property stonith-enabled=true
   ```
   ## References
-  - T.B.D.
+  - https://documentation.suse.com/sle-ha/15-SP3/html/SLE-HA-all/cha-ha-fencing.html#sec-ha-fencing-recommend
 implementation: "{{ lookup('file', 'roles/checks/'+name+'/tasks/main.yml') }}"
 
 # check id. This value must not be changed over the life of this check

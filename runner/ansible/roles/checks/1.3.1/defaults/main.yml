@@ -16,7 +16,7 @@ remediation: |
      ```crm configure property maintenance-mode=true```
   2. Stop the cluster:
      ```crm cluster stop```
-  3. Set the SBD_STARTMODE parameter to `yes` on `/etc/sysconfig/sbd`:
+  3. Set the SBD_PACEMAKER parameter to `yes` on `/etc/sysconfig/sbd`:
      ```
      [...]
      SBD_PACEMAKER="yes"
@@ -28,7 +28,7 @@ remediation: |
      ```crm configure property maintenance-mode=false```
 
   ## References
-  - T.B.D.
+  - https://documentation.suse.com/sle-ha/15-SP3:/html/SLE-HA-all/cha-ha-storage-protect.html
 implementation: "{{ lookup('file', 'roles/checks/'+name+'/tasks/main.yml') }}"
 
 # check id. This value must not be changed over the life of this check

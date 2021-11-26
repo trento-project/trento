@@ -160,6 +160,7 @@ func TestApiCreateChecksCatalogHandler(t *testing.T) {
 			Remediation:    "remediation1",
 			Implementation: "implementation1",
 			Labels:         "labels1",
+			Premium:        true,
 		},
 		&models.Check{
 			ID:             "id2",
@@ -195,6 +196,7 @@ func TestApiCreateChecksCatalogHandler(t *testing.T) {
 			Remediation:    "remediation1",
 			Implementation: "implementation1",
 			Labels:         "labels1",
+			Premium:        true,
 		},
 		&JSONCheck{
 			ID:             "id2",

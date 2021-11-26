@@ -1,5 +1,15 @@
-- name: Load metadata
+- name: Load top level metadata
   include_vars: "{{ metadata_path }}"
+
+# This 2nd load is needed to get a fresh data set, without pre-loading already existing data.
+# Otherwise, we might have previous checks data here, as the first include_vars adds the variables
+# as top level (we still need that). As example, if the 1st check is premium and 2nd not, only
+# with the 1st include_vars, the premium value would be inherited, and we don't want that, otherwise,
+# we would need to define the premium entry in all the metadata files without having default options
+- name: Load specific metadata
+  include_vars:
+    file: "{{ metadata_path }}"
+    name: metadata_vars
 
 - name: Set metadata {{ id }}
   set_fact:
@@ -12,7 +22,8 @@
             'description': description,
             'remediation': remediation,
             'labels': labels,
-            'implementation': implementation
+            'implementation': implementation,
+            'premium': metadata_vars.premium|default(False)
           }]
         }, recursive=True, list_merge='append')
       }}

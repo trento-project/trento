@@ -16,29 +16,30 @@ type EngineTestSuite struct {
 	dummyInstallationId uuid.UUID
 }
 
-const (
-	overriddenTelemetryCollectionInterval = 5 * time.Millisecond
-	Duration1Tick                         = 3 * time.Millisecond
-	Duration2Ticks                        = 6 * time.Millisecond
-)
-
 func TestEngineTestSuite(t *testing.T) {
 	suite.Run(t, new(EngineTestSuite))
 }
 
 func (suite *EngineTestSuite) SetupSuite() {
 	suite.dummyInstallationId = uuid.New()
-	telemetryCollectionInterval = overriddenTelemetryCollectionInterval
+	telemetryCollectionInterval = 50 * time.Millisecond
 }
 
 // Test_ExtractsAndPublishesSingleTelemetry tests simple scenario of extracting and publishing single telemetry.
 func (suite *EngineTestSuite) Test_ExtractsAndPublishesSingleTelemetry() {
 	dummyInstallationId := suite.dummyInstallationId
+	ctx, cancel := context.WithCancel(context.Background())
+	callcount := 0
 
 	mockedPublisher := new(MockPublisher)
 	mockedExtractor := new(MockExtractor)
 
-	mockedPublisher.On("Publish", "dummy_1", dummyInstallationId, mock.Anything).Return(nil)
+	mockedPublisher.On("Publish", "dummy_1", dummyInstallationId, mock.Anything).Run(func(args mock.Arguments) {
+		callcount++
+		if callcount == 2 {
+			cancel()
+		}
+	}).Return(nil)
 	mockedExtractor.On("Extract").Return(&struct{}{}, nil)
 
 	registry := &TelemetryRegistry{
@@ -51,12 +52,6 @@ func (suite *EngineTestSuite) Test_ExtractsAndPublishesSingleTelemetry() {
 		registry,
 	)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	go func() {
-		time.Sleep(Duration2Ticks)
-		cancel()
-	}()
-
 	engine.Start(ctx)
 
 	mockedPublisher.AssertNumberOfCalls(suite.T(), "Publish", 2)
@@ -66,6 +61,8 @@ func (suite *EngineTestSuite) Test_ExtractsAndPublishesSingleTelemetry() {
 // Test_ExtractsAndPublishesMultipleTelemetry tests the scenarion of extracting and publishing multiple telemetry.
 func (suite *EngineTestSuite) Test_ExtractsAndPublishesMultipleTelemetry() {
 	dummyInstallationId := suite.dummyInstallationId
+	ctx, cancel := context.WithCancel(context.Background())
+	callcount := 0
 
 	mockedPublisher := new(MockPublisher)
 	mockedExtractor := new(MockExtractor)
@@ -74,7 +71,12 @@ func (suite *EngineTestSuite) Test_ExtractsAndPublishesMultipleTelemetry() {
 	mockedPublisher.On("Publish", "dummy_2", dummyInstallationId, mock.Anything).Return(nil)
 	mockedPublisher.On("Publish", "dummy_3", dummyInstallationId, mock.Anything).Return(nil)
 	mockedPublisher.On("Publish", "dummy_4", dummyInstallationId, mock.Anything).Return(nil)
-	mockedPublisher.On("Publish", "dummy_5", dummyInstallationId, mock.Anything).Return(nil)
+	mockedPublisher.On("Publish", "dummy_5", dummyInstallationId, mock.Anything).Run(func(args mock.Arguments) {
+		callcount++
+		if callcount == 1 {
+			cancel()
+		}
+	}).Return(nil)
 	mockedExtractor.On("Extract").Return(&struct{}{}, nil)
 
 	registry := &TelemetryRegistry{
@@ -91,12 +93,6 @@ func (suite *EngineTestSuite) Test_ExtractsAndPublishesMultipleTelemetry() {
 		registry,
 	)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	go func() {
-		time.Sleep(Duration1Tick)
-		cancel()
-	}()
-
 	engine.Start(ctx)
 
 	mockedPublisher.AssertNumberOfCalls(suite.T(), "Publish", 5)
@@ -106,6 +102,8 @@ func (suite *EngineTestSuite) Test_ExtractsAndPublishesMultipleTelemetry() {
 // Test_ExtractsAndPublishesAlsoIdentifiedTelemetries tests the scenario of supporting identified extractors.
 func (suite *EngineTestSuite) Test_ExtractsAndPublishesAlsoIdentifiedExtractors() {
 	dummyInstallationId := suite.dummyInstallationId
+	ctx, cancel := context.WithCancel(context.Background())
+	callcount := 0
 
 	mockedPublisher := new(MockPublisher)
 	mockedExtractor := new(MockExtractor)
@@ -115,7 +113,12 @@ func (suite *EngineTestSuite) Test_ExtractsAndPublishesAlsoIdentifiedExtractors(
 	mockedPublisher.On("Publish", "dummy_2", dummyInstallationId, mock.Anything).Return(nil)
 	mockedPublisher.On("Publish", "dummy_3", dummyInstallationId, mock.Anything).Return(nil)
 	mockedPublisher.On("Publish", "dummy_4", dummyInstallationId, mock.Anything).Return(nil)
-	mockedPublisher.On("Publish", "dummy_5", dummyInstallationId, mock.Anything).Return(nil)
+	mockedPublisher.On("Publish", "dummy_5", dummyInstallationId, mock.Anything).Run(func(args mock.Arguments) {
+		callcount++
+		if callcount == 1 {
+			cancel()
+		}
+	}).Return(nil)
 
 	mockedExtractor.On("Extract").Return(&struct{}{}, nil)
 	mockedIdentifiedExtractor.On("Extract").Return(&struct{}{}, nil)
@@ -135,12 +138,6 @@ func (suite *EngineTestSuite) Test_ExtractsAndPublishesAlsoIdentifiedExtractors(
 		registry,
 	)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	go func() {
-		time.Sleep(Duration1Tick)
-		cancel()
-	}()
-
 	engine.Start(ctx)
 
 	mockedPublisher.AssertNumberOfCalls(suite.T(), "Publish", 5)
@@ -153,6 +150,8 @@ func (suite *EngineTestSuite) Test_ExtractsAndPublishesAlsoIdentifiedExtractors(
 // That means that the engine will not publish if an error occurs in the extraction.
 func (suite *EngineTestSuite) Test_ExtractsAndPublishesAlsoWithSomeErrors() {
 	dummyInstallationId := suite.dummyInstallationId
+	ctx, cancel := context.WithCancel(context.Background())
+	callcount := 0
 
 	mockedPublisher := new(MockPublisher)
 	mockedExtractor := new(MockExtractor)
@@ -160,7 +159,12 @@ func (suite *EngineTestSuite) Test_ExtractsAndPublishesAlsoWithSomeErrors() {
 
 	mockedPublisher.On("Publish", "dummy_1", dummyInstallationId, mock.Anything).Return(nil)
 	mockedPublisher.On("Publish", "dummy_2", dummyInstallationId, mock.Anything).Return(nil)
-	mockedPublisher.On("Publish", "dummy_3", dummyInstallationId, mock.Anything).Return(nil)
+	mockedPublisher.On("Publish", "dummy_3", dummyInstallationId, mock.Anything).Run(func(args mock.Arguments) {
+		callcount++
+		if callcount == 1 {
+			cancel()
+		}
+	}).Return(nil)
 
 	mockedExtractor.On("Extract").Return(&struct{}{}, nil)
 	mockederroringExtractor.On("Extract").Return(nil, errors.New("dummy error"))
@@ -176,12 +180,6 @@ func (suite *EngineTestSuite) Test_ExtractsAndPublishesAlsoWithSomeErrors() {
 		mockedPublisher,
 		registry,
 	)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	go func() {
-		time.Sleep(Duration1Tick)
-		cancel()
-	}()
 
 	engine.Start(ctx)
 

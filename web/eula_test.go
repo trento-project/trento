@@ -23,7 +23,7 @@ func TestEulaAcceptHandler(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req := httptest.NewRequest("GET", "/accept-eula", nil)
+	req := httptest.NewRequest("POST", "/accept-eula", nil)
 
 	app.webEngine.ServeHTTP(resp, req)
 

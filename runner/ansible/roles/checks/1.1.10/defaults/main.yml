@@ -8,9 +8,10 @@ description: |
 remediation: |
   ## Abstract
   It is required that the corosync.conf files are identical across all nodes in the cluster.
+  Usually, it is done automatically if you have configured csync2, but in case some manual intervention is made, it could cause cluster outages. 
 
   ## References
-  - T.B.D
+  - https://documentation.suse.com/sle-ha/15-SP3/html/SLE-HA-all/cha-ha-ycluster.html#sec-ha-installation-setup-csync2
 implementation: "{{ lookup('file', 'roles/checks/'+name+'/tasks/main.yml') }}"
 
 # check id. This value must not be changed over the life of this check

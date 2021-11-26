@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
+	"github.com/trento-project/trento/web/entities"
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services/ara"
 )
@@ -66,24 +67,13 @@ Checks catalog services
 */
 
 func (c *checksService) GetChecksCatalog() (models.ChecksCatalog, error) {
-	var checksRaw []*models.CheckRaw
-	result := c.db.Order("payload->>'name'").Find(&checksRaw)
+	var checksEntity entities.CheckList
+	result := c.db.Order("payload->>'name'").Find(&checksEntity)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 
-	var checksCatalog models.ChecksCatalog
-
-	for _, checkRaw := range checksRaw {
-		var check models.Check
-		err := json.Unmarshal(checkRaw.Payload, &check)
-		if err != nil {
-			return nil, err
-		}
-		checksCatalog = append(checksCatalog, &check)
-	}
-
-	return checksCatalog, nil
+	return checksEntity.ToModel()
 }
 
 func (c *checksService) GetChecksCatalogByGroup() (models.GroupedCheckList, error) {
@@ -117,23 +107,35 @@ func (c *checksService) CreateChecksCatalogEntry(check *models.Check) error {
 		return err
 	}
 
-	checkRaw := models.CheckRaw{ID: check.ID, Payload: checkJson}
+	checkEntity := entities.Check{ID: check.ID, Payload: checkJson}
 	result := c.db.Clauses(clause.OnConflict{
 		UpdateAll: true,
-	}).Create(&checkRaw)
+	}).Create(&checkEntity)
 
 	return result.Error
 }
 
 func (c *checksService) CreateChecksCatalog(checkList models.ChecksCatalog) error {
+
+	var checkEntityList entities.CheckList
 	for _, check := range checkList {
-		result := c.CreateChecksCatalogEntry(check)
-		if result != nil {
-			return result
+		checkJson, err := json.Marshal(&check)
+		if err != nil {
+			return err
 		}
+		checkEntityList = append(checkEntityList, &entities.Check{ID: check.ID, Payload: checkJson})
 	}
 
-	return nil
+	result := c.db.Clauses(clause.OnConflict{
+		UpdateAll: true,
+	}).Create(&checkEntityList)
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	// Remove old not updated checks
+	return c.db.Not(&checkEntityList).Delete(entities.CheckList{}).Error
 }
 
 /*

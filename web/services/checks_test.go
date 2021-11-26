@@ -13,6 +13,7 @@ import (
 	"github.com/trento-project/trento/test/helpers"
 	araMocks "github.com/trento-project/trento/web/services/ara/mocks"
 
+	"github.com/trento-project/trento/web/entities"
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services/ara"
 )
@@ -502,7 +503,7 @@ func (suite *ChecksServiceTestSuite) SetupSuite() {
 	suite.ara = new(araMocks.AraService)
 
 	suite.db.AutoMigrate(
-		models.CheckRaw{}, models.SelectedChecks{}, models.ConnectionSettings{})
+		entities.Check{}, models.SelectedChecks{}, models.ConnectionSettings{})
 	loadAraFixtures(suite.ara)
 	loadChecksCatalogFixtures(suite.db)
 	loadSelectedChecksFixtures(suite.db)
@@ -510,7 +511,7 @@ func (suite *ChecksServiceTestSuite) SetupSuite() {
 }
 
 func (suite *ChecksServiceTestSuite) TearDownSuite() {
-	suite.db.Migrator().DropTable(models.CheckRaw{})
+	suite.db.Migrator().DropTable(entities.Check{})
 	suite.db.Migrator().DropTable(models.SelectedChecks{})
 	suite.db.Migrator().DropTable(models.ConnectionSettings{})
 }
@@ -586,17 +587,17 @@ func loadAraFixtures(a *araMocks.AraService) {
 
 func loadChecksCatalogFixtures(db *gorm.DB) {
 	check1payload := `{"id":"check1","name":"name1","group":"group1","description":"description1"}`
-	db.Create(&models.CheckRaw{
+	db.Create(&entities.Check{
 		ID:      "check1",
 		Payload: datatypes.JSON([]byte(check1payload)),
 	})
 	check3payload := `{"id":"check3","name":"name3","group":"group2","description":"description3"}`
-	db.Create(&models.CheckRaw{
+	db.Create(&entities.Check{
 		ID:      "check3",
 		Payload: datatypes.JSON([]byte(check3payload)),
 	})
 	check2payload := `{"id":"check2","name":"name2","group":"group1","description":"description2"}`
-	db.Create(&models.CheckRaw{
+	db.Create(&entities.Check{
 		ID:      "check2",
 		Payload: datatypes.JSON([]byte(check2payload)),
 	})
@@ -708,12 +709,12 @@ func (suite *ChecksServiceTestSuite) TestChecksService_CreateChecksCatalogEntry(
 	}
 	err := suite.checksService.CreateChecksCatalogEntry(check)
 
-	var newCheckRaw models.CheckRaw
+	var newCheckEntity entities.Check
 	var newCheck models.Check
 
-	suite.tx.Where("id", "checkNew").First(&newCheckRaw)
+	suite.tx.Where("id", "checkNew").First(&newCheckEntity)
 
-	json.Unmarshal(newCheckRaw.Payload, &newCheck)
+	json.Unmarshal(newCheckEntity.Payload, &newCheck)
 
 	suite.NoError(err)
 	suite.Equal(check, &newCheck)
@@ -727,9 +728,9 @@ func (suite *ChecksServiceTestSuite) TestChecksService_CreateChecksCatalogEntry(
 	}
 	err = suite.checksService.CreateChecksCatalogEntry(check)
 
-	suite.tx.Where("id", "checkNew").First(&newCheckRaw)
+	suite.tx.Where("id", "checkNew").First(&newCheckEntity)
 
-	json.Unmarshal(newCheckRaw.Payload, &newCheck)
+	json.Unmarshal(newCheckEntity.Payload, &newCheck)
 
 	suite.NoError(err)
 	suite.Equal(check, &newCheck)
@@ -756,21 +757,26 @@ func (suite *ChecksServiceTestSuite) TestChecksService_CreateChecksCatalog() {
 
 	suite.NoError(err)
 
-	var checkRaw1 models.CheckRaw
+	var checkEntity1 entities.Check
 	var checkStored1 models.Check
 
-	suite.tx.Where("id", "checkOther").First(&checkRaw1)
+	suite.tx.Where("id", "checkOther").First(&checkEntity1)
 
-	json.Unmarshal(checkRaw1.Payload, &checkStored1)
+	json.Unmarshal(checkEntity1.Payload, &checkStored1)
 	suite.Equal(check1, &checkStored1)
 
-	var checkRaw2 models.CheckRaw
+	var checkEntity2 entities.Check
 	var checkStored2 models.Check
 
-	suite.tx.Where("id", "checkYetAnother").First(&checkRaw2)
+	suite.tx.Where("id", "checkYetAnother").First(&checkEntity2)
 
-	json.Unmarshal(checkRaw2.Payload, &checkStored2)
+	json.Unmarshal(checkEntity2.Payload, &checkStored2)
 	suite.Equal(check2, &checkStored2)
+
+	// Count the number of checks is correct, and old entries have been removed
+	var count int64
+	suite.tx.Table("checks").Count(&count)
+	suite.Equal(int64(2), count)
 }
 
 func (suite *ChecksServiceTestSuite) TestChecksService_GetChecksResultAndMetadataByCluster() {

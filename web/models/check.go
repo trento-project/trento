@@ -2,9 +2,6 @@ package models
 
 import (
 	"sort"
-	"time"
-
-	"gorm.io/datatypes"
 )
 
 const (
@@ -33,18 +30,6 @@ type Check struct {
 	Labels         string `json:"labels,omitempty" mapstructure:"labels,omitempty"`
 	Selected       bool   `json:"selected,omitempty" mapstructure:"selected,omitempty"`
 	Result         string `json:"result,omitempty" mapstructure:"result,omitempty"`
-}
-
-// Store the data as payload. Changes in this struct are expected
-type CheckRaw struct {
-	ID        string `gorm:"primaryKey"`
-	CreatedAt time.Time
-	Payload   datatypes.JSON
-}
-
-// TableName overrides the table name used by CheckRaw to `checks`
-func (CheckRaw) TableName() string {
-	return "checks"
 }
 
 type GroupedChecks struct {

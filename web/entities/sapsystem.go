@@ -5,9 +5,9 @@ import (
 )
 
 type SAPSystemInstance struct {
+	ID                string `gorm:"primaryKey"`
 	AgentID           string `gorm:"primaryKey"`
 	Type              string
-	SystemID          string `gorm:"primaryKey"`
 	SID               string `gorm:"column:sid"`
 	InstanceNumber    string `gorm:"primaryKey"`
 	Features          string

@@ -28,9 +28,9 @@ func SAPSystemsProjector_SAPSystemsDiscoveryHandler(dataCollectedEvent *DataColl
 
 	for _, s := range discoveredSAPSystems {
 		instance := entities.SAPSystemInstance{
-			AgentID:  dataCollectedEvent.AgentID,
-			SystemID: s.Id,
-			SID:      s.SID,
+			AgentID: dataCollectedEvent.AgentID,
+			ID:      s.Id,
+			SID:     s.SID,
 		}
 
 		switch s.Type {
@@ -62,7 +62,7 @@ func SAPSystemsProjector_SAPSystemsDiscoveryHandler(dataCollectedEvent *DataColl
 			instance.Features = features
 			instance.InstanceNumber = instanceNumber
 
-			err := storeSAPInstance(db, instance, "system_id", "sid", "type", "features", "instance_number")
+			err := storeSAPInstance(db, instance, "id", "sid", "type", "features", "instance_number")
 			if err != nil {
 				return err
 			}
@@ -77,7 +77,7 @@ func storeSAPInstance(db *gorm.DB, sapInstance entities.SAPSystemInstance, updat
 	return db.Clauses(clause.OnConflict{
 		Columns: []clause.Column{
 			{Name: "agent_id"},
-			{Name: "system_id"},
+			{Name: "id"},
 			{Name: "instance_number"},
 		},
 		DoUpdates: clause.AssignmentColumns(append(updateColumns, "updated_at")),

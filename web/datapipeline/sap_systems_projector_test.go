@@ -56,7 +56,7 @@ func (s *SAPSystemsProjectorTestSuite) Test_SAPSystemDiscoveryHandler() {
 	s.EqualValues("PRD", projectedSAPSystemInstance.SID)
 
 	s.Equal("database", projectedSAPSystemInstance.Type)
-	s.Equal("e06e328f8d6b0f46c1e66ffcd44d0dd7", projectedSAPSystemInstance.SystemID)
+	s.Equal("e06e328f8d6b0f46c1e66ffcd44d0dd7", projectedSAPSystemInstance.ID)
 	s.Equal("00", projectedSAPSystemInstance.InstanceNumber)
 	s.Equal("HDB|HDB_WORKER", projectedSAPSystemInstance.Features)
 }

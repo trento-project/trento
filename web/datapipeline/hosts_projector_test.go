@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/lib/pq"
 	"github.com/stretchr/testify/suite"
 	"github.com/trento-project/trento/agent/discovery/mocks"
 	_ "github.com/trento-project/trento/test"
@@ -64,7 +63,6 @@ func (s *HostsProjectorTestSuite) Test_HostDiscoveryHandler() {
 	s.Equal("", projectedHost.CloudProvider)
 	s.Equal("", projectedHost.ClusterID)
 	s.Equal("", projectedHost.ClusterName)
-	s.Equal(pq.StringArray(nil), projectedHost.SIDs)
 }
 
 // Test_CloudDiscoveryHandler tests the loudDiscoveryHandler function execution on a CloudDiscovery published by an agent
@@ -88,7 +86,6 @@ func (s *HostsProjectorTestSuite) Test_CloudDiscoveryHandler() {
 	s.Equal("", projectedHost.Name)
 	s.Equal("", projectedHost.ClusterID)
 	s.Equal("", projectedHost.ClusterName)
-	s.Equal(pq.StringArray(nil), projectedHost.SIDs)
 }
 
 // Test_ClusterDiscoveryHandler tests the ClusterDiscoveryHandler function execution on a ClusterDiscovery published by an agent
@@ -111,30 +108,6 @@ func (s *HostsProjectorTestSuite) Test_ClusterDiscoveryHandler() {
 
 	s.Equal("", projectedHost.Name)
 	s.Equal("", projectedHost.CloudProvider)
-	s.Equal(pq.StringArray(nil), projectedHost.SIDs)
-}
-
-// Test_SAPSystemDiscoveryHandler tests the SAPSystemDiscoveryHandler function execution on a SAPSystemDiscovery published by an agent
-func (s *HostsProjectorTestSuite) Test_SAPSystemDiscoveryHandler() {
-	discoveredSAPSystemMock := mocks.NewDiscoveredSAPSystemMock()
-
-	requestBody, _ := json.Marshal(discoveredSAPSystemMock)
-	hostsProjector_SAPSystemDiscoveryHandler(&DataCollectedEvent{
-		ID:            1,
-		AgentID:       "agent_id",
-		DiscoveryType: SAPsystemDiscovery,
-		Payload:       requestBody,
-	}, s.tx)
-
-	var projectedHost entities.Host
-	s.tx.First(&projectedHost)
-
-	s.EqualValues([]string{"PRD"}, projectedHost.SIDs)
-
-	s.Equal("", projectedHost.Name)
-	s.Equal("", projectedHost.ClusterID)
-	s.Equal("", projectedHost.ClusterName)
-	s.Equal("", projectedHost.CloudProvider)
 }
 
 // Test_HostsProjector tests the HostsProjector projects all of the discoveries it is interested in, resulting in a single host readmodel
@@ -144,13 +117,11 @@ func (s *HostsProjectorTestSuite) Test_TelemetryProjector() {
 	discoveredHostMock := mocks.NewDiscoveredHostMock()
 	discoveredCloudMock := mocks.NewDiscoveredCloudMock()
 	discoveredClusterMock := mocks.NewDiscoveredClusterMock()
-	discoveredSAPSystemMock := mocks.NewDiscoveredSAPSystemMock()
 
 	agentDiscoveries := make(map[string]interface{})
 	agentDiscoveries[HostDiscovery] = discoveredHostMock
 	agentDiscoveries[CloudDiscovery] = discoveredCloudMock
 	agentDiscoveries[ClusterDiscovery] = discoveredClusterMock
-	agentDiscoveries[SAPsystemDiscovery] = discoveredSAPSystemMock
 
 	evtID := int64(1)
 
@@ -174,10 +145,6 @@ func (s *HostsProjectorTestSuite) Test_TelemetryProjector() {
 	s.Equal(discoveredCloudMock.Provider, projectedHost.CloudProvider)
 	s.Equal(discoveredClusterMock.Id, projectedHost.ClusterID)
 	s.Equal(discoveredClusterMock.Name, projectedHost.ClusterName)
-
-	for _, m := range discoveredSAPSystemMock {
-		s.Contains(projectedHost.SIDs, m.SID)
-	}
 }
 
 func (s *HostsProjectorTestSuite) Test_filterIPAddresses() {

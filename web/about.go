@@ -20,6 +20,7 @@ func NewAboutHandler(s services.SubscriptionsService) gin.HandlerFunc {
 			"Title":       defaultLayoutData.Title,
 			"Version":     defaultLayoutData.Version,
 			"PremiumData": premiumData,
+			"Flavor":      defaultLayoutData.Flavor,
 		})
 	}
 }

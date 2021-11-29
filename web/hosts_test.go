@@ -1,152 +1,96 @@
 package web
 
 import (
+	"fmt"
 	"net/http/httptest"
 	"regexp"
 	"testing"
 
 	consulApi "github.com/hashicorp/consul/api"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/tdewolff/minify/v2"
 	"github.com/tdewolff/minify/v2/html"
 	consulMocks "github.com/trento-project/trento/internal/consul/mocks"
-	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
 )
 
+func hostListFixture() models.HostList {
+	return models.HostList{
+		{
+			ID:            "1",
+			Name:          "host1",
+			IPAddresses:   []string{"192.168.1.1"},
+			CloudProvider: "azure",
+			SAPSystems: []*models.SAPSystem{
+				{
+					ID:   "sap_system_id_1",
+					SID:  "PRD",
+					Type: "database",
+				},
+			},
+			AgentVersion: "v1",
+			Tags:         []string{"tag1"},
+			Health:       "passing",
+		},
+		{
+			ID:            "2",
+			Name:          "host2",
+			IPAddresses:   []string{"192.168.1.2"},
+			CloudProvider: "aws",
+			SAPSystems: []*models.SAPSystem{
+				{
+					ID:   "sap_system_id_2",
+					SID:  "QAS",
+					Type: "application",
+				},
+			},
+			AgentVersion: "v1",
+			Tags:         []string{"tag2"},
+			Health:       "warning",
+		},
+		{
+			ID:            "1",
+			Name:          "host3",
+			IPAddresses:   []string{"192.168.1.3"},
+			CloudProvider: "gcp",
+			SAPSystems: []*models.SAPSystem{
+				{
+					ID:   "sap_system_id_3",
+					SID:  "DEV",
+					Type: "application",
+				},
+			},
+			AgentVersion: "v1",
+			Tags:         []string{"tag3"},
+			Health:       "critical",
+		},
+	}
+}
+
 func TestNewHostsHealthContainer(t *testing.T) {
-	consulInst := new(consulMocks.Client)
-	health := new(consulMocks.Health)
-	consulInst.On("Health").Return(health)
-
-	host1 := hosts.NewHost(consulApi.Node{Node: "node1"}, consulInst)
-	host2 := hosts.NewHost(consulApi.Node{Node: "node2"}, consulInst)
-	host3 := hosts.NewHost(consulApi.Node{Node: "node3"}, consulInst)
-	host4 := hosts.NewHost(consulApi.Node{Node: "node4"}, consulInst)
-	host5 := hosts.NewHost(consulApi.Node{Node: "node5"}, consulInst)
-	host6 := hosts.NewHost(consulApi.Node{Node: "node6"}, consulInst)
-
-	nodes := hosts.HostList{
-		&host1, &host2, &host3, &host4, &host5, &host6,
-	}
-
-	passHealthChecks := consulApi.HealthChecks{
-		&consulApi.HealthCheck{
-			Status: consulApi.HealthPassing,
-		},
-	}
-
-	warningHealthChecks := consulApi.HealthChecks{
-		&consulApi.HealthCheck{
-			Status: consulApi.HealthCritical,
-		},
-	}
-
-	criticalHealthChecks := consulApi.HealthChecks{
-		&consulApi.HealthCheck{
-			Status: consulApi.HealthWarning,
-		},
-	}
-
-	health.On("Node", "node1", (*consulApi.QueryOptions)(nil)).Return(passHealthChecks, nil, nil)
-	health.On("Node", "node2", (*consulApi.QueryOptions)(nil)).Return(warningHealthChecks, nil, nil)
-	health.On("Node", "node3", (*consulApi.QueryOptions)(nil)).Return(criticalHealthChecks, nil, nil)
-	health.On("Node", "node4", (*consulApi.QueryOptions)(nil)).Return(passHealthChecks, nil, nil)
-	health.On("Node", "node5", (*consulApi.QueryOptions)(nil)).Return(warningHealthChecks, nil, nil)
-	health.On("Node", "node6", (*consulApi.QueryOptions)(nil)).Return(criticalHealthChecks, nil, nil)
-
-	hCont := NewHostsHealthContainer(nodes)
+	hCont := NewHostsHealthContainer(hostListFixture())
 
 	expectedHealth := &HealthContainer{
-		PassingCount:  2,
-		WarningCount:  2,
-		CriticalCount: 2,
+		PassingCount:  1,
+		WarningCount:  1,
+		CriticalCount: 1,
 	}
 
 	assert.Equal(t, expectedHealth, hCont)
 }
 
-func TestHostsListHandler(t *testing.T) {
-	nodes := []*consulApi.Node{
-		{
-			Node:       "foo",
-			Datacenter: "dc1",
-			Address:    "192.168.1.1",
-			Meta: map[string]string{
-				"trento-sap-systems":      "sys1",
-				"trento-sap-systems-type": "Database",
-				"trento-sap-systems-id":   "systemId",
-				"trento-cloud-provider":   "azure",
-				"trento-agent-version":    "1",
-			},
-		},
-		{
-			Node:       "bar",
-			Datacenter: "dc",
-			Address:    "192.168.1.2",
-			Meta: map[string]string{
-				"trento-sap-systems":      "sys2",
-				"trento-sap-systems-type": "Database",
-				"trento-sap-systems-id":   "systemId",
-				"trento-cloud-provider":   "aws",
-				"trento-agent-version":    "1",
-			},
-		},
-		{
-			Node:       "buzz",
-			Datacenter: "dc",
-			Address:    "192.168.1.3",
-			Meta: map[string]string{
-				"trento-sap-systems":      "sys3",
-				"trento-sap-systems-type": "Application",
-				"trento-sap-systems-id":   "systemId",
-				"trento-cloud-provider":   "gcp",
-				"trento-agent-version":    "1",
-			},
-		},
-	}
+func TestHostListNextHandler(t *testing.T) {
 
-	fooHealthChecks := consulApi.HealthChecks{
-		&consulApi.HealthCheck{
-			Status: consulApi.HealthPassing,
-		},
-	}
-
-	barHealthChecks := consulApi.HealthChecks{
-		&consulApi.HealthCheck{
-			Status: consulApi.HealthCritical,
-		},
-	}
-
-	buzzHealthChecks := consulApi.HealthChecks{
-		&consulApi.HealthCheck{
-			Status: consulApi.HealthWarning,
-		},
-	}
-
-	consulInst := new(consulMocks.Client)
-	catalog := new(consulMocks.Catalog)
-	health := new(consulMocks.Health)
-
-	consulInst.On("Catalog").Return(catalog)
-	consulInst.On("Health").Return(health)
-
-	query := &consulApi.QueryOptions{Filter: ""}
-	catalog.On("Nodes", (*consulApi.QueryOptions)(query)).Return(nodes, nil, nil)
-
-	health.On("Node", "foo", (*consulApi.QueryOptions)(nil)).Return(fooHealthChecks, nil, nil)
-	health.On("Node", "bar", (*consulApi.QueryOptions)(nil)).Return(barHealthChecks, nil, nil)
-	health.On("Node", "buzz", (*consulApi.QueryOptions)(nil)).Return(buzzHealthChecks, nil, nil)
-
-	mockTagsService := new(services.MockTagsService)
-	mockTagsService.On("GetAllByResource", models.TagHostResourceType, "foo").Return([]string{"tag1"}, nil)
-	mockTagsService.On("GetAllByResource", models.TagHostResourceType, "bar").Return([]string{}, nil)
-	mockTagsService.On("GetAllByResource", models.TagHostResourceType, "buzz").Return([]string{}, nil)
+	mockHostsService := new(services.MockHostsService)
+	mockHostsService.On("GetAll", mock.Anything, mock.Anything).Return(hostListFixture(), nil)
+	mockHostsService.On("GetCount").Return(3, nil)
+	mockHostsService.On("GetAllSIDs", mock.Anything).Return([]string{"PRD", "QAS", "DEV"}, nil)
+	mockHostsService.On("GetAllTags", mock.Anything).Return([]string{"tag1", "tag2", "tag3"}, nil)
 
 	deps := setupTestDependencies()
-	deps.consul = consulInst
-	deps.tagsService = mockTagsService
+	deps.hostsService = mockHostsService
 
 	var err error
 	config := setupTestConfig()
@@ -159,10 +103,6 @@ func TestHostsListHandler(t *testing.T) {
 	req := httptest.NewRequest("GET", "/hosts", nil)
 
 	app.webEngine.ServeHTTP(resp, req)
-
-	consulInst.AssertExpectations(t)
-	catalog.AssertExpectations(t)
-	health.AssertExpectations(t)
 
 	m := minify.New()
 	m.AddFunc("text/html", html.Minify)
@@ -177,14 +117,34 @@ func TestHostsListHandler(t *testing.T) {
 
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, minified, "Hosts")
-	assert.Regexp(t, regexp.MustCompile("<div.*alert-success.*<i.*check_circle.*</i>.*Passing.*1"), minified)
-	assert.Regexp(t, regexp.MustCompile("<div.*alert-warning.*<i.*warning.*</i>.*Warning.*1"), minified)
-	assert.Regexp(t, regexp.MustCompile("<div.*alert-danger.*<i.*error.*</i>.*Critical.*1"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*<i.*success.*check_circle.*</i></td><td>.*foo.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*sys1.*</td><td>v1</td><td>.*<input.*value=tag1.*>.*</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<select name=trento-sap-systems.*>.*sys1.*sys2.*sys3.*</select>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*<i.*success.*check_circle.*</i></td><td>.*foo.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*databases/systemId.*sys1.*</td><td>v1</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*<i.*danger.*error.*</i></td><td>.*bar.*</td><td>192.168.1.2</td><td>.*aws.*</td><td>.*databases/systemId.*sys2.*</td><td>v1</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*<i.*warning.*warning.*</i></td><td>.*buzz.*</td><td>192.168.1.3</td><td>.*gcp.*</td><td>.*systems/systemId.*sys3.*</td><td>v1</td>"), minified)
+
+	assert.Regexp(t, regexp.MustCompile("<select name=sids.*>.*PRD.*QAS.*DEV.*</select>"), minified)
+	assert.Regexp(t, regexp.MustCompile(".*check_circle.*<td>.*host1.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*databases/sap_system_id_1.*PRD.*</td><td>v1</td><td>.*<input.*value=tag1.*>.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile(".*warning.*<td>.*host2.*</td><td>192.168.1.2</td><td>.*aws.*</td><td>.*sapsystems/sap_system_id_2.*QAS.*</td><td>v1</td><td>.*<input.*value=tag2.*>.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile(".*error.*<td>.*host3.*</td><td>192.168.1.3</td><td>.*gcp.*</td><td>.*sapsystems/sap_system_id_3.*DEV.*</td><td>v1</td><td>.*<input.*value=tag3.*>.*</td>"), minified)
+}
+
+func TestApiHostHeartbeat(t *testing.T) {
+	agentID := "agent_id"
+
+	mockHostsService := new(services.MockHostsService)
+	mockHostsService.On("Heartbeat", agentID).Return(nil)
+
+	deps := setupTestDependencies()
+	deps.hostsService = mockHostsService
+
+	app, err := NewAppWithDeps(setupTestConfig(), deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp := httptest.NewRecorder()
+	url := fmt.Sprintf("/api/hosts/%s/heartbeat", agentID)
+	req := httptest.NewRequest("POST", url, nil)
+
+	app.collectorEngine.ServeHTTP(resp, req)
+
+	assert.Equal(t, 204, resp.Code)
 }
 
 func TestHostHandler(t *testing.T) {

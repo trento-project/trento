@@ -197,7 +197,7 @@ func TestSAPSystemsListHandler(t *testing.T) {
 
 	deps := setupTestDependencies()
 	deps.consul = consulInst
-	deps.hostsService = hostsService
+	deps.hostsConsulService = hostsService
 	deps.sapSystemsService = sapSystemsService
 	deps.tagsService = tagsService
 
@@ -247,7 +247,7 @@ func TestSAPDatabaseListHandler(t *testing.T) {
 
 	deps := setupTestDependencies()
 	deps.consul = consulInst
-	deps.hostsService = hostsService
+	deps.hostsConsulService = hostsService
 	deps.sapSystemsService = sapSystemsService
 	deps.tagsService = tagsService
 
@@ -417,7 +417,7 @@ func TestSAPResourceHandler(t *testing.T) {
 	deps := setupTestDependencies()
 	deps.consul = consulInst
 	deps.sapSystemsService = sapSystemsService
-	deps.hostsService = hostsService
+	deps.hostsConsulService = hostsService
 
 	host := hosts.NewHost(consulApi.Node{
 		Node:    "netweaver01",

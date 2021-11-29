@@ -8,18 +8,18 @@ import (
 )
 
 type Host struct {
-	AgentID       string `gorm:"primaryKey"`
-	Name          string
-	IPAddresses   pq.StringArray `gorm:"type:text[]"`
-	CloudProvider string
-	ClusterID     string
-	ClusterName   string
-	SIDs          pq.StringArray `gorm:"column:sids; type:text[]"`
-	AgentVersion  string
-	Heartbeat     *HostHeartbeat    `gorm:"foreignKey:AgentID"`
-	Subscription  *SlesSubscription `gorm:"foreignKey:AgentID"`
-	Tags          []*models.Tag     `gorm:"polymorphic:Resource;polymorphicValue:hosts"`
-	UpdatedAt     time.Time
+	AgentID            string `gorm:"primaryKey"`
+	Name               string
+	IPAddresses        pq.StringArray `gorm:"type:text[]"`
+	CloudProvider      string
+	ClusterID          string
+	ClusterName        string
+	SAPSystemInstances SAPSystemInstances `gorm:"foreignkey:AgentID"`
+	AgentVersion       string
+	Heartbeat          *HostHeartbeat    `gorm:"foreignKey:AgentID"`
+	Subscription       *SlesSubscription `gorm:"foreignKey:AgentID"`
+	Tags               []*models.Tag     `gorm:"polymorphic:Resource;polymorphicValue:hosts"`
+	UpdatedAt          time.Time
 }
 
 type HostHeartbeat struct {
@@ -41,8 +41,8 @@ func (h *Host) ToModel() *models.Host {
 		CloudProvider: h.CloudProvider,
 		ClusterID:     h.ClusterID,
 		ClusterName:   h.ClusterName,
-		SIDs:          h.SIDs,
 		AgentVersion:  h.AgentVersion,
 		Tags:          tags,
+		SAPSystems:    h.SAPSystemInstances.ToModel(),
 	}
 }

@@ -1,7 +1,6 @@
 package datapipeline
 
 import (
-	"fmt"
 	"net"
 
 	log "github.com/sirupsen/logrus"
@@ -9,7 +8,6 @@ import (
 	"github.com/trento-project/trento/internal/cloud"
 	"github.com/trento-project/trento/internal/cluster"
 	"github.com/trento-project/trento/internal/hosts"
-	"github.com/trento-project/trento/internal/sapsystem"
 	"github.com/trento-project/trento/web/entities"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -21,7 +19,6 @@ func NewHostsProjector(db *gorm.DB) *projector {
 	hostsProjector.AddHandler(HostDiscovery, hostsProjector_HostDiscoveryHandler)
 	hostsProjector.AddHandler(CloudDiscovery, hostsProjector_CloudDiscoveryHandler)
 	hostsProjector.AddHandler(ClusterDiscovery, hostsProjector_ClusterDiscoveryHandler)
-	hostsProjector.AddHandler(SAPsystemDiscovery, hostsProjector_SAPSystemDiscoveryHandler)
 
 	return hostsProjector
 }
@@ -82,29 +79,6 @@ func hostsProjector_ClusterDiscoveryHandler(dataCollectedEvent *DataCollectedEve
 	}
 
 	return storeHost(db, host, "cluster_id", "cluster_name")
-}
-
-func hostsProjector_SAPSystemDiscoveryHandler(dataCollectedEvent *DataCollectedEvent, db *gorm.DB) error {
-	decoder := getPayloadDecoder(dataCollectedEvent.Payload)
-
-	var discoveredSAPSystems sapsystem.SAPSystemsList
-	if err := decoder.Decode(&discoveredSAPSystems); err != nil {
-		log.Errorf("can't decode data: %s", err)
-		return err
-	}
-
-	var sids []string
-	for _, s := range discoveredSAPSystems {
-		fmt.Println(s.SID)
-		sids = append(sids, s.SID)
-	}
-
-	host := entities.Host{
-		AgentID: dataCollectedEvent.AgentID,
-		SIDs:    sids,
-	}
-
-	return storeHost(db, host, "sids")
 }
 
 func storeHost(db *gorm.DB, host entities.Host, updateColumns ...string) error {

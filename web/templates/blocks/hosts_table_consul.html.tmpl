@@ -1,4 +1,5 @@
-{{ define "hosts_table_next" }}
+{{ define "hosts_table_consul" }}
+    {{ $hostsTags := .HostsTags }}
     <div class='table-responsive'>
         <table class='table eos-table'>
             <thead>
@@ -10,11 +11,14 @@
                 <th scope='col'>Cluster</th>
                 <th scope='col'>System</th>
                 <th scope='col'>Agent version</th>
-                <th scope='col'>Tags</th>
+                {{- if $hostsTags }}
+                    <th scope='col'>Tags</th>
+                {{- end }}
             </tr>
             </thead>
             <tbody>
             {{- range .Hosts }}
+                {{ $TrentoMeta := .TrentoMeta }}
                 <tr>
                     <td class="row-status">
                         {{ template "health_icon" .Health }}
@@ -24,34 +28,39 @@
                             {{ .Name }}
                         </a>
                     </td>
-                    <td>    
-                        {{- range $index, $ip := .IPAddresses}}
-                            {{- if $index }},{{- end }}
-                            {{ $ip }}
-                        {{- end }}
-                    </td>
-                    <td>{{ .CloudProvider }}</td>
+                    <td>{{ .Address }}</td>
+                    <td>{{ index .TrentoMeta "trento-cloud-provider" }}</td>
                     <td>
-                        <a href='/clusters/{{ .ClusterID }}'>
-                            {{ .ClusterName }}
+                        <a href='/clusters/{{ index .TrentoMeta "trento-ha-cluster-id" }}'>
+                            {{ index .TrentoMeta "trento-ha-cluster" }}
                         </a>
                     </td>
                     <td>
-                        {{- range .SAPSystems }} 
-                            <a href="{{- if eq .Type "database" }}/databases{{- else }}/sapsystems{{- end }}/{{ .ID }}">{{ .SID }}</a>
+                        {{- range $i, $v := split (index $TrentoMeta "trento-sap-systems") "," }}{{- if $i }},{{- end }}
+                        {{- $id := (index (split (index $TrentoMeta "trento-sap-systems-id") ",") $i) }}
+                        {{- $type := (index (split (index $TrentoMeta "trento-sap-systems-type") ",") $i) }}
+                        {{- if eq $type "Database" }}
+                        <a href='/databases/{{ $id }}'>{{ $v }}</a>
+                        {{- else if eq $type "Application" }}
+                        <a href='/sapsystems/{{ $id }}'>{{ $v }}</a>
+                        {{- else }}
+                        {{ $v }}&nbsp;
+                        {{- end }}
                         {{- end }}
                     </td>
                     <td>
-                        {{ .AgentVersion }}
+                        {{ .GetAgentVersionString }}
                     </td>
+                    {{- if $hostsTags}}
                         <td>
                             <input class="tags-input"
-                                value="{{- range .Tags }}{{ . }},{{- end }}"
+                                value="{{- range (index $hostsTags .Name) }}{{ . }},{{- end }}"
                                 data-resource-type="hosts"
-                                data-resource-id="{{ .ID }}"
+                                data-resource-id="{{ .Name }}"
                                 autocomplete="off">
                             </input>
                         </td>
+                    {{- end }}
                 </tr>
             {{- else }}
                 {{ template "empty_table_body" 6 }}

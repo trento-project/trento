@@ -84,7 +84,7 @@ func NewHostListNextHandler(hostsService services.HostsService) gin.HandlerFunc 
 		hContainer := NewHostsHealthContainer(hostList)
 		hContainer.Layout = "horizontal"
 
-		c.HTML(http.StatusOK, "hosts_next.html.tmpl", gin.H{
+		c.HTML(http.StatusOK, "hosts.html.tmpl", gin.H{
 			"Hosts":           hostList,
 			"AppliedFilters":  query,
 			"FilterSIDs":      filterSIDs,

@@ -40,11 +40,14 @@ func NewHostsNextService(db *gorm.DB) *hostsNextService {
 
 func (s *hostsNextService) GetAll(filter *HostsFilter, page *Page) (models.HostList, error) {
 	var hosts []entities.Host
-	db := s.db.Preload("Tags").Preload("Heartbeat")
+	db := s.db.Model(&entities.Host{}).Preload("Tags").Preload("Heartbeat").Preload("SAPSystemInstances")
 
 	if filter != nil {
 		if len(filter.SIDs) > 0 {
-			db = db.Where("sids && ?", pq.Array(filter.SIDs))
+			db = db.Where("agent_id IN (?)", s.db.Model(&entities.SAPSystemInstance{}).
+				Select("agent_id").
+				Where("sid IN ?", filter.SIDs),
+			)
 		}
 
 		if len(filter.Tags) > 0 {
@@ -87,10 +90,11 @@ func (s *hostsNextService) GetCount() (int, error) {
 func (s *hostsNextService) GetAllSIDs() ([]string, error) {
 	var sids pq.StringArray
 
-	err := s.db.Model(&entities.Host{}).
-		Where("sids IS NOT NULL").
+	err := s.db.
+		Model(&entities.Host{}).
+		Joins("JOIN sap_system_instances ON sap_system_instances.agent_id = hosts.agent_id AND sid IS NOT NULL").
 		Distinct().
-		Pluck("unnest(sids)", &sids).
+		Pluck("sap_system_instances.sid", &sids).
 		Error
 
 	if err != nil {

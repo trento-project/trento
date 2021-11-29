@@ -21,8 +21,15 @@ func hostsFixtures() []entities.Host {
 			ClusterName:   "cluster_1",
 			CloudProvider: "azure",
 			IPAddresses:   pq.StringArray{"10.74.1.5"},
-			SIDs:          pq.StringArray{"DEV"},
-			AgentVersion:  "rolling1337",
+			SAPSystemInstances: []*entities.SAPSystemInstance{
+				{
+					AgentID:        "1",
+					ID:             "sap_system_id_1",
+					SID:            "DEV",
+					InstanceNumber: "00",
+				},
+			},
+			AgentVersion: "rolling1337",
 			Heartbeat: &entities.HostHeartbeat{
 				AgentID:   "1",
 				UpdatedAt: time.Date(2020, 11, 01, 00, 00, 00, 0, time.UTC),
@@ -40,8 +47,15 @@ func hostsFixtures() []entities.Host {
 			ClusterName:   "cluster_2",
 			CloudProvider: "azure",
 			IPAddresses:   pq.StringArray{"10.74.1.10"},
-			SIDs:          pq.StringArray{"QAS"},
-			AgentVersion:  "stable",
+			SAPSystemInstances: []*entities.SAPSystemInstance{
+				{
+					AgentID:        "2",
+					ID:             "sap_system_id_2",
+					SID:            "QAS",
+					InstanceNumber: "10",
+				},
+			},
+			AgentVersion: "stable",
 			Heartbeat: &entities.HostHeartbeat{
 				AgentID:   "2",
 				UpdatedAt: time.Date(2020, 11, 01, 00, 00, 00, 0, time.UTC),
@@ -69,7 +83,7 @@ func TestHostsNextServiceTestSuite(t *testing.T) {
 func (suite *HostsNextServiceTestSuite) SetupSuite() {
 	suite.db = helpers.SetupTestDatabase(suite.T())
 
-	suite.db.AutoMigrate(&entities.Host{}, &entities.HostHeartbeat{}, &models.Tag{})
+	suite.db.AutoMigrate(&entities.Host{}, &entities.HostHeartbeat{}, &entities.SAPSystemInstance{}, &models.Tag{})
 	hosts := hostsFixtures()
 	err := suite.db.Create(&hosts).Error
 	suite.NoError(err)
@@ -78,6 +92,7 @@ func (suite *HostsNextServiceTestSuite) SetupSuite() {
 func (suite *HostsNextServiceTestSuite) TearDownSuite() {
 	suite.db.Migrator().DropTable(&entities.Host{},
 		&entities.HostHeartbeat{},
+		&entities.SAPSystemInstance{},
 		&models.Tag{})
 }
 
@@ -107,9 +122,19 @@ func (suite *HostsNextServiceTestSuite) TestHostsNextService_GetAll() {
 			CloudProvider: "azure",
 			ClusterID:     "cluster_id_1",
 			ClusterName:   "cluster_1",
-			SIDs:          []string{"DEV"},
 			AgentVersion:  "rolling1337",
-			Tags:          []string{"tag1"},
+			SAPSystems: []*models.SAPSystem{
+				{
+					ID:  "sap_system_id_1",
+					SID: "DEV",
+					Instances: []*models.SAPSystemInstance{
+						{
+							InstanceNumber: "00",
+						},
+					},
+				},
+			},
+			Tags: []string{"tag1"},
 		},
 		{
 			ID:            "2",
@@ -119,9 +144,19 @@ func (suite *HostsNextServiceTestSuite) TestHostsNextService_GetAll() {
 			CloudProvider: "azure",
 			ClusterID:     "cluster_id_2",
 			ClusterName:   "cluster_2",
-			SIDs:          []string{"QAS"},
 			AgentVersion:  "stable",
-			Tags:          []string{"tag2"},
+			SAPSystems: []*models.SAPSystem{
+				{
+					ID:  "sap_system_id_2",
+					SID: "QAS",
+					Instances: []*models.SAPSystemInstance{
+						{
+							InstanceNumber: "10",
+						},
+					},
+				},
+			},
+			Tags: []string{"tag2"},
 		},
 	}, hosts)
 }
@@ -140,7 +175,7 @@ func (suite *HostsNextServiceTestSuite) TestHostsNextService_GetAll_Filters() {
 	suite.Equal("1", hosts[0].ID)
 }
 
-func (suite *HostsNextServiceTestSuite) TestHostsNextService_GetClustersCount() {
+func (suite *HostsNextServiceTestSuite) TestHostsNextService_GetHostsCount() {
 	count, err := suite.hostsNextService.GetCount()
 
 	suite.NoError(err)

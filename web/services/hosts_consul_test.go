@@ -34,7 +34,7 @@ func TestGetHostMetadata(t *testing.T) {
 	consulInst.On("Catalog").Return(catalog)
 	catalog.On("Nodes", &consulApi.QueryOptions{Filter: "Node == node1"}).Return(nodes, nil, nil)
 
-	hostsService := NewHostsService(consulInst)
+	hostsService := NewHostsConsulService(consulInst)
 	meta, err := hostsService.GetHostMetadata("node1")
 
 	expectedMeta := map[string]string{
@@ -68,7 +68,7 @@ func TestGetHostsBySystemId(t *testing.T) {
 	consulInst.On("Catalog").Return(catalog)
 	catalog.On("Nodes", &consulApi.QueryOptions{Filter: "Meta[\"trento-sap-systems-id\"] contains \"systemdId1\""}).Return(nodes, nil, nil)
 
-	hostsService := NewHostsService(consulInst)
+	hostsService := NewHostsConsulService(consulInst)
 	hostsBySid, err := hostsService.GetHostsBySystemId("systemdId1")
 
 	host1 := hosts.NewHost(

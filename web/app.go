@@ -64,7 +64,7 @@ type Dependencies struct {
 	projectorWorkersPool *datapipeline.ProjectorsWorkerPool
 	checksService        services.ChecksService
 	subscriptionsService services.SubscriptionsService
-	hostsService         services.HostsService
+	hostsService         services.HostsConsulService
 	sapSystemsService    services.SAPSystemsService
 	tagsService          services.TagsService
 	collectorService     services.CollectorService
@@ -100,7 +100,7 @@ func DefaultDependencies(config *Config) Dependencies {
 	araService := ara.NewAraService(viper.GetString("ara-addr"))
 	checksService := services.NewChecksService(araService, db)
 	subscriptionsService := services.NewSubscriptionsService(db)
-	hostsService := services.NewHostsService(consulClient)
+	hostsService := services.NewHostsConsulService(consulClient)
 	hostsServiceNext := services.NewHostsNextService(db)
 	sapSystemsService := services.NewSAPSystemsService(consulClient)
 	clustersService := services.NewClustersService(db, checksService)

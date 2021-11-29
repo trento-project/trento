@@ -7,22 +7,22 @@ import (
 	"github.com/trento-project/trento/internal/hosts"
 )
 
-//go:generate mockery --name=HostsService --inpackage  --filename=hosts_mock.go
+//go:generate mockery --name=HostsConsulService --inpackage  --filename=hosts_consul_mock.go
 
-type HostsService interface {
+type HostsConsulService interface {
 	GetHostMetadata(host string) (map[string]string, error)
 	GetHostsBySystemId(id string) (hosts.HostList, error)
 }
 
-type hostsService struct {
+type hostsConsulService struct {
 	consul consul.Client
 }
 
-func NewHostsService(client consul.Client) HostsService {
-	return &hostsService{consul: client}
+func NewHostsConsulService(client consul.Client) HostsConsulService {
+	return &hostsConsulService{consul: client}
 }
 
-func (h *hostsService) GetHostMetadata(host string) (map[string]string, error) {
+func (h *hostsConsulService) GetHostMetadata(host string) (map[string]string, error) {
 	hostList, err := hosts.Load(h.consul, fmt.Sprintf("Node == %s", host), nil)
 	if err != nil {
 		return nil, err
@@ -35,7 +35,7 @@ func (h *hostsService) GetHostMetadata(host string) (map[string]string, error) {
 	return hostList[0].TrentoMeta(), nil
 }
 
-func (h *hostsService) GetHostsBySystemId(id string) (hosts.HostList, error) {
+func (h *hostsConsulService) GetHostsBySystemId(id string) (hosts.HostList, error) {
 	hostList, err := hosts.Load(h.consul, fmt.Sprintf("Meta[\"trento-sap-systems-id\"] contains \"%s\"", id), nil)
 	if err != nil {
 		return nil, err

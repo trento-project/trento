@@ -45,7 +45,7 @@ var systemTypeToTag = map[int]string{
 	sapsystem.Database:    models.TagDatabaseResourceType,
 }
 
-func NewSAPSystemsTable(sapSystemsList sapsystem.SAPSystemsList, hostsService services.HostsService,
+func NewSAPSystemsTable(sapSystemsList sapsystem.SAPSystemsList, hostsService services.HostsConsulService,
 	sapSystemsService services.SAPSystemsService, tagsService services.TagsService) (SAPSystemsTable, error) {
 	var sapSystemsTable SAPSystemsTable
 	sids := make(map[string]int)
@@ -269,7 +269,7 @@ func (s SystemReplication) GetReplicationStatus() string {
 	}
 }
 
-func NewSAPSystemListHandler(client consul.Client, hostsService services.HostsService,
+func NewSAPSystemListHandler(client consul.Client, hostsService services.HostsConsulService,
 	sapSystemsService services.SAPSystemsService, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		query := c.Request.URL.Query()
@@ -299,7 +299,7 @@ func NewSAPSystemListHandler(client consul.Client, hostsService services.HostsSe
 }
 
 func NewHanaDatabaseListHandler(
-	client consul.Client, hostsService services.HostsService,
+	client consul.Client, hostsService services.HostsConsulService,
 	sapSystemsService services.SAPSystemsService, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		query := c.Request.URL.Query()
@@ -328,7 +328,7 @@ func NewHanaDatabaseListHandler(
 	}
 }
 
-func NewSAPResourceHandler(hostsService services.HostsService, sapSystemsService services.SAPSystemsService) gin.HandlerFunc {
+func NewSAPResourceHandler(hostsService services.HostsConsulService, sapSystemsService services.SAPSystemsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var systemList sapsystem.SAPSystemsList
 		var systemHosts hosts.HostList

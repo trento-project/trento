@@ -17,6 +17,7 @@ import yaml
 
 from ansible.plugins.callback import CallbackBase
 from ara.clients.http import AraHttpClient
+from datetime import datetime
 
 TRENTO_TEST_LABEL_KEY = "ara_playbook_labels"
 TRENTO_TEST_LABEL = "test"
@@ -278,6 +279,13 @@ class CallbackModule(CallbackBase):
         play = self.client.get("/api/v1/plays?uuid=%s" % self.play._uuid)
         playbook_id = play["results"][0]["playbook"]
         return playbook_id
+
+    def _return_timestamp(self):
+        """
+        Return a timestamp
+        """
+        timestap = datetime.now().strftime("%H:%M:%S")
+        return timestamp
 
     def _create_or_update_record(self, playbook, key, value, record_type):
         """

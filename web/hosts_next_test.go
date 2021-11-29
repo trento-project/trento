@@ -21,27 +21,45 @@ func TestHostListNextHandler(t *testing.T) {
 			Name:          "host1",
 			IPAddresses:   []string{"192.168.1.1"},
 			CloudProvider: "azure",
-			SIDs:          []string{"PRD"},
-			AgentVersion:  "v1",
-			Tags:          []string{"tag1"},
+			SAPSystems: []*models.SAPSystem{
+				{
+					ID:   "sap_system_id_1",
+					SID:  "PRD",
+					Type: "database",
+				},
+			},
+			AgentVersion: "v1",
+			Tags:         []string{"tag1"},
 		},
 		{
 			ID:            "2",
 			Name:          "host2",
 			IPAddresses:   []string{"192.168.1.2"},
 			CloudProvider: "aws",
-			SIDs:          []string{"QAS"},
-			AgentVersion:  "v1",
-			Tags:          []string{"tag2"},
+			SAPSystems: []*models.SAPSystem{
+				{
+					ID:   "sap_system_id_2",
+					SID:  "QAS",
+					Type: "application",
+				},
+			},
+			AgentVersion: "v1",
+			Tags:         []string{"tag2"},
 		},
 		{
 			ID:            "1",
 			Name:          "host3",
 			IPAddresses:   []string{"192.168.1.3"},
 			CloudProvider: "gcp",
-			SIDs:          []string{"DEV"},
-			AgentVersion:  "v1",
-			Tags:          []string{"tag3"},
+			SAPSystems: []*models.SAPSystem{
+				{
+					ID:   "sap_system_id_3",
+					SID:  "DEV",
+					Type: "application",
+				},
+			},
+			AgentVersion: "v1",
+			Tags:         []string{"tag3"},
 		},
 	}
 
@@ -82,9 +100,9 @@ func TestHostListNextHandler(t *testing.T) {
 
 	// TODO: test sap systems link and health
 	assert.Regexp(t, regexp.MustCompile("<select name=sids.*>.*PRD.*QAS.*DEV.*</select>"), minified)
-	assert.Regexp(t, regexp.MustCompile("</td><td>.*host1.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*PRD.*</td><td>v1</td><td>.*<input.*value=tag1.*>.*</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td>.*host2.*</td><td>192.168.1.2</td><td>.*aws.*</td><td>.*QAS.*</td><td>v1</td><td>.*<input.*value=tag2.*>.*</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td>.*host3.*</td><td>192.168.1.3</td><td>.*gcp.*</td><td>.*DEV.*</td><td>v1</td><td>.*<input.*value=tag3.*>.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("</td><td>.*host1.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*databases/sap_system_id_1.*PRD.*</td><td>v1</td><td>.*<input.*value=tag1.*>.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td>.*host2.*</td><td>192.168.1.2</td><td>.*aws.*</td><td>.*sapsystems/sap_system_id_2.*QAS.*</td><td>v1</td><td>.*<input.*value=tag2.*>.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td>.*host3.*</td><td>192.168.1.3</td><td>.*gcp.*</td><td>.*sapsystems/sap_system_id_3.*DEV.*</td><td>v1</td><td>.*<input.*value=tag3.*>.*</td>"), minified)
 }
 
 func TestApiHostHeartbeat(t *testing.T) {

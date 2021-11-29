@@ -37,9 +37,8 @@
                         </a>
                     </td>
                     <td>
-                        {{- range $index, $sid := .SIDs}}
-                            {{- if $index }},{{- end }}
-                            {{ $sid }}
+                        {{- range .SAPSystems }} 
+                            <a href="{{- if eq .Type "database" }}/databases{{- else }}/sapsystems{{- end }}/{{ .ID }}">{{ .SID }}</a>
                         {{- end }}
                     </td>
                     <td>

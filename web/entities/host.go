@@ -14,7 +14,7 @@ type Host struct {
 	CloudProvider      string
 	ClusterID          string
 	ClusterName        string
-	SAPSystemInstances []*SAPSystemInstance `gorm:"foreignkey:AgentID"`
+	SAPSystemInstances SAPSystemInstances `gorm:"foreignkey:AgentID"`
 	AgentVersion       string
 	Heartbeat          *HostHeartbeat    `gorm:"foreignKey:AgentID"`
 	Subscription       *SlesSubscription `gorm:"foreignKey:AgentID"`
@@ -43,5 +43,6 @@ func (h *Host) ToModel() *models.Host {
 		ClusterName:   h.ClusterName,
 		AgentVersion:  h.AgentVersion,
 		Tags:          tags,
+		SAPSystems:    h.SAPSystemInstances.ToModel(),
 	}
 }

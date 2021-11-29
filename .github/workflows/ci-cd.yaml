@@ -338,14 +338,48 @@ jobs:
             ssh "$TRENTO_USER@$target_host" "sudo systemctl enable --now trento-agent.service"
           done
 
-  obs-commit:
-    needs: [test-binary, test-checks]
+  obs-commit-rolling:
+    needs: [test-binary, test-checks, release-rolling]
     runs-on: ubuntu-20.04
-    if: github.ref == 'refs/heads/main' || github.event_name == 'release'
+    if: github.ref == 'refs/heads/main'
     container:
       image: ghcr.io/trento-project/continuous-delivery:master
       env:
+        GITHUB_EVENT_NAME: ${{ github.event_name }}
         GITHUB_OAUTH_TOKEN:  ${{ secrets.GITHUB_TOKEN }}
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: configure OSC
+    # OSC credentials must be configured beforehand as the HOME variables cannot be changed from /github/home
+    # that is used to run osc commands
+      run: |
+        /scripts/init_osc_creds.sh
+        mkdir -p $HOME/.config/osc
+        cp /root/.config/osc/oscrc $HOME/.config/osc
+    - name: Prepare trento.changes file
+      run: |
+        hack/gh_release_to_obs_changeset.py $REPOSITORY -a shap-staff@suse.de -t "rolling" -f $FOLDER/trento.changes
+    - name: prepare _service file
+      run: |
+        VERSION=$(./hack/get_version_from_git.sh)
+        sed -i 's~%%REVISION%%~${{ github.sha }}~' $FOLDER/_service && \
+        sed -i 's~%%REPOSITORY%%~${{ github.repository }}~' $FOLDER/_service && \
+        sed -i 's~%%VERSION%%~'"${VERSION}"'~' $FOLDER/_service
+    - name: commit changes into OBS
+      run: cp $FOLDER/_service . && /scripts/upload.sh
+
+  obs-commit-stable:
+    needs: [test-binary, test-checks]
+    runs-on: ubuntu-20.04
+    if: github.event_name == 'release'
+    container:
+      image: ghcr.io/trento-project/continuous-delivery:master
+      env:
+        GITHUB_EVENT_NAME: ${{ github.event_name }}
+        GITHUB_OAUTH_TOKEN:  ${{ secrets.GITHUB_TOKEN }}
+        TARGET_PROJECT: ${{ secrets.TARGET_PROJECT_STABLE }}
     steps:
     - uses: actions/checkout@v2
       with:
@@ -361,7 +395,7 @@ jobs:
       run: |
         VERSION=$(./hack/get_version_from_git.sh)
         TAG=$(echo $VERSION | cut -f1 -d+)
-        hack/gh_release_to_obs_changeset.py $REPOSITORY -a shap-staff@suse.de -t $TAG -f $FOLDER/trento.changes
+        hack/gh_release_to_obs_changeset.py $REPOSITORY -a shap-staff@suse.de -t $TAG -f $FOLDER/trento.changes    
     - name: prepare _service file
       run: |
         VERSION=$(./hack/get_version_from_git.sh)
@@ -371,12 +405,14 @@ jobs:
     - name: commit changes into OBS
       run: cp $FOLDER/_service . && /scripts/upload.sh
 
-  obs-submit:
-    needs: obs-commit
+  obs-submit-stable:
+    needs: obs-commit-stable
     runs-on: ubuntu-20.04
     if: github.event.release
     container:
       image: ghcr.io/trento-project/continuous-delivery:master
+    env:
+      TARGET_PROJECT: ${{ secrets.TARGET_PROJECT_STABLE }}
     steps:
     - uses: actions/checkout@v2
       with:

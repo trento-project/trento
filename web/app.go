@@ -64,12 +64,12 @@ type Dependencies struct {
 	projectorWorkersPool *datapipeline.ProjectorsWorkerPool
 	checksService        services.ChecksService
 	subscriptionsService services.SubscriptionsService
-	hostsService         services.HostsConsulService
+	hostsConsulService   services.HostsConsulService
 	sapSystemsService    services.SAPSystemsService
 	tagsService          services.TagsService
 	collectorService     services.CollectorService
 	clustersService      services.ClustersService
-	hostsNextService     services.HostsService
+	hostsService         services.HostsService
 	settingsService      services.SettingsService
 	telemetryRegistry    *telemetry.TelemetryRegistry
 	telemetryPublisher   telemetry.Publisher
@@ -166,16 +166,15 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 	webEngine.StaticFS("/static", http.FS(assetsFS))
 	webEngine.GET("/", HomeHandler)
 	webEngine.GET("/about", NewAboutHandler(deps.subscriptionsService))
-	webEngine.GET("/hosts", NewHostListHandler(deps.consul, deps.tagsService))
-	webEngine.GET("/hosts-next", NewHostListNextHandler(deps.hostsNextService))
+	webEngine.GET("/hosts", NewHostListNextHandler(deps.hostsService))
 	webEngine.GET("/hosts/:name", NewHostHandler(deps.consul, deps.subscriptionsService))
 	webEngine.GET("/catalog", NewChecksCatalogHandler(deps.checksService))
 	webEngine.GET("/clusters", NewClusterListHandler(deps.clustersService))
 	webEngine.GET("/clusters/:id", NewClusterHandler(deps.consul, deps.checksService))
-	webEngine.GET("/sapsystems", NewSAPSystemListHandler(deps.consul, deps.hostsService, deps.sapSystemsService, deps.tagsService))
-	webEngine.GET("/sapsystems/:id", NewSAPResourceHandler(deps.hostsService, deps.sapSystemsService))
-	webEngine.GET("/databases", NewHanaDatabaseListHandler(deps.consul, deps.hostsService, deps.sapSystemsService, deps.tagsService))
-	webEngine.GET("/databases/:id", NewSAPResourceHandler(deps.hostsService, deps.sapSystemsService))
+	webEngine.GET("/sapsystems", NewSAPSystemListHandler(deps.consul, deps.hostsConsulService, deps.sapSystemsService, deps.tagsService))
+	webEngine.GET("/sapsystems/:id", NewSAPResourceHandler(deps.hostsConsulService, deps.sapSystemsService))
+	webEngine.GET("/databases", NewHanaDatabaseListHandler(deps.consul, deps.hostsConsulService, deps.sapSystemsService, deps.tagsService))
+	webEngine.GET("/databases/:id", NewSAPResourceHandler(deps.hostsConsulService, deps.sapSystemsService))
 
 	apiGroup := webEngine.Group("/api")
 	{
@@ -199,7 +198,7 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 
 	collectorEngine := deps.collectorEngine
 	collectorEngine.POST("/api/collect", ApiCollectDataHandler(deps.collectorService))
-	collectorEngine.POST("/api/hosts/:id/heartbeat", ApiHostHeartbeatHandler(deps.hostsNextService))
+	collectorEngine.POST("/api/hosts/:id/heartbeat", ApiHostHeartbeatHandler(deps.hostsService))
 	collectorEngine.GET("/api/ping", ApiPingHandler)
 
 	return app, nil

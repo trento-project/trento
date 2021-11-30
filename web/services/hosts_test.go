@@ -175,6 +175,16 @@ func (suite *HostsServiceTestSuite) TestHostsService_GetAll_Filters() {
 	suite.Equal("1", hosts[0].ID)
 }
 
+func (suite *HostsServiceTestSuite) TestHostsService_GetByID() {
+	host, _ := suite.hostsService.GetByID("1")
+	suite.Equal("host1", host.Name)
+}
+
+func (suite *HostsServiceTestSuite) TestHostsService_GetByID_NotFound() {
+	host, _ := suite.hostsService.GetByID("13")
+	suite.Nil(host)
+}
+
 func (suite *HostsServiceTestSuite) TestHostsService_GetHostsCount() {
 	count, err := suite.hostsService.GetCount()
 

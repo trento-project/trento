@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"time"
 
 	"github.com/lib/pq"
@@ -18,6 +19,7 @@ var timeSince = time.Since
 //go:generate mockery --name=HostsService --inpackage --filename=hosts_mock.go
 type HostsService interface {
 	GetAll(*HostsFilter, *Page) (models.HostList, error)
+	GetByID(string) (*models.Host, error)
 	GetCount() (int, error)
 	GetAllSIDs() ([]string, error)
 	GetAllTags() ([]string, error)
@@ -78,6 +80,23 @@ func (s *hostsService) GetAll(filter *HostsFilter, page *Page) (models.HostList,
 	}
 
 	return hostList, nil
+}
+
+func (s *hostsService) GetByID(id string) (*models.Host, error) {
+	var host entities.Host
+	err := s.db.
+		Where("agent_id = ?", id).
+		First(&host).
+		Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return host.ToModel(), nil
 }
 
 func (s *hostsService) GetCount() (int, error) {

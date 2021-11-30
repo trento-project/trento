@@ -138,8 +138,7 @@ func getTLSConfig(cert, key, ca string) (*tls.Config, error) {
 	}
 
 	return &tls.Config{
-		InsecureSkipVerify: true,
-		RootCAs:            caCertPool,
-		Certificates:       []tls.Certificate{certificate},
+		RootCAs:      caCertPool,
+		Certificates: []tls.Certificate{certificate},
 	}, nil
 }

@@ -1,6 +1,9 @@
 package services
 
 import (
+	"encoding/json"
+	"errors"
+
 	"github.com/lib/pq"
 	"github.com/trento-project/trento/internal"
 	"github.com/trento-project/trento/web/entities"
@@ -12,6 +15,7 @@ import (
 
 type ClustersService interface {
 	GetAll(*ClustersFilter, *Page) (models.ClusterList, error)
+	GetByID(string) (*models.Cluster, error)
 	GetCount() (int, error)
 	GetAllClusterTypes() ([]string, error)
 	GetAllSIDs() ([]string, error)
@@ -74,16 +78,49 @@ func (s *clustersService) GetAll(filter *ClustersFilter, page *Page) (models.Clu
 		clusterList = append(clusterList, cluster.ToModel())
 	}
 
-	err = s.enrichClusterData(clusterList)
-	if err != nil {
-		return nil, err
-	}
+	s.enrichClusterList(clusterList)
 
 	if filter != nil && len(filter.Health) > 0 {
 		clusterList = filterByHealth(clusterList, filter.Health)
 	}
 
 	return clusterList, nil
+}
+
+func (s *clustersService) GetByID(clusterID string) (*models.Cluster, error) {
+	var cluster entities.Cluster
+
+	err := s.db.
+		Preload("Hosts").
+		Where("id = ?", clusterID).First(&cluster).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	clusterModel := cluster.ToModel()
+
+	switch cluster.ClusterType {
+	case models.ClusterTypeHANAScaleUp, models.ClusterTypeHANAScaleOut:
+		var clusterDetailHANA entities.HANAClusterDetails
+
+		err := json.Unmarshal(cluster.Details, &clusterDetailHANA)
+		if err != nil {
+			return nil, err
+		}
+
+		detail := clusterDetailHANA.ToModel()
+		s.enrichClusterNodes(detail.Nodes, cluster.ID, cluster.Hosts)
+		s.enrichCluster(clusterModel)
+		clusterModel.Details = detail
+	default:
+		clusterModel.Details = nil
+	}
+
+	return clusterModel, nil
 }
 
 func (s *clustersService) GetCount() (int, error) {
@@ -141,7 +178,7 @@ func (s *clustersService) GetAllTags() ([]string, error) {
 	return tags, nil
 }
 
-func (s *clustersService) enrichClusterData(clusterList models.ClusterList) error {
+func (s *clustersService) enrichClusterList(clusterList models.ClusterList) {
 	names := make(map[string]int)
 	for _, c := range clusterList {
 		names[c.Name] += 1
@@ -151,11 +188,33 @@ func (s *clustersService) enrichClusterData(clusterList models.ClusterList) erro
 		if names[c.Name] > 1 {
 			c.HasDuplicatedName = true
 		}
-		health, _ := s.checksService.GetAggregatedChecksResultByCluster(c.ID)
-		c.Health = health.String()
+		s.enrichCluster(c)
 	}
+}
 
-	return nil
+func (s *clustersService) enrichCluster(cluster *models.Cluster) {
+	health, _ := s.checksService.GetAggregatedChecksResultByCluster(cluster.ID)
+
+	cluster.Health = health.String()
+	cluster.PassingCount = health.PassingCount
+	cluster.WarningCount = health.WarningCount
+	cluster.CriticalCount = health.CriticalCount
+
+}
+
+func (s *clustersService) enrichClusterNodes(nodes []*models.HANAClusterNode, clusterID string, hosts []*entities.Host) {
+	for _, node := range nodes {
+		for _, host := range hosts {
+			if node.Name == host.Name {
+				node.IPAddresses = append(node.IPAddresses, host.IPAddresses...)
+				break
+			}
+		}
+		c, _ := s.checksService.GetAggregatedChecksResultByHost(clusterID)
+		if _, ok := c[node.Name]; ok {
+			node.Health = c[node.Name].String()
+		}
+	}
 }
 
 func filterByHealth(clusterList models.ClusterList, health []string) models.ClusterList {

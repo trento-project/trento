@@ -104,6 +104,29 @@ func (_m *MockClustersService) GetAllTags() ([]string, error) {
 	return r0, r1
 }
 
+// GetByID provides a mock function with given fields: _a0
+func (_m *MockClustersService) GetByID(_a0 string) (*models.Cluster, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *models.Cluster
+	if rf, ok := ret.Get(0).(func(string) *models.Cluster); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Cluster)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetCount provides a mock function with given fields:
 func (_m *MockClustersService) GetCount() (int, error) {
 	ret := _m.Called()

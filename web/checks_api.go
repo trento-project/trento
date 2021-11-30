@@ -31,6 +31,7 @@ type JSONCheck struct {
 	Remediation    string `json:"remediation,omitempty"`
 	Implementation string `json:"implementation,omitempty"`
 	Labels         string `json:"labels,omitempty"`
+	Premium        bool   `json:"premium,omitempty"`
 }
 
 type JSONChecksGroup struct {
@@ -115,6 +116,7 @@ func ApiCreateChecksCatalogHandler(s services.ChecksService) gin.HandlerFunc {
 				Remediation:    checkData.Remediation,
 				Implementation: checkData.Implementation,
 				Labels:         checkData.Labels,
+				Premium:        checkData.Premium,
 			}
 			catalog = append(catalog, newCheck)
 		}

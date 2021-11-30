@@ -38,7 +38,7 @@
                                 <tr>
                                     <td class="align-top">{{ .ID }}</td>
                                     <td class="align-top">
-                                        {{ .Description }}
+                                        {{ .Description }}{{ if .Premium }}<span class="badge badge-trento-premium">Premium</span>{{ end }}
                                         <div class="ha-check-remediation collapse" id="info-{{ .ID }}">
                                             {{ markdown (.Remediation) }}
                                         </div>

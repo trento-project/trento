@@ -358,7 +358,12 @@ jobs:
         mkdir -p $HOME/.config/osc
         cp /root/.config/osc/oscrc $HOME/.config/osc
     - name: Prepare trento.changes file
+    # The .changes file is updated only in release creation. This current task should be improved
+    # in order to add the current rolling release notes
+      if: github.event_name == 'release'
       run: |
+        osc checkout $OBS_PROJECT trento trento.changes
+        mv trento.changes $FOLDER
         VERSION=$(./hack/get_version_from_git.sh)
         TAG=$(echo $VERSION | cut -f1 -d+)
         hack/gh_release_to_obs_changeset.py $REPOSITORY -a shap-staff@suse.de -t $TAG -f $FOLDER/trento.changes

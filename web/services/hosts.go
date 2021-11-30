@@ -61,7 +61,7 @@ func (s *hostsService) GetAll(filter *HostsFilter, page *Page) (models.HostList,
 		}
 	}
 
-	err := db.Find(&hosts).Order("name").Error
+	err := db.Order("name").Find(&hosts).Error
 	if err != nil {
 		return nil, err
 	}

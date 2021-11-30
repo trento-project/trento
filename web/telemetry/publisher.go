@@ -40,7 +40,7 @@ func (tp *TelemetryPublisher) Publish(telemetryName string, installationID uuid.
 	return nil
 }
 
-var apiHost = "https://httpbin.org/anything"
+var apiHost = "https://telemetry.trento-project.io" // this service still does not exist
 
 func NewTelemetryPublisher() Publisher {
 	return &TelemetryPublisher{

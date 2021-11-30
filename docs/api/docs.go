@@ -406,7 +406,7 @@ var doc = `{
                 }
             }
         },
-        "/hosts/{name}/tags": {
+        "/hosts/{id}/tags": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -418,8 +418,8 @@ var doc = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Host name",
-                        "name": "name",
+                        "description": "Host id",
+                        "name": "id",
                         "in": "path",
                         "required": true
                     },
@@ -470,7 +470,7 @@ var doc = `{
                 }
             }
         },
-        "/hosts/{name}/tags/{tag}": {
+        "/hosts/{id}/tags/{tag}": {
             "delete": {
                 "consumes": [
                     "application/json"
@@ -482,8 +482,8 @@ var doc = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Host name",
-                        "name": "name",
+                        "description": "Host id",
+                        "name": "id",
                         "in": "path",
                         "required": true
                     },

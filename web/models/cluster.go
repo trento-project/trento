@@ -18,6 +18,9 @@ type Cluster struct {
 	ResourcesNumber int
 	HostsNumber     int
 	Health          string
+	PassingCount    int
+	WarningCount    int
+	CriticalCount   int
 	Tags            []string
 	// TODO: this is frontend specific, should be removed
 	HasDuplicatedName bool

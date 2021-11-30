@@ -15,8 +15,8 @@ const HeartbeatTreshold = internal.HeartbeatInterval * 2
 
 var timeSince = time.Since
 
-//go:generate mockery --name=HostsNextService --inpackage --filename=hosts_next_mock.go
-type HostsNextService interface {
+//go:generate mockery --name=HostsService --inpackage --filename=hosts_mock.go
+type HostsService interface {
 	GetAll(*HostsFilter, *Page) (models.HostList, error)
 	GetCount() (int, error)
 	GetAllSIDs() ([]string, error)
@@ -30,15 +30,15 @@ type HostsFilter struct {
 	Health []string
 }
 
-type hostsNextService struct {
+type hostsService struct {
 	db *gorm.DB
 }
 
-func NewHostsNextService(db *gorm.DB) *hostsNextService {
-	return &hostsNextService{db}
+func NewHostsService(db *gorm.DB) *hostsService {
+	return &hostsService{db}
 }
 
-func (s *hostsNextService) GetAll(filter *HostsFilter, page *Page) (models.HostList, error) {
+func (s *hostsService) GetAll(filter *HostsFilter, page *Page) (models.HostList, error) {
 	var hosts []entities.Host
 	db := s.db.Model(&entities.Host{}).Preload("Tags").Preload("Heartbeat").Preload("SAPSystemInstances")
 
@@ -80,14 +80,14 @@ func (s *hostsNextService) GetAll(filter *HostsFilter, page *Page) (models.HostL
 	return hostList, nil
 }
 
-func (s *hostsNextService) GetCount() (int, error) {
+func (s *hostsService) GetCount() (int, error) {
 	var count int64
 	err := s.db.Model(&entities.Host{}).Count(&count).Error
 
 	return int(count), err
 }
 
-func (s *hostsNextService) GetAllSIDs() ([]string, error) {
+func (s *hostsService) GetAllSIDs() ([]string, error) {
 	var sids pq.StringArray
 
 	err := s.db.
@@ -104,7 +104,7 @@ func (s *hostsNextService) GetAllSIDs() ([]string, error) {
 	return []string(sids), nil
 }
 
-func (s *hostsNextService) GetAllTags() ([]string, error) {
+func (s *hostsService) GetAllTags() ([]string, error) {
 	var tags []string
 
 	err := s.db.
@@ -123,7 +123,7 @@ func (s *hostsNextService) GetAllTags() ([]string, error) {
 	return tags, nil
 }
 
-func (s *hostsNextService) Heartbeat(agentID string) error {
+func (s *hostsService) Heartbeat(agentID string) error {
 	heartbeat := &entities.HostHeartbeat{
 		AgentID: agentID,
 	}

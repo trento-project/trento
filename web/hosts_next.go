@@ -24,7 +24,7 @@ func NewHostsNextHealthContainer(hostList models.HostList) *HealthContainer {
 	return h
 }
 
-func NewHostListNextHandler(hostsService services.HostsNextService) gin.HandlerFunc {
+func NewHostListNextHandler(hostsService services.HostsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		query := c.Request.URL.Query()
 
@@ -87,7 +87,7 @@ func NewHostListNextHandler(hostsService services.HostsNextService) gin.HandlerF
 	}
 }
 
-func ApiHostHeartbeatHandler(hostService services.HostsNextService) gin.HandlerFunc {
+func ApiHostHeartbeatHandler(hostService services.HostsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		agentID := c.Param("id")
 

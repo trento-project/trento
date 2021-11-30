@@ -63,7 +63,7 @@ func TestHostListNextHandler(t *testing.T) {
 		},
 	}
 
-	mockHostsService := new(services.MockHostsNextService)
+	mockHostsService := new(services.MockHostsService)
 	mockHostsService.On("GetAll", mock.Anything, mock.Anything).Return(hostList, nil)
 	mockHostsService.On("GetCount").Return(3, nil)
 	mockHostsService.On("GetAllSIDs", mock.Anything).Return([]string{"PRD", "QAS", "DEV"}, nil)
@@ -108,7 +108,7 @@ func TestHostListNextHandler(t *testing.T) {
 func TestApiHostHeartbeat(t *testing.T) {
 	agentID := "agent_id"
 
-	mockHostsService := new(services.MockHostsNextService)
+	mockHostsService := new(services.MockHostsService)
 	mockHostsService.On("Heartbeat", agentID).Return(nil)
 
 	deps := setupTestDependencies()

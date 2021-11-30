@@ -69,18 +69,18 @@ func hostsFixtures() []entities.Host {
 	}
 }
 
-type HostsNextServiceTestSuite struct {
+type HostsServiceTestSuite struct {
 	suite.Suite
-	db               *gorm.DB
-	tx               *gorm.DB
-	hostsNextService *hostsNextService
+	db           *gorm.DB
+	tx           *gorm.DB
+	hostsService *hostsService
 }
 
-func TestHostsNextServiceTestSuite(t *testing.T) {
-	suite.Run(t, new(HostsNextServiceTestSuite))
+func TestHostsServiceTestSuite(t *testing.T) {
+	suite.Run(t, new(HostsServiceTestSuite))
 }
 
-func (suite *HostsNextServiceTestSuite) SetupSuite() {
+func (suite *HostsServiceTestSuite) SetupSuite() {
 	suite.db = helpers.SetupTestDatabase(suite.T())
 
 	suite.db.AutoMigrate(&entities.Host{}, &entities.HostHeartbeat{}, &entities.SAPSystemInstance{}, &models.Tag{})
@@ -89,28 +89,28 @@ func (suite *HostsNextServiceTestSuite) SetupSuite() {
 	suite.NoError(err)
 }
 
-func (suite *HostsNextServiceTestSuite) TearDownSuite() {
+func (suite *HostsServiceTestSuite) TearDownSuite() {
 	suite.db.Migrator().DropTable(&entities.Host{},
 		&entities.HostHeartbeat{},
 		&entities.SAPSystemInstance{},
 		&models.Tag{})
 }
 
-func (suite *HostsNextServiceTestSuite) SetupTest() {
+func (suite *HostsServiceTestSuite) SetupTest() {
 	suite.tx = suite.db.Begin()
-	suite.hostsNextService = NewHostsNextService(suite.tx)
+	suite.hostsService = NewHostsService(suite.tx)
 }
 
-func (suite *HostsNextServiceTestSuite) TearDownTest() {
+func (suite *HostsServiceTestSuite) TearDownTest() {
 	suite.tx.Rollback()
 }
 
-func (suite *HostsNextServiceTestSuite) TestHostsNextService_GetAll() {
+func (suite *HostsServiceTestSuite) TestHostsService_GetAll() {
 	timeSince = func(_ time.Time) time.Duration {
 		return time.Duration(0)
 	}
 
-	hosts, err := suite.hostsNextService.GetAll(nil, nil)
+	hosts, err := suite.hostsService.GetAll(nil, nil)
 	suite.NoError(err)
 
 	suite.ElementsMatch(models.HostList{
@@ -161,12 +161,12 @@ func (suite *HostsNextServiceTestSuite) TestHostsNextService_GetAll() {
 	}, hosts)
 }
 
-func (suite *HostsNextServiceTestSuite) TestHostsNextService_GetAll_Filters() {
+func (suite *HostsServiceTestSuite) TestHostsService_GetAll_Filters() {
 	timeSince = func(_ time.Time) time.Duration {
 		return time.Duration(0)
 	}
 
-	hosts, _ := suite.hostsNextService.GetAll(&HostsFilter{
+	hosts, _ := suite.hostsService.GetAll(&HostsFilter{
 		Tags:   []string{"tag1"},
 		SIDs:   []string{"DEV"},
 		Health: []string{"passing", "unknown"},
@@ -175,25 +175,25 @@ func (suite *HostsNextServiceTestSuite) TestHostsNextService_GetAll_Filters() {
 	suite.Equal("1", hosts[0].ID)
 }
 
-func (suite *HostsNextServiceTestSuite) TestHostsNextService_GetHostsCount() {
-	count, err := suite.hostsNextService.GetCount()
+func (suite *HostsServiceTestSuite) TestHostsService_GetHostsCount() {
+	count, err := suite.hostsService.GetCount()
 
 	suite.NoError(err)
 	suite.Equal(2, count)
 }
 
-func (suite *HostsNextServiceTestSuite) TestHostsNextService_GetAllTags() {
-	hosts, _ := suite.hostsNextService.GetAllTags()
+func (suite *HostsServiceTestSuite) TestHostsService_GetAllTags() {
+	hosts, _ := suite.hostsService.GetAllTags()
 	suite.EqualValues([]string{"tag1", "tag2"}, hosts)
 }
 
-func (suite *HostsNextServiceTestSuite) TestHostsNextService_GetAllSIDs() {
-	hosts, _ := suite.hostsNextService.GetAllSIDs()
+func (suite *HostsServiceTestSuite) TestHostsService_GetAllSIDs() {
+	hosts, _ := suite.hostsService.GetAllSIDs()
 	suite.ElementsMatch([]string{"DEV", "QAS"}, hosts)
 }
 
-func (suite *HostsNextServiceTestSuite) TestHostsNextService_Heartbeat() {
-	err := suite.hostsNextService.Heartbeat("1")
+func (suite *HostsServiceTestSuite) TestHostsService_Heartbeat() {
+	err := suite.hostsService.Heartbeat("1")
 	suite.NoError(err)
 
 	var heartbeat entities.HostHeartbeat
@@ -201,7 +201,7 @@ func (suite *HostsNextServiceTestSuite) TestHostsNextService_Heartbeat() {
 	suite.Equal("1", heartbeat.AgentID)
 }
 
-func (suite *HostsNextServiceTestSuite) TestHostsNextService_computeHealth() {
+func (suite *HostsServiceTestSuite) TestHostsService_computeHealth() {
 	host := hostsFixtures()[0]
 
 	timeSince = func(_ time.Time) time.Duration {

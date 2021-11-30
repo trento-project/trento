@@ -69,7 +69,7 @@ type Dependencies struct {
 	tagsService          services.TagsService
 	collectorService     services.CollectorService
 	clustersService      services.ClustersService
-	hostsNextService     services.HostsNextService
+	hostsNextService     services.HostsService
 	settingsService      services.SettingsService
 	telemetryRegistry    *telemetry.TelemetryRegistry
 	telemetryPublisher   telemetry.Publisher
@@ -101,7 +101,7 @@ func DefaultDependencies(config *Config) Dependencies {
 	checksService := services.NewChecksService(araService, db)
 	subscriptionsService := services.NewSubscriptionsService(db)
 	hostsService := services.NewHostsConsulService(consulClient)
-	hostsServiceNext := services.NewHostsNextService(db)
+	hostsServiceNext := services.NewHostsService(db)
 	sapSystemsService := services.NewSAPSystemsService(consulClient)
 	clustersService := services.NewClustersService(db, checksService)
 	collectorService := services.NewCollectorService(db, projectorWorkersPool.GetChannel())

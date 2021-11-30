@@ -2,100 +2,229 @@ package services
 
 import (
 	"testing"
+	"time"
 
-	"github.com/stretchr/testify/assert"
-
-	consulApi "github.com/hashicorp/consul/api"
-	"github.com/trento-project/trento/internal/consul/mocks"
-	"github.com/trento-project/trento/internal/hosts"
+	"github.com/lib/pq"
+	"github.com/stretchr/testify/suite"
+	"github.com/trento-project/trento/test/helpers"
+	"github.com/trento-project/trento/web/entities"
+	"github.com/trento-project/trento/web/models"
+	"gorm.io/gorm"
 )
 
-func TestGetHostMetadata(t *testing.T) {
-	consulInst := new(mocks.Client)
-	catalog := new(mocks.Catalog)
-
-	nodes := []*consulApi.Node{
+func hostsFixtures() []entities.Host {
+	return []entities.Host{
 		{
-			Node: "node1",
-			Meta: map[string]string{
-				"trento-meta1": "value1",
-				"trento-meta2": "value2",
+			AgentID:       "1",
+			Name:          "host1",
+			ClusterID:     "cluster_id_1",
+			ClusterName:   "cluster_1",
+			CloudProvider: "azure",
+			IPAddresses:   pq.StringArray{"10.74.1.5"},
+			SAPSystemInstances: []*entities.SAPSystemInstance{
+				{
+					AgentID:        "1",
+					ID:             "sap_system_id_1",
+					SID:            "DEV",
+					InstanceNumber: "00",
+				},
 			},
+			AgentVersion: "rolling1337",
+			Heartbeat: &entities.HostHeartbeat{
+				AgentID:   "1",
+				UpdatedAt: time.Date(2020, 11, 01, 00, 00, 00, 0, time.UTC),
+			},
+			Tags: []*models.Tag{{
+				Value:        "tag1",
+				ResourceID:   "1",
+				ResourceType: models.TagHostResourceType,
+			}},
 		},
 		{
-			Node: "node2",
-			Meta: map[string]string{
-				"trento-meta3": "value3",
-				"trento-meta4": "value4",
+			AgentID:       "2",
+			Name:          "host2",
+			ClusterID:     "cluster_id_2",
+			ClusterName:   "cluster_2",
+			CloudProvider: "azure",
+			IPAddresses:   pq.StringArray{"10.74.1.10"},
+			SAPSystemInstances: []*entities.SAPSystemInstance{
+				{
+					AgentID:        "2",
+					ID:             "sap_system_id_2",
+					SID:            "QAS",
+					InstanceNumber: "10",
+				},
 			},
+			AgentVersion: "stable",
+			Heartbeat: &entities.HostHeartbeat{
+				AgentID:   "2",
+				UpdatedAt: time.Date(2020, 11, 01, 00, 00, 00, 0, time.UTC),
+			},
+			Tags: []*models.Tag{{
+				Value:        "tag2",
+				ResourceID:   "2",
+				ResourceType: models.TagHostResourceType,
+			}},
 		},
 	}
-
-	consulInst.On("Catalog").Return(catalog)
-	catalog.On("Nodes", &consulApi.QueryOptions{Filter: "Node == node1"}).Return(nodes, nil, nil)
-
-	hostsService := NewHostsService(consulInst)
-	meta, err := hostsService.GetHostMetadata("node1")
-
-	expectedMeta := map[string]string{
-		"trento-meta1": "value1",
-		"trento-meta2": "value2",
-	}
-
-	assert.NoError(t, err)
-	assert.Equal(t, expectedMeta, meta)
 }
 
-func TestGetHostsBySystemId(t *testing.T) {
-	consulInst := new(mocks.Client)
-	catalog := new(mocks.Catalog)
+type HostsServiceTestSuite struct {
+	suite.Suite
+	db           *gorm.DB
+	tx           *gorm.DB
+	hostsService *hostsService
+}
 
-	nodes := []*consulApi.Node{
-		{
-			Node: "node1",
-			Meta: map[string]string{
-				"trento-sap-systems-id": "systemdId",
-			},
-		},
-		{
-			Node: "node2",
-			Meta: map[string]string{
-				"trento-sap-systems-id": "systemdId",
-			},
-		},
+func TestHostsServiceTestSuite(t *testing.T) {
+	suite.Run(t, new(HostsServiceTestSuite))
+}
+
+func (suite *HostsServiceTestSuite) SetupSuite() {
+	suite.db = helpers.SetupTestDatabase(suite.T())
+
+	suite.db.AutoMigrate(&entities.Host{}, &entities.HostHeartbeat{}, &entities.SAPSystemInstance{}, &models.Tag{})
+	hosts := hostsFixtures()
+	err := suite.db.Create(&hosts).Error
+	suite.NoError(err)
+}
+
+func (suite *HostsServiceTestSuite) TearDownSuite() {
+	suite.db.Migrator().DropTable(&entities.Host{},
+		&entities.HostHeartbeat{},
+		&entities.SAPSystemInstance{},
+		&models.Tag{})
+}
+
+func (suite *HostsServiceTestSuite) SetupTest() {
+	suite.tx = suite.db.Begin()
+	suite.hostsService = NewHostsService(suite.tx)
+}
+
+func (suite *HostsServiceTestSuite) TearDownTest() {
+	suite.tx.Rollback()
+}
+
+func (suite *HostsServiceTestSuite) TestHostsService_GetAll() {
+	timeSince = func(_ time.Time) time.Duration {
+		return time.Duration(0)
 	}
 
-	consulInst.On("Catalog").Return(catalog)
-	catalog.On("Nodes", &consulApi.QueryOptions{Filter: "Meta[\"trento-sap-systems-id\"] contains \"systemdId1\""}).Return(nodes, nil, nil)
+	hosts, err := suite.hostsService.GetAll(nil, nil)
+	suite.NoError(err)
 
-	hostsService := NewHostsService(consulInst)
-	hostsBySid, err := hostsService.GetHostsBySystemId("systemdId1")
-
-	host1 := hosts.NewHost(
-		consulApi.Node{
-			Node: "node1",
-			Meta: map[string]string{
-				"trento-sap-systems-id": "systemdId",
+	suite.ElementsMatch(models.HostList{
+		{
+			ID:            "1",
+			Name:          "host1",
+			Health:        "passing",
+			IPAddresses:   []string{"10.74.1.5"},
+			CloudProvider: "azure",
+			ClusterID:     "cluster_id_1",
+			ClusterName:   "cluster_1",
+			AgentVersion:  "rolling1337",
+			SAPSystems: []*models.SAPSystem{
+				{
+					ID:  "sap_system_id_1",
+					SID: "DEV",
+					Instances: []*models.SAPSystemInstance{
+						{
+							InstanceNumber: "00",
+						},
+					},
+				},
 			},
+			Tags: []string{"tag1"},
 		},
-		consulInst,
-	)
-
-	host2 := hosts.NewHost(
-		consulApi.Node{
-			Node: "node2",
-			Meta: map[string]string{
-				"trento-sap-systems-id": "systemdId",
+		{
+			ID:            "2",
+			Name:          "host2",
+			Health:        "passing",
+			IPAddresses:   []string{"10.74.1.10"},
+			CloudProvider: "azure",
+			ClusterID:     "cluster_id_2",
+			ClusterName:   "cluster_2",
+			AgentVersion:  "stable",
+			SAPSystems: []*models.SAPSystem{
+				{
+					ID:  "sap_system_id_2",
+					SID: "QAS",
+					Instances: []*models.SAPSystemInstance{
+						{
+							InstanceNumber: "10",
+						},
+					},
+				},
 			},
+			Tags: []string{"tag2"},
 		},
-		consulInst,
-	)
+	}, hosts)
+}
 
-	expectedHosts := hosts.HostList{
-		&host1,
-		&host2,
+func (suite *HostsServiceTestSuite) TestHostsService_GetAll_Filters() {
+	timeSince = func(_ time.Time) time.Duration {
+		return time.Duration(0)
 	}
 
-	assert.NoError(t, err)
-	assert.Equal(t, expectedHosts, hostsBySid)
+	hosts, _ := suite.hostsService.GetAll(&HostsFilter{
+		Tags:   []string{"tag1"},
+		SIDs:   []string{"DEV"},
+		Health: []string{"passing", "unknown"},
+	}, nil)
+	suite.Equal(1, len(hosts))
+	suite.Equal("1", hosts[0].ID)
+}
+
+func (suite *HostsServiceTestSuite) TestHostsService_GetByID() {
+	host, _ := suite.hostsService.GetByID("1")
+	suite.Equal("host1", host.Name)
+}
+
+func (suite *HostsServiceTestSuite) TestHostsService_GetByID_NotFound() {
+	host, _ := suite.hostsService.GetByID("13")
+	suite.Nil(host)
+}
+
+func (suite *HostsServiceTestSuite) TestHostsService_GetHostsCount() {
+	count, err := suite.hostsService.GetCount()
+
+	suite.NoError(err)
+	suite.Equal(2, count)
+}
+
+func (suite *HostsServiceTestSuite) TestHostsService_GetAllTags() {
+	hosts, _ := suite.hostsService.GetAllTags()
+	suite.EqualValues([]string{"tag1", "tag2"}, hosts)
+}
+
+func (suite *HostsServiceTestSuite) TestHostsService_GetAllSIDs() {
+	hosts, _ := suite.hostsService.GetAllSIDs()
+	suite.ElementsMatch([]string{"DEV", "QAS"}, hosts)
+}
+
+func (suite *HostsServiceTestSuite) TestHostsService_Heartbeat() {
+	err := suite.hostsService.Heartbeat("1")
+	suite.NoError(err)
+
+	var heartbeat entities.HostHeartbeat
+	suite.tx.First(&heartbeat)
+	suite.Equal("1", heartbeat.AgentID)
+}
+
+func (suite *HostsServiceTestSuite) TestHostsService_computeHealth() {
+	host := hostsFixtures()[0]
+
+	timeSince = func(_ time.Time) time.Duration {
+		return time.Duration(0)
+	}
+	suite.Equal(models.HostHealthPassing, computeHealth(&host))
+
+	timeSince = func(_ time.Time) time.Duration {
+		return time.Duration(HeartbeatTreshold + 1)
+	}
+	suite.Equal(models.HostHealthCritical, computeHealth(&host))
+
+	host.Heartbeat = nil
+	suite.Equal(models.HostHealthUnknown, computeHealth(&host))
+
 }

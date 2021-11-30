@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	consulApi "github.com/hashicorp/consul/api"
 
 	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/sapsystem"
@@ -82,20 +81,17 @@ func TestApiListTag(t *testing.T) {
 	assert.Equal(t, expectedBody, resp.Body.Bytes())
 }
 
-func setupTestApiHostTag(resourceId string) Dependencies {
-	node := &consulApi.Node{
-		Node: resourceId,
+func setupTestApiHostTag(resourceID string) Dependencies {
+	host := &models.Host{
+		ID: resourceID,
 	}
 
-	consulInst := new(consulMocks.Client)
-	catalog := new(consulMocks.Catalog)
-	catalogNode := &consulApi.CatalogNode{Node: node}
-	catalog.On("Node", resourceId, (*consulApi.QueryOptions)(nil)).Return(catalogNode, nil, nil)
-	catalog.On("Node", mock.Anything, (*consulApi.QueryOptions)(nil)).Return(nil, nil, nil)
-	consulInst.On("Catalog").Return(catalog)
+	hostsService := new(services.MockHostsService)
+	hostsService.On("GetByID", resourceID).Return(host, nil)
+	hostsService.On("GetByID", mock.Anything).Return(nil, nil)
 
 	deps := setupTestDependencies()
-	deps.consul = consulInst
+	deps.hostsService = hostsService
 
 	return deps
 }

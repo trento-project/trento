@@ -370,14 +370,14 @@ paths:
             additionalProperties: true
             type: object
       summary: Delete a specific tag that belongs to a HANA database
-  /hosts/{name}/tags:
+  /hosts/{id}/tags:
     post:
       consumes:
       - application/json
       parameters:
-      - description: Host name
+      - description: Host id
         in: path
-        name: name
+        name: id
         required: true
         type: string
       - description: The tag to create
@@ -412,14 +412,14 @@ paths:
               type: string
             type: object
       summary: Add tag to host
-  /hosts/{name}/tags/{tag}:
+  /hosts/{id}/tags/{tag}:
     delete:
       consumes:
       - application/json
       parameters:
-      - description: Host name
+      - description: Host id
         in: path
-        name: name
+        name: id
         required: true
         type: string
       - description: Tag

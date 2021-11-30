@@ -25,7 +25,7 @@ type Extractor interface {
 	Extract() (interface{}, error)
 }
 
-//go:generate mockery --name=IdentifiedExtractor --inpackage --filename=identified_extractor_mock.go
+//go:generate mockery --name=InstallationIdAwareExtractor --inpackage --filename=installation_id_aware_extractor_mock.go
 
 // InstallationIdAwareExtractor is an Extractor that can be identified by an installation ID.
 type InstallationIdAwareExtractor interface {

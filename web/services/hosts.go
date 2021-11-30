@@ -1,45 +1,168 @@
 package services
 
 import (
-	"fmt"
+	"errors"
+	"time"
 
-	"github.com/trento-project/trento/internal/consul"
-	"github.com/trento-project/trento/internal/hosts"
+	"github.com/lib/pq"
+	"github.com/trento-project/trento/internal"
+	"github.com/trento-project/trento/web/entities"
+	"github.com/trento-project/trento/web/models"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
-//go:generate mockery --name=HostsService --inpackage  --filename=hosts_mock.go
+const HeartbeatTreshold = internal.HeartbeatInterval * 2
 
+var timeSince = time.Since
+
+//go:generate mockery --name=HostsService --inpackage --filename=hosts_mock.go
 type HostsService interface {
-	GetHostMetadata(host string) (map[string]string, error)
-	GetHostsBySystemId(id string) (hosts.HostList, error)
+	GetAll(*HostsFilter, *Page) (models.HostList, error)
+	GetByID(string) (*models.Host, error)
+	GetCount() (int, error)
+	GetAllSIDs() ([]string, error)
+	GetAllTags() ([]string, error)
+	Heartbeat(agentID string) error
+}
+
+type HostsFilter struct {
+	SIDs   []string
+	Tags   []string
+	Health []string
 }
 
 type hostsService struct {
-	consul consul.Client
+	db *gorm.DB
 }
 
-func NewHostsService(client consul.Client) HostsService {
-	return &hostsService{consul: client}
+func NewHostsService(db *gorm.DB) *hostsService {
+	return &hostsService{db}
 }
 
-func (h *hostsService) GetHostMetadata(host string) (map[string]string, error) {
-	hostList, err := hosts.Load(h.consul, fmt.Sprintf("Node == %s", host), nil)
+func (s *hostsService) GetAll(filter *HostsFilter, page *Page) (models.HostList, error) {
+	var hosts []entities.Host
+	db := s.db.Model(&entities.Host{}).Preload("Tags").Preload("Heartbeat").Preload("SAPSystemInstances")
+
+	if filter != nil {
+		if len(filter.SIDs) > 0 {
+			db = db.Where("agent_id IN (?)", s.db.Model(&entities.SAPSystemInstance{}).
+				Select("agent_id").
+				Where("sid IN ?", filter.SIDs),
+			)
+		}
+
+		if len(filter.Tags) > 0 {
+			db = db.Where("agent_id IN (?)", s.db.Model(&models.Tag{}).
+				Select("resource_id").
+				Where("resource_type = ?", models.TagHostResourceType).
+				Where("value IN ?", filter.Tags),
+			)
+		}
+	}
+
+	err := db.Order("name").Find(&hosts).Error
 	if err != nil {
 		return nil, err
 	}
 
-	if len(hostList) == 0 {
-		return nil, fmt.Errorf("host with name %s not found", host)
-	}
+	var hostList models.HostList
+	for _, h := range hosts {
+		host := h.ToModel()
+		host.Health = computeHealth(&h)
 
-	return hostList[0].TrentoMeta(), nil
-}
-
-func (h *hostsService) GetHostsBySystemId(id string) (hosts.HostList, error) {
-	hostList, err := hosts.Load(h.consul, fmt.Sprintf("Meta[\"trento-sap-systems-id\"] contains \"%s\"", id), nil)
-	if err != nil {
-		return nil, err
+		if filter != nil && len(filter.Health) > 0 {
+			if !internal.Contains(filter.Health, host.Health) {
+				continue
+			}
+		}
+		hostList = append(hostList, host)
 	}
 
 	return hostList, nil
+}
+
+func (s *hostsService) GetByID(id string) (*models.Host, error) {
+	var host entities.Host
+	err := s.db.
+		Where("agent_id = ?", id).
+		First(&host).
+		Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return host.ToModel(), nil
+}
+
+func (s *hostsService) GetCount() (int, error) {
+	var count int64
+	err := s.db.Model(&entities.Host{}).Count(&count).Error
+
+	return int(count), err
+}
+
+func (s *hostsService) GetAllSIDs() ([]string, error) {
+	var sids pq.StringArray
+
+	err := s.db.
+		Model(&entities.Host{}).
+		Joins("JOIN sap_system_instances ON sap_system_instances.agent_id = hosts.agent_id AND sid IS NOT NULL").
+		Distinct().
+		Pluck("sap_system_instances.sid", &sids).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return []string(sids), nil
+}
+
+func (s *hostsService) GetAllTags() ([]string, error) {
+	var tags []string
+
+	err := s.db.
+		Model(&models.Tag{
+			ResourceType: models.TagHostResourceType,
+		}).
+		Distinct().
+		Pluck("value", &tags).
+		Error
+
+	if err != nil {
+		return nil, err
+
+	}
+
+	return tags, nil
+}
+
+func (s *hostsService) Heartbeat(agentID string) error {
+	heartbeat := &entities.HostHeartbeat{
+		AgentID: agentID,
+	}
+
+	return s.db.Clauses(clause.OnConflict{
+		Columns: []clause.Column{
+			{Name: "agent_id"},
+		},
+		DoUpdates: clause.AssignmentColumns([]string{"updated_at"}),
+	}).Create(heartbeat).Error
+}
+
+func computeHealth(host *entities.Host) string {
+	if host.Heartbeat == nil {
+		return models.HostHealthUnknown
+	}
+
+	if timeSince(host.Heartbeat.UpdatedAt) > HeartbeatTreshold {
+		return models.HostHealthCritical
+	}
+
+	return models.HostHealthPassing
 }

@@ -166,7 +166,7 @@ func TestSAPSystemsListHandler(t *testing.T) {
 	consulInst := new(consulMocks.Client)
 	kv := new(consulMocks.KV)
 	sapSystemsService := new(services.MockSAPSystemsService)
-	hostsService := new(services.MockHostsService)
+	hostsService := new(services.MockHostsConsulService)
 	sapSystemsService.On("GetSAPSystemsByType", sapsystem.Application).Return(sapSystemsList, nil)
 	sapSystemsService.On("GetAttachedDatabasesById", "systemId1").Return(sapDatabasesList, nil)
 	sapSystemsService.On("GetAttachedDatabasesById", "systemId2").Return(sapDatabasesList, nil)
@@ -197,7 +197,7 @@ func TestSAPSystemsListHandler(t *testing.T) {
 
 	deps := setupTestDependencies()
 	deps.consul = consulInst
-	deps.hostsService = hostsService
+	deps.hostsConsulService = hostsService
 	deps.sapSystemsService = sapSystemsService
 	deps.tagsService = tagsService
 
@@ -233,7 +233,7 @@ func TestSAPDatabaseListHandler(t *testing.T) {
 	consulInst := new(consulMocks.Client)
 	kv := new(consulMocks.KV)
 	sapSystemsService := new(services.MockSAPSystemsService)
-	hostsService := new(services.MockHostsService)
+	hostsService := new(services.MockHostsConsulService)
 	tagsService := new(services.MockTagsService)
 	tagsService.On(
 		"GetAllByResource", models.TagDatabaseResourceType, "systemId2").Return([]string{"tag1"}, nil)
@@ -247,7 +247,7 @@ func TestSAPDatabaseListHandler(t *testing.T) {
 
 	deps := setupTestDependencies()
 	deps.consul = consulInst
-	deps.hostsService = hostsService
+	deps.hostsConsulService = hostsService
 	deps.sapSystemsService = sapSystemsService
 	deps.tagsService = tagsService
 
@@ -412,12 +412,12 @@ func TestSAPResourceHandler(t *testing.T) {
 	health := new(consulMocks.Health)
 	consulInst.On("Health").Return(health)
 	sapSystemsService := new(services.MockSAPSystemsService)
-	hostsService := new(services.MockHostsService)
+	hostsService := new(services.MockHostsConsulService)
 
 	deps := setupTestDependencies()
 	deps.consul = consulInst
 	deps.sapSystemsService = sapSystemsService
-	deps.hostsService = hostsService
+	deps.hostsConsulService = hostsService
 
 	host := hosts.NewHost(consulApi.Node{
 		Node:    "netweaver01",

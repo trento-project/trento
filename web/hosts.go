@@ -2,9 +2,7 @@ package web
 
 import (
 	"net/http"
-	"strings"
-
-	"github.com/trento-project/trento/internal"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	consulApi "github.com/hashicorp/consul/api"
@@ -19,120 +17,96 @@ import (
 	"github.com/trento-project/trento/web/services"
 )
 
-func NewHostsHealthContainer(hostList hosts.HostList) *HealthContainer {
+func NewHostsHealthContainer(hostList models.HostList) *HealthContainer {
 	h := &HealthContainer{}
 	for _, host := range hostList {
-		switch host.Health() {
-		case consulApi.HealthPassing:
+		switch host.Health {
+		case models.HostHealthPassing:
 			h.PassingCount += 1
-		case consulApi.HealthWarning:
+		case models.HostHealthWarning:
 			h.WarningCount += 1
-		case consulApi.HealthCritical:
+		case models.HostHealthCritical:
 			h.CriticalCount += 1
 		}
 	}
 	return h
 }
 
-func NewHostListHandler(client consul.Client, tagsService services.TagsService) gin.HandlerFunc {
+func NewHostListNextHandler(hostsService services.HostsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		query := c.Request.URL.Query()
-		queryFilter := hosts.CreateFilterMetaQuery(query)
-		healthFilter := query["health"]
-		tagsFilter := query["tags"]
 
-		hostList, err := hosts.Load(client, queryFilter, healthFilter)
+		hostsFilter := &services.HostsFilter{
+			SIDs:   query["sids"],
+			Health: query["health"],
+			Tags:   query["tags"],
+		}
+
+		pageNumber, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+		if err != nil {
+			pageNumber = 1
+		}
+		pageSize, err := strconv.Atoi(c.DefaultQuery("per_page", "10"))
+		if err != nil {
+			pageSize = 10
+		}
+
+		page := &services.Page{
+			Number: pageNumber,
+			Size:   pageSize,
+		}
+
+		hostList, err := hostsService.GetAll(hostsFilter, page)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 
-		hostsTags := make(map[string][]string)
-		for _, h := range hostList {
-			ht, err := tagsService.GetAllByResource(models.TagHostResourceType, h.Name())
-			if err != nil {
-				c.Error(err)
-				return
-			}
-			hostsTags[h.Name()] = ht
+		filterSIDs, err := hostsService.GetAllSIDs()
+		if err != nil {
+			_ = c.Error(err)
+			return
 		}
 
-		hostList = filterHostsByTags(hostList, hostsTags, tagsFilter)
+		filterTags, err := hostsService.GetAllTags()
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
+		count, err := hostsService.GetCount()
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+		pagination := NewPagination(count, pageNumber, pageSize)
 
 		hContainer := NewHostsHealthContainer(hostList)
 		hContainer.Layout = "horizontal"
 
-		page := c.DefaultQuery("page", "1")
-		perPage := c.DefaultQuery("per_page", "10")
-		pagination := NewPaginationWithStrings(len(hostList), page, perPage)
-		firstElem, lastElem := pagination.GetSliceNumbers()
-
 		c.HTML(http.StatusOK, "hosts.html.tmpl", gin.H{
-			"Hosts":           hostList[firstElem:lastElem],
-			"SIDs":            getAllSIDs(hostList),
-			"Tags":            getAllTags(hostsTags),
+			"Hosts":           hostList,
 			"AppliedFilters":  query,
-			"HealthContainer": hContainer,
+			"FilterSIDs":      filterSIDs,
+			"FilterTags":      filterTags,
 			"Pagination":      pagination,
-			"HostsTags":       hostsTags,
+			"HealthContainer": hContainer,
 		})
 	}
 }
 
-func filterHostsByTags(hostList hosts.HostList, hostsTags map[string][]string, tagsFilter []string) hosts.HostList {
-	if len(tagsFilter) == 0 {
-		return hostList
-	}
-	var filteredHostList hosts.HostList
+func ApiHostHeartbeatHandler(hostService services.HostsService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		agentID := c.Param("id")
 
-	for _, h := range hostList {
-		for _, t := range tagsFilter {
-			if internal.Contains(hostsTags[h.Name()], t) {
-				filteredHostList = append(filteredHostList, h)
-				break
-			}
+		err := hostService.Heartbeat(agentID)
+		if err != nil {
+			_ = c.Error(err)
+			return
 		}
+
+		c.JSON(http.StatusNoContent, gin.H{})
 	}
-
-	return filteredHostList
-}
-
-func getAllSIDs(hostList hosts.HostList) []string {
-	var sids []string
-	set := make(map[string]struct{})
-
-	for _, host := range hostList {
-		for _, s := range strings.Split(host.TrentoMeta()["trento-sap-systems"], ",") {
-			if s == "" {
-				continue
-			}
-
-			_, ok := set[s]
-			if !ok {
-				sids = append(sids, s)
-				set[s] = struct{}{}
-			}
-		}
-	}
-
-	return sids
-}
-
-func getAllTags(hostsTags map[string][]string) []string {
-	var tags []string
-	set := make(map[string]struct{})
-
-	for _, ht := range hostsTags {
-		for _, t := range ht {
-			_, ok := set[t]
-			if !ok {
-				tags = append(tags, t)
-				set[t] = struct{}{}
-			}
-		}
-	}
-
-	return tags
 }
 
 func getTrentoAgentCheck(client consul.Client, node string) (*consulApi.HealthCheck, error) {

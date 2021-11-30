@@ -47,24 +47,24 @@ func ApiListTag(tagsService services.TagsService) gin.HandlerFunc {
 // @Summary Add tag to host
 // @Accept json
 // @Produce json
-// @Param name path string true "Host name"
+// @Param id path string true "Host id"
 // @Param Body body JSONTag true "The tag to create"
 // @Success 201 {object} JSONTag
 // @Failure 404 {object} map[string]string
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router /hosts/{name}/tags [post]
-func ApiHostCreateTagHandler(client consul.Client, tagsService services.TagsService) gin.HandlerFunc {
+// @Router /hosts/{id}/tags [post]
+func ApiHostCreateTagHandler(hostsService services.HostsService, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		name := c.Param("name")
+		id := c.Param("id")
 
-		catalogNode, _, err := client.Catalog().Node(name, nil)
+		host, err := hostsService.GetByID(id)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 
-		if catalogNode == nil {
+		if host == nil {
 			_ = c.Error(NotFoundError("could not find host"))
 			return
 		}
@@ -77,7 +77,7 @@ func ApiHostCreateTagHandler(client consul.Client, tagsService services.TagsServ
 			return
 		}
 
-		err = tagsService.Create(r.Tag, models.TagHostResourceType, name)
+		err = tagsService.Create(r.Tag, models.TagHostResourceType, id)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -91,27 +91,27 @@ func ApiHostCreateTagHandler(client consul.Client, tagsService services.TagsServ
 // @Summary Delete a specific tag that belongs to a host
 // @Accept json
 // @Produce json
-// @Param name path string true "Host name"
+// @Param id path string true "Host id"
 // @Param tag path string true "Tag"
 // @Success 204 {object} map[string]interface{}
-// @Router /hosts/{name}/tags/{tag} [delete]
-func ApiHostDeleteTagHandler(client consul.Client, tagsService services.TagsService) gin.HandlerFunc {
+// @Router /hosts/{id}/tags/{tag} [delete]
+func ApiHostDeleteTagHandler(hostsService services.HostsService, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		name := c.Param("name")
+		id := c.Param("id")
 		tag := c.Param("tag")
 
-		catalogNode, _, err := client.Catalog().Node(name, nil)
+		host, err := hostsService.GetByID(id)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 
-		if catalogNode == nil {
+		if host == nil {
 			_ = c.Error(NotFoundError("could not find host"))
 			return
 		}
 
-		err = tagsService.Delete(tag, models.TagHostResourceType, name)
+		err = tagsService.Delete(tag, models.TagHostResourceType, id)
 		if err != nil {
 			_ = c.Error(err)
 			return

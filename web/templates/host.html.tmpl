@@ -7,8 +7,9 @@
             <dd class="inline">{{ .Host.Name }}</dd>
             <dt class="inline">SAP System</dt>
             <dd class="inline">
-                {{- range $i, $v := split (index .Host.TrentoMeta "trento-sap-systems") "," }}{{- if $i }},{{- end }}
-                <a href="/sapsystems/{{ $v }}">{{ $v }}</a>{{- end }}
+                {{- $Host := .Host }}
+                {{- range $i, $v := split (index $Host.TrentoMeta "trento-sap-systems") "," }}{{- if $i }},{{- end }}
+                <a href="/sapsystems/{{ index (split (index $Host.TrentoMeta "trento-sap-systems-id") ",") $i }}">{{ $v }}</a>{{- end }}
             </dd>
 
             <dt class="inline">Cluster</dt>

@@ -1,6 +1,6 @@
 {{ define "content" }}
     <div class="col">
-        <h1>SAP System details</h1>
+        <h1>{{ if eq .SAPSystem.Type 1 }}HANA Database{{ else }}SAP System{{ end }} details</h1>
         <dl class="inline">
             <dt class="inline">Name</dt>
             <dd class="inline">{{ .SAPSystem.SID }}</dd>

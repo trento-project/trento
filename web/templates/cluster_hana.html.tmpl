@@ -59,7 +59,7 @@
                         <span class="badge badge-pill {{ $badgeClass }} ml-0">{{ .Cluster.Details.SecondarySyncState }}</span>
                     </div>
                     <div class="col-3 mt-5">
-                        <strong>Stonith type:</strong><br>
+                        <strong>Fencing type:</strong><br>
                         <span class="text-muted">{{ .Cluster.Details.FencingType }}</span>
                     </div>
                     <div class="col-3 mt-5">
@@ -106,7 +106,7 @@
     {{- if .Cluster.Details.SBDDevices }}
         <h3>SBD/Fencing</h3>
         {{ template "sbd" .Cluster.Details.SBDDevices }}
-    {{- end }}}}
+    {{- end }}
 
     {{- range .Cluster.Details.Nodes }}
         {{ template "node_modal" . }}

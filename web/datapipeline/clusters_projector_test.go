@@ -72,7 +72,7 @@ func TestTransformClusterData_HANAScaleUp(t *testing.T) {
 			SecondarySyncState:             "SFAIL",
 			SRHealthState:                  "4",
 			CIBLastWritten:                 time.Date(2021, time.November, 6, 19, 8, 41, 0, time.UTC),
-			StonithType:                    "external/sbd",
+			FencingType:                    "external/sbd",
 			StoppedResources:               nil,
 			Nodes: []*entities.HANAClusterNode{
 				{

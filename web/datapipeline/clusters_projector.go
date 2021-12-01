@@ -149,7 +149,7 @@ func parseHANAClusterDetails(c *cluster.Cluster) (json.RawMessage, error) {
 		SystemReplicationOperationMode: systemReplicationOperationMode,
 		SRHealthState:                  srHealthState,
 		CIBLastWritten:                 cibLastWritten,
-		StonithType:                    parseClusterFencingType(c),
+		FencingType:                    parseClusterFencingType(c),
 		StoppedResources:               parseClusterStoppedResources(c),
 		Nodes:                          nodes,
 		SBDDevices:                     parseSBDDevices(c),

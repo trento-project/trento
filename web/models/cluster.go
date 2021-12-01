@@ -35,7 +35,7 @@ type HANAClusterDetails struct {
 	SecondarySyncState             string
 	SRHealthState                  string
 	CIBLastWritten                 time.Time
-	StonithType                    string
+	FencingType                    string
 	StoppedResources               []*ClusterResource
 	Nodes                          ClusterNodes
 	SBDDevices                     []*SBDDevice

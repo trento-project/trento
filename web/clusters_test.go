@@ -383,7 +383,7 @@ func TestClusterHandlerHANA(t *testing.T) {
 			SystemReplicationMode:          "sync",
 			SystemReplicationOperationMode: "logreplay",
 			SecondarySyncState:             "SFAIL",
-			StonithType:                    "external/sbd",
+			FencingType:                    "external/sbd",
 			CIBLastWritten:                 time.Date(2021, time.June, 30, 18, 11, 37, 0, time.UTC),
 			StoppedResources: []*models.ClusterResource{
 				{

@@ -163,8 +163,9 @@ func TestHostHandler(t *testing.T) {
 		Datacenter: "dc1",
 		Address:    "192.168.1.1",
 		Meta: map[string]string{
-			"trento-sap-systems":   "sys1",
-			"trento-agent-version": "1",
+			"trento-sap-systems":    "sys1",
+			"trento-sap-systems-id": "123456",
+			"trento-agent-version":  "1",
 		},
 	}
 
@@ -292,7 +293,7 @@ func TestHostHandler(t *testing.T) {
 	assert.Contains(t, minified, "Host details")
 
 	assert.Regexp(t, regexp.MustCompile("<dd.*>test_host</dd>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<a.*sapsystems.*>sys1</a>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<a.*sapsystems/123456.*>sys1</a>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<dd.*>v1</dd>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<span.*>passing</span>"), minified)
 	// Subscriptions

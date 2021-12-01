@@ -32,7 +32,7 @@ func NewHostsHealthContainer(hostList models.HostList) *HealthContainer {
 	return h
 }
 
-func NewHostListNextHandler(hostsService services.HostsService) gin.HandlerFunc {
+func NewHostListHandler(hostsService services.HostsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		query := c.Request.URL.Query()
 

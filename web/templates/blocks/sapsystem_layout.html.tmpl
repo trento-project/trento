@@ -17,7 +17,7 @@
                   {{- range .SAPControl.Instances }}
                       <tr>
                           <td>{{ .Hostname }}</td>
-                          <td>{{ .InstanceNr }}</td>
+                          <td>{{ printf "%02d" .InstanceNr }}</td>
                           <td>{{ .Features }}</td>
                           <td>{{ .HttpPort }}</td>
                           <td>{{ .HttpsPort }}</td>

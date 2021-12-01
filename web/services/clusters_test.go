@@ -1,8 +1,10 @@
 package services
 
 import (
+	"encoding/json"
 	"testing"
 
+	"github.com/lib/pq"
 	"github.com/stretchr/testify/suite"
 	"github.com/trento-project/trento/test/helpers"
 	"github.com/trento-project/trento/web/entities"
@@ -25,12 +27,12 @@ func TestClustersServiceTestSuite(t *testing.T) {
 func (suite *ClustersServiceTestSuite) SetupSuite() {
 	suite.db = helpers.SetupTestDatabase(suite.T())
 
-	suite.db.AutoMigrate(entities.Cluster{}, models.Tag{})
+	suite.db.AutoMigrate(entities.Cluster{}, entities.Host{}, models.Tag{})
 	loadClustersFixtures(suite.db)
 }
 
 func (suite *ClustersServiceTestSuite) TearDownSuite() {
-	suite.db.Migrator().DropTable(entities.Cluster{}, models.Tag{})
+	suite.db.Migrator().DropTable(entities.Cluster{}, entities.Host{}, models.Tag{})
 }
 
 func (suite *ClustersServiceTestSuite) SetupTest() {
@@ -44,7 +46,17 @@ func (suite *ClustersServiceTestSuite) TearDownTest() {
 }
 
 func loadClustersFixtures(db *gorm.DB) {
-	db.Create(&entities.Cluster{
+	details := &entities.HANAClusterDetails{
+		Nodes: []*entities.HANAClusterNode{
+			{
+				Name: "host1",
+			},
+		},
+	}
+
+	detailsJSON, _ := json.Marshal(details)
+
+	err := db.Create(&entities.Cluster{
 		ID:              "1",
 		Name:            "cluster1",
 		ClusterType:     models.ClusterTypeHANAScaleUp,
@@ -58,7 +70,19 @@ func loadClustersFixtures(db *gorm.DB) {
 				Value:        "tag1",
 			},
 		},
-	})
+		Hosts: []*entities.Host{
+			{
+				AgentID:     "1",
+				ClusterID:   "1",
+				Name:        "host1",
+				IPAddresses: []string{"10.74.1.10"},
+			},
+		},
+		Details: detailsJSON,
+	}).Error
+	if err != nil {
+		panic(err)
+	}
 	db.Create(&entities.Cluster{
 		ID:              "2",
 		Name:            "cluster2",
@@ -71,6 +95,13 @@ func loadClustersFixtures(db *gorm.DB) {
 				ResourceID:   "2",
 				ResourceType: models.TagClusterResourceType,
 				Value:        "tag2",
+			},
+		},
+		Hosts: []*entities.Host{
+			{
+				ClusterID:   "2",
+				Name:        "host2",
+				IPAddresses: pq.StringArray{"10.74.1.11"},
 			},
 		},
 	})
@@ -86,6 +117,13 @@ func loadClustersFixtures(db *gorm.DB) {
 				ResourceID:   "3",
 				ResourceType: models.TagClusterResourceType,
 				Value:        "tag3",
+			},
+		},
+		Hosts: []*entities.Host{
+			{
+				ClusterID:   "3",
+				Name:        "host3",
+				IPAddresses: pq.StringArray{"10.74.1.12"},
 			},
 		},
 	})
@@ -107,6 +145,9 @@ func (suite *ClustersServiceTestSuite) TestClustersService_GetAll() {
 			ResourcesNumber: 10,
 			HostsNumber:     2,
 			Health:          models.CheckPassing,
+			PassingCount:    1,
+			WarningCount:    0,
+			CriticalCount:   0,
 			Tags:            []string{"tag1"},
 		},
 		&models.Cluster{
@@ -117,6 +158,9 @@ func (suite *ClustersServiceTestSuite) TestClustersService_GetAll() {
 			ResourcesNumber: 11,
 			HostsNumber:     2,
 			Health:          models.CheckWarning,
+			PassingCount:    0,
+			WarningCount:    1,
+			CriticalCount:   0,
 			Tags:            []string{"tag2"},
 		},
 		&models.Cluster{
@@ -127,6 +171,9 @@ func (suite *ClustersServiceTestSuite) TestClustersService_GetAll() {
 			ResourcesNumber: 3,
 			HostsNumber:     5,
 			Health:          models.CheckCritical,
+			PassingCount:    0,
+			WarningCount:    0,
+			CriticalCount:   1,
 			Tags:            []string{"tag3"},
 		},
 	}, clusters)
@@ -146,7 +193,32 @@ func (suite *ClustersServiceTestSuite) TestClustersService_GetAll_Filter() {
 	suite.Equal(1, len(clusters))
 	suite.Equal(clusters[0].ID, "1")
 }
+func (suite *ClustersServiceTestSuite) TestClustersService_GetByID() {
+	suite.checksService.On("GetAggregatedChecksResultByCluster", "1").Return(&AggregatedCheckData{PassingCount: 1}, nil)
+	suite.checksService.On("GetAggregatedChecksResultByHost", "1").Return(map[string]*AggregatedCheckData{
+		"host1": {PassingCount: 1},
+	}, nil)
 
+	cluster, err := suite.clustersService.GetByID("1")
+
+	suite.NoError(err)
+	suite.Equal("cluster1", cluster.Name)
+	suite.EqualValues(&models.HANAClusterDetails{
+		Nodes: []*models.HANAClusterNode{
+			{
+				Name:        "host1",
+				Health:      models.CheckPassing,
+				IPAddresses: []string{"10.74.1.10"},
+			},
+		},
+	}, cluster.Details.(*models.HANAClusterDetails))
+}
+func (suite *ClustersServiceTestSuite) TestClustersService_GetByID_NotFound() {
+	cluster, err := suite.clustersService.GetByID("not_there")
+
+	suite.NoError(err)
+	suite.Nil(cluster)
+}
 func (suite *ClustersServiceTestSuite) TestClustersService_GetClustersCount() {
 	count, err := suite.clustersService.GetCount()
 

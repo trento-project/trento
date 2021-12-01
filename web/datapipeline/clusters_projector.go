@@ -149,7 +149,7 @@ func parseHANAClusterDetails(c *cluster.Cluster) (json.RawMessage, error) {
 		SystemReplicationOperationMode: systemReplicationOperationMode,
 		SRHealthState:                  srHealthState,
 		CIBLastWritten:                 cibLastWritten,
-		StonithType:                    parseClusterFencingType(c),
+		FencingType:                    parseClusterFencingType(c),
 		StoppedResources:               parseClusterStoppedResources(c),
 		Nodes:                          nodes,
 		SBDDevices:                     parseSBDDevices(c),
@@ -183,6 +183,9 @@ func parseClusterNodes(c *cluster.Cluster) []*entities.HANAClusterNode {
 		}
 
 		for _, r := range resources {
+			if r.Node == nil {
+				continue
+			}
 			if r.Node.Name == n.Name {
 				resource := &entities.ClusterResource{
 					ID:   r.Id,

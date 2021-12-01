@@ -27,7 +27,7 @@ type HANAClusterDetails struct {
 	SecondarySyncState             string             `json:"secondary_sync_state"`
 	SRHealthState                  string             `json:"sr_health_state"`
 	CIBLastWritten                 time.Time          `json:"cib_last_written"`
-	StonithType                    string             `json:"stonith_type"`
+	FencingType                    string             `json:"fencing_type"`
 	StoppedResources               []*ClusterResource `json:"stopped_resources"`
 	Nodes                          []*HANAClusterNode `json:"nodes"`
 	SBDDevices                     []*SBDDevice       `json:"sbd_devices"`
@@ -94,7 +94,7 @@ func (h *HANAClusterDetails) ToModel() *models.HANAClusterDetails {
 		SecondarySyncState:             h.SecondarySyncState,
 		SRHealthState:                  h.SRHealthState,
 		CIBLastWritten:                 h.CIBLastWritten,
-		StonithType:                    h.StonithType,
+		FencingType:                    h.FencingType,
 		StoppedResources:               stoppedResources,
 		Nodes:                          nodes,
 		SBDDevices:                     sbdDevices,

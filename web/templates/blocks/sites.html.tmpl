@@ -28,10 +28,10 @@
                                 </a>
                             </td>
                             <td>
-                                {{ .Ip }}
+                                {{- range $i, $v := .IPAddresses }}{{- if $i }} ,{{- end }}{{ . }}{{- end }}
                             </td>
                             <td>
-                                {{- range $i, $v := .VirtualIps }}{{- if $i }} ,{{- end }}{{ . }}{{- end }}
+                                {{- range $i, $v := .VirtualIPs }}{{- if $i }} ,{{- end }}{{ . }}{{- end }}
                             </td>
                             <td>
                                 <span class="badge badge-pill badge-info">HANA {{ .HANAStatus }}</span>

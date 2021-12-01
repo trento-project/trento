@@ -1,7 +1,7 @@
 {{ define "sbd" }}
 
     <div class="card-deck mt-4 mb-4">
-        {{- range .Devices }}
+        {{- range . }}
             <div class="card">
                 <div class="card-body">
                     <strong>Device name:</strong> {{ .Device }}<br>

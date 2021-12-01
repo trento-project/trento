@@ -42,47 +42,6 @@ const (
 	ClusterTypeUnknown  = "Unknown"
 )
 
-func detectClusterType(c *cluster.Cluster) string {
-	var hasSapHanaTopology, hasSAPHanaController, hasSAPHana bool
-
-	for _, c := range c.Crmmon.Clones {
-		for _, r := range c.Resources {
-			switch r.Agent {
-			case "ocf::suse:SAPHanaTopology":
-				hasSapHanaTopology = true
-			case "ocf::suse:SAPHana":
-				hasSAPHana = true
-			case "ocf::suse:SAPHanaController":
-				hasSAPHanaController = true
-			}
-		}
-	}
-
-	switch {
-	case hasSapHanaTopology && hasSAPHana:
-		return ClusterTypeScaleUp
-	case hasSapHanaTopology && hasSAPHanaController:
-		return ClusterTypeScaleOut
-	default:
-		return ClusterTypeUnknown
-	}
-}
-
-func stoppedResources(c *cluster.Cluster) []*Resource {
-	var stoppedResources []*Resource
-
-	for _, r := range c.Crmmon.Resources {
-		if r.NodesRunningOn == 0 && !r.Active {
-			resource := &Resource{
-				Id: r.Id,
-			}
-			stoppedResources = append(stoppedResources, resource)
-		}
-	}
-
-	return stoppedResources
-}
-
 func getHanaSID(c *cluster.Cluster) string {
 	for _, r := range c.Cib.Configuration.Resources.Clones {
 		if r.Primitive.Type == "SAPHanaTopology" {
@@ -361,7 +320,7 @@ func NewClusterListHandler(clustersService services.ClustersService) gin.Handler
 	}
 }
 
-func NewClusterHandler(client consul.Client, s services.ChecksService) gin.HandlerFunc {
+func NewClusterGenericHandler(client consul.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		clusterId := c.Param("id")
 
@@ -384,34 +343,43 @@ func NewClusterHandler(client consul.Client, s services.ChecksService) gin.Handl
 			return
 		}
 
-		clusterType := detectClusterType(clusterItem)
-		if clusterType == ClusterTypeUnknown {
-			c.HTML(http.StatusOK, "cluster_generic.html.tmpl", gin.H{
-				"Cluster": clusterItem,
-				"Hosts":   hosts,
-			})
+		c.HTML(http.StatusOK, "cluster_generic.html.tmpl", gin.H{
+			"Cluster": clusterItem,
+			"Hosts":   hosts,
+		})
+	}
+}
+
+func NewClusterHandler(clusterService services.ClustersService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		clusterID := c.Param("id")
+
+		cluster, err := clusterService.GetByID(clusterID)
+		if err != nil {
+			_ = c.Error(err)
 			return
 		}
 
-		nodes := NewNodes(s, clusterItem, hosts)
-		// It returns an empty aggretaged data in case of error
-		aCheckData, _ := s.GetAggregatedChecksResultByCluster(clusterId)
+		if cluster == nil {
+			_ = c.Error(NotFoundError("could not find cluster"))
+			return
+		}
+
+		if cluster.ClusterType == models.ClusterTypeUnknown {
+			c.Redirect(http.StatusFound, fmt.Sprintf("/clusters/%s/generic", clusterID))
+		}
 
 		hContainer := &HealthContainer{
-			CriticalCount: aCheckData.CriticalCount,
-			WarningCount:  aCheckData.WarningCount,
-			PassingCount:  aCheckData.PassingCount,
+			CriticalCount: cluster.CriticalCount,
+			WarningCount:  cluster.WarningCount,
+			PassingCount:  cluster.PassingCount,
 			Layout:        "vertical",
 		}
 
 		c.HTML(http.StatusOK, "cluster_hana.html.tmpl", gin.H{
-			"Cluster":          clusterItem,
-			"SID":              getHanaSID(clusterItem),
-			"Nodes":            nodes,
-			"StoppedResources": stoppedResources(clusterItem),
-			"ClusterType":      clusterType,
-			"HealthContainer":  hContainer,
-			"Alerts":           GetAlerts(c),
+			"Cluster":         cluster,
+			"HealthContainer": hContainer,
+			"Alerts":          GetAlerts(c),
 		})
 	}
 }

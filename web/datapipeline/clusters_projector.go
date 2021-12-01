@@ -183,6 +183,9 @@ func parseClusterNodes(c *cluster.Cluster) []*entities.HANAClusterNode {
 		}
 
 		for _, r := range resources {
+			if r.Node == nil {
+				continue
+			}
 			if r.Node.Name == n.Name {
 				resource := &entities.ClusterResource{
 					ID:   r.Id,

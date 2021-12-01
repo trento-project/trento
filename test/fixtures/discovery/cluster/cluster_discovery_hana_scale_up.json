@@ -543,6 +543,19 @@
             "Orphaned": false,
             "FailureIgnored": false,
             "NodesRunningOn": 1
+          },
+          {
+            "Id": "stopped_dummy_resource",
+            "Node": null,
+            "Role": "Stopped",
+            "Agent": "dummy",
+            "Active": false,
+            "Failed": false,
+            "Blocked": false,
+            "Managed": true,
+            "Orphaned": false,
+            "FailureIgnored": false,
+            "NodesRunningOn": 0
           }
         ],
         "MultiState": true,

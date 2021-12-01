@@ -102,9 +102,11 @@
         </div>
     </div>
     <hr>
-
-    <h3>SBD/Stonith</h3>
-    {{ template "sbd" .Cluster.Details.SBDDevices }}
+    
+    {{- if .Cluster.Details.SBDDevices }}
+        <h3>SBD/Fencing</h3>
+        {{ template "sbd" .Cluster.Details.SBDDevices }}
+    {{- end }}}}
 
     {{- range .Cluster.Details.Nodes }}
         {{ template "node_modal" . }}

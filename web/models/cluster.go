@@ -14,7 +14,7 @@ type Cluster struct {
 	ID              string
 	Name            string
 	ClusterType     string
-	SIDs            []string
+	SID             string
 	ResourcesNumber int
 	HostsNumber     int
 	Health          string

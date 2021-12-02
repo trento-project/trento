@@ -39,6 +39,7 @@ func TestApiClusterCheckResultsHandler(t *testing.T) {
 				Hosts: map[string]*models.Check{
 					"host1": &models.Check{
 						Result: models.CheckPassing,
+						Msg:    "some random message",
 					},
 					"host2": &models.Check{
 						Result: models.CheckPassing,
@@ -100,6 +101,7 @@ func TestApiClusterCheckResultsHandler(t *testing.T) {
 				"hosts": gin.H{
 					"host1": gin.H{
 						"result": "passing",
+						"msg":    "some random message",
 					},
 					"host2": gin.H{
 						"result": "passing",

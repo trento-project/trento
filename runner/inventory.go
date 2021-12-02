@@ -124,8 +124,8 @@ func NewClusterInventoryContent(client consul.Client, trentoApi api.TrentoApiSer
 
 		for _, node := range clusterData.Crmmon.Nodes {
 			node := &Node{
-				Name:        node.Name,
-				Variables:   make(map[string]interface{}),
+				Name:      node.Name,
+				Variables: make(map[string]interface{}),
 			}
 
 			node.Variables[clusterSelectedChecks] = string(jsonSelectedChecks)

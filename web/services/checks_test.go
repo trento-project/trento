@@ -67,6 +67,7 @@ func araResultRecord() *ara.Record {
 								},
 								"host2": map[string]interface{}{
 									"result": "passing",
+									"msg":    "some random message",
 								},
 							},
 						},
@@ -159,6 +160,7 @@ func TestGetChecksResult(t *testing.T) {
 						},
 						"host2": &models.Check{
 							Result: models.CheckPassing,
+							Msg:    "some random message",
 						},
 					},
 				},
@@ -333,6 +335,7 @@ func TestGetChecksResultByCluster(t *testing.T) {
 					},
 					"host2": &models.Check{
 						Result: models.CheckPassing,
+						Msg:    "some random message",
 					},
 				},
 			},

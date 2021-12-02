@@ -5,8 +5,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/trento-project/trento/internal/cluster"
-	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
 )
@@ -132,17 +130,17 @@ func ApiHostDeleteTagHandler(hostsService services.HostsService, tagsService ser
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /clusters/{id}/tags [post]
-func ApiClusterCreateTagHandler(client consul.Client, tagsService services.TagsService) gin.HandlerFunc {
+func ApiClusterCreateTagHandler(clustersService services.ClustersService, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 
-		clusters, err := cluster.Load(client)
+		cluster, err := clustersService.GetByID(id)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 
-		if _, ok := clusters[id]; !ok {
+		if cluster == nil {
 			_ = c.Error(NotFoundError("could not find cluster"))
 			return
 		}
@@ -173,18 +171,18 @@ func ApiClusterCreateTagHandler(client consul.Client, tagsService services.TagsS
 // @Param tag path string true "Tag"
 // @Success 204 {object} map[string]interface{}
 // @Router /clusters/{id}/tags/{tag} [delete]
-func ApiClusterDeleteTagHandler(client consul.Client, tagsService services.TagsService) gin.HandlerFunc {
+func ApiClusterDeleteTagHandler(clustersService services.ClustersService, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 		tag := c.Param("tag")
 
-		clusters, err := cluster.Load(client)
+		cluster, err := clustersService.GetByID(id)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 
-		if _, ok := clusters[id]; !ok {
+		if cluster == nil {
 			_ = c.Error(NotFoundError("could not find cluster"))
 			return
 		}

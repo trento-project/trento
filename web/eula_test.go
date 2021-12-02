@@ -9,6 +9,23 @@ import (
 	"github.com/trento-project/trento/web/services"
 )
 
+func TestEulaHandler(t *testing.T) {
+	deps := setupTestDependencies()
+	config := setupTestConfig()
+	app, err := NewAppWithDeps(config, deps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp := httptest.NewRecorder()
+	req := httptest.NewRequest("GET", "/eula", nil)
+
+	app.webEngine.ServeHTTP(resp, req)
+
+	assert.Equal(t, 200, resp.Code)
+	assert.Contains(t, resp.Body.String(), "License agreement")
+}
+
 func TestEulaAcceptHandler(t *testing.T) {
 	mockedSettingsService := new(services.MockSettingsService)
 	mockedSettingsService.On("AcceptEula").Return(nil)

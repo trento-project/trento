@@ -28,7 +28,7 @@ func TestEulaMiddleware(t *testing.T) {
 
 	app.webEngine.ServeHTTP(resp, req)
 
-	assert.Equal(t, 200, resp.Code)
+	assert.Equal(t, 302, resp.Code)
 	assert.Contains(t, resp.Body.String(), "License agreement")
 }
 

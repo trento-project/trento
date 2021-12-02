@@ -18,7 +18,8 @@ func EulaMiddleware(settings services.SettingsService) gin.HandlerFunc {
 			return
 		}
 
-		if c.Request.URL.Path != "/accept-eula" && !eulaAccepted {
+		if c.Request.URL.Path != "/accept-eula" && c.Request.URL.Path != "/eula" && !eulaAccepted {
+			c.Redirect(http.StatusFound, "/eula")
 			c.HTML(http.StatusOK, "eula.html.tmpl", gin.H{"Title": "License agreement"})
 			c.Abort()
 			return

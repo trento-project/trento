@@ -162,6 +162,7 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 	webEngine.Use(EulaMiddleware(deps.settingsService))
 	webEngine.GET("/", HomeHandler)
 	webEngine.GET("/about", NewAboutHandler(deps.subscriptionsService))
+	webEngine.GET("/eula", EulaShowHandler())
 	webEngine.POST("/accept-eula", EulaAcceptHandler(deps.settingsService))
 	webEngine.GET("/hosts", NewHostListHandler(deps.hostsService))
 	webEngine.GET("/hosts/:id", NewHostHandler(deps.hostsService, deps.subscriptionsService))

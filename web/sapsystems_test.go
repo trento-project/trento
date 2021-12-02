@@ -222,7 +222,7 @@ func TestSAPSystemsListHandler(t *testing.T) {
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, responseBody, "SAP Systems")
 	assert.Regexp(t, regexp.MustCompile("<td><a href=/sapsystems/systemId1>HA1</a></td><td></td><td><a href=/databases/systemId2>PRD</a></td><td>PRD</td><td>192.168.1.5</td><td>.*<input.*value=tag1.*>.*</td>"), responseBody)
-	assert.Regexp(t, regexp.MustCompile("<td>HA1</td><td>MESSAGESERVER|ENQUE</td><td>00</td><td></td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>netweaver_cluster</a></td><td><a href=/hosts/netweaver01>netweaver01</a></td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<td>HA1</td><td>MESSAGESERVER\\|ENQUE</td><td>00</td><td></td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>netweaver_cluster</a></td><td><a href=/hosts/netweaver01>netweaver01</a></td>"), responseBody)
 	assert.Regexp(t, regexp.MustCompile("<td>HA1</td><td>ENQREP</td><td>10</td><td></td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>netweaver_cluster</a></td><td><a href=/hosts/netweaver02>netweaver02</a></td>"), responseBody)
 	assert.Regexp(t, regexp.MustCompile("(?s)<td>PRD</td><td>HDB_WORKER</td><td>00</td><td>.*HANA Primary.*SOK.*</td><td><a href=/clusters/5dfbd28f35cbfb38969f9b99243ae8d4>hana_cluster</a></td><td><a href=/hosts/hana01>hana01</a></td>"), responseBody)
 	assert.Regexp(t, regexp.MustCompile("<td><i .*This SAP system SID exists multiple times.*warning.*<a href=/sapsystems/systemId2>DEV</a></td>"), responseBody)
@@ -423,7 +423,7 @@ func TestSAPResourceHandler(t *testing.T) {
 		Node:    "netweaver01",
 		Address: "192.168.10.10",
 		Meta: map[string]string{
-			"trento-sap-systems":      "foobar",
+			"trento-sap-systems":      "PRD",
 			"trento-sap-systems-type": "Application",
 			"trento-sap-systems-id":   "systemId",
 			"trento-cloud-provider":   "azure",
@@ -467,11 +467,11 @@ func TestSAPResourceHandler(t *testing.T) {
 	consulInst.AssertExpectations(t)
 
 	assert.Contains(t, responseBody, "SAP System details")
-	assert.Contains(t, responseBody, "foobar")
+	assert.Contains(t, responseBody, "PRD")
 	// Layout
-	assert.Regexp(t, regexp.MustCompile("<tr><td>netweaver01</td><td>00</td><td>MESSAGESERVER|ENQUE</td><td>50013</td><td>50014</td><td>0.5</td><td><span.*primary.*>SAPControl-GREEN</span></td></tr>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<tr><td>netweaver01</td><td>00</td><td>MESSAGESERVER\\|ENQUE</td><td>50013</td><td>50014</td><td>0.5</td><td><span.*primary.*>SAPControl-GREEN</span></td></tr>"), responseBody)
 	// Host
-	assert.Regexp(t, regexp.MustCompile("<tr><td>.*check_circle.*</td><td><a href=/hosts/netweaver01>netweaver01</a></td><td>192.168.10.10</td><td>azure</td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>banana</a></td><td><a href=/sapsystems/systemId>foobar</a></td><td>v0</td></tr>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<tr><td>.*check_circle.*</td><td><a href=/hosts/netweaver01>netweaver01</a></td><td>192.168.10.10</td><td>azure</td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>banana</a></td><td><a href=/sapsystems/systemId>PRD</a></td><td>v0</td></tr>"), responseBody)
 }
 
 func TestSAPResourceHandler404Error(t *testing.T) {

@@ -41,8 +41,6 @@
                                         {{ .Description }}{{ if .Premium }}<span class="badge badge-trento-premium">Premium</span>{{ end }}
                                         <div class="ha-check-remediation collapse" id="info-{{ .ID }}">
                                             {{ markdown (.Remediation) }}
-                                        </div>
-                                        <div class="ha-check-remediation collapse" id="info-{{ .ID }}">
                                             <h2>Implementation</h2>
                                             <pre>{{ .Implementation }}</pre>
                                         </div>
@@ -70,4 +68,5 @@
         </div>
         {{- end }}
     </div>
+    {{ script "catalog_scroll.js" }}
 {{ end }}

@@ -9,11 +9,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/sapsystem"
 
 	"github.com/stretchr/testify/mock"
-	consulMocks "github.com/trento-project/trento/internal/consul/mocks"
 
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
@@ -97,18 +95,17 @@ func setupTestApiHostTag(resourceID string) Dependencies {
 }
 
 func setupTestApiClusterTag(resourceID string) Dependencies {
-	clustersListMap := map[string]interface{}{
-		resourceID: map[string]interface{}{},
+
+	cluster := &models.Cluster{
+		ID: resourceID,
 	}
 
-	consulInst := new(consulMocks.Client)
-	kv := new(consulMocks.KV)
-	consulInst.On("KV").Return(kv)
-	consulInst.On("WaitLock", mock.Anything).Return(nil)
-	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap, nil)
+	clustersService := new(services.MockClustersService)
+	clustersService.On("GetByID", resourceID).Return(cluster, nil)
+	clustersService.On("GetByID", mock.Anything).Return(nil, nil)
 
 	deps := setupTestDependencies()
-	deps.consul = consulInst
+	deps.clustersService = clustersService
 
 	return deps
 }

@@ -22,7 +22,7 @@
                     </td>
                     <td><a href="/clusters/{{ .ID }}">{{ .ID }}</a></td>
                     <td>{{ .ClusterType }}</td>
-                    <td>{{- range $i, $v := .SIDs }}{{- if $i }},{{- end }} {{ . }}{{- end }}</td>
+                    <td>{{ .SID }}</td>
                     <td>{{ .HostsNumber }}</td>
                     <td>{{ .ResourcesNumber }}</td>
                     <td>

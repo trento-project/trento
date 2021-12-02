@@ -656,6 +656,9 @@
                 "name": {
                     "type": "string"
                 },
+                "premium": {
+                    "type": "boolean"
+                },
                 "remediation": {
                     "type": "string"
                 },
@@ -692,6 +695,9 @@
                 },
                 "name": {
                     "type": "string"
+                },
+                "premium": {
+                    "type": "boolean"
                 },
                 "remediation": {
                     "type": "string"

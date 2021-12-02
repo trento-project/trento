@@ -668,6 +668,9 @@ var doc = `{
                 "name": {
                     "type": "string"
                 },
+                "premium": {
+                    "type": "boolean"
+                },
                 "remediation": {
                     "type": "string"
                 },
@@ -704,6 +707,9 @@ var doc = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "premium": {
+                    "type": "boolean"
                 },
                 "remediation": {
                     "type": "string"

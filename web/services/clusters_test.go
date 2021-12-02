@@ -60,7 +60,7 @@ func loadClustersFixtures(db *gorm.DB) {
 		ID:              "1",
 		Name:            "cluster1",
 		ClusterType:     models.ClusterTypeHANAScaleUp,
-		SIDs:            []string{"DEV"},
+		SID:             "DEV",
 		ResourcesNumber: 10,
 		HostsNumber:     2,
 		Tags: []*models.Tag{
@@ -87,7 +87,7 @@ func loadClustersFixtures(db *gorm.DB) {
 		ID:              "2",
 		Name:            "cluster2",
 		ClusterType:     models.ClusterTypeHANAScaleOut,
-		SIDs:            []string{"QAS"},
+		SID:             "QAS",
 		ResourcesNumber: 11,
 		HostsNumber:     2,
 		Tags: []*models.Tag{
@@ -109,7 +109,7 @@ func loadClustersFixtures(db *gorm.DB) {
 		ID:              "3",
 		Name:            "cluster3",
 		ClusterType:     models.ClusterTypeUnknown,
-		SIDs:            []string{"PRD", "PRD2"},
+		SID:             "PRD",
 		ResourcesNumber: 3,
 		HostsNumber:     5,
 		Tags: []*models.Tag{
@@ -141,7 +141,7 @@ func (suite *ClustersServiceTestSuite) TestClustersService_GetAll() {
 			ID:              "1",
 			Name:            "cluster1",
 			ClusterType:     models.ClusterTypeHANAScaleUp,
-			SIDs:            []string{"DEV"},
+			SID:             "DEV",
 			ResourcesNumber: 10,
 			HostsNumber:     2,
 			Health:          models.CheckPassing,
@@ -154,7 +154,7 @@ func (suite *ClustersServiceTestSuite) TestClustersService_GetAll() {
 			ID:              "2",
 			Name:            "cluster2",
 			ClusterType:     models.ClusterTypeHANAScaleOut,
-			SIDs:            []string{"QAS"},
+			SID:             "QAS",
 			ResourcesNumber: 11,
 			HostsNumber:     2,
 			Health:          models.CheckWarning,
@@ -167,7 +167,7 @@ func (suite *ClustersServiceTestSuite) TestClustersService_GetAll() {
 			ID:              "3",
 			Name:            "cluster3",
 			ClusterType:     models.ClusterTypeUnknown,
-			SIDs:            []string{"PRD", "PRD2"},
+			SID:             "PRD",
 			ResourcesNumber: 3,
 			HostsNumber:     5,
 			Health:          models.CheckCritical,
@@ -241,5 +241,5 @@ func (suite *ClustersServiceTestSuite) TestClustersService_GetAllTags() {
 
 func (suite *ClustersServiceTestSuite) TestClustersService_GetAllSIDs() {
 	sids, _ := suite.clustersService.GetAllSIDs()
-	suite.ElementsMatch([]string{"DEV", "QAS", "PRD", "PRD2"}, sids)
+	suite.ElementsMatch([]string{"DEV", "QAS", "PRD"}, sids)
 }

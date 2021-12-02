@@ -2,6 +2,7 @@
   gather_facts: false
   ignore_errors: true
   become: true
+  timeout: 30  # Task timeout set to 30 seconds. If some task needs a bigger timeout, set a new timeout in the task itself
 
   vars:
     ara_playbook_labels:

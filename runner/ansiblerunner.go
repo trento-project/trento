@@ -6,6 +6,7 @@
 package runner
 
 import (
+	"bufio"
 	"fmt"
 	"net/http"
 	"os"
@@ -177,9 +178,8 @@ func (a *AnsibleRunner) RunPlaybook() error {
 		cmd.Env = append(cmd.Env, newEnv)
 	}
 
-	output, err := cmd.CombinedOutput()
-
-	log.Debugf("Ansible output:\n%s:", output)
+	logCommand(cmd)
+	err := cmd.Run()
 
 	if err != nil {
 		log.Errorf("An error occurred while running ansible: %s", err)
@@ -189,4 +189,27 @@ func (a *AnsibleRunner) RunPlaybook() error {
 	log.Info("Ansible playbook execution finished successfully")
 
 	return nil
+}
+
+func logCommand(cmd *exec.Cmd) {
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return
+	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return
+	}
+	go func() {
+		in := bufio.NewScanner(stdout)
+		for in.Scan() {
+			log.Infof(in.Text())
+		}
+	}()
+	go func() {
+		in := bufio.NewScanner(stderr)
+		for in.Scan() {
+			log.Debugf(in.Text())
+		}
+	}()
 }

@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 	"github.com/trento-project/trento/internal/cluster"
 	"github.com/trento-project/trento/test/helpers"
@@ -48,7 +47,7 @@ func TestClustersProjector_ClusterDiscoveryHandler(t *testing.T) {
 
 	assert.Equal(t, "5dfbd28f35cbfb38969f9b99243ae8d4", cluster.ID)
 	assert.Equal(t, models.ClusterTypeHANAScaleUp, cluster.ClusterType)
-	assert.Equal(t, pq.StringArray{"PRD"}, cluster.SIDs)
+	assert.Equal(t, "PRD", cluster.SID)
 	assert.Equal(t, 8, cluster.ResourcesNumber)
 	assert.Equal(t, 2, cluster.HostsNumber)
 	assert.NotNil(t, cluster.Details)
@@ -185,7 +184,7 @@ func TestTransformClusterData_HANAScaleUp(t *testing.T) {
 			Name:            "hana_cluster",
 			ID:              "5dfbd28f35cbfb38969f9b99243ae8d4",
 			ClusterType:     models.ClusterTypeHANAScaleUp,
-			SIDs:            []string{"PRD"},
+			SID:             "PRD",
 			ResourcesNumber: 8,
 			HostsNumber:     2,
 			Details:         expectedHANAClusterDetails,

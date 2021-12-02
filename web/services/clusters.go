@@ -56,7 +56,7 @@ func (s *clustersService) GetAll(filter *ClustersFilter, page *Page) (models.Clu
 		}
 
 		if len(filter.SIDs) > 0 {
-			db = s.db.Where("sids && ?", pq.Array(filter.SIDs))
+			db = s.db.Where("sid IN (?)", filter.SIDs)
 		}
 
 		if len(filter.Tags) > 0 {
@@ -149,9 +149,8 @@ func (s *clustersService) GetAllSIDs() ([]string, error) {
 	var sids pq.StringArray
 
 	err := s.db.Model(&entities.Cluster{}).
-		Where("sids IS NOT NULL").
 		Distinct().
-		Pluck("unnest(sids)", &sids).
+		Pluck("sid", &sids).
 		Error
 
 	if err != nil {

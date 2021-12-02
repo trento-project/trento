@@ -61,7 +61,7 @@ func transformClusterData(cluster *cluster.Cluster) (*entities.Cluster, error) {
 		Name:        cluster.Name,
 		ClusterType: detectClusterType(cluster),
 		// TODO: Cost-optimized has multiple SIDs, we will need to implement this in the future
-		SIDs:            getClusterSIDs(cluster),
+		SID:             parseClusterSID(cluster),
 		ResourcesNumber: cluster.Crmmon.Summary.Resources.Number,
 		HostsNumber:     cluster.Crmmon.Summary.Nodes.Number,
 		Details:         (datatypes.JSON)(clusterDetail),
@@ -95,21 +95,20 @@ func detectClusterType(cluster *cluster.Cluster) string {
 	}
 }
 
-// getClusterSIDs returns the SIDs of the cluster
+// parseClusterSID returns the SIDs of the cluster
 // TODO: HANA scale-out has multiple SIDs, we will need to implement this in the future
-func getClusterSIDs(c *cluster.Cluster) []string {
-	var sids []string
+func parseClusterSID(c *cluster.Cluster) string {
 	for _, r := range c.Cib.Configuration.Resources.Clones {
 		if r.Primitive.Type == "SAPHanaTopology" {
 			for _, a := range r.Primitive.InstanceAttributes {
 				if a.Name == "SID" && a.Value != "" {
-					sids = append(sids, a.Value)
+					return a.Value
 				}
 			}
 		}
 	}
 
-	return sids
+	return ""
 }
 
 // parseClusterDetails parses the cluster details depending on the cluster type
@@ -124,12 +123,7 @@ func parseClusterDetails(c *cluster.Cluster) (json.RawMessage, error) {
 
 // parseHANAClusterDetails parses the HANA cluster details
 func parseHANAClusterDetails(c *cluster.Cluster) (json.RawMessage, error) {
-	var sid string
-
-	sids := getClusterSIDs(c)
-	if len(sids) > 0 {
-		sid = sids[0]
-	}
+	sid := parseClusterSID(c)
 	nodes := parseClusterNodes(c)
 
 	var systemReplicationMode, systemReplicationOperationMode, secondarySyncState, srHealthState string
@@ -161,6 +155,7 @@ func parseHANAClusterDetails(c *cluster.Cluster) (json.RawMessage, error) {
 // parseClusterNodes parses the cluster nodes from the crmmon/cib data
 func parseClusterNodes(c *cluster.Cluster) []*entities.HANAClusterNode {
 	var nodes []*entities.HANAClusterNode
+	sid := parseClusterSID(c)
 
 	// TODO: remove plain resources grouping as in the future we'll need to distinguish between Cloned and Groups
 	resources := c.Crmmon.Resources
@@ -239,13 +234,8 @@ func parseClusterNodes(c *cluster.Cluster) []*entities.HANAClusterNode {
 			}
 		}
 
-		// TODO: refactor, remove array of sids and use only one sid
-		sids := getClusterSIDs(c)
-
-		if len(sids) > 0 {
-			node.Site, _ = parseHANAAttribute(node, "site", sids[0])
-			node.HANAStatus = parseHANAStatus(node, sids[0])
-		}
+		node.Site, _ = parseHANAAttribute(node, "site", sid)
+		node.HANAStatus = parseHANAStatus(node, sid)
 		nodes = append(nodes, node)
 	}
 

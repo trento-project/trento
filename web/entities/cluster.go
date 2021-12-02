@@ -3,7 +3,6 @@ package entities
 import (
 	"time"
 
-	"github.com/lib/pq"
 	"github.com/trento-project/trento/web/models"
 	"gorm.io/datatypes"
 )
@@ -12,7 +11,7 @@ type Cluster struct {
 	ID              string `gorm:"primaryKey"`
 	Name            string
 	ClusterType     string
-	SIDs            pq.StringArray `gorm:"column:sids; type:text[]"`
+	SID             string `gorm:"column:sid"`
 	ResourcesNumber int
 	HostsNumber     int
 	Tags            []*models.Tag `gorm:"polymorphic:Resource;polymorphicValue:clusters"`
@@ -65,7 +64,7 @@ func (c *Cluster) ToModel() *models.Cluster {
 		ID:              c.ID,
 		Name:            c.Name,
 		ClusterType:     c.ClusterType,
-		SIDs:            c.SIDs,
+		SID:             c.SID,
 		ResourcesNumber: c.ResourcesNumber,
 		HostsNumber:     c.HostsNumber,
 		Tags:            tags,

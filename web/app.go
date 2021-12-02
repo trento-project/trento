@@ -100,8 +100,8 @@ func DefaultDependencies(config *Config) Dependencies {
 	araService := ara.NewAraService(viper.GetString("ara-addr"))
 	checksService := services.NewChecksService(araService, db)
 	subscriptionsService := services.NewSubscriptionsService(db)
-	hostsService := services.NewHostsConsulService(consulClient)
-	hostsServiceNext := services.NewHostsService(db)
+	hostsConsulService := services.NewHostsConsulService(consulClient)
+	hostsService := services.NewHostsService(db)
 	sapSystemsService := services.NewSAPSystemsService(consulClient)
 	clustersService := services.NewClustersService(db, checksService)
 	collectorService := services.NewCollectorService(db, projectorWorkersPool.GetChannel())
@@ -111,8 +111,8 @@ func DefaultDependencies(config *Config) Dependencies {
 
 	return Dependencies{
 		consulClient, webEngine, collectorEngine, store, projectorWorkersPool,
-		checksService, subscriptionsService, hostsService, sapSystemsService, tagsService,
-		collectorService, clustersService, hostsServiceNext, settingsService,
+		checksService, subscriptionsService, hostsConsulService, sapSystemsService, tagsService,
+		collectorService, clustersService, hostsService, settingsService,
 		telemetryRegistry, telemetryPublisher,
 	}
 }
@@ -166,7 +166,7 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 	webEngine.StaticFS("/static", http.FS(assetsFS))
 	webEngine.GET("/", HomeHandler)
 	webEngine.GET("/about", NewAboutHandler(deps.subscriptionsService))
-	webEngine.GET("/hosts", NewHostListNextHandler(deps.hostsService))
+	webEngine.GET("/hosts", NewHostListHandler(deps.hostsService))
 	webEngine.GET("/hosts/:name", NewHostHandler(deps.consul, deps.subscriptionsService))
 	webEngine.GET("/catalog", NewChecksCatalogHandler(deps.checksService))
 	webEngine.GET("/clusters", NewClusterListHandler(deps.clustersService))

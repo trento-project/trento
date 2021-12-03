@@ -22,7 +22,7 @@
                 <td class="row-status">{{ template "health_icon" "unknown" }}</td>
                 <td class="row-status"><a class="eos-icons eos-18  collapse-toggle clickable collapsed text-dark"
                                           data-toggle="collapse" data-target="#inner_{{ $index }}"></a></td>
-                <td>{{- if .HasDuplicatedSid }}<i class="eos-icons eos-18 text-warning" data-toggle="tooltip" data-original-title="This SAP system SID exists multiple times">warning</i>{{- end }}<a href="/{{ $resource }}/{{ .Id }}">{{ .SID }}</a></td>
+                <td>{{- if .HasDuplicatedSid }}<i class="eos-icons eos-18 text-info" data-toggle="tooltip" data-original-title="This SAP system SID exists multiple times">info</i>{{- end }}<a href="/{{ $resource }}/{{ .Id }}">{{ .SID }}</a></td>
                 <td></td>
                 {{- if eq $resource "sapsystems" }}
                 <td><a href="/databases/{{ $value.AttachedDatabaseId }}">{{ $value.AttachedDatabaseSID }}</a></td>

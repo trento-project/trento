@@ -225,8 +225,8 @@ func TestSAPSystemsListHandler(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("<td>HA1</td><td>MESSAGESERVER\\|ENQUE</td><td>00</td><td></td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>netweaver_cluster</a></td><td><a href=/hosts/netweaver01>netweaver01</a></td>"), responseBody)
 	assert.Regexp(t, regexp.MustCompile("<td>HA1</td><td>ENQREP</td><td>10</td><td></td><td><a href=/clusters/e2f2eb50aef748e586a7baa85e0162cf>netweaver_cluster</a></td><td><a href=/hosts/netweaver02>netweaver02</a></td>"), responseBody)
 	assert.Regexp(t, regexp.MustCompile("(?s)<td>PRD</td><td>HDB_WORKER</td><td>00</td><td>.*HANA Primary.*SOK.*</td><td><a href=/clusters/5dfbd28f35cbfb38969f9b99243ae8d4>hana_cluster</a></td><td><a href=/hosts/hana01>hana01</a></td>"), responseBody)
-	assert.Regexp(t, regexp.MustCompile("<td><i .*This SAP system SID exists multiple times.*warning.*<a href=/sapsystems/systemId2>DEV</a></td>"), responseBody)
-	assert.Regexp(t, regexp.MustCompile("<td><i .*This SAP system SID exists multiple times.*warning.*<a href=/sapsystems/systemId3>DEV</a></td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<td><i .*This SAP system SID exists multiple times.*info.*<a href=/sapsystems/systemId2>DEV</a></td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<td><i .*This SAP system SID exists multiple times.*info.*<a href=/sapsystems/systemId3>DEV</a></td>"), responseBody)
 }
 
 func TestSAPDatabaseListHandler(t *testing.T) {

@@ -80,9 +80,9 @@ func TestChecksCatalogHandler(t *testing.T) {
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, responseBody, "Checks catalog")
 
-	assert.Regexp(t, regexp.MustCompile("<h4.*>group 1</h4>.*<td.*>ABCDEF</td><td.*>description 1<div.*id=info-ABCDEF.*><p>remediation 1</p></div><div.*implementation 1.*</div>.*</td>"), responseBody)
-	assert.Regexp(t, regexp.MustCompile("<h4.*>group 1</h4>.*<td.*>123456</td><td.*>description 2<span class=\"badge badge-trento-premium\">Premium</span><div.*id=info-123456.*><p>remediation 2</p></div><div.*implementation 2.*</div>.*</td>"), responseBody)
-	assert.Regexp(t, regexp.MustCompile("<h4.*>group 2</h4>.*<td.*>123ABC</td><td.*>description 3<div.*id=info-123ABC.*><p>remediation 3</p></div><div.*implementation 3.*</div>.*</td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<h4.*>group 1</h4>.*<td.*>ABCDEF</td><td.*>description 1<div.*id=info-ABCDEF.*><p>remediation 1</p><.*implementation 1.*</div>.*</td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<h4.*>group 1</h4>.*<td.*>123456</td><td.*>description 2<span class=\"badge badge-trento-premium\">Premium</span><div.*id=info-123456.*><p>remediation 2</p><.*implementation 2.*</div>.*</td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<h4.*>group 2</h4>.*<td.*>123ABC</td><td.*>description 3<div.*id=info-123ABC.*><p>remediation 3</p><.*implementation 3.*</div>.*</td>"), responseBody)
 	assert.Equal(t, 2, strings.Count(responseBody, "<h4"))
 	assert.Equal(t, 5, strings.Count(responseBody, "<tr>"))
 

@@ -23,7 +23,7 @@
                                           data-toggle="collapse" data-target="#inner_{{ $index }}"></a></td>
                 <td>
                     {{- if .HasDuplicatedSID }}
-                        <i class="eos-icons eos-18 text-warning" data-toggle="tooltip" data-original-title="This SAP system SID exists multiple times">warning</i>
+                        <i class="eos-icons eos-18 text-info" data-toggle="tooltip" data-original-title="This SAP system SID exists multiple times">info</i>
                     {{- end }}
                     <a href="/{{- if eq .Type "database" }}databases{{- else }}sapsystems{{- end }}/{{ .ID }}">{{ .SID }}</a>
                 </td>

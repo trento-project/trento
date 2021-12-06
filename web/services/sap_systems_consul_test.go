@@ -99,7 +99,7 @@ func TestGetSAPSystems(t *testing.T) {
 
 	mockTests(consulInst, catalog, kv)
 
-	sapSystemsService := NewSAPSystemsService(consulInst)
+	sapSystemsService := NewSAPSystemsConsulService(consulInst)
 	sapSystems, err := sapSystemsService.GetSAPSystems()
 
 	expectedSystems := sapsystem.SAPSystemsList{
@@ -162,7 +162,7 @@ func TestGetSAPSystemsById(t *testing.T) {
 
 	mockTests(consulInst, catalog, kv)
 
-	sapSystemsService := NewSAPSystemsService(consulInst)
+	sapSystemsService := NewSAPSystemsConsulService(consulInst)
 	sapSystems, err := sapSystemsService.GetSAPSystemsById("systemId1")
 
 	expectedSystems := sapsystem.SAPSystemsList{
@@ -194,7 +194,7 @@ func TestGetSAPSystemsByType(t *testing.T) {
 
 	mockTests(consulInst, catalog, kv)
 
-	sapSystemsService := NewSAPSystemsService(consulInst)
+	sapSystemsService := NewSAPSystemsConsulService(consulInst)
 	sapSystems, err := sapSystemsService.GetSAPSystemsByType(sapsystem.Database)
 
 	expectedSystems := sapsystem.SAPSystemsList{
@@ -231,7 +231,7 @@ func TestGetAttachedDatabasesByIdSystemNotFound(t *testing.T) {
 
 	mockTests(consulInst, catalog, kv)
 
-	sapSystemsService := NewSAPSystemsService(consulInst)
+	sapSystemsService := NewSAPSystemsConsulService(consulInst)
 	_, err := sapSystemsService.GetAttachedDatabasesById("systemNotFound")
 
 	catalog.AssertExpectations(t)
@@ -252,7 +252,7 @@ func TestGetAttachedDatabasesByIdIpNotFound(t *testing.T) {
 		&consulApi.QueryOptions{Filter: "Meta[\"trento-host-ip-addresses\"] contains \"192.168.1.5\""}).Return(
 		nil, nil, nil)
 
-	sapSystemsService := NewSAPSystemsService(consulInst)
+	sapSystemsService := NewSAPSystemsConsulService(consulInst)
 	sapAttachedDbs, err := sapSystemsService.GetAttachedDatabasesById("systemId4")
 
 	catalog.AssertExpectations(t)
@@ -280,7 +280,7 @@ func TestGetAttachedDatabasesByIdDbNotFound(t *testing.T) {
 		&consulApi.QueryOptions{Filter: "Meta[\"trento-host-ip-addresses\"] contains \"192.168.1.6\""}).Return(
 		nodes, nil, nil)
 
-	sapSystemsService := NewSAPSystemsService(consulInst)
+	sapSystemsService := NewSAPSystemsConsulService(consulInst)
 	sapAttachedDbs, err := sapSystemsService.GetAttachedDatabasesById("systemId3")
 
 	catalog.AssertExpectations(t)
@@ -308,7 +308,7 @@ func TestGetAttachedDatabasesById(t *testing.T) {
 		&consulApi.QueryOptions{Filter: "Meta[\"trento-host-ip-addresses\"] contains \"192.168.1.5\""}).Return(
 		nodes, nil, nil)
 
-	sapSystemsService := NewSAPSystemsService(consulInst)
+	sapSystemsService := NewSAPSystemsConsulService(consulInst)
 	sapAttachedDbs, err := sapSystemsService.GetAttachedDatabasesById("systemId4")
 
 	expectedDbs := sapsystem.SAPSystemsList{

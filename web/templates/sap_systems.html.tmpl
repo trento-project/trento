@@ -5,7 +5,7 @@
 {{ define "content" }}
     <div class="row">
         <div class="col">
-            <h1>{{ .Title }}</h1>
+            <h1>{{- if eq .Type "database"}}HANA Databases{{- else }}SAP Systems{{- end }}</h1>
         </div>
         <div class="col text-right">
             <i class="eos-icons eos-dark eos-18 ">schedule</i> Updated at:
@@ -28,19 +28,19 @@
           });
         </script>
         {{/* {{ template "health_filter" }} */}}
-        <select name="sid" id="sid" class="selectpicker" multiple
+        <select name="sids" id="sids" class="selectpicker" multiple
                 data-selected-text-format="count > 3" data-actions-box="true" data-live-search="true" title="SID">
-            {{- range .SAPSystemsTable.GetAllSIDs }}
+            {{- range .FilterSIDs }}
                 <option value="{{ . }}">{{ . }}</option>
             {{- end }}
         </select>
         <select name="tags" id="tags_filter" class="selectpicker" multiple
                 data-selected-text-format="count > 3" data-actions-box="true" data-live-search="true"
                 title="Tags">
-            {{- range .SAPSystemsTable.GetAllTags }}
+            {{- range .FilterTags }}
                 <option value="{{ . }}">{{ . }}</option>
             {{- end}}
         </select>
     </div>
-    {{ template "sapsystems_table" . }}
+    {{ template "sap_systems_table" . }}
 {{ end }}

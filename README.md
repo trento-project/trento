@@ -355,14 +355,11 @@ To start the trento agent:
 
 #### Publishing discovery data
 
-**This feature is still under heavy development**
+Trento Agents publish discovery data to a Collector on Trento Server.
 
-Trento Agents publish discovery data to a Collector on Trento Server
+The communication can be made secure by enabling `mTLS`  with `--enable-mtls`
 
-`./test/certs/` folder contains some dummy Server, Client and CA Certificates and Keys.
-Those are useful in order to test `mTLS` communication between the Agent and the DataCollector.
-
-As of now `mtls` needs to explicitly be activated with `--enable-mtls`
+See [this tutorial](https://www.digitalocean.com/community/tutorials/openssl-essentials-working-with-ssl-certificates-private-keys-and-csrs) for extra information about SSL Certificates.
 
 #### Server
 ```
@@ -373,6 +370,10 @@ $> ./trento web serve [...] --enable-mtls --cert /path/to/certs/server-cert.pem 
 ```
 $> ./trento agent start [...] --enable-mtls --cert /path/to/certs/client-cert.pem --key /path/to/certs/client-key.pem --ca /path/to/certs/ca-cert.pem
 ```
+
+**Development Note:** `./test/certs/` folder contains some dummy Server, Client and CA Certificates and Keys.
+Those are useful in order to test `mTLS` communication between the Agent and the DataCollector.
+
 ---
 
 ### Trento Runner

@@ -6,6 +6,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/trento-project/trento/internal/sapsystem"
 	"github.com/trento-project/trento/web/entities"
+	"github.com/trento-project/trento/web/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -35,10 +36,23 @@ func SAPSystemsProjector_SAPSystemsDiscoveryHandler(dataCollectedEvent *DataColl
 
 		switch s.Type {
 		case 1:
-			instance.Type = sapsystem.SAPSystemsDatabase
+			var tenants []string
+
+			for _, tenant := range s.Databases {
+				tenants = append(tenants, tenant.Database)
+			}
+
+			instance.Type = models.SAPSystemTypeDatabase
+			instance.Tenants = tenants
 		case 2:
-			instance.Type = sapsystem.SAPSystemsApplication
+			instance.Type = models.SAPSystemTypeApplication
 			instance.DBHost = fmt.Sprint(s.Profile["SAPDBHOST"])
+
+			if hdb, ok := s.Profile["dbs/hdb/dbname"]; ok {
+				if dbName, ok := hdb.(string); ok {
+					instance.DBName = dbName
+				}
+			}
 		}
 
 		for _, i := range s.Instances {
@@ -61,12 +75,18 @@ func SAPSystemsProjector_SAPSystemsDiscoveryHandler(dataCollectedEvent *DataColl
 
 			instance.Features = features
 			instance.InstanceNumber = instanceNumber
+			instance.SystemReplication = parseReplicationMode(i.SystemReplication)
+			instance.SystemReplicationStatus = parseReplicationStatus(i.SystemReplication)
 
-			err := storeSAPInstance(db, instance, "id", "sid", "type", "features", "instance_number")
+			err := storeSAPInstance(db,
+				instance,
+				"id", "sid", "type", "features", "instance_number",
+				"system_replication", "system_replication_status",
+				"tenants", "db_host", "db_name")
+
 			if err != nil {
 				return err
 			}
-
 		}
 	}
 
@@ -82,4 +102,45 @@ func storeSAPInstance(db *gorm.DB, sapInstance entities.SAPSystemInstance, updat
 		},
 		DoUpdates: clause.AssignmentColumns(append(updateColumns, "updated_at")),
 	}).Create(&sapInstance).Error
+}
+
+func parseReplicationMode(r sapsystem.SystemReplication) string {
+	localSite, ok := r["local_site_id"]
+	if !ok {
+		return ""
+	}
+
+	replicationKey := fmt.Sprintf("site/%s/REPLICATION_MODE", localSite)
+	mode, ok := r[replicationKey]
+	if !ok {
+		return ""
+	}
+
+	switch mode {
+	case "PRIMARY":
+		return "Primary"
+	case "":
+		return ""
+	default: // SYNC, SYNCMEM, ASYNC, UNKNOWN
+		return "Secondary"
+	}
+}
+
+// Find status information at: https://help.sap.com/viewer/4e9b18c116aa42fc84c7dbfd02111aba/2.0.04/en-US/aefc55a27003440792e34ece2125dc89.html
+func parseReplicationStatus(s sapsystem.SystemReplication) string {
+	status, ok := s["overall_replication_status"]
+	if !ok {
+		return ""
+	}
+
+	status = fmt.Sprintf("%v", status)
+
+	switch status {
+	case "ACTIVE":
+		return "SOK"
+	case "ERROR":
+		return "SFAIL"
+	default: // UNKNOWN, INITIALIZING, SYNCING
+		return ""
+	}
 }

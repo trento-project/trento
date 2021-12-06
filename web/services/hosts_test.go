@@ -130,6 +130,11 @@ func (suite *HostsServiceTestSuite) TestHostsService_GetAll() {
 					Instances: []*models.SAPSystemInstance{
 						{
 							InstanceNumber: "00",
+							SID:            "DEV",
+							ClusterName:    "cluster_1",
+							ClusterID:      "cluster_id_1",
+							HostID:         "1",
+							Hostname:       "host1",
 						},
 					},
 				},
@@ -152,6 +157,11 @@ func (suite *HostsServiceTestSuite) TestHostsService_GetAll() {
 					Instances: []*models.SAPSystemInstance{
 						{
 							InstanceNumber: "10",
+							SID:            "QAS",
+							ClusterName:    "cluster_2",
+							ClusterID:      "cluster_id_2",
+							HostID:         "2",
+							Hostname:       "host2",
 						},
 					},
 				},
@@ -226,5 +236,4 @@ func (suite *HostsServiceTestSuite) TestHostsService_computeHealth() {
 
 	host.Heartbeat = nil
 	suite.Equal(models.HostHealthUnknown, computeHealth(&host))
-
 }

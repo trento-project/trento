@@ -164,7 +164,8 @@ func (s *clustersService) GetAllTags() ([]string, error) {
 	var tags []string
 
 	err := s.db.
-		Model(&models.Tag{ResourceType: models.TagClusterResourceType}).
+		Model(&models.Tag{}).
+		Where("resource_type = ?", models.TagClusterResourceType).
 		Distinct().
 		Pluck("value", &tags).
 		Error

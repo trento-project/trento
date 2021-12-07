@@ -42,7 +42,13 @@ func NewHostsService(db *gorm.DB) *hostsService {
 
 func (s *hostsService) GetAll(filter *HostsFilter, page *Page) (models.HostList, error) {
 	var hosts []entities.Host
-	db := s.db.Model(&entities.Host{}).Preload("Tags").Preload("Heartbeat").Preload("SAPSystemInstances")
+	db := s.db.
+		Model(&entities.Host{}).
+		Scopes(Paginate(page)).
+		Preload("Tags").
+		Preload("Heartbeat").
+		Preload("SAPSystemInstances").
+		Preload("SAPSystemInstances.Host")
 
 	if filter != nil {
 		if len(filter.SIDs) > 0 {
@@ -127,9 +133,8 @@ func (s *hostsService) GetAllTags() ([]string, error) {
 	var tags []string
 
 	err := s.db.
-		Model(&models.Tag{
-			ResourceType: models.TagHostResourceType,
-		}).
+		Model(&models.Tag{}).
+		Where("resource_type = ?", models.TagHostResourceType).
 		Distinct().
 		Pluck("value", &tags).
 		Error

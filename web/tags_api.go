@@ -208,7 +208,7 @@ func ApiClusterDeleteTagHandler(clustersService services.ClustersService, tagsSe
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /sapsystems/{id}/tags [post]
-func ApiSAPSystemCreateTagHandler(sapSystemsService services.SAPSystemsService, tagsService services.TagsService) gin.HandlerFunc {
+func ApiSAPSystemCreateTagHandler(sapSystemsService services.SAPSystemsConsulService, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 
@@ -249,7 +249,7 @@ func ApiSAPSystemCreateTagHandler(sapSystemsService services.SAPSystemsService, 
 // @Param tag path string true "Tag"
 // @Success 204 {object} map[string]interface{}
 // @Router /sapsystems/{id}/tags/{tag} [delete]
-func ApiSAPSystemDeleteTagHandler(sapSystemsService services.SAPSystemsService, tagsService services.TagsService) gin.HandlerFunc {
+func ApiSAPSystemDeleteTagHandler(sapSystemsService services.SAPSystemsConsulService, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 		tag := c.Param("tag")
@@ -286,7 +286,7 @@ func ApiSAPSystemDeleteTagHandler(sapSystemsService services.SAPSystemsService, 
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /databases/{id}/tags [post]
-func ApiDatabaseCreateTagHandler(sapSystemsService services.SAPSystemsService, tagsService services.TagsService) gin.HandlerFunc {
+func ApiDatabaseCreateTagHandler(sapSystemsService services.SAPSystemsConsulService, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 
@@ -327,7 +327,7 @@ func ApiDatabaseCreateTagHandler(sapSystemsService services.SAPSystemsService, t
 // @Param tag path string true "Tag"
 // @Success 204 {object} map[string]interface{}
 // @Router /databases/{id}/tags/{tag} [delete]
-func ApiDatabaseDeleteTagHandler(sapSystemsService services.SAPSystemsService, tagsService services.TagsService) gin.HandlerFunc {
+func ApiDatabaseDeleteTagHandler(sapSystemsService services.SAPSystemsConsulService, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 		tag := c.Param("tag")

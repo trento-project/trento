@@ -117,12 +117,12 @@ func setupTestApiSAPSystemTag(resourceID string) Dependencies {
 		},
 	}
 
-	mockSAPSystemsService := new(services.MockSAPSystemsService)
+	mockSAPSystemsService := new(services.MockSAPSystemsConsulService)
 	mockSAPSystemsService.On("GetSAPSystemsById", resourceID).Return(systemList, nil)
 	mockSAPSystemsService.On("GetSAPSystemsById", mock.Anything).Return(sapsystem.SAPSystemsList{}, nil)
 
 	deps := setupTestDependencies()
-	deps.sapSystemsService = mockSAPSystemsService
+	deps.sapSystemsConsulService = mockSAPSystemsService
 
 	return deps
 }

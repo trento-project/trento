@@ -1,4 +1,4 @@
-{{ define "sapsystems_table" }}
+{{ define "sap_systems_table" }}
     <div class='table-responsive'>
         <table class='table eos-table'>
             <thead>
@@ -7,40 +7,44 @@
                 <th scope='col'></th>
                 <th scope='col'>SID</th>
                 <th scope='col'>Description</th>
-                {{- if eq .ResourcePath "sapsystems" }}
-                <th scope='col'>Attached RDBMS</th>
-                <th scope='col'>Tenant</th>
-                <th scope='col'>DB address</th>
+                {{- if eq .Type "application" }}
+                    <th scope='col'>Attached RDBMS</th>
+                    <th scope='col'>Tenant</th>
+                    <th scope='col'>DB address</th>
                 {{- end }}
                 <th scope='col'>Tags</th>
             </tr>
             </thead>
             <tbody>
-            {{- $resource := .ResourcePath }}
-            {{- range $index, $value := .SAPSystemsTable }}
+            {{- range $index, $value := .SAPSystems }}
                 <tr>
                 <td class="row-status">{{ template "health_icon" "unknown" }}</td>
                 <td class="row-status"><a class="eos-icons eos-18  collapse-toggle clickable collapsed text-dark"
                                           data-toggle="collapse" data-target="#inner_{{ $index }}"></a></td>
-                <td>{{- if .HasDuplicatedSid }}<i class="eos-icons eos-18 text-warning" data-toggle="tooltip" data-original-title="This SAP system SID exists multiple times">warning</i>{{- end }}<a href="/{{ $resource }}/{{ .Id }}">{{ .SID }}</a></td>
+                <td>
+                    {{- if .HasDuplicatedSID }}
+                        <i class="eos-icons eos-18 text-warning" data-toggle="tooltip" data-original-title="This SAP system SID exists multiple times">warning</i>
+                    {{- end }}
+                    <a href="/{{- if eq .Type "database" }}databases{{- else }}sapsystems{{- end }}/{{ .ID }}">{{ .SID }}</a>
+                </td>
                 <td></td>
-                {{- if eq $resource "sapsystems" }}
-                <td><a href="/databases/{{ $value.AttachedDatabaseId }}">{{ $value.AttachedDatabaseSID }}</a></td>
-                <td>{{ $value.Profile.dbs.hdb.dbname }}</td>
-                <td>{{ $value.Profile.SAPDBHOST }}</td>
+                {{- if eq .Type "application" }}
+                    <td><a href="/databases/{{ $value.AttachedDatabase.ID }}">{{ $value.AttachedDatabase.SID }}</a></td>
+                    <td>{{ $value.DBName }}</td>
+                    <td>{{ $value.DBHost }}</td>
                 {{- end }}
                 <td>
                     <input class="tags-input"
                         value="{{- range .Tags }}{{ . }},{{- end }}"
-                        data-resource-type="{{ $resource }}"
-                        data-resource-id="{{ .Id }}"
+                        data-resource-type="{{- if eq .Type "application" }}sap_systems{{- else }}databases{{- end }}"
+                        data-resource-id="{{ .ID }}"
                         autocomplete="off">
                     </input>
                 </td>
-                {{- if ne (len .InstancesTable) 0 }}
+                {{- if ne (len .Instances) 0 }}
                     <tr id="inner_{{ $index }}" class="collapse">
                         <td colspan="2"></td>
-                        <td colspan="{{ if eq $resource "sapsystems" }}6{{ else }}3{{ end }}">
+                        <td colspan="{{ if eq .Type "database" }}3{{ else }}6{{ end }}">
                             <table class='table eos-table'>
                                 <thead>
                                 <tr>
@@ -54,31 +58,29 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {{- range .InstancesTable }}
+                                {{- range .GetAllInstances }}
                                 <tr>
                                     <td class="row-status">{{ template "health_icon" "unknown" }}</td>
                                     <td>{{ .SID }}</td>
                                     <td>{{ .Features }}</td>
                                     <td>{{ .InstanceNumber }}</td>
-                                    {{- if .IsDatabase }}
-                                    {{- $mode := .SystemReplication.GetReplicationMode }}
-                                    {{- if ne $mode "" }}
-                                    <td>HANA {{ $mode }}
+                                    {{- if eq .Type "database" }}
+                                        {{- if .SystemReplication }}
+                                            <td>HANA {{ .SystemReplication }}
+                                            {{- if eq .SystemReplication "Primary" }}
+                                                <span class="badge badge-pill badge-{{ if eq .SystemReplicationStatus "SOK" }}success{{ else }}danger{{ end }}">{{ .SystemReplicationStatus }}</span>
+                                            {{- end }}
+                                            </td>
+                                        {{- else }}
+                                            <td></td>
+                                        {{- end }}
                                     {{- else }}
-                                    <td></td>
+                                        <td></td>
                                     {{- end }}
-                                    {{- if eq $mode "Primary" }}
-                                    {{- $status := .SystemReplication.GetReplicationStatus }}
-                                    <span class="badge badge-pill badge-{{ if eq $status "SOK" }}success{{ else }}danger{{ end }}">{{ $status }}</span>
-                                    {{- end }}
-                                    </td>
-                                    {{- else }}
-                                    <td></td>
-                                    {{- end }}
-                                    <td><a href="/clusters/{{ .ClusterId }}">{{ .ClusterName }}</a></td>
-                                    <td><a href="/hosts/{{ .Host }}">{{ .Host }}</a></td>
+                                    <td><a href="/clusters/{{ .ClusterID }}">{{ .ClusterName }}</a></td>
+                                    <td><a href="/hosts/{{ .HostID }}">{{ .Hostname }}</a></td>
                                 <tr>
-                                    {{- end }}
+                                {{- end }}
                                 </tbody>
                             </table>
                         </td>

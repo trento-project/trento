@@ -10,24 +10,24 @@ import (
 	"github.com/trento-project/trento/internal/sapsystem"
 )
 
-//go:generate mockery --name=SAPSystemsService --inpackage --filename=sapsystems_mock.go
+//go:generate mockery --name=SAPSystemsConsulService --inpackage --filename=sap_systems_consul_mock.go
 
-type SAPSystemsService interface {
+type SAPSystemsConsulService interface {
 	GetSAPSystems() (sapsystem.SAPSystemsList, error)
 	GetSAPSystemsById(id string) (sapsystem.SAPSystemsList, error)
 	GetSAPSystemsByType(systemType int) (sapsystem.SAPSystemsList, error)
 	GetAttachedDatabasesById(id string) (sapsystem.SAPSystemsList, error)
 }
 
-type sapSystemsService struct {
+type sapSystemsConsulService struct {
 	consul consul.Client
 }
 
-func NewSAPSystemsService(client consul.Client) SAPSystemsService {
-	return &sapSystemsService{consul: client}
+func NewSAPSystemsConsulService(client consul.Client) SAPSystemsConsulService {
+	return &sapSystemsConsulService{consul: client}
 }
 
-func (s *sapSystemsService) GetSAPSystems() (sapsystem.SAPSystemsList, error) {
+func (s *sapSystemsConsulService) GetSAPSystems() (sapsystem.SAPSystemsList, error) {
 	var sapSystemsList sapsystem.SAPSystemsList
 
 	hostList, err := hosts.Load(s.consul, "", nil)
@@ -49,7 +49,7 @@ func (s *sapSystemsService) GetSAPSystems() (sapsystem.SAPSystemsList, error) {
 	return sapSystemsList, nil
 }
 
-func (s *sapSystemsService) GetSAPSystemsById(id string) (sapsystem.SAPSystemsList, error) {
+func (s *sapSystemsConsulService) GetSAPSystemsById(id string) (sapsystem.SAPSystemsList, error) {
 	var sapSystemsListBySid sapsystem.SAPSystemsList
 
 	sapSystemsList, err := s.GetSAPSystems()
@@ -66,7 +66,7 @@ func (s *sapSystemsService) GetSAPSystemsById(id string) (sapsystem.SAPSystemsLi
 	return sapSystemsListBySid, nil
 }
 
-func (s *sapSystemsService) GetSAPSystemsByType(systemType int) (sapsystem.SAPSystemsList, error) {
+func (s *sapSystemsConsulService) GetSAPSystemsByType(systemType int) (sapsystem.SAPSystemsList, error) {
 	var sapSystemsListByType sapsystem.SAPSystemsList
 
 	sapSystemsList, err := s.GetSAPSystems()
@@ -83,7 +83,7 @@ func (s *sapSystemsService) GetSAPSystemsByType(systemType int) (sapsystem.SAPSy
 	return sapSystemsListByType, nil
 }
 
-func (s *sapSystemsService) GetAttachedDatabasesById(id string) (sapsystem.SAPSystemsList, error) {
+func (s *sapSystemsConsulService) GetAttachedDatabasesById(id string) (sapsystem.SAPSystemsList, error) {
 	var sapDatabases sapsystem.SAPSystemsList
 
 	// Find current SAP system

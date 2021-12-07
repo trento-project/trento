@@ -5,7 +5,9 @@ import (
 	"errors"
 
 	"github.com/lib/pq"
+	log "github.com/sirupsen/logrus"
 	"github.com/trento-project/trento/internal"
+	"github.com/trento-project/trento/internal/cloud"
 	"github.com/trento-project/trento/web/entities"
 	"github.com/trento-project/trento/web/models"
 	"gorm.io/gorm"
@@ -20,6 +22,7 @@ type ClustersService interface {
 	GetAllClusterTypes() ([]string, error)
 	GetAllSIDs() ([]string, error)
 	GetAllTags() ([]string, error)
+	GetAllClustersSettings() (models.ClustersSettings, error)
 }
 
 type ClustersFilter struct {
@@ -176,6 +179,81 @@ func (s *clustersService) GetAllTags() ([]string, error) {
 	}
 
 	return tags, nil
+}
+
+func (s *clustersService) GetAllClustersSettings() (models.ClustersSettings, error) {
+	var clusters []*entities.Cluster
+
+	err := s.db.
+		Preload("Hosts").
+		Find(&clusters).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	clustersSettings := models.ClustersSettings{}
+	for _, cluster := range clusters {
+		var hosts []*models.HostConnection
+
+		selectedChecks, err := s.checksService.GetSelectedChecksById(cluster.ID) // ??
+
+		if err != nil {
+			log.Error(err)
+			return clustersSettings, err
+		}
+
+		connectionSettings, err := s.checksService.GetConnectionSettingsById(cluster.ID) // ??
+		if err != nil {
+			log.Error(err)
+			return clustersSettings, err
+		}
+
+		for _, host := range cluster.Hosts {
+			var username string
+
+			hostConnectionSettings, found := connectionSettings[host.Name]
+			if found {
+				username = hostConnectionSettings.User
+			}
+
+			if username == "" {
+				username, err = getDefaultUserName(host)
+				if err != nil {
+					return nil, err
+				}
+			}
+
+			hosts = append(hosts, &models.HostConnection{
+				Name:    host.Name,
+				Address: host.IPAddresses[0], // a host has many IPs, which one shall we get?
+				User:    username,
+			})
+		}
+
+		clustersSettings = append(clustersSettings, &models.ClusterSettings{
+			ID:             cluster.ID,
+			SelectedChecks: selectedChecks.SelectedChecks,
+			Hosts:          hosts,
+		})
+	}
+
+	return clustersSettings, nil
+}
+
+func getDefaultUserName(host *entities.Host) (string, error) {
+	switch host.CloudProvider {
+	case cloud.Azure:
+		var metadata entities.AzureCloudData
+		err := json.Unmarshal(host.CloudData, &metadata)
+		if err != nil {
+			return "", err
+		}
+		return metadata.AdminUsername, nil
+	default:
+		return "root", nil
+	}
 }
 
 func (s *clustersService) enrichClusterList(clusterList models.ClusterList) {

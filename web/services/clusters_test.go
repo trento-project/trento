@@ -9,6 +9,7 @@ import (
 	"github.com/trento-project/trento/test/helpers"
 	"github.com/trento-project/trento/web/entities"
 	"github.com/trento-project/trento/web/models"
+	araMocks "github.com/trento-project/trento/web/services/ara/mocks"
 	"gorm.io/gorm"
 )
 
@@ -27,12 +28,12 @@ func TestClustersServiceTestSuite(t *testing.T) {
 func (suite *ClustersServiceTestSuite) SetupSuite() {
 	suite.db = helpers.SetupTestDatabase(suite.T())
 
-	suite.db.AutoMigrate(entities.Cluster{}, entities.Host{}, models.Tag{})
+	suite.db.AutoMigrate(entities.Cluster{}, entities.Host{}, models.Tag{}, models.SelectedChecks{}, models.ConnectionSettings{})
 	loadClustersFixtures(suite.db)
 }
 
 func (suite *ClustersServiceTestSuite) TearDownSuite() {
-	suite.db.Migrator().DropTable(entities.Cluster{}, entities.Host{}, models.Tag{})
+	suite.db.Migrator().DropTable(entities.Cluster{}, entities.Host{}, models.Tag{}, models.SelectedChecks{}, models.ConnectionSettings{})
 }
 
 func (suite *ClustersServiceTestSuite) SetupTest() {
@@ -73,6 +74,7 @@ func loadClustersFixtures(db *gorm.DB) {
 		Hosts: []*entities.Host{
 			{
 				AgentID:     "1",
+				AgentBindIP: "10.74.2.10",
 				ClusterID:   "1",
 				Name:        "host1",
 				IPAddresses: []string{"10.74.1.10"},
@@ -99,6 +101,8 @@ func loadClustersFixtures(db *gorm.DB) {
 		},
 		Hosts: []*entities.Host{
 			{
+				AgentID:     "2",
+				AgentBindIP: "10.74.2.11",
 				ClusterID:   "2",
 				Name:        "host2",
 				IPAddresses: pq.StringArray{"10.74.1.11"},
@@ -121,6 +125,8 @@ func loadClustersFixtures(db *gorm.DB) {
 		},
 		Hosts: []*entities.Host{
 			{
+				AgentID:     "3",
+				AgentBindIP: "10.74.2.12",
 				ClusterID:   "3",
 				Name:        "host3",
 				IPAddresses: pq.StringArray{"10.74.1.12"},
@@ -242,4 +248,97 @@ func (suite *ClustersServiceTestSuite) TestClustersService_GetAllTags() {
 func (suite *ClustersServiceTestSuite) TestClustersService_GetAllSIDs() {
 	sids, _ := suite.clustersService.GetAllSIDs()
 	suite.ElementsMatch([]string{"DEV", "QAS", "PRD"}, sids)
+}
+
+func (suite *ClustersServiceTestSuite) TestClustersService_GetAllClustersSettingsReturnsNoSettings() {
+	mockAra := new(araMocks.AraService)
+
+	tx := suite.tx.Raw("TRUNCATE TABLE clusters")
+	checksService := NewChecksService(mockAra, tx)
+	suite.clustersService = NewClustersService(tx, checksService)
+
+	clustersSettings, err := suite.clustersService.GetAllClustersSettings()
+	suite.NoError(err)
+	suite.Empty(clustersSettings)
+
+	tx.Rollback()
+}
+
+func (suite *ClustersServiceTestSuite) TestClustersService_GetAllClustersSettingsReturnsExpectedSettings() {
+	mockAra := new(araMocks.AraService)
+	checksService := NewChecksService(mockAra, suite.db)
+	suite.clustersService = NewClustersService(suite.db, checksService)
+
+	loadClustersSettingsFixtures(suite.db)
+
+	clustersSettings, err := suite.clustersService.GetAllClustersSettings()
+	suite.NoError(err)
+	suite.NotEmpty(clustersSettings)
+	suite.Len(clustersSettings, 3)
+
+	suite.EqualValues(expectedClustersSettingsFixtures(), clustersSettings)
+}
+
+func loadClustersSettingsFixtures(db *gorm.DB) {
+	db.Create(&models.SelectedChecks{
+		ID:             "1",
+		SelectedChecks: []string{"A", "B", "C"},
+	})
+	db.Create(&models.SelectedChecks{
+		ID:             "2",
+		SelectedChecks: []string{},
+	})
+	db.Create(&models.ConnectionSettings{
+		ID:   "1",
+		Node: "host1",
+		User: "theuser",
+	})
+	db.Create(&models.ConnectionSettings{
+		ID:   "2",
+		Node: "host2",
+		User: "root",
+	})
+	db.Create(&models.ConnectionSettings{
+		ID:   "3",
+		Node: "host3",
+		User: "",
+	})
+}
+
+func expectedClustersSettingsFixtures() models.ClustersSettings {
+	return models.ClustersSettings{
+		{
+			ID:             "1",
+			SelectedChecks: []string{"A", "B", "C"},
+			Hosts: []*models.ConnectionInfoAwareHost{
+				{
+					Name:    "host1",
+					Address: "10.74.2.10",
+					User:    "theuser",
+				},
+			},
+		},
+		{
+			ID:             "2",
+			SelectedChecks: []string{},
+			Hosts: []*models.ConnectionInfoAwareHost{
+				{
+					Name:    "host2",
+					Address: "10.74.2.11",
+					User:    "root",
+				},
+			},
+		},
+		{
+			ID:             "3",
+			SelectedChecks: []string{},
+			Hosts: []*models.ConnectionInfoAwareHost{
+				{
+					Name:    "host3",
+					Address: "10.74.2.12",
+					User:    "cloudadmin",
+				},
+			},
+		},
+	}
 }

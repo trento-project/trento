@@ -18,6 +18,7 @@ type Host struct {
 	SAPSystems    []*SAPSystem
 	AgentVersion  string
 	Tags          []string
+	CloudData     interface{}
 }
 
 type HostList []*Host

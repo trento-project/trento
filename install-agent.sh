@@ -117,6 +117,7 @@ AGENT_CONFIG_PATH="/etc/trento"
 AGENT_CONFIG_FILE="$AGENT_CONFIG_PATH/agent.yaml"
 AGENT_CONFIG_TEMPLATE='
 consul-config-dir: @CONFIG_PATH@
+bind-ip: @BIND_IP@
 collector-host: @COLLECTOR_HOST@
 '
 
@@ -240,7 +241,8 @@ function setup_trento() {
 
     echo "$AGENT_CONFIG_TEMPLATE" |
         sed "s|@CONFIG_PATH@|${CONFIG_PATH}|g" |
-        sed "s|@COLLECTOR_HOST@|${SERVER_IP}|g" \
+        sed "s|@COLLECTOR_HOST@|${SERVER_IP}|g" |
+        sed "s|@BIND_IP@|${AGENT_BIND_IP}|g" \
             > ${AGENT_CONFIG_FILE}
 }
 

@@ -197,14 +197,13 @@ func (s *clustersService) GetAllClustersSettings() (models.ClustersSettings, err
 	for _, cluster := range clusters {
 		var hosts []*models.HostConnection
 
-		selectedChecks, err := s.checksService.GetSelectedChecksById(cluster.ID) // ??
-
+		selectedChecks, err := s.checksService.GetSelectedChecksById(cluster.ID)
 		if err != nil {
 			log.Error(err)
 			return clustersSettings, err
 		}
 
-		connectionSettings, err := s.checksService.GetConnectionSettingsById(cluster.ID) // ??
+		connectionSettings, err := s.checksService.GetConnectionSettingsById(cluster.ID)
 		if err != nil {
 			log.Error(err)
 			return clustersSettings, err
@@ -227,7 +226,7 @@ func (s *clustersService) GetAllClustersSettings() (models.ClustersSettings, err
 
 			hosts = append(hosts, &models.HostConnection{
 				Name:    host.Name,
-				Address: host.IPAddresses[0], // a host has many IPs, which one shall we get?
+				Address: host.AgentBindIP,
 				User:    username,
 			})
 		}

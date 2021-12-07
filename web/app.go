@@ -197,6 +197,11 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 		apiGroup.GET("/checks/catalog", ApiChecksCatalogHandler(deps.checksService))
 	}
 
+	internalApi := webEngine.Group("/api/internal")
+	{
+		internalApi.GET("/clusters/settings", ApiGetClustersSettingsHandler(deps.clustersService))
+	}
+
 	collectorEngine := deps.collectorEngine
 	collectorEngine.POST("/api/collect", ApiCollectDataHandler(deps.collectorService))
 	collectorEngine.POST("/api/hosts/:id/heartbeat", ApiHostHeartbeatHandler(deps.hostsService))

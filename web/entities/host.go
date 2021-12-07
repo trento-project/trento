@@ -9,6 +9,7 @@ import (
 
 type Host struct {
 	AgentID            string `gorm:"primaryKey"`
+	AgentBindIP        string
 	Name               string
 	IPAddresses        pq.StringArray `gorm:"type:text[]"`
 	CloudProvider      string

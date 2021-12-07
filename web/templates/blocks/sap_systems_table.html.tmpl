@@ -29,7 +29,7 @@
                 </td>
                 <td></td>
                 {{- if eq .Type "application" }}
-                    <td><a href="/databases/{{ $value.AttachedDatabase.ID }}">{{ $value.AttachedDatabase.SID }}</a></td>
+                    <td>{{- if $value.AttachedDatabase }}<a href="/databases/{{ $value.AttachedDatabase.ID }}">{{ $value.AttachedDatabase.SID }}</a>{{- end }}</td>
                     <td>{{ $value.DBName }}</td>
                     <td>{{ $value.DBHost }}</td>
                 {{- end }}

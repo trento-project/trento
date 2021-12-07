@@ -15,6 +15,11 @@ type SAPSystemInstance struct {
 	InstanceNumber          string `gorm:"primaryKey"`
 	Features                string
 	Description             string
+	StartPriority           string
+	Status                  string
+	SAPHostname             string
+	HttpPort                int
+	HttpsPort               int
 	SystemReplication       string
 	SystemReplicationStatus string
 	DBHost                  string
@@ -56,6 +61,11 @@ func (s SAPSystemInstances) ToModel() []*models.SAPSystem {
 			Features:                i.Features,
 			SystemReplication:       i.SystemReplication,
 			SystemReplicationStatus: i.SystemReplicationStatus,
+			SAPHostname:             i.SAPHostname,
+			Status:                  i.Status,
+			StartPriority:           i.StartPriority,
+			HttpPort:                i.HttpPort,
+			HttpsPort:               i.HttpsPort,
 			Type:                    i.Type,
 			SID:                     i.SID,
 		}

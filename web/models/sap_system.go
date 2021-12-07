@@ -25,6 +25,11 @@ type SAPSystemInstance struct {
 	InstanceNumber          string
 	SystemReplication       string
 	SystemReplicationStatus string
+	SAPHostname             string
+	Status                  string
+	StartPriority           string
+	HttpPort                int
+	HttpsPort               int
 	ClusterName             string
 	ClusterID               string
 	HostID                  string

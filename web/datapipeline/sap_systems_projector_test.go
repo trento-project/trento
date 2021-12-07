@@ -64,9 +64,13 @@ func (s *SAPSystemsProjectorTestSuite) Test_SAPSystemDiscoveryHandler_Database()
 	s.Equal("Primary", projectedSAPSystemInstance.SystemReplication)
 	s.Equal("SFAIL", projectedSAPSystemInstance.SystemReplicationStatus)
 	s.Equal(pq.StringArray{"PRD"}, projectedSAPSystemInstance.Tenants)
+	s.Equal("vmhana01", projectedSAPSystemInstance.SAPHostname)
+	s.Equal("0.3", projectedSAPSystemInstance.StartPriority)
+	s.Equal(50013, projectedSAPSystemInstance.HttpPort)
+	s.Equal(50014, projectedSAPSystemInstance.HttpsPort)
 }
 
-func (s *SAPSystemsProjectorTestSuite) Test_SAPSystemDiscoveryHandler_APplication() {
+func (s *SAPSystemsProjectorTestSuite) Test_SAPSystemDiscoveryHandler_Application() {
 	discoveredSAPSystemMock := mocks.NewDiscoveredSAPSystemApplicationMock()
 
 	requestBody, _ := json.Marshal(discoveredSAPSystemMock)
@@ -88,4 +92,8 @@ func (s *SAPSystemsProjectorTestSuite) Test_SAPSystemDiscoveryHandler_APplicatio
 	s.Equal("ABAP|GATEWAY|ICMAN|IGS", projectedSAPSystemInstance.Features)
 	s.Equal("PRD", projectedSAPSystemInstance.DBName)
 	s.Equal("10.74.1.12", projectedSAPSystemInstance.DBHost)
+	s.Equal("sapha1aas1", projectedSAPSystemInstance.SAPHostname)
+	s.Equal("3", projectedSAPSystemInstance.StartPriority)
+	s.Equal(50213, projectedSAPSystemInstance.HttpPort)
+	s.Equal(50214, projectedSAPSystemInstance.HttpsPort)
 }

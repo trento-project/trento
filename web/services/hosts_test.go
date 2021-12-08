@@ -191,8 +191,15 @@ func (suite *HostsServiceTestSuite) TestHostsService_GetByID() {
 }
 
 func (suite *HostsServiceTestSuite) TestHostsService_GetByID_NotFound() {
-	host, _ := suite.hostsService.GetByID("13")
+	host, err := suite.hostsService.GetByID("13")
+	suite.NoError(err)
 	suite.Nil(host)
+}
+
+func (suite *HostsServiceTestSuite) TestHostsService_GetAllBySAPSystemID() {
+	hosts, _ := suite.hostsService.GetAllBySAPSystemID("sap_system_id_2")
+	suite.Equal(1, len(hosts))
+	suite.Equal("2", hosts[0].ID)
 }
 
 func (suite *HostsServiceTestSuite) TestHostsService_GetHostsCount() {

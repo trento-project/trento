@@ -5,8 +5,6 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/trento-project/trento/internal/hosts"
-	"github.com/trento-project/trento/internal/sapsystem"
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
 )
@@ -129,26 +127,22 @@ func NewHANADatabaseListHandler(sapSystemsService services.SAPSystemsService) gi
 	}
 }
 
-func NewSAPResourceHandler(hostsService services.HostsConsulService, sapSystemsService services.SAPSystemsConsulService) gin.HandlerFunc {
+func NewSAPResourceHandler(hostsService services.HostsService, sapSystemsService services.SAPSystemsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var systemList sapsystem.SAPSystemsList
-		var systemHosts hosts.HostList
-		var err error
-
 		id := c.Param("id")
 
-		systemList, err = sapSystemsService.GetSAPSystemsById(id)
+		sapSystem, err := sapSystemsService.GetByID(id)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 
-		if len(systemList) == 0 {
+		if sapSystem == nil {
 			_ = c.Error(NotFoundError("could not find system"))
 			return
 		}
 
-		systemHosts, err = hostsService.GetHostsBySystemId(id)
+		hosts, err := hostsService.GetAllBySAPSystemID(id)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -156,9 +150,10 @@ func NewSAPResourceHandler(hostsService services.HostsConsulService, sapSystemsS
 
 		// We will send the 1st entry by now, as only use the layout, which is repeated among all the
 		// SAP instances within a System. It does not resolve the HANA SR scenario in any case
-		c.HTML(http.StatusOK, "sapsystem.html.tmpl", gin.H{
-			"SAPSystem": systemList[0],
-			"Hosts":     systemHosts,
+		c.HTML(http.StatusOK, "sap_system.html.tmpl", gin.H{
+			"SAPSystem": sapSystem,
+			"Hosts":     hosts,
+			"HideTags":  true,
 		})
 	}
 }

@@ -208,17 +208,17 @@ func ApiClusterDeleteTagHandler(clustersService services.ClustersService, tagsSe
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /sapsystems/{id}/tags [post]
-func ApiSAPSystemCreateTagHandler(sapSystemsService services.SAPSystemsConsulService, tagsService services.TagsService) gin.HandlerFunc {
+func ApiSAPSystemCreateTagHandler(sapSystemsService services.SAPSystemsService, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 
-		systemList, err := sapSystemsService.GetSAPSystemsById(id)
+		systemList, err := sapSystemsService.GetByID(id)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 
-		if len(systemList) == 0 {
+		if systemList == nil {
 			_ = c.Error(NotFoundError("could not find system"))
 			return
 		}
@@ -249,18 +249,18 @@ func ApiSAPSystemCreateTagHandler(sapSystemsService services.SAPSystemsConsulSer
 // @Param tag path string true "Tag"
 // @Success 204 {object} map[string]interface{}
 // @Router /sapsystems/{id}/tags/{tag} [delete]
-func ApiSAPSystemDeleteTagHandler(sapSystemsService services.SAPSystemsConsulService, tagsService services.TagsService) gin.HandlerFunc {
+func ApiSAPSystemDeleteTagHandler(sapSystemsService services.SAPSystemsService, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 		tag := c.Param("tag")
 
-		systemList, err := sapSystemsService.GetSAPSystemsById(id)
+		systemList, err := sapSystemsService.GetByID(id)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 
-		if len(systemList) == 0 {
+		if systemList == nil {
 			_ = c.Error(NotFoundError("could not find system"))
 			return
 		}
@@ -286,18 +286,18 @@ func ApiSAPSystemDeleteTagHandler(sapSystemsService services.SAPSystemsConsulSer
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /databases/{id}/tags [post]
-func ApiDatabaseCreateTagHandler(sapSystemsService services.SAPSystemsConsulService, tagsService services.TagsService) gin.HandlerFunc {
+func ApiDatabaseCreateTagHandler(sapSystemsService services.SAPSystemsService, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 
-		systemList, err := sapSystemsService.GetSAPSystemsById(id)
+		systemList, err := sapSystemsService.GetByID(id)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 
-		if len(systemList) == 0 {
-			_ = c.Error(NotFoundError("could not find database"))
+		if systemList == nil {
+			_ = c.Error(NotFoundError("could not find system"))
 			return
 		}
 
@@ -327,19 +327,19 @@ func ApiDatabaseCreateTagHandler(sapSystemsService services.SAPSystemsConsulServ
 // @Param tag path string true "Tag"
 // @Success 204 {object} map[string]interface{}
 // @Router /databases/{id}/tags/{tag} [delete]
-func ApiDatabaseDeleteTagHandler(sapSystemsService services.SAPSystemsConsulService, tagsService services.TagsService) gin.HandlerFunc {
+func ApiDatabaseDeleteTagHandler(sapSystemsService services.SAPSystemsService, tagsService services.TagsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 		tag := c.Param("tag")
 
-		systemList, err := sapSystemsService.GetSAPSystemsById(id)
+		systemList, err := sapSystemsService.GetByID(id)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 
-		if len(systemList) == 0 {
-			_ = c.Error(NotFoundError("could not find database"))
+		if systemList == nil {
+			_ = c.Error(NotFoundError("could not find system"))
 			return
 		}
 

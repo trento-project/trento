@@ -36,7 +36,7 @@
                 <td>
                     <input class="tags-input"
                         value="{{- range .Tags }}{{ . }},{{- end }}"
-                        data-resource-type="{{- if eq .Type "application" }}sap_systems{{- else }}databases{{- end }}"
+                        data-resource-type="{{- if eq .Type "application" }}sapsystems{{- else }}databases{{- end }}"
                         data-resource-id="{{ .ID }}"
                         autocomplete="off">
                     </input>

@@ -1,4 +1,5 @@
 {{ define "hosts_table" }}
+    {{ $hideTags := .HideTags }}
     <div class='table-responsive'>
         <table class='table eos-table'>
             <thead>
@@ -10,7 +11,9 @@
                 <th scope='col'>Cluster</th>
                 <th scope='col'>System</th>
                 <th scope='col'>Agent version</th>
-                <th scope='col'>Tags</th>
+                {{ if not $hideTags }}
+                    <th scope='col'>Tags</th>
+                {{ end }}
             </tr>
             </thead>
             <tbody>
@@ -44,14 +47,16 @@
                     <td>
                         {{ .AgentVersion }}
                     </td>
-                        <td>
-                            <input class="tags-input"
-                                value="{{- range .Tags }}{{ . }},{{- end }}"
-                                data-resource-type="hosts"
-                                data-resource-id="{{ .ID }}"
-                                autocomplete="off">
-                            </input>
-                        </td>
+                    {{- if not $hideTags }}
+                    <td>
+                        <input class="tags-input"
+                            value="{{- range .Tags }}{{ . }},{{- end }}"
+                            data-resource-type="hosts"
+                            data-resource-id="{{ .ID }}"
+                            autocomplete="off">
+                        </input>
+                    </td>
+                    {{- end }}
                 </tr>
             {{- else }}
                 {{ template "empty_table_body" 6 }}

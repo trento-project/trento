@@ -1,0 +1,17 @@
+{{ define "content" }}
+    <div class="col">
+        <h1>{{ if eq .SAPSystem.Type "database" }}HANA Database{{ else }}SAP System{{ end }} details</h1>
+        <dl class="inline">
+            <dt class="inline">Name</dt>
+            <dd class="inline">{{ .SAPSystem.SID }}</dd>
+            <dt class="inline">Type</dt>
+            <dd class="inline">{{ if eq .SAPSystem.Type "database" }}HANA Database{{ else }}Application server{{ end }}</dd>
+        </dl>
+        <hr/>
+        <h1>Layout</h1>
+            {{ template "sap_system_layout" .SAPSystem }}
+        <hr/>
+        <h1>Hosts</h1>
+            {{ template "hosts_table" . }}
+    </div>
+{{ end }}

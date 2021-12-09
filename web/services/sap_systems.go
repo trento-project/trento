@@ -13,6 +13,7 @@ import (
 type SAPSystemsService interface {
 	GetAllApplications(filter *SAPSystemFilter, page *Page) (models.SAPSystemList, error)
 	GetAllDatabases(filter *SAPSystemFilter, page *Page) (models.SAPSystemList, error)
+	GetByID(ID string) (*models.SAPSystem, error)
 	GetApplicationsCount() (int, error)
 	GetDatabasesCount() (int, error)
 	GetAllApplicationsSIDs() ([]string, error)
@@ -49,6 +50,24 @@ func (s *sapSystemsService) GetAllApplications(filter *SAPSystemFilter, page *Pa
 
 func (s *sapSystemsService) GetAllDatabases(filter *SAPSystemFilter, page *Page) (models.SAPSystemList, error) {
 	return s.getAllByType(models.SAPSystemTypeDatabase, models.TagDatabaseResourceType, filter, page)
+}
+func (s *sapSystemsService) GetByID(ID string) (*models.SAPSystem, error) {
+	var instances entities.SAPSystemInstances
+
+	err := s.db.
+		Where("id = ?", ID).
+		Find(&instances).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(instances) == 0 {
+		return nil, nil
+	}
+
+	return instances.ToModel()[0], nil
 }
 
 func (s *sapSystemsService) GetApplicationsCount() (int, error) {

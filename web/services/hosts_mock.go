@@ -35,6 +35,29 @@ func (_m *MockHostsService) GetAll(_a0 *HostsFilter, _a1 *Page) (models.HostList
 	return r0, r1
 }
 
+// GetAllBySAPSystemID provides a mock function with given fields: _a0
+func (_m *MockHostsService) GetAllBySAPSystemID(_a0 string) (models.HostList, error) {
+	ret := _m.Called(_a0)
+
+	var r0 models.HostList
+	if rf, ok := ret.Get(0).(func(string) models.HostList); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(models.HostList)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetAllSIDs provides a mock function with given fields:
 func (_m *MockHostsService) GetAllSIDs() ([]string, error) {
 	ret := _m.Called()

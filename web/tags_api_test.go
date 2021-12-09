@@ -9,8 +9,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/trento-project/trento/internal/sapsystem"
-
 	"github.com/stretchr/testify/mock"
 
 	"github.com/trento-project/trento/web/models"
@@ -111,18 +109,16 @@ func setupTestApiClusterTag(resourceID string) Dependencies {
 }
 
 func setupTestApiSAPSystemTag(resourceID string) Dependencies {
-	systemList := sapsystem.SAPSystemsList{
-		&sapsystem.SAPSystem{
-			SID: resourceID,
-		},
+	sapSystem := &models.SAPSystem{
+		ID: resourceID,
 	}
 
-	mockSAPSystemsService := new(services.MockSAPSystemsConsulService)
-	mockSAPSystemsService.On("GetSAPSystemsById", resourceID).Return(systemList, nil)
-	mockSAPSystemsService.On("GetSAPSystemsById", mock.Anything).Return(sapsystem.SAPSystemsList{}, nil)
+	mockSAPSystemsService := new(services.MockSAPSystemsService)
+	mockSAPSystemsService.On("GetByID", resourceID).Return(sapSystem, nil)
+	mockSAPSystemsService.On("GetByID", mock.Anything).Return(nil, nil)
 
 	deps := setupTestDependencies()
-	deps.sapSystemsConsulService = mockSAPSystemsService
+	deps.sapSystemsService = mockSAPSystemsService
 
 	return deps
 }

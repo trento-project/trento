@@ -77,11 +77,13 @@ func SAPSystemsProjector_SAPSystemsDiscoveryHandler(dataCollectedEvent *DataColl
 			instance.InstanceNumber = instanceNumber
 			instance.SystemReplication = parseReplicationMode(i.SystemReplication)
 			instance.SystemReplicationStatus = parseReplicationStatus(i.SystemReplication)
+			addSAPControlData(&instance, i.SAPControl)
 
 			err := storeSAPInstance(db,
 				instance,
 				"id", "sid", "type", "features", "instance_number",
 				"system_replication", "system_replication_status",
+				"sap_hostname", "start_priority", "http_port", "https_port", "status",
 				"tenants", "db_host", "db_name")
 
 			if err != nil {
@@ -142,5 +144,17 @@ func parseReplicationStatus(s sapsystem.SystemReplication) string {
 		return "SFAIL"
 	default: // UNKNOWN, INITIALIZING, SYNCING
 		return ""
+	}
+}
+
+func addSAPControlData(instance *entities.SAPSystemInstance, sapControl *sapsystem.SAPControl) {
+	for _, i := range sapControl.Instances {
+		if instance.InstanceNumber == fmt.Sprintf("%02d", i.InstanceNr) {
+			instance.StartPriority = i.StartPriority
+			instance.Status = (string)(i.Dispstatus)
+			instance.SAPHostname = i.Hostname
+			instance.HttpPort = (int)(i.HttpPort)
+			instance.HttpsPort = (int)(i.HttpsPort)
+		}
 	}
 }

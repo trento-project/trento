@@ -1,0 +1,34 @@
+{{ define "sap_system_layout" }}
+    <div class='table-responsive'>
+        <table class='table eos-table'>
+            <thead>
+            <tr>
+                <th scope='col'>Hostname</th>
+                <th scope='col'>Instance</th>
+                <th scope='col'>Features</th>
+                <th scope='col'>Http port</th>
+                <th scope='col'>Https port</th>
+                <th scope='col'>Start priority</th>
+                <th scope='col'>Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            {{- range .Instances }}
+                <tr>
+                    <td>{{ .SAPHostname }}</td>
+                    <td>{{ .InstanceNumber }}</td>
+                    <td>{{ .Features }}</td>
+                    <td>{{ .HttpPort }}</td>
+                    <td>{{ .HttpsPort }}</td>
+                    <td>{{ .StartPriority }}</td>
+                    <td>
+                        <span class='badge badge-pill badge-{{ if eq .Status "SAPControl-GREEN" }}primary{{ else if eq .Status "SAPControl-YELLOW" }}warning{{ else if eq .Status "SAPControl-GRAY" }}secondary{{ else }}danger{{ end }}'>{{ .Status }}</span>
+                    </td>
+                </tr>
+            {{- else }}
+                {{ template "empty_table_body" 7}}
+            {{- end }}
+            </tbody>
+        </table>
+    </div>
+{{ end }}

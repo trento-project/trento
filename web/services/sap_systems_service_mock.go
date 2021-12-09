@@ -171,6 +171,29 @@ func (_m *MockSAPSystemsService) GetApplicationsCount() (int, error) {
 	return r0, r1
 }
 
+// GetByID provides a mock function with given fields: ID
+func (_m *MockSAPSystemsService) GetByID(ID string) (*models.SAPSystem, error) {
+	ret := _m.Called(ID)
+
+	var r0 *models.SAPSystem
+	if rf, ok := ret.Get(0).(func(string) *models.SAPSystem); ok {
+		r0 = rf(ID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.SAPSystem)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(ID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetDatabasesCount provides a mock function with given fields:
 func (_m *MockSAPSystemsService) GetDatabasesCount() (int, error) {
 	ret := _m.Called()

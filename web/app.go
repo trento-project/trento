@@ -57,23 +57,22 @@ type Config struct {
 	DBConfig      *db.Config
 }
 type Dependencies struct {
-	consul                  consul.Client
-	webEngine               *gin.Engine
-	collectorEngine         *gin.Engine
-	store                   cookie.Store
-	projectorWorkersPool    *datapipeline.ProjectorsWorkerPool
-	checksService           services.ChecksService
-	subscriptionsService    services.SubscriptionsService
-	hostsConsulService      services.HostsConsulService
-	sapSystemsConsulService services.SAPSystemsConsulService
-	tagsService             services.TagsService
-	collectorService        services.CollectorService
-	sapSystemsService       services.SAPSystemsService
-	clustersService         services.ClustersService
-	hostsService            services.HostsService
-	settingsService         services.SettingsService
-	telemetryRegistry       *telemetry.TelemetryRegistry
-	telemetryPublisher      telemetry.Publisher
+	consul               consul.Client
+	webEngine            *gin.Engine
+	collectorEngine      *gin.Engine
+	store                cookie.Store
+	projectorWorkersPool *datapipeline.ProjectorsWorkerPool
+	checksService        services.ChecksService
+	subscriptionsService services.SubscriptionsService
+	hostsConsulService   services.HostsConsulService
+	tagsService          services.TagsService
+	collectorService     services.CollectorService
+	sapSystemsService    services.SAPSystemsService
+	clustersService      services.ClustersService
+	hostsService         services.HostsService
+	settingsService      services.SettingsService
+	telemetryRegistry    *telemetry.TelemetryRegistry
+	telemetryPublisher   telemetry.Publisher
 }
 
 func DefaultDependencies(config *Config) Dependencies {
@@ -103,7 +102,6 @@ func DefaultDependencies(config *Config) Dependencies {
 	subscriptionsService := services.NewSubscriptionsService(db)
 	hostsConsulService := services.NewHostsConsulService(consulClient)
 	hostsService := services.NewHostsService(db)
-	sapSystemsConsulService := services.NewSAPSystemsConsulService(consulClient)
 	sapSystemsService := services.NewSAPSystemsService(db)
 	clustersService := services.NewClustersService(db, checksService)
 	collectorService := services.NewCollectorService(db, projectorWorkersPool.GetChannel())
@@ -113,7 +111,7 @@ func DefaultDependencies(config *Config) Dependencies {
 
 	return Dependencies{
 		consulClient, webEngine, collectorEngine, store, projectorWorkersPool,
-		checksService, subscriptionsService, hostsConsulService, sapSystemsConsulService, tagsService,
+		checksService, subscriptionsService, hostsConsulService, tagsService,
 		collectorService, sapSystemsService, clustersService, hostsService, settingsService,
 		telemetryRegistry, telemetryPublisher,
 	}
@@ -175,9 +173,9 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 	webEngine.GET("/clusters/:id", NewClusterHandler(deps.clustersService))
 	webEngine.GET("/clusters/:id/generic", NewClusterGenericHandler(deps.consul))
 	webEngine.GET("/sapsystems", NewSAPSystemListHandler(deps.sapSystemsService))
-	webEngine.GET("/sapsystems/:id", NewSAPResourceHandler(deps.hostsConsulService, deps.sapSystemsConsulService))
+	webEngine.GET("/sapsystems/:id", NewSAPResourceHandler(deps.hostsService, deps.sapSystemsService))
 	webEngine.GET("/databases", NewHANADatabaseListHandler(deps.sapSystemsService))
-	webEngine.GET("/databases/:id", NewSAPResourceHandler(deps.hostsConsulService, deps.sapSystemsConsulService))
+	webEngine.GET("/databases/:id", NewSAPResourceHandler(deps.hostsService, deps.sapSystemsService))
 
 	apiGroup := webEngine.Group("/api")
 	{
@@ -189,10 +187,10 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 		apiGroup.POST("/clusters/:id/tags", ApiClusterCreateTagHandler(deps.clustersService, deps.tagsService))
 		apiGroup.DELETE("/clusters/:id/tags/:tag", ApiClusterDeleteTagHandler(deps.clustersService, deps.tagsService))
 		apiGroup.GET("/clusters/:cluster_id/results", ApiClusterCheckResultsHandler(deps.consul, deps.checksService))
-		apiGroup.POST("/sapsystems/:id/tags", ApiSAPSystemCreateTagHandler(deps.sapSystemsConsulService, deps.tagsService))
-		apiGroup.DELETE("/sapsystems/:id/tags/:tag", ApiSAPSystemDeleteTagHandler(deps.sapSystemsConsulService, deps.tagsService))
-		apiGroup.POST("/databases/:id/tags", ApiDatabaseCreateTagHandler(deps.sapSystemsConsulService, deps.tagsService))
-		apiGroup.DELETE("/databases/:id/tags/:tag", ApiDatabaseDeleteTagHandler(deps.sapSystemsConsulService, deps.tagsService))
+		apiGroup.POST("/sapsystems/:id/tags", ApiSAPSystemCreateTagHandler(deps.sapSystemsService, deps.tagsService))
+		apiGroup.DELETE("/sapsystems/:id/tags/:tag", ApiSAPSystemDeleteTagHandler(deps.sapSystemsService, deps.tagsService))
+		apiGroup.POST("/databases/:id/tags", ApiDatabaseCreateTagHandler(deps.sapSystemsService, deps.tagsService))
+		apiGroup.DELETE("/databases/:id/tags/:tag", ApiDatabaseDeleteTagHandler(deps.sapSystemsService, deps.tagsService))
 		apiGroup.GET("/checks/:id/settings", ApiCheckGetSettingsByIdHandler(deps.consul, deps.checksService))
 		apiGroup.POST("/checks/:id/settings", ApiCheckCreateSettingsByIdHandler(deps.checksService))
 		apiGroup.PUT("/checks/catalog", ApiCreateChecksCatalogHandler(deps.checksService))

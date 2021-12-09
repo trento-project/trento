@@ -205,6 +205,20 @@ func (suite *SAPSystemsServiceTestSuite) TestSAPSystemsService_GetAllDatabases_F
 	suite.Equal("PRD", databases[0].SID)
 }
 
+func (suite *SAPSystemsServiceTestSuite) TestSAPSystemsService_GetByID() {
+	sapSystem, err := suite.sapSystemsService.GetByID("sap_system_1")
+	suite.NoError(err)
+
+	suite.Equal("sap_system_1", sapSystem.ID)
+	suite.Equal("HA1", sapSystem.SID)
+}
+
+func (suite *SAPSystemsServiceTestSuite) TestSAPSystemsService_GetByID_NotFound() {
+	sapSystem, err := suite.sapSystemsService.GetByID("not_found")
+	suite.NoError(err)
+	suite.Nil(sapSystem)
+}
+
 func (suite *SAPSystemsServiceTestSuite) TestSAPSystemsService_GetDatabasesCount() {
 	count, err := suite.sapSystemsService.GetDatabasesCount()
 	suite.NoError(err)

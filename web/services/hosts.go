@@ -20,6 +20,7 @@ var timeSince = time.Since
 type HostsService interface {
 	GetAll(*HostsFilter, *Page) (models.HostList, error)
 	GetByID(string) (*models.Host, error)
+	GetAllBySAPSystemID(string) (models.HostList, error)
 	GetCount() (int, error)
 	GetAllSIDs() ([]string, error)
 	GetAllTags() ([]string, error)
@@ -103,6 +104,33 @@ func (s *hostsService) GetByID(id string) (*models.Host, error) {
 	}
 
 	return host.ToModel(), nil
+}
+
+func (s *hostsService) GetAllBySAPSystemID(id string) (models.HostList, error) {
+	var hosts []entities.Host
+
+	err := s.db.
+		Order("name").
+		Preload("Heartbeat").
+		Preload("SAPSystemInstances").
+		Joins("JOIN sap_system_instances ON sap_system_instances.agent_id = hosts.agent_id").
+		Where("sap_system_instances.id = ?", id).
+		Find(&hosts).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	var hostList models.HostList
+	for _, h := range hosts {
+		host := h.ToModel()
+		host.Health = computeHealth(&h)
+
+		hostList = append(hostList, host)
+	}
+
+	return hostList, nil
 }
 
 func (s *hostsService) GetCount() (int, error) {

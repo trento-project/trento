@@ -843,9 +843,10 @@ func (suite *ChecksServiceTestSuite) TestChecksService_GetSelectedChecksById() {
 }
 
 func (suite *ChecksServiceTestSuite) TestChecksService_GetSelectedChecksByIdError() {
-	_, err := suite.checksService.GetSelectedChecksById("other")
+	selectedChecks, err := suite.checksService.GetSelectedChecksById("other")
 
-	suite.EqualError(err, "record not found")
+	suite.NoError(err)
+	suite.EqualValues([]string{}, selectedChecks.SelectedChecks)
 }
 
 func (suite *ChecksServiceTestSuite) TestChecksService_CreateSelectedChecks() {

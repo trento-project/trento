@@ -35,9 +35,11 @@
                     </td>
                     <td>{{ .CloudProvider }}</td>
                     <td>
-                        <a href='/clusters/{{ .ClusterID }}'>
+                        {{- if ne .ClusterType "Unknown" }}
+                            <a href="/clusters/{{ .ClusterID }}">{{ .ClusterName }}</a>
+                        {{- else }}
                             {{ .ClusterName }}
-                        </a>
+                        {{- end }}
                     </td>
                     <td>
                         {{- range .SAPSystems }} 

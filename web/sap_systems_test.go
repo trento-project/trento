@@ -192,6 +192,7 @@ func TestSAPResourceHandler(t *testing.T) {
 			CloudProvider: "azure",
 			ClusterID:     "cluster_id",
 			ClusterName:   "netweaver",
+			ClusterType:   models.ClusterTypeHANAScaleOut,
 			SAPSystems: []*models.SAPSystem{
 				{
 					ID:  "sap_system_id",

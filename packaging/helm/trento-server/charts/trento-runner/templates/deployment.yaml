@@ -46,6 +46,8 @@ spec:
           env:
             - name: CONSUL_HTTP_ADDR
               value: {{ .Release.Name }}-{{ .Values.dependencies.consul.name }}:{{ .Values.dependencies.consul.port }}
+          # tty is required to allow a correct ansible execution
+          tty: true
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

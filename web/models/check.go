@@ -31,6 +31,7 @@ type Check struct {
 	Premium        bool   `json:"premium,omitempty" mapstructure:"premium,omitempty"`
 	Selected       bool   `json:"selected,omitempty" mapstructure:"selected,omitempty"`
 	Result         string `json:"result,omitempty" mapstructure:"result,omitempty"`
+	Msg            string `json:"msg,omitempty" mapstructure:"msg,omitempty"`
 }
 
 type GroupedChecks struct {

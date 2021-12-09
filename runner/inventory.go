@@ -124,9 +124,8 @@ func NewClusterInventoryContent(client consul.Client, trentoApi api.TrentoApiSer
 
 		for _, node := range clusterData.Crmmon.Nodes {
 			node := &Node{
-				Name:        node.Name,
-				AnsibleUser: DefaultUser,
-				Variables:   make(map[string]interface{}),
+				Name:      node.Name,
+				Variables: make(map[string]interface{}),
 			}
 
 			node.Variables[clusterSelectedChecks] = string(jsonSelectedChecks)
@@ -147,6 +146,11 @@ func NewClusterInventoryContent(client consul.Client, trentoApi api.TrentoApiSer
 				if err == nil {
 					node.AnsibleUser = cloudUser
 				}
+			}
+
+			// Fallback to default
+			if len(node.AnsibleUser) == 0 {
+				node.AnsibleUser = DefaultUser
 			}
 
 			nodes = append(nodes, node)

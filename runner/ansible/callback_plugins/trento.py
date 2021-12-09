@@ -48,7 +48,8 @@ class Results(object):
                 "ABCDEF": {
                     "hosts": {
                         "host1": {
-                            "result": "passing"
+                            "result": "passing",
+                            "msg": "",
                         }
                     }
                 }
@@ -68,7 +69,7 @@ class Results(object):
             self.results["results"][group]["hosts"] = {}
             self.results["results"][group]["checks"] = {}
 
-    def add_result(self, group, test, host, result):
+    def add_result(self, group, test, host, result, msg=""):
         """
         Add new result
         """
@@ -87,6 +88,16 @@ class Results(object):
             hosts[host] = {}
 
         hosts[host]["result"] = result
+        hosts[host]["msg"] = msg
+
+    def result_exist(self, group, test, host):
+        """
+        Check if the result already exists
+        """
+        try:
+            return bool(self.results["results"][group]["checks"][test]["hosts"][host]["result"])
+        except KeyError:
+            return False
 
     def set_host_state(self, group, host, state, msg=""):
         """
@@ -152,21 +163,25 @@ class CallbackModule(CallbackBase):
         test_result = result._task_fields["args"]["test_result"]
         for group in task_vars["group_names"]:
             self.results.set_host_state(group, host, True)
+            if self.results.result_exist(group, task_vars[CHECK_ID], host):
+                continue
             self.results.add_result(group, task_vars[CHECK_ID], host, test_result)
 
-    def v2_runner_on_failed(self, result):
+    def v2_runner_on_failed(self, result, ignore_errors):
         """
         On task Failed
         """
-        if not self._is_test_result(result):
-            return
-
         host = result._host.get_name()
         task_vars = self._all_vars(host=result._host, task=result._task)
 
+        if CHECK_ID not in task_vars:
+            return
+
+        msg = result._check_key("msg")
+
         for group in task_vars["group_names"]:
             self.results.set_host_state(group, host, True)
-            self.results.add_result(group, task_vars[CHECK_ID], host, False)
+            self.results.add_result(group, task_vars[CHECK_ID], host, "warning", msg)
 
     def v2_runner_on_skipped(self, result):
         """

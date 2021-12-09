@@ -5,6 +5,10 @@ const getResult = function (hosts, hostname) {
   return hostname in hosts ? hosts[hostname].result : 'unknown';
 };
 
+const getMsg = function (hosts, hostname) {
+  return hostname in hosts ? hosts[hostname].msg : '';
+};
+
 const RowGroup = ({ name, checks, clusterHosts }) => {
   const [open, setOpen] = useState(true);
   const emptyCells = Object.keys(clusterHosts)
@@ -27,7 +31,10 @@ const RowGroup = ({ name, checks, clusterHosts }) => {
               <td>{id}</td>
               {Object.keys(clusterHosts).map((hostname) => (
                 <td key={hostname} className="align-center">
-                  <CheckResultIcon result={getResult(hosts, hostname)} />
+                  <CheckResultIcon
+                    result={getResult(hosts, hostname)}
+                    tooltip={getMsg(hosts, hostname)}
+                  />
                 </td>
               ))}
             </tr>

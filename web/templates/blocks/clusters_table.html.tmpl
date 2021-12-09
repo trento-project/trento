@@ -18,9 +18,22 @@
                 <tr>
                     <td class="row-status">{{ template "health_icon" .Health }}</td>
                     <td>
-                        {{- if .HasDuplicatedName }}<i class="eos-icons eos-18 text-info" data-toggle="tooltip" data-original-title="This cluster has a duplicated name">info</i>{{- end }}<a href="/clusters/{{ .ID }}">{{ .Name }}</a>
+                        {{- if .HasDuplicatedName }}
+                            <i class="eos-icons eos-18 text-info" data-toggle="tooltip" data-original-title="This cluster has a duplicated name">info</i>
+                        {{- end }}
+                        {{- if ne .ClusterType "Unknown" }}
+                            <a href="/clusters/{{ .ID }}">{{ .Name }}</a>
+                        {{- else }}
+                            {{ .Name }}
+                        {{- end }}
                     </td>
-                    <td><a href="/clusters/{{ .ID }}">{{ .ID }}</a></td>
+                    <td>
+                        {{- if ne .ClusterType "Unknown" }}
+                            <a href="/clusters/{{ .ID }}">{{ .ID }}</a>
+                        {{- else }}
+                            {{ .ID }}
+                        {{- end }}
+                    </td>
                     <td>{{ .ClusterType }}</td>
                     <td>{{ .SID }}</td>
                     <td>{{ .HostsNumber }}</td>

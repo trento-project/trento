@@ -10,7 +10,6 @@ import (
 
 	"github.com/trento-project/trento/internal/cluster"
 	"github.com/trento-project/trento/internal/cluster/cib"
-	"github.com/trento-project/trento/internal/consul"
 	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
@@ -320,36 +319,6 @@ func NewClusterListHandler(clustersService services.ClustersService) gin.Handler
 	}
 }
 
-func NewClusterGenericHandler(client consul.Client) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		clusterId := c.Param("id")
-
-		clusters, err := cluster.Load(client)
-		if err != nil {
-			_ = c.Error(err)
-			return
-		}
-
-		clusterItem, ok := clusters[clusterId]
-		if !ok {
-			_ = c.Error(NotFoundError("could not find cluster"))
-			return
-		}
-
-		filterQuery := fmt.Sprintf("Meta[\"trento-ha-cluster-id\"] == \"%s\"", clusterId)
-		hosts, err := hosts.Load(client, filterQuery, nil)
-		if err != nil {
-			_ = c.Error(err)
-			return
-		}
-
-		c.HTML(http.StatusOK, "cluster_generic.html.tmpl", gin.H{
-			"Cluster": clusterItem,
-			"Hosts":   hosts,
-		})
-	}
-}
-
 func NewClusterHandler(clusterService services.ClustersService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		clusterID := c.Param("id")
@@ -366,7 +335,7 @@ func NewClusterHandler(clusterService services.ClustersService) gin.HandlerFunc 
 		}
 
 		if cluster.ClusterType == models.ClusterTypeUnknown {
-			c.Redirect(http.StatusFound, fmt.Sprintf("/clusters/%s/generic", clusterID))
+			c.Redirect(http.StatusFound, "/clusters")
 		}
 
 		hContainer := &HealthContainer{

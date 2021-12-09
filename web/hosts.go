@@ -8,10 +8,7 @@ import (
 	consulApi "github.com/hashicorp/consul/api"
 	"github.com/pkg/errors"
 
-	"github.com/trento-project/trento/internal/cloud"
 	"github.com/trento-project/trento/internal/consul"
-	"github.com/trento-project/trento/internal/hosts"
-	"github.com/trento-project/trento/internal/sapsystem"
 
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
@@ -127,35 +124,17 @@ func getTrentoAgentCheck(client consul.Client, node string) (*consulApi.HealthCh
 	return trentoAgentCheck, nil
 }
 
-func NewHostHandler(client consul.Client, subsService services.SubscriptionsService) gin.HandlerFunc {
+func NewHostHandler(hostsService services.HostsService, subsService services.SubscriptionsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		name := c.Param("name")
-		catalogNode, _, err := client.Catalog().Node(name, nil)
-		if err != nil {
-			_ = c.Error(err)
-			return
-		}
 
-		if catalogNode == nil {
+		host, err := hostsService.GetByName(name)
+		if err != nil {
 			_ = c.Error(NotFoundError("could not find host"))
 			return
 		}
-
-		trentoAgentCheck, err := getTrentoAgentCheck(client, name)
-		if err != nil {
-			_ = c.Error(err)
-			return
-		}
-
-		systems, err := sapsystem.Load(client, name)
-		if err != nil {
-			_ = c.Error(err)
-			return
-		}
-
-		cloudData, err := cloud.Load(client, name)
-		if err != nil {
-			_ = c.Error(err)
+		if host == nil {
+			_ = c.Error(NotFoundError("could not find host"))
 			return
 		}
 
@@ -165,13 +144,9 @@ func NewHostHandler(client consul.Client, subsService services.SubscriptionsServ
 			return
 		}
 
-		host := hosts.NewHost(*catalogNode.Node, client)
 		c.HTML(http.StatusOK, "host.html.tmpl", gin.H{
-			"Host":             &host,
-			"TrentoAgentCheck": trentoAgentCheck,
-			"SAPSystems":       systems,
-			"CloudData":        cloudData,
-			"Subscriptions":    subs,
+			"Host":          &host,
+			"Subscriptions": subs,
 		})
 	}
 }

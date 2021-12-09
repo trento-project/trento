@@ -167,7 +167,7 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 	webEngine.GET("/", HomeHandler)
 	webEngine.GET("/about", NewAboutHandler(deps.subscriptionsService))
 	webEngine.GET("/hosts", NewHostListHandler(deps.hostsService))
-	webEngine.GET("/hosts/:name", NewHostHandler(deps.consul, deps.subscriptionsService))
+	webEngine.GET("/hosts/:name", NewHostHandler(deps.hostsService, deps.subscriptionsService))
 	webEngine.GET("/catalog", NewChecksCatalogHandler(deps.checksService))
 	webEngine.GET("/clusters", NewClusterListHandler(deps.clustersService))
 	webEngine.GET("/clusters/:id", NewClusterHandler(deps.clustersService))

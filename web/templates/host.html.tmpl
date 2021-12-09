@@ -1,49 +1,88 @@
 {{ define "content" }}
     <div class="col">
-        <h6><a href="/hosts">Hosts</a> > {{ .Host.Name }}</h6>
         <h1>Host details</h1>
-        <dl class="inline">
-            <dt class="inline">Name</dt>
-            <dd class="inline">{{ .Host.Name }}</dd>
-            <dt class="inline">SAP System</dt>
-            <dd class="inline">
-                {{- $Host := .Host }}
-                {{- range $i, $v := split (index $Host.TrentoMeta "trento-sap-systems") "," }}{{- if $i }},{{- end }}
-                <a href="/sapsystems/{{ index (split (index $Host.TrentoMeta "trento-sap-systems-id") ",") $i }}">{{ $v }}</a>{{- end }}
-            </dd>
+        <h6><a href="/hosts">Hosts</a> > {{ .Host.Name }}</h6>
 
-            <dt class="inline">Cluster</dt>
-            <dd class="inline"><a
-                        href='/clusters/{{ index .Host.TrentoMeta "trento-ha-cluster-id" }}'>{{ index .Host.TrentoMeta "trento-ha-cluster" }}</a>
-            </dd>
-            <dt class="inline">Agent version</dt>
-            <dd class="inline">
-                {{ .Host.GetAgentVersionString }}
-            </dd>
-        </dl>
-        <hr/>
-        {{- if eq .CloudData.Provider "azure" }}
+        <div class="border-top mb-4">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="row mt-5 mb-5">
+                      <div class="col-3">
+                          <strong>Name:</strong><br>
+                          <span class="text-muted">{{ .Host.Name }}</span>
+                      </div>
+                      <div class="col-3">
+                          <strong>SAP Systems:</strong><br>
+                          <span class="text-muted">
+                              {{ range .Host.SAPSystems }}
+                                <a href="/sapsystems/{{ .ID }}">{{ .SID }}</a>
+                              {{ end }}
+                          </span>
+                      </div>
+                      <div class="col-3">
+                          <strong>Cluster:</strong><br>
+                          <span class="text-muted">
+                              <a href="/clusters/{{ .Host.ClusterID }}">{{ .Host.ClusterName }}</a>
+                          </span>
+                      </div>
+                      <div class="col-3">
+                          <strong>Agent version:</strong><br>
+                          <span class="text-muted">{{ .Host.AgentVersion }}</span>
+                      </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{- if eq .Host.CloudProvider "azure" }}
             <h1>Cloud details</h1>
-            {{- $Compute := .CloudData.Metadata.Compute }}
-            <dl class="inline">
-                <dt class="inline">VM Name</dt>
-                <dd class="inline"><a target="_blank" href="{{ .CloudData.Metadata.GetVmUrl }}"
-                                      target="_blank">{{ $Compute.Name }}</a></dd>
-                <dt class="inline">Resource group</dt>
-                <dd class="inline"><a href="{{ .CloudData.Metadata.GetResourceGroupUrl }}"
-                                      target="_blank">{{ $Compute.ResourceGroupName }}</a></dd>
-                <dt class="inline">Location</dt>
-                <dd class="inline">{{ $Compute.Location }}</dd>
-                <dt class="inline">VM Size</dt>
-                <dd class="inline">{{ $Compute.VmSize }}</dd>
-                <dt class="inline">Data disks number</dt>
-                <dd class="inline">{{ len $Compute.StorageProfile.DataDisks }}</dd>
-                <dt class="inline">Offer</dt>
-                <dd class="inline">{{ $Compute.Offer }}</dd>
-                <dt class="inline">SKU</dt>
-                <dd class="inline">{{ $Compute.Sku }}</dd>
-            </dl>
-            <hr/>
+            {{- $CloudData := .Host.CloudData }}
+            <div class="mb-4">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="row mt-5 mb-5">
+                          <div class="col-3">
+                              <strong>VM Name:</strong><br>
+                              <span class="text-muted">{{ $CloudData.VMName }}</span>
+                          </div>
+                          <div class="col-3">
+                              <strong>Resource group:</strong><br>
+                              <span class="text-muted">
+                                {{ $CloudData.ResourceGroup }}
+                              </span>
+                          </div>
+                          <div class="col-3">
+                              <strong>Location:</strong><br>
+                              <span class="text-muted">
+                                {{ $CloudData.Location }}
+                              </span>
+                          </div>
+                          <div class="col-3">
+                              <strong>VM Size:</strong><br>
+                              <span class="text-muted">{{ $CloudData.VMSize }}</span>
+                          </div>
+                        </div>
+                        <div class="row mt-5 mb-5">
+                          <div class="col-3">
+                              <strong>Data disks number:</strong><br>
+                              <span class="text-muted">
+                                {{ $CloudData.DataDisksNumber }}
+                              </span>
+                          </div>
+                          <div class="col-3">
+                              <strong>Offer:</strong><br>
+                              <span class="text-muted">
+                                {{ $CloudData.Offer }}
+                              </span>
+                          </div>
+                          <div class="col-3">
+                              <strong>SKU:</strong><br>
+                              <span class="text-muted">{{ $CloudData.SKU }}</span>
+                          </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         {{- end }}
         <h1>SUSE subscription details</h1>
         <div class='table-responsive'>
@@ -79,39 +118,35 @@
             </table>
         </div>
         <hr/>
-        {{- if ne (len .SAPSystems) 0 }}
+        {{- if ne (len .Host.SAPSystems) 0 }}
             <p class='clearfix'></p>
             <h2>SAP instances</h2>
-            {{- range $Key, $SAPSystem := .SAPSystems }}
-                {{- range $Key, $SAPInstance := $SAPSystem.Instances }}
-                    {{ template "sap_instance" $SAPInstance.SAPControl }}
-                {{- end }}
+            {{- range $Key, $SAPSystem := .Host.SAPSystems }}
+                    {{ template "sap_instance" $SAPSystem }}
             {{- end }}
             <hr/>
         {{- end }}
         <p class='clearfix'></p>
         <h2>Trento Agent status</h2>
-        {{- if .TrentoAgentCheck }}
-            <div class='table-responsive'>
-                <table class='table eos-table'>
-                    <thead>
-                    <tr>
-                        <th scope='col'>Status</th>
-                        <th scope='col'>Output</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>
-                                <span class='badge badge-pill badge-{{ if eq .TrentoAgentCheck.Status "passing" }}primary{{ else if eq .TrentoAgentCheck.Status "warning" }}warning{{ else }}danger{{ end }}'>{{ .TrentoAgentCheck.Status }}</span>
-                            </td>
-                            <td class='show-white-space'>{{ .TrentoAgentCheck.Output }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        {{- else }}
-            Agent not running
-        {{- end }}
+          <div class='table-responsive'>
+              <table class='table eos-table'>
+                  <thead>
+                  <tr>
+                      <th scope='col'>Status</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                      <tr>
+                          <td>
+                            {{ if eq .Host.Health "passing" }}
+                              <span class='badge badge-pill badge-primary'>running</span>
+                            {{ else }}
+                              <span class='badge badge-pill badge-danger'>not running</span>
+                            {{ end }}
+                          </td>
+                      </tr>
+                  </tbody>
+              </table>
+          </div>
     </div>
 {{ end }}

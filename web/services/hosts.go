@@ -1,6 +1,7 @@
 package services
 
 import (
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -21,6 +22,7 @@ type HostsService interface {
 	GetAll(*HostsFilter, *Page) (models.HostList, error)
 	GetByID(string) (*models.Host, error)
 	GetAllBySAPSystemID(string) (models.HostList, error)
+	GetByName(string) (*models.Host, error)
 	GetCount() (int, error)
 	GetAllSIDs() ([]string, error)
 	GetAllTags() ([]string, error)
@@ -131,6 +133,36 @@ func (s *hostsService) GetAllBySAPSystemID(id string) (models.HostList, error) {
 	}
 
 	return hostList, nil
+}
+
+func (s *hostsService) GetByName(name string) (*models.Host, error) {
+	var host entities.Host
+	err := s.db.
+		Model(entities.Host{}).
+		Preload("Heartbeat").
+		Preload("SAPSystemInstances").
+		Where("name = ?", name).
+		First(&host).
+		Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	hostHealth := computeHealth(&host)
+	modeledHost := host.ToModel()
+	modeledHost.Health = hostHealth
+
+	if modeledHost.CloudProvider == "azure" {
+		var cloudData models.AzureCloudData
+		json.Unmarshal(host.CloudData, &cloudData)
+		modeledHost.CloudData = cloudData
+	}
+
+	return modeledHost, nil
 }
 
 func (s *hostsService) GetCount() (int, error) {

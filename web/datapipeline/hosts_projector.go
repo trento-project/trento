@@ -76,6 +76,7 @@ func hostsProjector_ClusterDiscoveryHandler(dataCollectedEvent *DataCollectedEve
 		AgentID:     dataCollectedEvent.AgentID,
 		ClusterID:   discoveredCluster.Id,
 		ClusterName: discoveredCluster.Name,
+		ClusterType: detectClusterType(&discoveredCluster),
 	}
 
 	return storeHost(db, host, "cluster_id", "cluster_name")

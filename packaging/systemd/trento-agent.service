@@ -1,7 +1,5 @@
 [Unit]
 Description=Trento agent service
-Requires=consul.service
-After=consul.service
 
 [Service]
 ExecStart=/usr/bin/trento agent start

@@ -2,23 +2,17 @@ package runner
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"text/template"
 
 	log "github.com/sirupsen/logrus"
-
-	"github.com/trento-project/trento/internal/cloud"
-	"github.com/trento-project/trento/internal/cluster"
-	"github.com/trento-project/trento/internal/consul"
-	"github.com/trento-project/trento/internal/hosts"
 
 	"github.com/trento-project/trento/api"
 )
 
 type InventoryContent struct {
 	Groups []*Group
-	Nodes  []*Node
+	Nodes  []*Node // this seems unused
 }
 
 type Group struct {
@@ -64,98 +58,36 @@ func CreateInventory(destination string, content *InventoryContent) error {
 	return nil
 }
 
-// Local methods created to make the mocking possible
-// These methods will be replaced once we have the new backend, so bear with them
-var getClusters = func(client consul.Client) (map[string]*cluster.Cluster, error) {
-	clusters, err := cluster.Load(client)
-	if err != nil {
-		return nil, err
-	}
-
-	return clusters, nil
-}
-
-var getNodeAddress = func(client consul.Client, node string) (string, error) {
-	hostList, err := hosts.Load(client, fmt.Sprintf("Node == \"%s\"", node), []string{})
-	if err == nil && len(hostList) > 0 {
-		return hostList[0].Node.Address, nil
-	}
-
-	return "", err
-}
-
-var getCloudUserName = func(client consul.Client, node string) (string, error) {
-	cloudData, err := cloud.Load(client, node)
-	if err != nil {
-		return "", err
-	}
-
-	switch cloudData.Provider {
-	case cloud.Azure:
-		azureData := cloudData.Metadata.(*cloud.AzureMetadata)
-		return azureData.Compute.OsProfile.AdminUserName, nil
-	default:
-		return DefaultUser, nil
-	}
-}
-
-func NewClusterInventoryContent(client consul.Client, trentoApi api.TrentoApiService) (*InventoryContent, error) {
+func NewClusterInventoryContent(trentoApi api.TrentoApiService) (*InventoryContent, error) {
 	content := &InventoryContent{}
 
-	clusters, err := getClusters(client)
+	clustersSettings, err := trentoApi.GetClustersSettings()
 	if err != nil {
 		return nil, err
 	}
 
-	for clusterId, clusterData := range clusters {
+	for _, cluster := range clustersSettings {
 		nodes := []*Node{}
 
-		checksSettings, err := trentoApi.GetChecksSettingsById(clusterId)
+		jsonSelectedChecks, _ := json.Marshal(cluster.SelectedChecks)
 		if err != nil {
-			log.Errorf("error getting the cluster %s check settings", clusterId)
+			log.Errorf("error marshalling the cluster %s selected checks", cluster.ID)
 			continue
 		}
 
-		jsonSelectedChecks, err := json.Marshal(checksSettings.SelectedChecks)
-		if err != nil {
-			log.Errorf("error marshalling the cluster %s selected checks", clusterId)
-			continue
-		}
-
-		for _, node := range clusterData.Crmmon.Nodes {
+		for _, host := range cluster.Hosts {
 			node := &Node{
-				Name:      node.Name,
-				Variables: make(map[string]interface{}),
+				Name:        host.Name,
+				AnsibleHost: host.Address,
+				AnsibleUser: host.User,
+				Variables:   make(map[string]interface{}),
 			}
 
 			node.Variables[clusterSelectedChecks] = string(jsonSelectedChecks)
 
-			address, err := getNodeAddress(client, node.Name)
-			if err == nil {
-				node.AnsibleHost = address
-			}
-
-			user, found := checksSettings.ConnectionSettings[node.Name]
-			if found {
-				node.AnsibleUser = user
-			}
-
-			// if the node user name is not provided by the user, get the cloud data
-			if len(node.AnsibleUser) == 0 {
-				cloudUser, err := getCloudUserName(client, node.Name)
-				if err == nil {
-					node.AnsibleUser = cloudUser
-				}
-			}
-
-			// Fallback to default
-			if len(node.AnsibleUser) == 0 {
-				node.AnsibleUser = DefaultUser
-			}
-
 			nodes = append(nodes, node)
 		}
-		group := &Group{Name: clusterId, Nodes: nodes}
+		group := &Group{Name: cluster.ID, Nodes: nodes}
 
 		content.Groups = append(content.Groups, group)
 	}

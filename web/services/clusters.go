@@ -226,7 +226,7 @@ func (s *clustersService) GetAllClustersSettings() (models.ClustersSettings, err
 
 			hosts = append(hosts, &models.HostConnection{
 				Name:    host.Name,
-				Address: host.AgentBindIP,
+				Address: host.SSHAddress,
 				User:    username,
 			})
 		}

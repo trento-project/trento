@@ -150,20 +150,18 @@ sudo ./install-agent.sh
 
 The script will ask you for two IP addresses.
 
-- `agent bind IP`: the private address to which the trento-agent should be bound for internal communications.
-  This is an IP address that should be reachable by the other hosts, including the trento server.
-  Note for the Pacemaker users: this IP address _should not be_ a floating IP.
+- `ssh address`: the address to which the trento-agent should be reachable for ssh connection by the runner for check execution.
 
 - `trento server IP`: the address where Trento server can be reached.
 
 You can pass these arguments as flags or env variables too:
 
 ```
-curl -sfL https://raw.githubusercontent.com/trento-project/trento/main/install-agent.sh | sudo bash -s - --agent-bind-ip=192.168.33.10 --server-ip=192.168.33.1
+curl -sfL https://raw.githubusercontent.com/trento-project/trento/main/install-agent.sh | sudo bash -s - --ssh-address=192.168.33.10 --server-ip=192.168.33.1
 ```
 
 ```
-AGENT_BIND_IP=192.168.33.10 SERVER_IP=192.168.33.1 sudo ./install-agent.sh
+SSH_ADDRESS=192.168.33.10 SERVER_IP=192.168.33.1 sudo ./install-agent.sh
 ```
 
 #### Starting Trento Agent service

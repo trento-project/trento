@@ -34,7 +34,7 @@ type Agent struct {
 
 type Config struct {
 	InstanceName    string
-	BindIP          string
+	SSHAddress      string
 	ConsulConfigDir string
 	DiscoveryPeriod time.Duration
 	CollectorConfig *collector.Config
@@ -69,7 +69,7 @@ func NewAgent(config *Config) (*Agent, error) {
 			discovery.NewSAPSystemsDiscovery(consulClient, collectorClient),
 			discovery.NewCloudDiscovery(consulClient, collectorClient),
 			discovery.NewSubscriptionDiscovery(collectorClient),
-			discovery.NewHostDiscovery(config.BindIP, consulClient, collectorClient),
+			discovery.NewHostDiscovery(config.SSHAddress, consulClient, collectorClient),
 		},
 		templateRunner: templateRunner,
 	}

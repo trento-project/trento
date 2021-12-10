@@ -2,7 +2,7 @@
     "agent_id": "779cdd70-e9e2-58ca-b18a-bf3eb3f71244",
     "discovery_type": "host_discovery",
     "payload": {
-        "agent_bind_ip": "10.2.2.22",
+        "ssh_address": "10.2.2.22",
         "os_version": "15-SP2",
         "ip_addresses": [
             "10.1.1.4",

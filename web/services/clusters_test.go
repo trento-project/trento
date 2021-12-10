@@ -74,7 +74,7 @@ func loadClustersFixtures(db *gorm.DB) {
 		Hosts: []*entities.Host{
 			{
 				AgentID:     "1",
-				AgentBindIP: "10.74.2.10",
+				SSHAddress:  "10.74.2.10",
 				ClusterID:   "1",
 				Name:        "host1",
 				IPAddresses: []string{"10.74.1.10"},
@@ -102,7 +102,7 @@ func loadClustersFixtures(db *gorm.DB) {
 		Hosts: []*entities.Host{
 			{
 				AgentID:     "2",
-				AgentBindIP: "10.74.2.11",
+				SSHAddress:  "10.74.2.11",
 				ClusterID:   "2",
 				Name:        "host2",
 				IPAddresses: pq.StringArray{"10.74.1.11"},

@@ -50,7 +50,7 @@ func LoadConfig() (*agent.Config, error) {
 		},
 		ConsulConfigDir: viper.GetString("consul-config-dir"),
 		InstanceName:    hostname,
-		BindIP:          viper.GetString("bind-ip"),
+		SSHAddress:      viper.GetString("ssh-address"),
 		DiscoveryPeriod: time.Duration(viper.GetInt("discovery-period")) * time.Minute,
 	}, nil
 }

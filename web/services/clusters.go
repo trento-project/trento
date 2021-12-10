@@ -22,6 +22,7 @@ type ClustersService interface {
 	GetAllSIDs() ([]string, error)
 	GetAllTags() ([]string, error)
 	GetAllClustersSettings() (models.ClustersSettings, error)
+	GetClusterSettingsByID(id string) (*models.ClusterSettings, error)
 }
 
 type ClustersFilter struct {
@@ -194,47 +195,76 @@ func (s *clustersService) GetAllClustersSettings() (models.ClustersSettings, err
 
 	clustersSettings := models.ClustersSettings{}
 	for _, cluster := range clusters {
-		var hosts []*models.ConnectionInfoAwareHost
-
-		selectedChecks, err := s.checksService.GetSelectedChecksById(cluster.ID)
+		clusterSettings, err := s.loadSettings(cluster)
 		if err != nil {
 			log.Error(err)
 			return clustersSettings, err
 		}
 
-		connectionSettings, err := s.checksService.GetConnectionSettingsById(cluster.ID)
-		if err != nil {
-			log.Error(err)
-			return clustersSettings, err
-		}
-
-		for _, host := range cluster.Hosts {
-			username := "root"
-
-			hostConnectionSettings, found := connectionSettings[host.Name]
-			if found {
-				username = hostConnectionSettings.User
-			}
-
-			if username == "" {
-				username = "cloudadmin" // load user from cloud info
-			}
-
-			hosts = append(hosts, &models.ConnectionInfoAwareHost{
-				Name:    host.Name,
-				Address: host.AgentBindIP,
-				User:    username,
-			})
-		}
-
-		clustersSettings = append(clustersSettings, &models.ClusterSettings{
-			ID:             cluster.ID,
-			SelectedChecks: selectedChecks.SelectedChecks,
-			Hosts:          hosts,
-		})
+		clustersSettings = append(clustersSettings, clusterSettings)
 	}
 
 	return clustersSettings, nil
+}
+
+func (s *clustersService) GetClusterSettingsByID(id string) (*models.ClusterSettings, error) {
+	var cluster entities.Cluster
+
+	err := s.db.
+		Preload("Hosts").
+		Where("id = ?", id).
+		First(&cluster).
+		Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return s.loadSettings(&cluster)
+}
+
+func (s *clustersService) loadSettings(cluster *entities.Cluster) (*models.ClusterSettings, error) {
+	var hosts []*models.ConnectionInfoAwareHost
+
+	selectedChecks, err := s.checksService.GetSelectedChecksById(cluster.ID)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+
+	connectionSettings, err := s.checksService.GetConnectionSettingsById(cluster.ID)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+
+	for _, host := range cluster.Hosts {
+		username := "root"
+
+		hostConnectionSettings, found := connectionSettings[host.Name]
+		if found {
+			username = hostConnectionSettings.User
+		}
+
+		if username == "" {
+			username = "cloudadmin" // load user from cloud info
+		}
+
+		hosts = append(hosts, &models.ConnectionInfoAwareHost{
+			Name:    host.Name,
+			Address: host.AgentBindIP,
+			User:    username,
+		})
+	}
+
+	return &models.ClusterSettings{
+		ID:             cluster.ID,
+		SelectedChecks: selectedChecks.SelectedChecks,
+		Hosts:          hosts,
+	}, nil
 }
 
 func (s *clustersService) enrichClusterList(clusterList models.ClusterList) {

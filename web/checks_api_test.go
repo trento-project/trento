@@ -3,18 +3,14 @@ package web
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	consulApi "github.com/hashicorp/consul/api"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 
-	consulMocks "github.com/trento-project/trento/internal/consul/mocks"
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
 )
@@ -234,109 +230,64 @@ func TestApiCreateChecksCatalogHandler(t *testing.T) {
 }
 
 func TestApiCheckGetSettingsByIdHandler(t *testing.T) {
-	consulInst := new(consulMocks.Client)
-	health := new(consulMocks.Health)
-	catalog := new(consulMocks.Catalog)
-	kv := new(consulMocks.KV)
-	consulInst.On("Health").Return(health)
-	consulInst.On("Catalog").Return(catalog)
-	consulInst.On("KV").Return(kv)
-	consulInst.On("WaitLock", mock.Anything).Return(nil)
-	kv.On("ListMap", mock.Anything, mock.Anything).Return(clustersListMap(), nil)
-	catalog.On("Nodes", mock.Anything).Return([]*consulApi.Node{}, nil, nil)
-
-	expectedConnSettings := map[string]models.ConnectionSettings{
-		"node1": models.ConnectionSettings{ID: "group1", Node: "node1", User: "user1"},
-		"node2": models.ConnectionSettings{ID: "group1", Node: "node2", User: "user2"},
-	}
-
-	expectedSelChecks := models.SelectedChecks{
-		ID:             "group1",
+	mockClustersService := new(services.MockClustersService)
+	mockClustersService.On("GetClusterSettingsByID", "a615a35f65627be5a757319a0741127f").Return(&models.ClusterSettings{
 		SelectedChecks: []string{"ABCDEF", "123456"},
-	}
-
-	mockChecksService := new(services.MockChecksService)
-	mockChecksService.On(
-		"GetSelectedChecksById", "47d1190ffb4f781974c8356d7f863b03").Return(expectedSelChecks, nil)
-	mockChecksService.On(
-		"GetConnectionSettingsById", "47d1190ffb4f781974c8356d7f863b03").Return(expectedConnSettings, nil)
-
-	mockChecksService.On(
-		"GetSelectedChecksById", "a615a35f65627be5a757319a0741127f").Return(models.SelectedChecks{}, errors.New("error"))
-	mockChecksService.On(
-		"GetConnectionSettingsById", "a615a35f65627be5a757319a0741127f").Return(expectedConnSettings, nil)
+		Hosts: []*models.ConnectionInfoAwareHost{
+			{
+				Name: "host1",
+				User: "user1",
+			},
+			{
+				Name: "host2",
+				User: "user2",
+			},
+		},
+	}, nil)
 
 	deps := setupTestDependencies()
-	deps.checksService = mockChecksService
-	deps.consul = consulInst
+	deps.clustersService = mockClustersService
 
-	var err error
 	config := setupTestConfig()
 	app, err := NewAppWithDeps(config, deps)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
-	// 200 scenario
 	resp := httptest.NewRecorder()
-
-	req, err := http.NewRequest("GET", "/api/checks/47d1190ffb4f781974c8356d7f863b03/settings", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	req, err := http.NewRequest("GET", "/api/checks/a615a35f65627be5a757319a0741127f/settings", nil)
+	assert.NoError(t, err)
 
 	app.webEngine.ServeHTTP(resp, req)
 
 	var settings *JSONChecksSettings
 	json.Unmarshal(resp.Body.Bytes(), &settings)
 
-	expectedSelectedChecks := []string{"ABCDEF", "123456"}
-	expectedConnectionSettings := map[string]string{
-		"node1": "user1",
-		"node2": "user2",
-	}
-
 	assert.Equal(t, 200, resp.Code)
-	assert.Equal(t, expectedSelectedChecks, settings.SelectedChecks)
-	assert.Equal(t, expectedConnectionSettings, settings.ConnectionSettings)
+	assert.Equal(t, []string{"ABCDEF", "123456"}, settings.SelectedChecks)
+	assert.Equal(t, map[string]string{
+		"host1": "user1",
+		"host2": "user2",
+	}, settings.ConnectionSettings)
+	assert.Equal(t, []string{"host1", "host2"}, settings.Hostnames)
+}
 
-	// 200 OK but the selected checks call gone bad scenario
-	resp = httptest.NewRecorder()
+func TestApiCheckGetSettingsByIdHandler404(t *testing.T) {
+	mockClustersService := new(services.MockClustersService)
+	mockClustersService.On("GetClusterSettingsByID", "not_found").Return(nil, nil)
 
-	req, err = http.NewRequest("GET", "/api/checks/a615a35f65627be5a757319a0741127f/settings", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	deps := setupTestDependencies()
+	deps.clustersService = mockClustersService
 
-	emptySelectedChecks := []string{}
+	config := setupTestConfig()
+	app, err := NewAppWithDeps(config, deps)
+	assert.NoError(t, err)
+
+	resp := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/api/checks/not_found/settings", nil)
+	assert.NoError(t, err)
 
 	app.webEngine.ServeHTTP(resp, req)
-
-	var emptySettingsResponse *JSONChecksSettings
-	json.Unmarshal(resp.Body.Bytes(), &emptySettingsResponse)
-
-	assert.Equal(t, 200, resp.Code)
-	assert.Equal(t, emptySelectedChecks, emptySettingsResponse.SelectedChecks)
-	assert.Equal(t, expectedConnectionSettings, emptySettingsResponse.ConnectionSettings)
-
-	// 404 not found scenario
-	resp = httptest.NewRecorder()
-
-	req = httptest.NewRequest("GET", "/api/checks/otherId/settings", nil)
-
-	emptySelectedChecks = []string(nil)
-	emptyConnectionSettings := map[string]string(nil)
-
-	app.webEngine.ServeHTTP(resp, req)
-
-	var notFoundSettings *JSONChecksSettings
-	json.Unmarshal(resp.Body.Bytes(), &notFoundSettings)
 
 	assert.Equal(t, 404, resp.Code)
-	assert.Equal(t, emptySelectedChecks, notFoundSettings.SelectedChecks)
-	assert.Equal(t, emptyConnectionSettings, notFoundSettings.ConnectionSettings)
-
-	mockChecksService.AssertExpectations(t)
 }
 
 func TestApiCheckCreateConnectionByIdHandler(t *testing.T) {

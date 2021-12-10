@@ -19,8 +19,6 @@ const clusterId = window.location.pathname.split('/').pop();
 
 const getChecksIds = (checks) => checks.map(({ id }) => id);
 
-const getHostnames = (hosts) => hosts.map(({ Name: name }) => name);
-
 const mergeConnectionSettings = (hostnames, connectionSettings) =>
   hostnames.reduce(
     (accumulator, current) =>
@@ -45,11 +43,10 @@ const SettingsButton = () => {
     get(`/api/checks/${clusterId}/settings`)
       .then(({ data }) => {
         const {
-          hosts,
+          hostnames,
           connection_settings: connectionSettings,
           selected_checks: selectedChecks,
         } = data;
-        const hostnames = getHostnames(hosts);
         const newSettings = mergeConnectionSettings(
           hostnames,
           connectionSettings

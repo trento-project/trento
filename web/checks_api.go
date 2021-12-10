@@ -1,16 +1,10 @@
 package web
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 
-	log "github.com/sirupsen/logrus"
-
-	"github.com/trento-project/trento/internal/cluster"
-	"github.com/trento-project/trento/internal/consul"
-	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
 )
@@ -18,7 +12,7 @@ import (
 type JSONChecksSettings struct {
 	SelectedChecks     []string          `json:"selected_checks" binding:"required"`
 	ConnectionSettings map[string]string `json:"connection_settings" binding:"required"`
-	Hosts              Nodes             `json:"hosts"`
+	Hostnames          []string          `json:"hostnames"`
 }
 
 type JSONChecksCatalog []*JSONCheck
@@ -139,58 +133,32 @@ func ApiCreateChecksCatalogHandler(s services.ChecksService) gin.HandlerFunc {
 // @Success 200 {object} JSONChecksSettings
 // @Failure 404 {object} map[string]string
 // @Router /checks/{id}/settings [get]
-func ApiCheckGetSettingsByIdHandler(consul consul.Client, s services.ChecksService) gin.HandlerFunc {
+func ApiCheckGetSettingsByIdHandler(s services.ClustersService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		resourceId := c.Param("id")
 
-		// TODO: this has absolutely to be refactored once we've got the hosts service
-		clusters, err := cluster.Load(consul)
+		clusterSettings, err := s.GetClusterSettingsByID(resourceId)
 		if err != nil {
-			_ = c.Error(err)
+			c.Error(err)
 			return
 		}
 
-		clusterItem, ok := clusters[resourceId]
-		if !ok {
-			_ = c.Error(NotFoundError("could not find cluster"))
+		if clusterSettings == nil {
+			c.Error(NotFoundError("cluster not found"))
 			return
 		}
 
-		filterQuery := fmt.Sprintf("Meta[\"trento-ha-cluster-id\"] == \"%s\"", resourceId)
-		hosts, err := hosts.Load(consul, filterQuery, nil)
-		if err != nil {
-			_ = c.Error(err)
-			return
+		resp := &JSONChecksSettings{
+			SelectedChecks:     clusterSettings.SelectedChecks,
+			ConnectionSettings: make(map[string]string),
 		}
 
-		nodes := NewNodes(s, clusterItem, hosts)
-
-		selectedChecks, err := s.GetSelectedChecksById(resourceId)
-		if err != nil {
-			log.Error(err)
+		for _, host := range clusterSettings.Hosts {
+			resp.ConnectionSettings[host.Name] = host.User
+			resp.Hostnames = append(resp.Hostnames, host.Name)
 		}
 
-		connSettings, err := s.GetConnectionSettingsById(resourceId)
-		if err != nil {
-			_ = c.Error(NotFoundError("could not find connection settings"))
-			return
-		}
-
-		var jsonCheckSetting JSONChecksSettings
-		jsonCheckSetting.ConnectionSettings = make(map[string]string)
-
-		if len(selectedChecks.SelectedChecks) == 0 {
-			jsonCheckSetting.SelectedChecks = make([]string, 0)
-
-		} else {
-			jsonCheckSetting.SelectedChecks = selectedChecks.SelectedChecks
-		}
-
-		jsonCheckSetting.Hosts = nodes
-		for node, settings := range connSettings {
-			jsonCheckSetting.ConnectionSettings[node] = settings.User
-		}
-		c.JSON(http.StatusOK, jsonCheckSetting)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 

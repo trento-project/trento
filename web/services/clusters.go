@@ -23,6 +23,7 @@ type ClustersService interface {
 	GetAllSIDs() ([]string, error)
 	GetAllTags() ([]string, error)
 	GetAllClustersSettings() (models.ClustersSettings, error)
+	GetClusterSettingsByID(id string) (*models.ClusterSettings, error)
 }
 
 type ClustersFilter struct {
@@ -195,47 +196,13 @@ func (s *clustersService) GetAllClustersSettings() (models.ClustersSettings, err
 
 	clustersSettings := models.ClustersSettings{}
 	for _, cluster := range clusters {
-		var hosts []*models.HostConnection
-
-		selectedChecks, err := s.checksService.GetSelectedChecksById(cluster.ID)
+		clusterSettings, err := s.loadSettings(cluster)
 		if err != nil {
 			log.Error(err)
 			return clustersSettings, err
 		}
 
-		connectionSettings, err := s.checksService.GetConnectionSettingsById(cluster.ID)
-		if err != nil {
-			log.Error(err)
-			return clustersSettings, err
-		}
-
-		for _, host := range cluster.Hosts {
-			var username string
-
-			hostConnectionSettings, found := connectionSettings[host.Name]
-			if found {
-				username = hostConnectionSettings.User
-			}
-
-			if username == "" {
-				username, err = getDefaultUserName(host)
-				if err != nil {
-					return nil, err
-				}
-			}
-
-			hosts = append(hosts, &models.HostConnection{
-				Name:    host.Name,
-				Address: host.SSHAddress,
-				User:    username,
-			})
-		}
-
-		clustersSettings = append(clustersSettings, &models.ClusterSettings{
-			ID:             cluster.ID,
-			SelectedChecks: selectedChecks.SelectedChecks,
-			Hosts:          hosts,
-		})
+		clustersSettings = append(clustersSettings, clusterSettings)
 	}
 
 	return clustersSettings, nil
@@ -253,6 +220,68 @@ func getDefaultUserName(host *entities.Host) (string, error) {
 	default:
 		return "root", nil
 	}
+}
+func (s *clustersService) GetClusterSettingsByID(id string) (*models.ClusterSettings, error) {
+	var cluster entities.Cluster
+
+	err := s.db.
+		Preload("Hosts").
+		Where("id = ?", id).
+		First(&cluster).
+		Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return s.loadSettings(&cluster)
+}
+
+func (s *clustersService) loadSettings(cluster *entities.Cluster) (*models.ClusterSettings, error) {
+	var hosts []*models.HostConnection
+
+	selectedChecks, err := s.checksService.GetSelectedChecksById(cluster.ID)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+
+	connectionSettings, err := s.checksService.GetConnectionSettingsById(cluster.ID)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+
+	for _, host := range cluster.Hosts {
+		var username string
+
+		hostConnectionSettings, found := connectionSettings[host.Name]
+		if found {
+			username = hostConnectionSettings.User
+		}
+
+		if username == "" {
+			username, err = getDefaultUserName(host)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		hosts = append(hosts, &models.HostConnection{
+			Name:    host.Name,
+			Address: host.SSHAddress,
+			User:    username,
+		})
+	}
+
+	return &models.ClusterSettings{
+		ID:             cluster.ID,
+		SelectedChecks: selectedChecks.SelectedChecks,
+		Hosts:          hosts,
+	}, nil
 }
 
 func (s *clustersService) enrichClusterList(clusterList models.ClusterList) {

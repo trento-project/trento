@@ -150,6 +150,29 @@ func (_m *MockClustersService) GetByID(_a0 string) (*models.Cluster, error) {
 	return r0, r1
 }
 
+// GetClusterSettingsByID provides a mock function with given fields: id
+func (_m *MockClustersService) GetClusterSettingsByID(id string) (*models.ClusterSettings, error) {
+	ret := _m.Called(id)
+
+	var r0 *models.ClusterSettings
+	if rf, ok := ret.Get(0).(func(string) *models.ClusterSettings); ok {
+		r0 = rf(id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.ClusterSettings)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetCount provides a mock function with given fields:
 func (_m *MockClustersService) GetCount() (int, error) {
 	ret := _m.Called()

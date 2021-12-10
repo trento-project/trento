@@ -57,7 +57,7 @@ func loadClustersFixtures(db *gorm.DB) {
 
 	detailsJSON, _ := json.Marshal(details)
 
-	err := db.Create(&entities.Cluster{
+	db.Create(&entities.Cluster{
 		ID:              "1",
 		Name:            "cluster1",
 		ClusterType:     models.ClusterTypeHANAScaleUp,
@@ -81,10 +81,8 @@ func loadClustersFixtures(db *gorm.DB) {
 			},
 		},
 		Details: detailsJSON,
-	}).Error
-	if err != nil {
-		panic(err)
-	}
+	})
+
 	db.Create(&entities.Cluster{
 		ID:              "2",
 		Name:            "cluster2",
@@ -285,6 +283,39 @@ func (suite *ClustersServiceTestSuite) TestClustersService_GetAllClustersSetting
 	suite.Len(clustersSettings, 3)
 
 	suite.EqualValues(expectedClustersSettingsFixtures(), clustersSettings)
+}
+
+func (suite *ClustersServiceTestSuite) TestClustersService_GetClusterSettings() {
+	mockAra := new(araMocks.AraService)
+	checksService := NewChecksService(mockAra, suite.db)
+	suite.clustersService = NewClustersService(suite.db, checksService)
+
+	loadClustersSettingsFixtures(suite.db)
+
+	clusterSettings, err := suite.clustersService.GetClusterSettingsByID("1")
+	suite.NoError(err)
+
+	suite.EqualValues("1", clusterSettings.ID)
+	suite.EqualValues([]string{"A", "B", "C"}, clusterSettings.SelectedChecks)
+	suite.EqualValues([]*models.HostConnection{
+		{
+			Name:    "host1",
+			Address: "10.74.2.10",
+			User:    "theuser",
+		},
+	}, clusterSettings.Hosts)
+}
+
+func (suite *ClustersServiceTestSuite) TestClustersService_GetClusterSettings_NotFound() {
+	mockAra := new(araMocks.AraService)
+	checksService := NewChecksService(mockAra, suite.db)
+	suite.clustersService = NewClustersService(suite.db, checksService)
+
+	loadClustersSettingsFixtures(suite.db)
+
+	clusterSettings, err := suite.clustersService.GetClusterSettingsByID("not_found")
+	suite.NoError(err)
+	suite.Nil(clusterSettings)
 }
 
 func loadClustersSettingsFixtures(db *gorm.DB) {

@@ -50,20 +50,15 @@ func (s *subscriptionsService) GetPremiumData() (*models.PremiumData, error) {
 	return premiumData, nil
 }
 
-func (s *subscriptionsService) GetHostSubscriptions(host string) ([]*models.SlesSubscription, error) {
-	// Get the agent id by host name. This should be removed once the host page uses the agent id
-	// to go the host details page
-	var hostEntity *entities.Host
-	result := s.db.Where("name", host).Find(&hostEntity)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	agent_id := hostEntity.ToModel().ID
-
+func (s *subscriptionsService) GetHostSubscriptions(id string) ([]*models.SlesSubscription, error) {
 	var subEntities []*entities.SlesSubscription
-	result = s.db.Where("agent_id", agent_id).Find(&subEntities)
-	if result.Error != nil {
-		return nil, result.Error
+	err := s.db.
+		Where("agent_id", id).
+		Find(&subEntities).
+		Error
+
+	if err != nil {
+		return nil, err
 	}
 
 	var subModels []*models.SlesSubscription

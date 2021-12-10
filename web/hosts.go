@@ -126,9 +126,9 @@ func getTrentoAgentCheck(client consul.Client, node string) (*consulApi.HealthCh
 
 func NewHostHandler(hostsService services.HostsService, subsService services.SubscriptionsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		name := c.Param("name")
+		id := c.Param("id")
 
-		host, err := hostsService.GetByName(name)
+		host, err := hostsService.GetByID(id)
 		if err != nil {
 			_ = c.Error(NotFoundError("could not find host"))
 			return
@@ -138,7 +138,7 @@ func NewHostHandler(hostsService services.HostsService, subsService services.Sub
 			return
 		}
 
-		subs, err := subsService.GetHostSubscriptions(name)
+		subs, err := subsService.GetHostSubscriptions(id)
 		if err != nil {
 			_ = c.Error(err)
 			return

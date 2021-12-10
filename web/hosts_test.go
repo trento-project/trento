@@ -177,8 +177,8 @@ func TestHostHandler(t *testing.T) {
 		},
 	}
 
-	subscriptionsMocks.On("GetHostSubscriptions", "test_host").Return(subscriptionsList, nil)
-	mockHostsService.On("GetByName", "test_host").Return(hostListFixture()[1], nil)
+	subscriptionsMocks.On("GetHostSubscriptions", "2").Return(subscriptionsList, nil)
+	mockHostsService.On("GetByID", "2").Return(hostListFixture()[1], nil)
 
 	deps := setupTestDependencies()
 	deps.subscriptionsService = subscriptionsMocks
@@ -191,7 +191,7 @@ func TestHostHandler(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req := httptest.NewRequest("GET", "/hosts/test_host", nil)
+	req := httptest.NewRequest("GET", "/hosts/2", nil)
 	req.Header.Set("Accept", "text/html")
 
 	app.webEngine.ServeHTTP(resp, req)
@@ -247,8 +247,8 @@ func TestHostHandlerAzure(t *testing.T) {
 		},
 	}
 
-	subscriptionsMocks.On("GetHostSubscriptions", "test_host").Return(subscriptionsList, nil)
-	mockHostsService.On("GetByName", "test_host").Return(hostListFixture()[0], nil)
+	subscriptionsMocks.On("GetHostSubscriptions", "1").Return(subscriptionsList, nil)
+	mockHostsService.On("GetByID", "1").Return(hostListFixture()[0], nil)
 
 	deps := setupTestDependencies()
 	deps.subscriptionsService = subscriptionsMocks
@@ -261,7 +261,7 @@ func TestHostHandlerAzure(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req := httptest.NewRequest("GET", "/hosts/test_host", nil)
+	req := httptest.NewRequest("GET", "/hosts/1", nil)
 	req.Header.Set("Accept", "text/html")
 
 	app.webEngine.ServeHTTP(resp, req)
@@ -318,7 +318,7 @@ func TestHostHandler404Error(t *testing.T) {
 	}
 
 	subscriptionsMocks.On("GetHostSubscriptions", "foobar").Return(subscriptionsList, nil)
-	mockHostsService.On("GetByName", "foobar").Return(nil, nil)
+	mockHostsService.On("GetByID", "foobar").Return(nil, nil)
 	deps := setupTestDependencies()
 	deps.subscriptionsService = subscriptionsMocks
 	deps.hostsService = mockHostsService

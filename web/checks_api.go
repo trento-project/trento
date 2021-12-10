@@ -67,7 +67,7 @@ func ApiChecksCatalogHandler(s services.ChecksService) gin.HandlerFunc {
 // @Success 200 {object} map[string]interface{}
 // @Failure 500 {object} map[string]string
 // @Router /clusters/{cluster_id}/results [get]
-func ApiClusterCheckResultsHandler(client consul.Client, s services.ChecksService) gin.HandlerFunc {
+func ApiClusterCheckResultsHandler(s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		clusterId := c.Param("cluster_id")
 

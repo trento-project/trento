@@ -233,7 +233,7 @@ func TestApiCheckGetSettingsByIdHandler(t *testing.T) {
 	mockClustersService := new(services.MockClustersService)
 	mockClustersService.On("GetClusterSettingsByID", "a615a35f65627be5a757319a0741127f").Return(&models.ClusterSettings{
 		SelectedChecks: []string{"ABCDEF", "123456"},
-		Hosts: []*models.ConnectionInfoAwareHost{
+		Hosts: []*models.HostConnection{
 			{
 				Name: "host1",
 				User: "user1",

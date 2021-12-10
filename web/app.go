@@ -185,7 +185,7 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 		apiGroup.DELETE("/hosts/:id/tags/:tag", ApiHostDeleteTagHandler(deps.hostsService, deps.tagsService))
 		apiGroup.POST("/clusters/:id/tags", ApiClusterCreateTagHandler(deps.clustersService, deps.tagsService))
 		apiGroup.DELETE("/clusters/:id/tags/:tag", ApiClusterDeleteTagHandler(deps.clustersService, deps.tagsService))
-		apiGroup.GET("/clusters/:cluster_id/results", ApiClusterCheckResultsHandler(deps.consul, deps.checksService))
+		apiGroup.GET("/clusters/:cluster_id/results", ApiClusterCheckResultsHandler(deps.checksService))
 		apiGroup.GET("/clusters/settings", ApiGetClustersSettingsHandler(deps.clustersService))
 		apiGroup.POST("/sapsystems/:id/tags", ApiSAPSystemCreateTagHandler(deps.sapSystemsService, deps.tagsService))
 		apiGroup.DELETE("/sapsystems/:id/tags/:tag", ApiSAPSystemDeleteTagHandler(deps.sapSystemsService, deps.tagsService))

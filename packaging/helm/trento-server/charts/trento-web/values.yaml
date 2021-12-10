@@ -97,9 +97,6 @@ dependencies:
   ara:
     name: ara
     port: 8000
-  consul:
-    name: consul-server
-    port: 8500
   postgresql:
     name: postgresql
     port: 5432

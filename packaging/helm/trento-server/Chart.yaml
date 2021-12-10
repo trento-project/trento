@@ -4,7 +4,7 @@ description: The trento server chart contains all the components necessary to ru
 type: application
 # This is the chart version. This version number should be incremented each time you make changes
 # to the chart and its templates
-version: 0.2.1
+version: 0.2.2
 
 dependencies:
   - name: trento-web
@@ -16,10 +16,6 @@ dependencies:
   - name: ara
     version: ">0.0.0"
     condition: ara.enabled
-  - name: consul
-    version: "~0.32.1"
-    repository: https://helm.releases.hashicorp.com
-    condition: consul.enabled
   - name: postgresql
     version: ~10.1.4
     repository: https://charts.bitnami.com/bitnami/

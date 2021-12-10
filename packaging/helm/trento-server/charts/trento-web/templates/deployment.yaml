@@ -45,9 +45,6 @@ spec:
             - "{{ .Values.webService.port }}"
             - --collector-port
             - "{{ .Values.collectorService.port }}"
-          env:
-            - name: CONSUL_HTTP_ADDR
-              value: {{ .Release.Name }}-{{ .Values.dependencies.consul.name }}:{{ .Values.dependencies.consul.port }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

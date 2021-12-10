@@ -171,7 +171,6 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 	webEngine.GET("/catalog", NewChecksCatalogHandler(deps.checksService))
 	webEngine.GET("/clusters", NewClusterListHandler(deps.clustersService))
 	webEngine.GET("/clusters/:id", NewClusterHandler(deps.clustersService))
-	webEngine.GET("/clusters/:id/generic", NewClusterGenericHandler(deps.consul))
 	webEngine.GET("/sapsystems", NewSAPSystemListHandler(deps.sapSystemsService))
 	webEngine.GET("/sapsystems/:id", NewSAPResourceHandler(deps.hostsService, deps.sapSystemsService))
 	webEngine.GET("/databases", NewHANADatabaseListHandler(deps.sapSystemsService))

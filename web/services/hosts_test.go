@@ -19,6 +19,7 @@ func hostsFixtures() []entities.Host {
 			Name:          "host1",
 			ClusterID:     "cluster_id_1",
 			ClusterName:   "cluster_1",
+			ClusterType:   models.ClusterTypeHANAScaleOut,
 			CloudProvider: "azure",
 			IPAddresses:   pq.StringArray{"10.74.1.5"},
 			SAPSystemInstances: []*entities.SAPSystemInstance{
@@ -46,6 +47,7 @@ func hostsFixtures() []entities.Host {
 			ClusterID:     "cluster_id_2",
 			ClusterName:   "cluster_2",
 			CloudProvider: "azure",
+			ClusterType:   models.ClusterTypeUnknown,
 			IPAddresses:   pq.StringArray{"10.74.1.10"},
 			SAPSystemInstances: []*entities.SAPSystemInstance{
 				{
@@ -122,6 +124,7 @@ func (suite *HostsServiceTestSuite) TestHostsService_GetAll() {
 			CloudProvider: "azure",
 			ClusterID:     "cluster_id_1",
 			ClusterName:   "cluster_1",
+			ClusterType:   models.ClusterTypeHANAScaleOut,
 			AgentVersion:  "rolling1337",
 			SAPSystems: []*models.SAPSystem{
 				{
@@ -149,6 +152,7 @@ func (suite *HostsServiceTestSuite) TestHostsService_GetAll() {
 			CloudProvider: "azure",
 			ClusterID:     "cluster_id_2",
 			ClusterName:   "cluster_2",
+			ClusterType:   models.ClusterTypeUnknown,
 			AgentVersion:  "stable",
 			SAPSystems: []*models.SAPSystem{
 				{

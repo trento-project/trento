@@ -6,14 +6,10 @@ import (
 	"testing"
 	"time"
 
-	consulApi "github.com/hashicorp/consul/api"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/tdewolff/minify/v2"
 	"github.com/tdewolff/minify/v2/html"
-	"github.com/trento-project/trento/internal/consul"
-	consulMocks "github.com/trento-project/trento/internal/consul/mocks"
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
 )
@@ -362,8 +358,8 @@ func TestClustersListHandler(t *testing.T) {
 	assert.Contains(t, minified, "Clusters")
 	assert.Regexp(t, regexp.MustCompile("<td .*>.*check_circle.*</td><td>.*hana_cluster.*</td><td>.*47d1190ffb4f781974c8356d7f863b03.*</td><td>HANA scale-up</td><td>PRD</td><td>3</td><td>5</td><td><input.*value=tag1.*></td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td .*>.*error.*</td><td>.*other_cluster.*</td><td>.*a615a35f65627be5a757319a0741127f.*</td><td>Unknown</td><td></td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td .*>.*error.*</td><td>.*duplicated.*netweaver_cluster.*</td><td>.*e2f2eb50aef748e586a7baa85e0162cf.*</td><td>Unknown</td><td></td><td>2</td><td>10</td><td><input.*value=tag1.*></td>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td .*>.*fiber_manual_record.*</td><td>.*duplicated.*info.*netweaver_cluster.*</td><td>.*e27d313a674375b2066777a89ee346b9.*</td><td>Unknown</td><td></td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("(?s)<td .*>.*error.*</td><td>.*duplicated.*netweaver_cluster.*</td><td>.*e2f2eb50aef748e586a7baa85e0162cf.*</td><td>Unknown</td><td></td><td>2</td><td>10</td><td><input.*value=tag1.*></td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("(?s)<td .*>.*fiber_manual_record.*</td><td>.*duplicated.*info.*netweaver_cluster.*</td><td>.*e27d313a674375b2066777a89ee346b9.*</td><td>Unknown</td><td></td>"), minified)
 }
 
 func TestClusterHandlerHANA(t *testing.T) {
@@ -475,65 +471,4 @@ func TestClusterHandlerHANA(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("<td>sbd</td><td>stonith:external/sbd</td><td>Started</td><td>active</td><td>0</td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td>dummy_failed</td><td>dummy</td><td>Started</td><td>failed</td><td>0</td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<h4>Stopped resources</h4><div.*><div.*><span .*>dummy_failed</span>"), minified)
-}
-
-func TestClusterHandlerGeneric(t *testing.T) {
-	consulInst := new(consulMocks.Client)
-
-	kv := new(consulMocks.KV)
-	consulInst.On("KV").Return(kv)
-
-	kv.On("ListMap", consul.KvClustersPath, consul.KvClustersPath).Return(clustersListMap(), nil)
-	consulInst.On("WaitLock", consul.KvClustersPath).Return(nil)
-
-	catalog := new(consulMocks.Catalog)
-	filter := &consulApi.QueryOptions{Filter: "Meta[\"trento-ha-cluster-id\"] == \"e2f2eb50aef748e586a7baa85e0162cf\""}
-	catalog.On("Nodes", filter).Return(nil, nil, nil)
-	consulInst.On("Catalog").Return(catalog)
-
-	deps := setupTestDependencies()
-	deps.consul = consulInst
-
-	config := setupTestConfig()
-	app, err := NewAppWithDeps(config, deps)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp := httptest.NewRecorder()
-	req := httptest.NewRequest("GET", "/clusters/e2f2eb50aef748e586a7baa85e0162cf/generic", nil)
-	req.Header.Set("Accept", "text/html")
-
-	app.webEngine.ServeHTTP(resp, req)
-
-	assert.NoError(t, err)
-	assert.Equal(t, 200, resp.Code)
-	assert.Contains(t, resp.Body.String(), "Cluster details")
-	assert.Contains(t, resp.Body.String(), "netweaver_cluster")
-	assert.NotContains(t, resp.Body.String(), "HANA scale-out")
-	assert.NotContains(t, resp.Body.String(), "HANA scale-up")
-}
-
-func TestClusterHandler404Error(t *testing.T) {
-	clustersService := new(services.MockClustersService)
-	clustersService.On("GetByID", mock.Anything).Return(nil, nil)
-
-	deps := setupTestDependencies()
-	deps.clustersService = clustersService
-
-	config := setupTestConfig()
-	app, err := NewAppWithDeps(config, deps)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp := httptest.NewRecorder()
-	req := httptest.NewRequest("GET", "/clusters/not_found", nil)
-	req.Header.Set("Accept", "text/html")
-
-	app.webEngine.ServeHTTP(resp, req)
-
-	assert.NoError(t, err)
-	assert.Equal(t, 404, resp.Code)
-	assert.Contains(t, resp.Body.String(), "Not Found")
 }

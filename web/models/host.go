@@ -15,6 +15,7 @@ type Host struct {
 	CloudProvider string
 	ClusterID     string
 	ClusterName   string
+	ClusterType   string
 	SAPSystems    []*SAPSystem
 	AgentVersion  string
 	Tags          []string

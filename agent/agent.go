@@ -98,7 +98,7 @@ func (a *Agent) startDiscoverTicker() {
 			}
 			output = append(output, result)
 		}
-		log.Infof("Discovery tick output", strings.Join(output, "\n\n"))
+		log.Infof("Discovery tick output: %s", strings.Join(output, "\n\n"))
 	}
 
 	interval := a.config.DiscoveryPeriod

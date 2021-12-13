@@ -85,9 +85,9 @@ definitions:
         additionalProperties:
           type: string
         type: object
-      hosts:
+      hostnames:
         items:
-          $ref: '#/definitions/web.Node'
+          type: string
         type: array
       selected_checks:
         items:
@@ -103,42 +103,6 @@ definitions:
         type: string
     required:
     - tag
-    type: object
-  web.Node:
-    properties:
-      attributes:
-        additionalProperties:
-          type: string
-        type: object
-      health:
-        type: string
-      ip:
-        type: string
-      name:
-        type: string
-      resources:
-        items:
-          $ref: '#/definitions/web.Resource'
-        type: array
-      sid:
-        type: string
-      virtualIps:
-        items:
-          type: string
-        type: array
-    type: object
-  web.Resource:
-    properties:
-      failCount:
-        type: integer
-      id:
-        type: string
-      role:
-        type: string
-      status:
-        type: string
-      type:
-        type: string
     type: object
 info:
   contact:

@@ -6,8 +6,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/trento-project/trento/agent/discovery/collector"
 	"github.com/trento-project/trento/internal/cloud"
-	"github.com/trento-project/trento/internal/consul"
-	"github.com/trento-project/trento/internal/hosts"
 )
 
 const CloudDiscoveryId string = "cloud_discovery"
@@ -17,10 +15,10 @@ type CloudDiscovery struct {
 	discovery BaseDiscovery
 }
 
-func NewCloudDiscovery(consulClient consul.Client, collectorClient collector.Client) CloudDiscovery {
+func NewCloudDiscovery(collectorClient collector.Client) CloudDiscovery {
 	r := CloudDiscovery{}
 	r.id = CloudDiscoveryId
-	r.discovery = NewDiscovery(consulClient, collectorClient)
+	r.discovery = NewDiscovery(collectorClient)
 	return r
 }
 
@@ -30,16 +28,6 @@ func (d CloudDiscovery) GetId() string {
 
 func (d CloudDiscovery) Discover() (string, error) {
 	cloudData, err := cloud.NewCloudInstance()
-	if err != nil {
-		return "", err
-	}
-
-	err = cloudData.Store(d.discovery.consulClient)
-	if err != nil {
-		return "", err
-	}
-
-	err = storeCloudMetadata(d.discovery.consulClient, cloudData.Provider)
 	if err != nil {
 		return "", err
 	}
@@ -55,16 +43,4 @@ func (d CloudDiscovery) Discover() (string, error) {
 	}
 
 	return fmt.Sprintf("Cloud provider %s discovered", cloudData.Provider), nil
-}
-
-func storeCloudMetadata(client consul.Client, cloudProvider string) error {
-	metadata := hosts.Metadata{
-		CloudProvider: cloudProvider,
-	}
-	err := metadata.Store(client)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

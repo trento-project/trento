@@ -18,7 +18,7 @@ type SubscriptionDiscovery struct {
 func NewSubscriptionDiscovery(collectorClient collector.Client) SubscriptionDiscovery {
 	r := SubscriptionDiscovery{}
 	r.id = SubscriptionDiscoveryId
-	r.discovery = NewDiscovery(nil, collectorClient)
+	r.discovery = NewDiscovery(collectorClient)
 	return r
 }
 

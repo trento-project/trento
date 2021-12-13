@@ -80,42 +80,9 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-CONSUL_VERSION=1.9.6
-CONSUL_PATH=/srv/consul
-CONFIG_PATH="$CONSUL_PATH/consul.d"
-CONSUL_HCL_TEMPLATE='data_dir = "/srv/consul/data/"
-log_level = "DEBUG"
-datacenter = "dc1"
-ui = true
-bind_addr = "@BIND_ADDR@"
-client_addr = "0.0.0.0"
-retry_join = ["@JOIN_ADDR@"]'
-
-CONSUL_SERVICE_NAME="consul.service"
-CONSUL_SERVICE_TEMPLATE='[Unit]
-Description="HashiCorp Consul - A service mesh solution"
-Documentation=https://www.consul.io/
-Requires=network-online.target
-After=network-online.target
-ConditionFileNotEmpty=@CONFIG_PATH@/consul.hcl
-PartOf=trento-agent.service
-
-[Service]
-ExecStart=/srv/consul/consul agent -config-dir=@CONFIG_PATH@
-ExecReload=/bin/kill --signal HUP $MAINPID
-KillMode=process
-Restart=on-failure
-RestartSec=5
-Type=notify
-
-
-[Install]
-WantedBy=multi-user.target'
-
 AGENT_CONFIG_PATH="/etc/trento"
 AGENT_CONFIG_FILE="$AGENT_CONFIG_PATH/agent.yaml"
 AGENT_CONFIG_TEMPLATE='
-consul-config-dir: @CONFIG_PATH@
 ssh-address: @SSH_ADDRESS@
 collector-host: @COLLECTOR_HOST@
 '
@@ -146,33 +113,6 @@ function configure_installation() {
     if [[ -z "$SERVER_IP" ]]; then
         read -rp "Please provide the server IP: " SERVER_IP </dev/tty
     fi
-}
-
-function install_consul() {
-    mkdir -p $CONFIG_PATH
-    pushd -- "$CONSUL_PATH" >/dev/null
-    curl -f -sS -O -L "https://releases.hashicorp.com/consul/$CONSUL_VERSION/consul_${CONSUL_VERSION}_linux_amd64.zip" >/dev/null
-    unzip -o "consul_${CONSUL_VERSION}_linux_amd64".zip >/dev/null
-    rm "consul_${CONSUL_VERSION}_linux_amd64".zip
-    popd >/dev/null
-}
-
-function setup_consul() {
-    echo "$CONSUL_HCL_TEMPLATE" |
-        sed "s|@JOIN_ADDR@|${SERVER_IP}|g" |
-        sed "s|@BIND_ADDR@|${SSH_ADDRESS}|g" \
-            >${CONFIG_PATH}/consul.hcl
-
-    if [[ -f "/usr/lib/systemd/system/$CONSUL_SERVICE_NAME" ]]; then
-        echo "  Warning: Consul systemd unit already installed. Removing..."
-        systemctl stop "$CONSUL_SERVICE_NAME"
-        rm "/usr/lib/systemd/system/$CONSUL_SERVICE_NAME"
-    fi
-
-    echo "$CONSUL_SERVICE_TEMPLATE" |
-        sed "s|@CONFIG_PATH@|${CONFIG_PATH}|g" \
-            >/usr/lib/systemd/system/$CONSUL_SERVICE_NAME
-    systemctl daemon-reload
 }
 
 function install_trento() {
@@ -239,7 +179,6 @@ function setup_trento() {
     mkdir -p ${AGENT_CONFIG_PATH} && touch ${AGENT_CONFIG_FILE}
 
     echo "$AGENT_CONFIG_TEMPLATE" |
-        sed "s|@CONFIG_PATH@|${CONFIG_PATH}|g" |
         sed "s|@COLLECTOR_HOST@|${SERVER_IP}|g" |
         sed "s|@SSH_ADDRESS@|${SSH_ADDRESS}|g" \
             > ${AGENT_CONFIG_FILE}
@@ -247,8 +186,6 @@ function setup_trento() {
 
 check_installer_deps
 configure_installation
-install_consul
-setup_consul
 install_trento
 setup_trento
 

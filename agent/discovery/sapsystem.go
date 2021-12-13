@@ -5,23 +5,20 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/trento-project/trento/agent/discovery/collector"
-	"github.com/trento-project/trento/internal/consul"
-	"github.com/trento-project/trento/internal/hosts"
 	"github.com/trento-project/trento/internal/sapsystem"
 )
 
 const SAPDiscoveryId string = "sap_system_discovery"
 
 type SAPSystemsDiscovery struct {
-	id         string
-	discovery  BaseDiscovery
-	SAPSystems sapsystem.SAPSystemsList
+	id        string
+	discovery BaseDiscovery
 }
 
-func NewSAPSystemsDiscovery(consulClient consul.Client, collectorClient collector.Client) SAPSystemsDiscovery {
+func NewSAPSystemsDiscovery(collectorClient collector.Client) SAPSystemsDiscovery {
 	r := SAPSystemsDiscovery{}
 	r.id = SAPDiscoveryId
-	r.discovery = NewDiscovery(consulClient, collectorClient)
+	r.discovery = NewDiscovery(collectorClient)
 	return r
 }
 
@@ -32,20 +29,6 @@ func (d SAPSystemsDiscovery) GetId() string {
 func (d SAPSystemsDiscovery) Discover() (string, error) {
 	systems, err := sapsystem.NewSAPSystemsList()
 
-	if err != nil {
-		return "", err
-	}
-
-	d.SAPSystems = systems
-	for _, s := range d.SAPSystems {
-		err := s.Store(d.discovery.consulClient)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	// Store SAP System on hosts metadata
-	err = storeSAPSystemTags(d.discovery.consulClient, d.SAPSystems)
 	if err != nil {
 		return "", err
 	}
@@ -63,23 +46,4 @@ func (d SAPSystemsDiscovery) Discover() (string, error) {
 	}
 
 	return "No SAP system discovered on this host", nil
-}
-
-func storeSAPSystemTags(client consul.Client, systems sapsystem.SAPSystemsList) error {
-	sysNames := systems.GetSIDsString()
-	sysIds := systems.GetIDsString()
-	sysTypes := systems.GetTypesString()
-
-	// Store host metadata
-	metadata := hosts.Metadata{
-		SAPSystems:     sysNames,
-		SAPSystemsId:   sysIds,
-		SAPSystemsType: sysTypes,
-	}
-
-	if err := metadata.Store(client); err != nil {
-		return err
-	}
-
-	return nil
 }

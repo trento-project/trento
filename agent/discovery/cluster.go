@@ -6,8 +6,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/trento-project/trento/agent/discovery/collector"
 	"github.com/trento-project/trento/internal/cluster"
-	"github.com/trento-project/trento/internal/consul"
-	"github.com/trento-project/trento/internal/hosts"
 )
 
 const ClusterDiscoveryId string = "ha_cluster_discovery"
@@ -16,13 +14,12 @@ const ClusterDiscoveryId string = "ha_cluster_discovery"
 type ClusterDiscovery struct {
 	id        string
 	discovery BaseDiscovery
-	Cluster   cluster.Cluster
 }
 
-func NewClusterDiscovery(consulClient consul.Client, collectorClient collector.Client) ClusterDiscovery {
+func NewClusterDiscovery(collectorClient collector.Client) ClusterDiscovery {
 	d := ClusterDiscovery{}
 	d.id = ClusterDiscoveryId
-	d.discovery = NewDiscovery(consulClient, collectorClient)
+	d.discovery = NewDiscovery(collectorClient)
 	return d
 }
 
@@ -30,23 +27,11 @@ func (c ClusterDiscovery) GetId() string {
 	return c.id
 }
 
-// Execute one iteration of a discovery and store the result in the Consul KVStore.
+// Execute one iteration of a discovery and publish the results to the collector
 func (d ClusterDiscovery) Discover() (string, error) {
 	cluster, err := cluster.NewCluster()
 	if err != nil {
 		return "No HA cluster discovered on this host", nil
-	}
-
-	d.Cluster = cluster
-
-	err = d.Cluster.Store(d.discovery.consulClient)
-	if err != nil {
-		return "", err
-	}
-
-	err = storeClusterMetadata(d.discovery.consulClient, cluster.Name, cluster.Id)
-	if err != nil {
-		return "", err
 	}
 
 	err = d.discovery.collectorClient.Publish(d.id, cluster)
@@ -56,17 +41,4 @@ func (d ClusterDiscovery) Discover() (string, error) {
 	}
 
 	return fmt.Sprintf("Cluster with name: %s successfully discovered", cluster.Name), nil
-}
-
-func storeClusterMetadata(client consul.Client, clusterName string, clusterId string) error {
-	metadata := hosts.Metadata{
-		Cluster:   clusterName,
-		ClusterId: clusterId,
-	}
-	err := metadata.Store(client)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

@@ -91,7 +91,7 @@ func hostsProjector_ClusterDiscoveryHandler(dataCollectedEvent *DataCollectedEve
 		ClusterType: detectClusterType(&discoveredCluster),
 	}
 
-	return storeHost(db, host, "cluster_id", "cluster_name")
+	return storeHost(db, host, "cluster_id", "cluster_name", "cluster_type")
 }
 
 func storeHost(db *gorm.DB, host entities.Host, updateColumns ...string) error {

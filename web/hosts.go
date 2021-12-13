@@ -5,10 +5,6 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	consulApi "github.com/hashicorp/consul/api"
-	"github.com/pkg/errors"
-
-	"github.com/trento-project/trento/internal/consul"
 
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
@@ -104,24 +100,6 @@ func ApiHostHeartbeatHandler(hostService services.HostsService) gin.HandlerFunc 
 
 		c.JSON(http.StatusNoContent, gin.H{})
 	}
-}
-
-func getTrentoAgentCheck(client consul.Client, node string) (*consulApi.HealthCheck, error) {
-	checks, _, err := client.Health().Node(node, nil)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not query Consul for health checks")
-	}
-
-	var trentoAgentCheck *consulApi.HealthCheck
-
-	for _, check := range checks {
-		if check.CheckID == "trentoAgent" {
-			trentoAgentCheck = check
-			break
-		}
-	}
-
-	return trentoAgentCheck, nil
 }
 
 func NewHostHandler(hostsService services.HostsService, subsService services.SubscriptionsService) gin.HandlerFunc {

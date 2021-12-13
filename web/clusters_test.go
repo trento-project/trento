@@ -392,6 +392,7 @@ func TestClusterHandlerHANA(t *testing.T) {
 			},
 			Nodes: []*models.HANAClusterNode{
 				{
+					HostID:      "host1",
 					Name:        "test_node_1",
 					IPAddresses: []string{"192.168.1.1"},
 					VirtualIPs:  []string{"10.123.123.123"},
@@ -415,6 +416,7 @@ func TestClusterHandlerHANA(t *testing.T) {
 					},
 				},
 				{
+					HostID:      "host2",
 					Name:        "test_node_2",
 					IPAddresses: []string{"192.168.1.2"},
 					Health:      models.HostHealthCritical,
@@ -465,8 +467,8 @@ func TestClusterHandlerHANA(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile(".*error.*alert-body.*Critical.*1"), minified)
 
 	// Nodes
-	assert.Regexp(t, regexp.MustCompile("<td.*check_circle.*<td><a.*href=/hosts/test_node_1.*>test_node_1</a></td><td>192.168.1.1</td><td>10.123.123.123</td><td><span .*>HANA Primary</span>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td.*error.*<td><a.*href=/hosts/test_node_2.*>test_node_2</a></td><td>192.168.1.2</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*check_circle.*<td><a.*href=/hosts/host1.*>test_node_1</a></td><td>192.168.1.1</td><td>10.123.123.123</td><td><span .*>HANA Primary</span>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td.*error.*<td><a.*href=/hosts/host2.*>test_node_2</a></td><td>192.168.1.2</td>"), minified)
 	// Resources
 	assert.Regexp(t, regexp.MustCompile("<td>sbd</td><td>stonith:external/sbd</td><td>Started</td><td>active</td><td>0</td>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<td>dummy_failed</td><td>dummy</td><td>Started</td><td>failed</td><td>0</td>"), minified)

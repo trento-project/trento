@@ -101,6 +101,7 @@ func (suite *ClusterSettingsApiTestCase) Test_ResponseUnmarshalingFailure() {
 
 func (suite *ClusterSettingsApiTestCase) Test_ClustersSettingsAreSuccessfullyRetrieved() {
 	suite.trentoApi.httpClient.Transport = helpers.RoundTripFunc(func(req *http.Request) *http.Response {
+		suite.Equal(req.URL.String(), "http://192.168.1.10:8000/api/clusters/settings")
 		return &http.Response{
 			StatusCode: 200,
 			Body:       io.NopCloser(strings.NewReader(clustersSettingsResponseMock)),

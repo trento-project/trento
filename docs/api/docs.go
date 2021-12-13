@@ -811,10 +811,10 @@ var doc = `{
                         "type": "string"
                     }
                 },
-                "hosts": {
+                "hostnames": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/web.Node"
+                        "type": "string"
                     }
                 },
                 "selected_checks": {
@@ -832,61 +832,6 @@ var doc = `{
             ],
             "properties": {
                 "tag": {
-                    "type": "string"
-                }
-            }
-        },
-        "web.Node": {
-            "type": "object",
-            "properties": {
-                "attributes": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "health": {
-                    "type": "string"
-                },
-                "ip": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "resources": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/web.Resource"
-                    }
-                },
-                "sid": {
-                    "type": "string"
-                },
-                "virtualIps": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "web.Resource": {
-            "type": "object",
-            "properties": {
-                "failCount": {
-                    "type": "integer"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "role": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
-                },
-                "type": {
                     "type": "string"
                 }
             }

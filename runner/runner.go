@@ -195,7 +195,7 @@ func (c *Runner) startCheckRunnerTicker() {
 	tick := func() {
 		content, err := NewClusterInventoryContent(c.trentoApi)
 		if err != nil {
-			log.Errorf("Error creating the ansible inventory content")
+			log.Errorf("Error creating the ansible inventory content: %s", err)
 			return
 		}
 

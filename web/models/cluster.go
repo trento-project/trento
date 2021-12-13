@@ -50,6 +50,7 @@ type ClusterResource struct {
 }
 
 type HANAClusterNode struct {
+	HostID      string
 	Name        string
 	Site        string
 	IPAddresses []string

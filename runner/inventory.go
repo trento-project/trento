@@ -69,9 +69,9 @@ func NewClusterInventoryContent(trentoApi api.TrentoApiService) (*InventoryConte
 	for _, cluster := range clustersSettings {
 		nodes := []*Node{}
 
-		jsonSelectedChecks, _ := json.Marshal(cluster.SelectedChecks)
+		jsonSelectedChecks, err := json.Marshal(cluster.SelectedChecks)
 		if err != nil {
-			log.Errorf("error marshalling the cluster %s selected checks", cluster.ID)
+			log.Errorf("error marshalling the cluster %s selected checks: %s", cluster.ID, err)
 			continue
 		}
 

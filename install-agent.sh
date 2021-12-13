@@ -15,11 +15,10 @@ that can help you deploy, provision and operate infrastructure for SAP Applicati
 
 Usage:
 
-  sudo ./install-agent.sh --agent-bind-ip <192.168.122.10> --server-ip <192.168.122.5>
+  sudo ./install-agent.sh --ssh-address <192.168.122.10> --server-ip <192.168.122.5>
 
 Arguments:
-  --agent-bind-ip   The private address to which the trento-agent should be bound for internal communications.
-                    This is an IP address that should be reachable by the other hosts, including the trento server.
+  --ssh-address     The address to which the trento-agent should be reachable for ssh connection by the runner for check execution.
   --server-ip       The trento server ip.
   --rolling         Use the factory/rolling-release version instead of the stable one.
   --use-tgz         Use the trento tar.gz file from GH releases rather than the RPM
@@ -35,7 +34,7 @@ case "$1" in
 esac
 
 ARGUMENT_LIST=(
-    "agent-bind-ip:"
+    "ssh-address:"
     "server-ip:"
     "rolling"
     "use-tgz"
@@ -55,8 +54,8 @@ eval set "--$opts"
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-    --agent-bind-ip)
-        AGENT_BIND_IP=$2
+    --ssh-address)
+        SSH_ADDRESS=$2
         shift 2
         ;;
 
@@ -117,6 +116,7 @@ AGENT_CONFIG_PATH="/etc/trento"
 AGENT_CONFIG_FILE="$AGENT_CONFIG_PATH/agent.yaml"
 AGENT_CONFIG_TEMPLATE='
 consul-config-dir: @CONFIG_PATH@
+ssh-address: @SSH_ADDRESS@
 collector-host: @COLLECTOR_HOST@
 '
 
@@ -140,8 +140,8 @@ function check_installer_deps() {
 }
 
 function configure_installation() {
-    if [[ -z "$AGENT_BIND_IP" ]]; then
-        read -rp "Please provide a bind IP for the agent: " AGENT_BIND_IP </dev/tty
+    if [[ -z "$SSH_ADDRESS" ]]; then
+        read -rp "Please provide an ssh address for the agent: " SSH_ADDRESS </dev/tty
     fi
     if [[ -z "$SERVER_IP" ]]; then
         read -rp "Please provide the server IP: " SERVER_IP </dev/tty
@@ -160,7 +160,7 @@ function install_consul() {
 function setup_consul() {
     echo "$CONSUL_HCL_TEMPLATE" |
         sed "s|@JOIN_ADDR@|${SERVER_IP}|g" |
-        sed "s|@BIND_ADDR@|${AGENT_BIND_IP}|g" \
+        sed "s|@BIND_ADDR@|${SSH_ADDRESS}|g" \
             >${CONFIG_PATH}/consul.hcl
 
     if [[ -f "/usr/lib/systemd/system/$CONSUL_SERVICE_NAME" ]]; then
@@ -240,7 +240,8 @@ function setup_trento() {
 
     echo "$AGENT_CONFIG_TEMPLATE" |
         sed "s|@CONFIG_PATH@|${CONFIG_PATH}|g" |
-        sed "s|@COLLECTOR_HOST@|${SERVER_IP}|g" \
+        sed "s|@COLLECTOR_HOST@|${SERVER_IP}|g" |
+        sed "s|@SSH_ADDRESS@|${SSH_ADDRESS}|g" \
             > ${AGENT_CONFIG_FILE}
 }
 

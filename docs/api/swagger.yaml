@@ -25,6 +25,28 @@ definitions:
       selected:
         type: boolean
     type: object
+  models.ClusterSettings:
+    properties:
+      hosts:
+        items:
+          $ref: '#/definitions/models.HostConnection'
+        type: array
+      id:
+        type: string
+      selected_checks:
+        items:
+          type: string
+        type: array
+    type: object
+  models.HostConnection:
+    properties:
+      address:
+        type: string
+      name:
+        type: string
+      user:
+        type: string
+    type: object
   web.JSONCheck:
     properties:
       description:
@@ -310,6 +332,27 @@ paths:
             additionalProperties: true
             type: object
       summary: Delete a specific tag that belongs to a cluster
+  /clusters/settings:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ClusterSettings'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Retrieve Settings for all the clusters. Cluster's Selected checks and
+        Hosts connection settings
   /databases/{id}/tags:
     post:
       consumes:

@@ -171,6 +171,37 @@ var doc = `{
                 }
             }
         },
+        "/clusters/settings": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Retrieve Settings for all the clusters. Cluster's Selected checks and Hosts connection settings",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.ClusterSettings"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/clusters/{cluster_id}/results": {
             "get": {
                 "produces": [
@@ -682,6 +713,40 @@ var doc = `{
                 },
                 "selected": {
                     "type": "boolean"
+                }
+            }
+        },
+        "models.ClusterSettings": {
+            "type": "object",
+            "properties": {
+                "hosts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.HostConnection"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "selected_checks": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "models.HostConnection": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "user": {
+                    "type": "string"
                 }
             }
         },

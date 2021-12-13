@@ -19,13 +19,15 @@ import (
 const HostDiscoveryId string = "host_discovery"
 
 type HostDiscovery struct {
-	id        string
-	discovery BaseDiscovery
+	id         string
+	sshAddress string
+	discovery  BaseDiscovery
 }
 
-func NewHostDiscovery(consulClient consul.Client, collectorClient collector.Client) HostDiscovery {
+func NewHostDiscovery(sshAddress string, consulClient consul.Client, collectorClient collector.Client) HostDiscovery {
 	d := HostDiscovery{}
 	d.id = HostDiscoveryId
+	d.sshAddress = sshAddress
 	d.discovery = NewDiscovery(consulClient, collectorClient)
 	return d
 }
@@ -50,6 +52,7 @@ func (h HostDiscovery) Discover() (string, error) {
 	}
 
 	host := hosts.DiscoveredHost{
+		SSHAddress:      h.sshAddress,
 		OSVersion:       getOSVersion(),
 		HostIpAddresses: ipAddresses,
 		HostName:        h.discovery.host,

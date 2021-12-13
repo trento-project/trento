@@ -36,6 +36,7 @@ func hostsProjector_HostDiscoveryHandler(dataCollectedEvent *DataCollectedEvent,
 
 	host := entities.Host{
 		AgentID:      dataCollectedEvent.AgentID,
+		SSHAddress:   discoveredHost.SSHAddress,
 		Name:         discoveredHost.HostName,
 		IPAddresses:  filterIPAddresses(discoveredHost.HostIpAddresses),
 		AgentVersion: discoveredHost.AgentVersion,
@@ -45,6 +46,7 @@ func hostsProjector_HostDiscoveryHandler(dataCollectedEvent *DataCollectedEvent,
 		"name",
 		"ip_addresses",
 		"agent_version",
+		"ssh_address",
 	)
 }
 

@@ -2,6 +2,7 @@ package services
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/mitchellh/mapstructure"
@@ -260,9 +261,15 @@ Selected checks services
 */
 
 func (c *checksService) GetSelectedChecksById(id string) (models.SelectedChecks, error) {
-	var selectedChecks models.SelectedChecks
+	selectedChecks := models.SelectedChecks{
+		ID:             "",
+		SelectedChecks: []string{},
+	}
 
 	result := c.db.Where("id", id).First(&selectedChecks)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return selectedChecks, nil
+	}
 
 	return selectedChecks, result.Error
 }

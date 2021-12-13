@@ -27,15 +27,15 @@ URL:            https://github.com/trento-project/trento
 Source:         %{name}-%{version}.tar.gz
 Source1:        vendor.tar.gz
 Source2:        node_modules.spec.inc
-Source3:	package.json
-%include %_sourcedir/node_modules.spec.inc
+Source3:        package.json
+%include        %_sourcedir/node_modules.spec.inc
 ExclusiveArch:  aarch64 x86_64 ppc64le s390x
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildRequires:  golang-packaging
 BuildRequires:  golang(API) = 1.16
 BuildRequires:  npm
 BuildRequires:  local-npm-registry
-Provides:       trento = %{version}-%{release}
+Provides:       %{name} = %{version}-%{release}
 
 %{go_nostrip}
 

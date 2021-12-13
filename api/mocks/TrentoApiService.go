@@ -35,6 +35,29 @@ func (_m *TrentoApiService) GetChecksSettingsById(id string) (*web.JSONChecksSet
 	return r0, r1
 }
 
+// GetClustersSettings provides a mock function with given fields:
+func (_m *TrentoApiService) GetClustersSettings() (web.ClustersSettingsResponse, error) {
+	ret := _m.Called()
+
+	var r0 web.ClustersSettingsResponse
+	if rf, ok := ret.Get(0).(func() web.ClustersSettingsResponse); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(web.ClustersSettingsResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // IsWebServerUp provides a mock function with given fields:
 func (_m *TrentoApiService) IsWebServerUp() bool {
 	ret := _m.Called()

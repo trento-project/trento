@@ -15,6 +15,7 @@ import (
 type TrentoApiService interface {
 	IsWebServerUp() bool
 	GetChecksSettingsById(id string) (*webApi.JSONChecksSettings, error)
+	GetClustersSettings() (webApi.ClustersSettingsResponse, error)
 }
 
 type trentoApiService struct {
@@ -37,7 +38,7 @@ func (t *trentoApiService) getJson(query string) ([]byte, int, error) {
 
 	resp, err := t.httpClient.Get(t.composeQuery(query))
 	if err != nil {
-		return nil, resp.StatusCode, err
+		return nil, 0, err
 	}
 
 	defer resp.Body.Close()

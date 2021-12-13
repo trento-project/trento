@@ -1,24 +1,27 @@
 package runner
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
-	"github.com/trento-project/trento/internal/cluster"
-	"github.com/trento-project/trento/internal/cluster/crmmon"
-	"github.com/trento-project/trento/internal/consul"
-	"github.com/trento-project/trento/internal/consul/mocks"
+	"github.com/stretchr/testify/suite"
 
 	apiMocks "github.com/trento-project/trento/api/mocks"
-	"github.com/trento-project/trento/web"
+	webApi "github.com/trento-project/trento/web"
+	"github.com/trento-project/trento/web/models"
 )
 
-func TestCreateInventory(t *testing.T) {
+type InventoryTestSuite struct {
+	suite.Suite
+}
+
+func TestInventoryTestSuite(t *testing.T) {
+	suite.Run(t, new(InventoryTestSuite))
+}
+
+func (suite *InventoryTestSuite) Test_CreateInventory() {
 	tmpDir, _ := ioutil.TempDir(os.TempDir(), "trentotest")
 	destination := path.Join(tmpDir, "ansible_hosts")
 
@@ -71,8 +74,8 @@ func TestCreateInventory(t *testing.T) {
 
 	err := CreateInventory(destination, content)
 
-	assert.NoError(t, err)
-	assert.FileExists(t, destination)
+	suite.NoError(err)
+	suite.FileExists(destination)
 
 	// Cannot use backticks as the lines have a final space in many lines
 	expectedContent := "\n" +
@@ -87,118 +90,16 @@ func TestCreateInventory(t *testing.T) {
 
 	data, err := ioutil.ReadFile(destination)
 	if err == nil {
-		assert.Equal(t, expectedContent, string(data))
+		suite.Equal(expectedContent, string(data))
 	}
 }
 
-func mockGetCluster(client consul.Client) (map[string]*cluster.Cluster, error) {
-	return map[string]*cluster.Cluster{
-		"cluster1": &cluster.Cluster{
-			Crmmon: crmmon.Root{
-				Nodes: []crmmon.Node{
-					crmmon.Node{
-						Name: "node1",
-					},
-					crmmon.Node{
-						Name: "node2",
-					},
-				},
-			},
-		},
-		"cluster2": &cluster.Cluster{
-			Crmmon: crmmon.Root{
-				Nodes: []crmmon.Node{
-					crmmon.Node{
-						Name: "node3",
-					},
-					crmmon.Node{
-						Name: "node4",
-					},
-				},
-			},
-		},
-	}, nil
-}
-
-func mockGetNodeAddress(client consul.Client, node string) (string, error) {
-	switch node {
-	case "node1":
-		return "192.168.10.1", nil
-	case "node2":
-		return "192.168.10.2", nil
-	case "node3":
-		return "192.168.10.3", nil
-	case "node4":
-		return "", fmt.Errorf("Error getting node address")
-	}
-	return "", nil
-}
-
-func mockGetCloudUserName(client consul.Client, node string) (string, error) {
-	switch node {
-	case "node3":
-		return "clouduser", nil
-	case "node4":
-		return "", fmt.Errorf("Error getting cloud user")
-	}
-	return "", nil
-}
-
-func TestGetCloudUserName(t *testing.T) {
-	consulInst := new(mocks.Client)
-	kv := new(mocks.KV)
-	host := "node1"
-
-	kvPath := fmt.Sprintf(consul.KvHostsClouddataPath, host)
-
-	listMap := map[string]interface{}{
-		"provider": "azure",
-		"metadata": map[string]interface{}{
-			"compute": map[string]interface{}{
-				"osProfile": map[string]interface{}{
-					"adminUsername": host,
-				},
-			},
-		},
-	}
-
-	kv.On("ListMap", kvPath, kvPath).Return(listMap, nil)
-	consulInst.On("WaitLock", path.Join(consul.KvHostsPath, host)+"/").Return(nil)
-	consulInst.On("KV").Return(kv)
-
-	name, err := getCloudUserName(consulInst, host)
-
-	assert.NoError(t, err)
-	assert.Equal(t, host, name)
-}
-
-func TestNewClusterInventoryContent(t *testing.T) {
-	consulInst := new(mocks.Client)
+func (suite *InventoryTestSuite) Test_NewClusterInventoryContent() {
 	apiInst := new(apiMocks.TrentoApiService)
 
-	getClusters = mockGetCluster
-	getNodeAddress = mockGetNodeAddress
-	getCloudUserName = mockGetCloudUserName
+	apiInst.On("GetClustersSettings").Return(mockedClustersSettings(), nil)
 
-	settings1 := &web.JSONChecksSettings{
-		SelectedChecks: []string{"check1", "check2"},
-		ConnectionSettings: map[string]string{
-			"node1": "user1",
-			"node2": "user2",
-		},
-	}
-
-	settings2 := &web.JSONChecksSettings{
-		SelectedChecks: []string{"check3", "check4"},
-		ConnectionSettings: map[string]string{
-			"node3": "",
-		},
-	}
-
-	apiInst.On("GetChecksSettingsById", "cluster1").Return(settings1, nil)
-	apiInst.On("GetChecksSettingsById", "cluster2").Return(settings2, nil)
-
-	content, err := NewClusterInventoryContent(consulInst, apiInst)
+	content, err := NewClusterInventoryContent(apiInst)
 
 	expectedContent := &InventoryContent{
 		Groups: []*Group{
@@ -247,7 +148,44 @@ func TestNewClusterInventoryContent(t *testing.T) {
 		},
 	}
 
-	assert.NoError(t, err)
-	assert.ElementsMatch(t, expectedContent.Groups, content.Groups)
-	apiInst.AssertExpectations(t)
+	suite.NoError(err)
+	suite.ElementsMatch(expectedContent.Groups, content.Groups)
+	apiInst.AssertExpectations(suite.T())
+}
+
+func mockedClustersSettings() webApi.ClustersSettingsResponse {
+	return webApi.ClustersSettingsResponse{
+		{
+			ID:             "cluster1",
+			SelectedChecks: []string{"check1", "check2"},
+			Hosts: []*models.HostConnection{
+				{
+					Name:    "node1",
+					Address: "192.168.10.1",
+					User:    "user1",
+				},
+				{
+					Name:    "node2",
+					Address: "192.168.10.2",
+					User:    "user2",
+				},
+			},
+		},
+		{
+			ID:             "cluster2",
+			SelectedChecks: []string{"check3", "check4"},
+			Hosts: []*models.HostConnection{
+				{
+					Name:    "node3",
+					Address: "192.168.10.3",
+					User:    "clouduser",
+				},
+				{
+					Name:    "node4",
+					Address: "",
+					User:    "root",
+				},
+			},
+		},
+	}
 }

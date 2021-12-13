@@ -10,10 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/trento-project/trento/internal"
-	"github.com/trento-project/trento/internal/consul"
 
 	"github.com/trento-project/trento/api"
 )
@@ -32,7 +30,6 @@ type Runner struct {
 	config    *Config
 	ctx       context.Context
 	ctxCancel context.CancelFunc
-	consul    consul.Client
 	trentoApi api.TrentoApiService
 }
 
@@ -45,18 +42,12 @@ type Config struct {
 }
 
 func NewRunner(config *Config) (*Runner, error) {
-	client, err := consul.DefaultClient()
-	if err != nil {
-		return nil, errors.Wrap(err, "could not create the consul client connection")
-	}
-
 	ctx, ctxCancel := context.WithCancel(context.Background())
 
 	runner := &Runner{
 		config:    config,
 		ctx:       ctx,
 		ctxCancel: ctxCancel,
-		consul:    client,
 	}
 
 	return runner, nil
@@ -202,7 +193,7 @@ func (c *Runner) startCheckRunnerTicker() {
 	}
 
 	tick := func() {
-		content, err := NewClusterInventoryContent(c.consul, c.trentoApi)
+		content, err := NewClusterInventoryContent(c.trentoApi)
 		if err != nil {
 			log.Errorf("Error creating the ansible inventory content")
 			return

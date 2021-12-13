@@ -206,6 +206,7 @@ func (suite *ClustersServiceTestSuite) TestClustersService_GetByID() {
 	suite.EqualValues(&models.HANAClusterDetails{
 		Nodes: []*models.HANAClusterNode{
 			{
+				HostID:      "1",
 				Name:        "host1",
 				Health:      models.CheckPassing,
 				IPAddresses: []string{"10.74.1.10"},

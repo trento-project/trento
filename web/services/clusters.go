@@ -206,6 +206,7 @@ func (s *clustersService) enrichClusterNodes(nodes []*models.HANAClusterNode, cl
 	for _, node := range nodes {
 		for _, host := range hosts {
 			if node.Name == host.Name {
+				node.HostID = host.AgentID
 				node.IPAddresses = append(node.IPAddresses, host.IPAddresses...)
 				break
 			}

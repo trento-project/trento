@@ -37,9 +37,6 @@ of existing clusters, rather than deploying new one.
     + [Install the Trento Server Helm chart](#install-the-trento-server-helm-chart)
     + [Other Helm chart usage examples:](#other-helm-chart-usage-examples-)
   * [Manually running Trento](#manually-running-trento)
-    + [Consul](#consul)
-      - [Server Consul Agent](#server-consul-agent)
-      - [Client Consul Agent](#client-consul-agent)
     + [Trento Agents](#trento-agents)
     + [Trento Runner](#trento-runner)
       - [Setting up and starting ARA](#setting-up-and-starting-ara)
@@ -71,12 +68,11 @@ The _Trento Server_ is an independent, cloud-native, distributed system and shou
 
 - The `trento web` application;
 - The `trento runner` worker;
-- A [Consul] data-plane;
 - An [ARA] service.
 
 The _Trento Agent_ is a single background process (`trento agent`) running in each host of the target infrastructure the user desires to monitor.
 
-Please note that, except for the third-party ones like Consul and ARA, all the components are embedded within one single `trento` binary.
+Please note that, except for the third-party ones like ARA, all the components are embedded within one single `trento` binary.
 
 See the [architecture document](./docs/trento-architecture.md) for additional details.
 
@@ -296,46 +292,6 @@ Please refer to the the subcharts `values.yaml` for an advanced usage.
 
 What follows are explicit instructions on how to run all the various components without any automated orchestration.
 
-### Consul
-
-The Trento system needs leverages a [Consul] data-plane for service discovery and persistent data storage.
-
-Consul processes are all called "agents", and they can run either in server mode or in client mode.
-
-> We have only tested version Consul version `1.9.x` and, while it _should_ work with any version implementing Consul Protocol version 3, we can´t make any guarantee in that regard.
-
-#### Server Consul Agent
-
-To start a Consul agent in server mode:
-
-```shell
-mkdir consul.d
-./consul agent -server -ui -bootstrap-expect=1 -client=0.0.0.0 -data-dir=consul-data -config-dir=consul.d
-```
-
-This will start Consul listening to connections from any IP address on the default network interface, using `consul-data` as directory to persist data, and `consul.d` to autoload configuration files from.
-
-#### Client Consul Agent
-
-Each [Trento Agent](#trento-agents) instance also needs a Consul agent in client mode, on each target node we want to connect Trento to.
-
-You can start Consul in client mode as follows:
-
-```shell
-export SERVER_IP_ADDRESS=#your Consul server IP address here
-mkdir consul.d
-./consul agent -retry-join=$SERVER_IP_ADDRESS -bind='{{ GetInterfaceIP "eth0" }}' -data-dir=consul-agent-data -config-dir=consul.d
-```
-
-Since the client Consul Agent will most likely run on a machine with multiple IP addresses and/or network interfaces, you will need to specify one with the `-bind` flag.
-
-> Production deployments will require at least three instances of the Consul agent in server mode to ensure fault-tolerance. Be
-> sure to check [Consul's deployment guide](https://learn.hashicorp.com/tutorials/consul/deployment-guide#configure-consul-agents).
-
-> While Consul provides a `-dev` flag to run a standalone, stateless server agent, Trento does not support this mode: it needs a persistent server even during development.
-
-> For development purposes, when running everything on a single host machine, no Client Consul Agent is required: the Server Agent exposes the same API and can be consumed by both `trento web` and `trento agent`.
-
 ### Trento Agents
 
 Trento Agents are responsible for discovering SAP systems, HA clusters and some additional data. These Agents need to run in the same systems hosting the HA
@@ -427,8 +383,6 @@ Once dependencies are in place, you can start the Runner itself:
 
 ```shell
 ./trento runner start --ara-server http://$ARA_IP:$ARA_PORT --api-host $WEB_IP --api-port $WEB_PORT -i 5
-# If the connection to consul fails try set the CONSUL_HTTP_ADDR environment variable
-CONSUL_HTTP_ADDR=$CONSUL_IP:$CONSUL_PORT ./trento runner start --ara-server http://$ARA_IP:$ARA_PORT --api-host $WEB_IP --api-port $WEB_PORT -i 5
 ```
 
 > *Note:* The Trento Runner component must have SSH access to all the agents via a password-less SSH key pair.
@@ -626,6 +580,5 @@ under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 
-[Consul]: https://www.consul.io
 [ARA]: https://ara.recordsansible.org
 [K3S]: https://k3s.io

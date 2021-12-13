@@ -17,7 +17,6 @@ import (
 
 func NewAgentCmd() *cobra.Command {
 	var sshAddress string
-	var consulConfigDir string
 	var discoveryPeriod int
 
 	var collectorHost string
@@ -44,7 +43,6 @@ func NewAgentCmd() *cobra.Command {
 
 	startCmd.Flags().StringVar(&sshAddress, "ssh-address", "", "The address to which the trento-agent should be reachable for ssh connection by the runner for check execution.")
 
-	startCmd.Flags().StringVarP(&consulConfigDir, "consul-config-dir", "", "consul.d", "Consul configuration directory used to store node meta-data")
 	startCmd.Flags().IntVarP(&discoveryPeriod, "discovery-period", "", 2, "Discovery mechanism loop period on minutes")
 
 	startCmd.Flags().StringVar(&collectorHost, "collector-host", "localhost", "Data Collector host")

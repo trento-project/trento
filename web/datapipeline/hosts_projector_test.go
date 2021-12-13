@@ -9,6 +9,7 @@ import (
 	_ "github.com/trento-project/trento/test"
 	"github.com/trento-project/trento/test/helpers"
 	"github.com/trento-project/trento/web/entities"
+	"github.com/trento-project/trento/web/models"
 	"gorm.io/gorm"
 )
 
@@ -63,6 +64,7 @@ func (s *HostsProjectorTestSuite) Test_HostDiscoveryHandler() {
 	s.Equal("", projectedHost.CloudProvider)
 	s.Equal("", projectedHost.ClusterID)
 	s.Equal("", projectedHost.ClusterName)
+	s.Equal("", projectedHost.ClusterType)
 }
 
 // Test_CloudDiscoveryHandler tests the loudDiscoveryHandler function execution on a CloudDiscovery published by an agent
@@ -86,6 +88,7 @@ func (s *HostsProjectorTestSuite) Test_CloudDiscoveryHandler() {
 	s.Equal("", projectedHost.Name)
 	s.Equal("", projectedHost.ClusterID)
 	s.Equal("", projectedHost.ClusterName)
+	s.Equal("", projectedHost.ClusterType)
 }
 
 // Test_ClusterDiscoveryHandler tests the ClusterDiscoveryHandler function execution on a ClusterDiscovery published by an agent
@@ -105,6 +108,7 @@ func (s *HostsProjectorTestSuite) Test_ClusterDiscoveryHandler() {
 
 	s.Equal("47d1190ffb4f781974c8356d7f863b03", projectedHost.ClusterID)
 	s.Equal("hana_cluster", projectedHost.ClusterName)
+	s.Equal(models.ClusterTypeHANAScaleUp, projectedHost.ClusterType)
 
 	s.Equal("", projectedHost.Name)
 	s.Equal("", projectedHost.CloudProvider)
@@ -145,6 +149,7 @@ func (s *HostsProjectorTestSuite) Test_TelemetryProjector() {
 	s.Equal(discoveredCloudMock.Provider, projectedHost.CloudProvider)
 	s.Equal(discoveredClusterMock.Id, projectedHost.ClusterID)
 	s.Equal(discoveredClusterMock.Name, projectedHost.ClusterName)
+	s.Equal(detectClusterType(&discoveredClusterMock), projectedHost.ClusterType)
 }
 
 func (s *HostsProjectorTestSuite) Test_filterIPAddresses() {

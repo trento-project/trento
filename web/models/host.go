@@ -23,13 +23,13 @@ type Host struct {
 
 type AzureCloudData struct {
 	VMName          string `json:"vmname"`
-	ResourceGroup   string `json:"resourceGroup"`
+	ResourceGroup   string `json:"resource_group"`
 	Location        string `json:"location"`
 	VMSize          string `json:"vmsize"`
-	DataDisksNumber int    `json:"dataDisksNumber"`
+	DataDisksNumber int    `json:"data_disks_number"`
 	Offer           string `json:"offer"`
 	SKU             string `json:"sku"`
-	AdminUsername   string `json:"adminUsername"`
+	AdminUsername   string `json:"admin_username"`
 }
 
 type HostList []*Host

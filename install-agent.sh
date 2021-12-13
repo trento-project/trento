@@ -27,9 +27,9 @@ END
 }
 
 case "$1" in
---help)
-    print_help
-    exit 0
+    --help)
+        print_help
+        exit 0
     ;;
 esac
 
@@ -44,38 +44,38 @@ readonly TRENTO_VERSION=0.6.0
 
 opts=$(
     getopt \
-        --longoptions "$(printf "%s," "${ARGUMENT_LIST[@]}")" \
-        --name "$(basename "$0")" \
-        --options "" \
-        -- "$@"
+    --longoptions "$(printf "%s," "${ARGUMENT_LIST[@]}")" \
+    --name "$(basename "$0")" \
+    --options "" \
+    -- "$@"
 )
 
 eval set "--$opts"
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-    --ssh-address)
-        SSH_ADDRESS=$2
-        shift 2
+        --ssh-address)
+            SSH_ADDRESS=$2
+            shift 2
         ;;
-
-    --server-ip)
-        SERVER_IP=$2
-        shift 2
+        
+        --server-ip)
+            SERVER_IP=$2
+            shift 2
         ;;
-
-    --rolling)
-        USE_ROLLING=1
-        shift 1
+        
+        --rolling)
+            USE_ROLLING=1
+            shift 1
         ;;
-
-    --use-tgz)
-        USE_TGZ=1
-        shift 1
+        
+        --use-tgz)
+            USE_TGZ=1
+            shift 1
         ;;
-
-    *)
-        break
+        
+        *)
+            break
         ;;
     esac
 done
@@ -116,6 +116,11 @@ function configure_installation() {
 }
 
 function install_trento() {
+    if [[ -f "/usr/lib/systemd/system/trento-agent.service" ]]; then
+        echo "* Warning: Trento already installed. Stopping..."
+        systemctl stop trento-agent
+    fi
+
     if [[ -n "$USE_TGZ" ]] ; then
         install_trento_tgz
     else

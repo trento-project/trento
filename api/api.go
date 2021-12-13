@@ -14,7 +14,6 @@ import (
 
 type TrentoApiService interface {
 	IsWebServerUp() bool
-	GetChecksSettingsById(id string) (*webApi.JSONChecksSettings, error)
 	GetClustersSettings() (webApi.ClustersSettingsResponse, error)
 }
 

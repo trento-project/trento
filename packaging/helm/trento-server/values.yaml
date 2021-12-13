@@ -17,13 +17,6 @@ trento-runner:
 ara:
   enabled: true
 
-consul:
-  enabled: true
-  server:
-    bootstrapExpect: 1
-    replicas: 1
-    exposeGossipAndRPCPorts: true
-
 postgresql:
   enabled: true
   postgresqlUsername: "postgres"

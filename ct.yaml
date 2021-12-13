@@ -2,7 +2,6 @@
 chart-dirs:
   - packaging/helm
 chart-repos:
-  - hashicorp=https://helm.releases.hashicorp.com
   - bitnami=https://charts.bitnami.com/bitnami
 target-branch: main
 validate-maintainers: false

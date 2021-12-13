@@ -43,9 +43,6 @@ spec:
             - "{{ .Values.dependencies.trentoWeb.port }}"
             - -i
             - "{{ .Values.checkIntervalMins }}"
-          env:
-            - name: CONSUL_HTTP_ADDR
-              value: {{ .Release.Name }}-{{ .Values.dependencies.consul.name }}:{{ .Values.dependencies.consul.port }}
           # tty is required to allow a correct ansible execution
           tty: true
           securityContext:

@@ -117,7 +117,7 @@ func (suite *SubscriptionServiceTestSuite) TestSubscriptionService_GetPremiumDat
 }
 
 func (suite *SubscriptionServiceTestSuite) TestSubscriptionService_GetHostSubscriptions() {
-	subs, err := suite.subsService.GetHostSubscriptions("host1")
+	subs, err := suite.subsService.GetHostSubscriptions("1")
 	expectedSubs := []*models.SlesSubscription{
 		&models.SlesSubscription{
 			ID:                 "SLES_SAP",

@@ -6,12 +6,10 @@ import (
 	"regexp"
 	"testing"
 
-	consulApi "github.com/hashicorp/consul/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/tdewolff/minify/v2"
 	"github.com/tdewolff/minify/v2/html"
-	consulMocks "github.com/trento-project/trento/internal/consul/mocks"
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
 )
@@ -33,6 +31,16 @@ func hostListFixture() models.HostList {
 			AgentVersion: "v1",
 			Tags:         []string{"tag1"},
 			Health:       "passing",
+			CloudData: models.AzureCloudData{
+				VMName:          "host1",
+				ResourceGroup:   "carbonara-resourcegroup",
+				Location:        "southern-rome",
+				VMSize:          "extra-large",
+				DataDisksNumber: 8,
+				Offer:           "sales",
+				SKU:             "skeks",
+				AdminUsername:   "toor",
+			},
 		},
 		{
 			ID:            "2",
@@ -82,7 +90,6 @@ func TestNewHostsHealthContainer(t *testing.T) {
 }
 
 func TestHostListNextHandler(t *testing.T) {
-
 	mockHostsService := new(services.MockHostsService)
 	mockHostsService.On("GetAll", mock.Anything, mock.Anything).Return(hostListFixture(), nil)
 	mockHostsService.On("GetCount").Return(3, nil)
@@ -148,98 +155,8 @@ func TestApiHostHeartbeat(t *testing.T) {
 }
 
 func TestHostHandler(t *testing.T) {
-	consulInst := new(consulMocks.Client)
-	catalog := new(consulMocks.Catalog)
-	health := new(consulMocks.Health)
-	kv := new(consulMocks.KV)
 	subscriptionsMocks := new(services.MockSubscriptionsService)
-
-	consulInst.On("Catalog").Return(catalog)
-	consulInst.On("Health").Return(health)
-	consulInst.On("KV").Return(kv)
-
-	node := &consulApi.Node{
-		Node:       "test_host",
-		Datacenter: "dc1",
-		Address:    "192.168.1.1",
-		Meta: map[string]string{
-			"trento-sap-systems":    "sys1",
-			"trento-sap-systems-id": "123456",
-			"trento-agent-version":  "1",
-		},
-	}
-
-	sapSystemMap := map[string]interface{}{
-		"sys1": map[string]interface{}{
-			"sid":  "sys1",
-			"type": 1,
-			"instances": map[string]interface{}{
-				"HDB00": map[string]interface{}{
-					"name": "HDB00",
-					"type": 1,
-					"host": "test_host",
-					"sapcontrol": map[string]interface{}{
-						"properties": map[string]interface{}{
-							"INSTANCE_NAME": map[string]interface{}{
-								"Value": "HDB00",
-							},
-							"SAPSYSTEMNAME": map[string]interface{}{
-								"Value": "PRD",
-							},
-							"SAPSYSTEM": map[string]interface{}{
-								"Value": "00",
-							},
-						},
-						"processes": map[string]interface{}{
-							"proc1": map[string]interface{}{
-								"Name":       "proc1",
-								"Dispstatus": "SAPControl-GREEN",
-								"Textstatus": "Green",
-							},
-							"proc2": map[string]interface{}{
-								"Name":       "proc2",
-								"Dispstatus": "SAPControl-YELLOW",
-								"Textstatus": "Yellow",
-							},
-							"proc3": map[string]interface{}{
-								"Name":       "proc3",
-								"Dispstatus": "SAPControl-RED",
-								"Textstatus": "Red",
-							},
-							"proc4": map[string]interface{}{
-								"Name":       "proc4",
-								"Dispstatus": "SAPControl-GRAY",
-								"Textstatus": "Gray",
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-
-	catalogNode := &consulApi.CatalogNode{Node: node}
-	catalog.On("Node", "test_host", (*consulApi.QueryOptions)(nil)).Return(catalogNode, nil, nil)
-
-	healthChecks := consulApi.HealthChecks{
-		&consulApi.HealthCheck{
-			CheckID: "trentoAgent",
-			Status:  consulApi.HealthPassing,
-		},
-	}
-	health.On("Node", "test_host", (*consulApi.QueryOptions)(nil)).Return(healthChecks, nil, nil)
-
-	sapsystemPath := "trento/v0/hosts/test_host/sapsystems/"
-	consulInst.On("WaitLock", sapsystemPath).Return(nil)
-	kv.On("ListMap", sapsystemPath, sapsystemPath).Return(sapSystemMap, nil)
-
-	cloudListMap := map[string]interface{}{
-		"provider": "other",
-	}
-	cloudPath := "trento/v0/hosts/test_host/"
-	cloudListMapPath := cloudPath + "cloud/"
-	consulInst.On("WaitLock", cloudPath).Return(nil)
-	kv.On("ListMap", cloudListMapPath, cloudListMapPath).Return(cloudListMap, nil)
+	mockHostsService := new(services.MockHostsService)
 
 	subscriptionsList := []*models.SlesSubscription{
 		&models.SlesSubscription{
@@ -260,11 +177,12 @@ func TestHostHandler(t *testing.T) {
 		},
 	}
 
-	subscriptionsMocks.On("GetHostSubscriptions", "test_host").Return(subscriptionsList, nil)
+	subscriptionsMocks.On("GetHostSubscriptions", "2").Return(subscriptionsList, nil)
+	mockHostsService.On("GetByID", "2").Return(hostListFixture()[1], nil)
 
 	deps := setupTestDependencies()
-	deps.consul = consulInst
 	deps.subscriptionsService = subscriptionsMocks
+	deps.hostsService = mockHostsService
 
 	config := setupTestConfig()
 	app, err := NewAppWithDeps(config, deps)
@@ -273,7 +191,7 @@ func TestHostHandler(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req := httptest.NewRequest("GET", "/hosts/test_host", nil)
+	req := httptest.NewRequest("GET", "/hosts/2", nil)
 	req.Header.Set("Accept", "text/html")
 
 	app.webEngine.ServeHTTP(resp, req)
@@ -292,10 +210,11 @@ func TestHostHandler(t *testing.T) {
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, minified, "Host details")
 
-	assert.Regexp(t, regexp.MustCompile("<dd.*>test_host</dd>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<a.*sapsystems/123456.*>sys1</a>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<dd.*>v1</dd>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<span.*>passing</span>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<span.*>host2</span>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<a.*sapsystems/sap_system_id_2.*>QAS</a>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<span.*>v1</span>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<span.*>not running</span>"), minified)
+
 	// Subscriptions
 	assert.Regexp(t, regexp.MustCompile(
 		"<td>SLES_SAP</td><td>x64_84</td><td>15.2</td><td>internal</td><td>Registered</td>"+
@@ -303,86 +222,37 @@ func TestHostHandler(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile(
 		"<td>sle-module-desktop-applications</td><td>x64_84</td><td>15.2</td><td></td>"+
 			"<td>Registered</td><td></td><td></td><td></td>"), minified)
-	// SAP Instance
-	assert.Regexp(t, regexp.MustCompile("<dt.*>Name</dt><dd.*>HDB00</dd>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<dt.*>SID</dt><dd.*>PRD</dd>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<dt.*>Instance number</dt><dd.*>00</dd>"), minified)
-	// Processes
-	assert.Regexp(t, regexp.MustCompile("<td>proc1</td>.*<span.*primary.*>Green</span>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td>proc2</td>.*<span.*warning.*>Yellow</span>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td>proc3</td>.*<span.*danger.*>Red</span>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<td>proc4</td>.*<span.*secondary.*>Gray</span>"), minified)
 }
 
 func TestHostHandlerAzure(t *testing.T) {
-	consulInst := new(consulMocks.Client)
-	catalog := new(consulMocks.Catalog)
-	health := new(consulMocks.Health)
-	kv := new(consulMocks.KV)
 	subscriptionsMocks := new(services.MockSubscriptionsService)
+	mockHostsService := new(services.MockHostsService)
 
-	consulInst.On("Catalog").Return(catalog)
-	consulInst.On("Health").Return(health)
-	consulInst.On("KV").Return(kv)
-
-	node := &consulApi.Node{
-		Node:       "test_host",
-		Datacenter: "dc1",
-		Address:    "192.168.1.1",
-		Meta: map[string]string{
-			"trento-sap-systems": "sys1",
+	subscriptionsList := []*models.SlesSubscription{
+		&models.SlesSubscription{
+			ID:                 "SLES_SAP",
+			Version:            "15.2",
+			Arch:               "x64_84",
+			Status:             "Registered",
+			StartsAt:           "2019-03-20 09:55:32 UTC",
+			ExpiresAt:          "2024-03-20 09:55:32 UTC",
+			SubscriptionStatus: "ACTIVE",
+			Type:               "internal",
+		},
+		&models.SlesSubscription{
+			ID:      "sle-module-desktop-applications",
+			Version: "15.2",
+			Arch:    "x64_84",
+			Status:  "Registered",
 		},
 	}
 
-	catalogNode := &consulApi.CatalogNode{Node: node}
-	catalog.On("Node", "test_host", (*consulApi.QueryOptions)(nil)).Return(catalogNode, nil, nil)
-
-	healthChecks := consulApi.HealthChecks{
-		&consulApi.HealthCheck{
-			Status: consulApi.HealthPassing,
-		},
-	}
-	health.On("Node", "test_host", (*consulApi.QueryOptions)(nil)).Return(healthChecks, nil, nil)
-
-	sapsystemPath := "trento/v0/hosts/test_host/sapsystems/"
-	consulInst.On("WaitLock", sapsystemPath).Return(nil)
-	kv.On("ListMap", sapsystemPath, sapsystemPath).Return(nil, nil)
-
-	cloudListMap := map[string]interface{}{
-		"provider": "azure",
-		"metadata": map[string]interface{}{
-			"compute": map[string]interface{}{
-				"name":     "vmtest_host",
-				"location": "north",
-				"vmsize":   "10gb",
-				"storageprofile": map[string]interface{}{
-					"datadisks": []interface{}{
-						map[string]interface{}{
-							"name": "value1",
-						},
-						map[string]interface{}{
-							"name": "value2",
-						},
-					},
-				},
-				"offer":             "superoffer",
-				"sku":               "gen2",
-				"subscription":      "1234",
-				"resourceid":        "resource1",
-				"resourcegroupname": "group1",
-			},
-		},
-	}
-	cloudPath := "trento/v0/hosts/test_host/"
-	cloudListMapPath := cloudPath + "cloud/"
-	consulInst.On("WaitLock", cloudPath).Return(nil)
-	kv.On("ListMap", cloudListMapPath, cloudListMapPath).Return(cloudListMap, nil)
-	subscriptionsMocks.On(
-		"GetHostSubscriptions", "test_host").Return([]*models.SlesSubscription{}, nil)
+	subscriptionsMocks.On("GetHostSubscriptions", "1").Return(subscriptionsList, nil)
+	mockHostsService.On("GetByID", "1").Return(hostListFixture()[0], nil)
 
 	deps := setupTestDependencies()
-	deps.consul = consulInst
 	deps.subscriptionsService = subscriptionsMocks
+	deps.hostsService = mockHostsService
 
 	config := setupTestConfig()
 	app, err := NewAppWithDeps(config, deps)
@@ -391,7 +261,7 @@ func TestHostHandlerAzure(t *testing.T) {
 	}
 
 	resp := httptest.NewRecorder()
-	req := httptest.NewRequest("GET", "/hosts/test_host", nil)
+	req := httptest.NewRequest("GET", "/hosts/1", nil)
 	req.Header.Set("Accept", "text/html")
 
 	app.webEngine.ServeHTTP(resp, req)
@@ -408,23 +278,50 @@ func TestHostHandlerAzure(t *testing.T) {
 	}
 
 	assert.Equal(t, 200, resp.Code)
-	assert.Contains(t, minified, "Cloud details")
-	assert.Regexp(t, regexp.MustCompile("<dd.*>.*vmtest_host.*</dd>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<dd.*>north</dd>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<dd.*>10gb</dd>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<dd.*>2</dd>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<dd.*>superoffer</dd>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<dd.*>gen2</dd>"), minified)
+	assert.Contains(t, minified, "Host details")
+
+	assert.Regexp(t, regexp.MustCompile("<span.*>host1</span>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<a.*sapsystems/sap_system_id_1.*>PRD</a>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<span.*>v1</span>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<span.*>running</span>"), minified)
+
+	// Subscriptions
+	assert.Regexp(t, regexp.MustCompile(
+		"<td>SLES_SAP</td><td>x64_84</td><td>15.2</td><td>internal</td><td>Registered</td>"+
+			"<td>ACTIVE</td><td>2019-03-20 09:55:32 UTC</td><td>2024-03-20 09:55:32 UTC</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile(
+		"<td>sle-module-desktop-applications</td><td>x64_84</td><td>15.2</td><td></td>"+
+			"<td>Registered</td><td></td><td></td><td></td>"), minified)
 }
 
 func TestHostHandler404Error(t *testing.T) {
-	consulInst := new(consulMocks.Client)
-	catalog := new(consulMocks.Catalog)
-	catalog.On("Node", "foobar", (*consulApi.QueryOptions)(nil)).Return((*consulApi.CatalogNode)(nil), nil, nil)
-	consulInst.On("Catalog").Return(catalog)
+	subscriptionsMocks := new(services.MockSubscriptionsService)
+	mockHostsService := new(services.MockHostsService)
 
+	subscriptionsList := []*models.SlesSubscription{
+		&models.SlesSubscription{
+			ID:                 "SLES_SAP",
+			Version:            "15.2",
+			Arch:               "x64_84",
+			Status:             "Registered",
+			StartsAt:           "2019-03-20 09:55:32 UTC",
+			ExpiresAt:          "2024-03-20 09:55:32 UTC",
+			SubscriptionStatus: "ACTIVE",
+			Type:               "internal",
+		},
+		&models.SlesSubscription{
+			ID:      "sle-module-desktop-applications",
+			Version: "15.2",
+			Arch:    "x64_84",
+			Status:  "Registered",
+		},
+	}
+
+	subscriptionsMocks.On("GetHostSubscriptions", "foobar").Return(subscriptionsList, nil)
+	mockHostsService.On("GetByID", "foobar").Return(nil, nil)
 	deps := setupTestDependencies()
-	deps.consul = consulInst
+	deps.subscriptionsService = subscriptionsMocks
+	deps.hostsService = mockHostsService
 
 	config := setupTestConfig()
 	app, err := NewAppWithDeps(config, deps)

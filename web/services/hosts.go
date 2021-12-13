@@ -1,6 +1,7 @@
 package services
 
 import (
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -93,6 +94,8 @@ func (s *hostsService) GetByID(id string) (*models.Host, error) {
 	var host entities.Host
 	err := s.db.
 		Where("agent_id = ?", id).
+		Preload("Heartbeat").
+		Preload("SAPSystemInstances").
 		First(&host).
 		Error
 
@@ -103,7 +106,17 @@ func (s *hostsService) GetByID(id string) (*models.Host, error) {
 		return nil, err
 	}
 
-	return host.ToModel(), nil
+	hostHealth := computeHealth(&host)
+	modeledHost := host.ToModel()
+	modeledHost.Health = hostHealth
+
+	if modeledHost.CloudProvider == "azure" {
+		var cloudData models.AzureCloudData
+		json.Unmarshal(host.CloudData, &cloudData)
+		modeledHost.CloudData = cloudData
+	}
+
+	return modeledHost, nil
 }
 
 func (s *hostsService) GetAllBySAPSystemID(id string) (models.HostList, error) {

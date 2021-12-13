@@ -5,6 +5,7 @@ import (
 
 	"github.com/lib/pq"
 	"github.com/trento-project/trento/web/models"
+	"gorm.io/datatypes"
 )
 
 type Host struct {
@@ -21,11 +22,23 @@ type Host struct {
 	Subscription       *SlesSubscription `gorm:"foreignKey:AgentID"`
 	Tags               []*models.Tag     `gorm:"polymorphic:Resource;polymorphicValue:hosts"`
 	UpdatedAt          time.Time
+	CloudData          datatypes.JSON
 }
 
 type HostHeartbeat struct {
 	AgentID   string `gorm:"primaryKey"`
 	UpdatedAt time.Time
+}
+
+type AzureCloudData struct {
+	VMName          string `json:"vmname"`
+	ResourceGroup   string `json:"resource_group"`
+	Location        string `json:"location"`
+	VMSize          string `json:"vmsize"`
+	DataDisksNumber int    `json:"data_disks_number"`
+	Offer           string `json:"offer"`
+	SKU             string `json:"sku"`
+	AdminUsername   string `json:"admin_username"`
 }
 
 func (h *Host) ToModel() *models.Host {

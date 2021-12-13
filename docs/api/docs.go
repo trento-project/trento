@@ -665,6 +665,9 @@ var doc = `{
                 "labels": {
                     "type": "string"
                 },
+                "msg": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },

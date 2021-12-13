@@ -9,7 +9,7 @@ import (
 )
 
 func (t *trentoApiService) GetClustersSettings() (webApi.ClustersSettingsResponse, error) {
-	body, statusCode, err := t.getJson("internal/clusters/settings")
+	body, statusCode, err := t.getJson("clusters/settings")
 	if err != nil {
 		return nil, err
 	}

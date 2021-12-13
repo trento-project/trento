@@ -39,6 +39,11 @@ func LoadConfig() (*agent.Config, error) {
 		return nil, errors.Wrap(err, "could not read the hostname")
 	}
 
+	sshAddress := viper.GetString("ssh-address")
+	if sshAddress == "" {
+		return nil, errors.New("ssh-address is required, cannot start agent")
+	}
+
 	return &agent.Config{
 		CollectorConfig: &collector.Config{
 			CollectorHost: viper.GetString("collector-host"),
@@ -50,7 +55,7 @@ func LoadConfig() (*agent.Config, error) {
 		},
 		ConsulConfigDir: viper.GetString("consul-config-dir"),
 		InstanceName:    hostname,
-		SSHAddress:      viper.GetString("ssh-address"),
+		SSHAddress:      sshAddress,
 		DiscoveryPeriod: time.Duration(viper.GetInt("discovery-period")) * time.Minute,
 	}, nil
 }

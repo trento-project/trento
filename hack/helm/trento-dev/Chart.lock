@@ -1,6 +1,6 @@
 dependencies:
 - name: trento-server
   repository: file://../../../packaging/helm/trento-server
-  version: 0.2.2
-digest: sha256:17a13a50c3e12b2f0cc0f19f549ae96a9bf8aadea3dae518735ea99dd66fa50f
-generated: "2021-12-10T23:24:14.182094134+01:00"
+  version: 0.2.3
+digest: sha256:fd58e0fb942fadd42c9dfe846d5aeae2c31e91bad043b56d2b01427ff775c582
+generated: "2021-12-14T12:32:36.756848008+01:00"

@@ -4,17 +4,15 @@
 
 ## Trento Agent
 
-The Trento Agent is to be set up on every node that should be handled by Trento,
-and it needs to be combined with a Consul Agent. 
+The Trento Agent is to be set up on every node that should be handled by Trento.
 
 The Trento Agent will run several periodic job loops. 
 
 ### Discovery Loop
 
 The Discovery loop is happening at a very low frequency and priority and is capturing record-worthy
-Data in the Consul Key-Value Store. At the current implementation, only selected datapoints are
-regularly updated into the Consul Key-Value Store. There is no conflict-resolution being implemented,
-the data is unconditionally overwritten.
+Data. At the current implementation, only selected datapoints are regularly updated. 
+There is no conflict-resolution being implemented, the data is unconditionally overwritten.
 
 ## Checker Loop
 

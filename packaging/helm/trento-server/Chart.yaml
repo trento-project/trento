@@ -4,7 +4,7 @@ description: The trento server chart contains all the components necessary to ru
 type: application
 # This is the chart version. This version number should be incremented each time you make changes
 # to the chart and its templates
-version: 0.2.2
+version: 0.2.3
 
 dependencies:
   - name: trento-web

@@ -72,7 +72,7 @@ mod-tidy:
 
 .PHONY: test
 test: web-assets
-	GIN_MODE=test go test -v -count=1 ./...
+	GIN_MODE=test go test -v -p 1 ./...
 
 .PHONY: full-check
 full-check: generate vet-check test web-check

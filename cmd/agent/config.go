@@ -55,6 +55,6 @@ func LoadConfig() (*agent.Config, error) {
 		},
 		InstanceName:    hostname,
 		SSHAddress:      sshAddress,
-		DiscoveryPeriod: time.Duration(viper.GetInt("discovery-period")) * time.Minute,
+		DiscoveryPeriod: time.Duration(viper.GetInt("discovery-period")) * time.Second,
 	}, nil
 }

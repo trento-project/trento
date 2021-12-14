@@ -19,6 +19,8 @@ ara:
 
 postgresql:
   enabled: true
+  image:
+    tag: 14.1.0-debian-10-r30
   postgresqlUsername: "postgres"
   postgresqlPassword: "postgres"
   postgresqlDatabase: "trento"

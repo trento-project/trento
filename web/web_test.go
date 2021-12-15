@@ -9,10 +9,11 @@ import (
 
 func setupTestDependencies() Dependencies {
 	return Dependencies{
-		webEngine:       gin.Default(),
-		collectorEngine: gin.Default(),
-		store:           cookie.NewStore([]byte("secret")),
-		settingsService: newMockedSettingsService(),
+		webEngine:            gin.Default(),
+		collectorEngine:      gin.Default(),
+		store:                cookie.NewStore([]byte("secret")),
+		settingsService:      newMockedSettingsService(),
+		subscriptionsService: newMockedSubscriptionsService(),
 	}
 }
 
@@ -31,4 +32,11 @@ func newMockedSettingsService() services.SettingsService {
 	settingsService.On("IsEulaAccepted").Return(true, nil)
 
 	return settingsService
+}
+
+func newMockedSubscriptionsService() services.SubscriptionsService {
+	subscriptionsService := new(services.MockSubscriptionsService)
+	subscriptionsService.On("IsTrentoPremium").Return(true, nil)
+
+	return subscriptionsService
 }

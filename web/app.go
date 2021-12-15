@@ -159,7 +159,7 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 	webEngine.Use(ErrorHandler)
 	webEngine.Use(sessions.Sessions("session", deps.store))
 	webEngine.StaticFS("/static", http.FS(assetsFS))
-	webEngine.Use(EulaMiddleware(deps.settingsService))
+	webEngine.Use(EulaMiddleware(deps.settingsService, deps.subscriptionsService))
 	webEngine.GET("/", HomeHandler)
 	webEngine.GET("/about", NewAboutHandler(deps.subscriptionsService))
 	webEngine.GET("/eula", EulaShowHandler())

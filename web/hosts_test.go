@@ -178,6 +178,7 @@ func TestHostHandler(t *testing.T) {
 	}
 
 	subscriptionsMocks.On("GetHostSubscriptions", "2").Return(subscriptionsList, nil)
+	subscriptionsMocks.On("IsTrentoPremium").Return(true, nil)
 	mockHostsService.On("GetByID", "2").Return(hostListFixture()[1], nil)
 
 	deps := setupTestDependencies()
@@ -248,6 +249,7 @@ func TestHostHandlerAzure(t *testing.T) {
 	}
 
 	subscriptionsMocks.On("GetHostSubscriptions", "1").Return(subscriptionsList, nil)
+	subscriptionsMocks.On("IsTrentoPremium").Return(true, nil)
 	mockHostsService.On("GetByID", "1").Return(hostListFixture()[0], nil)
 
 	deps := setupTestDependencies()
@@ -318,6 +320,7 @@ func TestHostHandler404Error(t *testing.T) {
 	}
 
 	subscriptionsMocks.On("GetHostSubscriptions", "foobar").Return(subscriptionsList, nil)
+	subscriptionsMocks.On("IsTrentoPremium").Return(true, nil)
 	mockHostsService.On("GetByID", "foobar").Return(nil, nil)
 	deps := setupTestDependencies()
 	deps.subscriptionsService = subscriptionsMocks

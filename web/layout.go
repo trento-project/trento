@@ -31,6 +31,7 @@ type LayoutData struct {
 	Title     string
 	Copyright string
 	Version   string
+	Flavor    string
 	Submenu   Submenu
 	Content   interface{}
 }
@@ -46,6 +47,7 @@ var defaultLayoutData = LayoutData{
 	Title:     "Trento Console",
 	Copyright: "© 2020-2021 SUSE LLC",
 	Version:   version.Version,
+	Flavor:    version.Flavor,
 }
 
 type LayoutHTML struct {

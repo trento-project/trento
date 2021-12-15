@@ -60,3 +60,38 @@ func (suite *CollectorServiceTestSuite) TestCollectorService_StoreEvent() {
 	suite.EqualValues(eventFromChannel.DiscoveryType, eventFromDB.DiscoveryType)
 	suite.EqualValues(eventFromChannel.Payload, eventFromDB.Payload)
 }
+
+func (suite *CollectorServiceTestSuite) TestCollectorService_StoreEvent_Skipping() {
+	firstEvent := &datapipeline.DataCollectedEvent{
+		AgentID:       "agent_id",
+		DiscoveryType: "test_discovery_type",
+		Payload:       []byte("{}"),
+	}
+	err := suite.collectorService.StoreEvent(firstEvent)
+	suite.NoError(err)
+	<-suite.ch
+
+	var eventFromDBFirst datapipeline.DataCollectedEvent
+	suite.tx.Last(&eventFromDBFirst)
+
+	secondEvent := &datapipeline.DataCollectedEvent{
+		AgentID:       "agent_id",
+		DiscoveryType: "test_discovery_type",
+		Payload:       []byte("{}"),
+	}
+	err = suite.collectorService.StoreEvent(secondEvent)
+	suite.NoError(err)
+	<-suite.ch
+
+	var eventFromDBSecond datapipeline.DataCollectedEvent
+	err = suite.tx.Last(&eventFromDBSecond).Error
+	suite.NoError(err)
+
+	var allEvents []*datapipeline.DataCollectedEvent
+	err = suite.tx.Find(&allEvents).Error
+	suite.NoError(err)
+
+	suite.EqualValues(eventFromDBFirst.ID, eventFromDBSecond.ID)
+	suite.EqualValues(eventFromDBFirst.CreatedAt, eventFromDBSecond.CreatedAt)
+	suite.Equal(1, len(allEvents))
+}

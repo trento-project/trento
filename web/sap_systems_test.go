@@ -226,7 +226,7 @@ func TestSAPResourceHandler(t *testing.T) {
 	// Layout
 	assert.Regexp(t, regexp.MustCompile("<tr><td>netweaver01</td><td>00</td><td>MESSAGESERVER\\|ENQUE</td><td>50013</td><td>50014</td><td>0.5</td><td><span.*primary.*>SAPControl-GREEN</span></td></tr>"), responseBody)
 	// Host
-	assert.Regexp(t, regexp.MustCompile("<tr><td>.*check_circle.*</td><td><a href=/hosts/netweaver01>netweaver01</a></td><td>192.168.10.10</td><td>azure</td><td><a href=/clusters/cluster_id>netweaver</a></td><td><a href=/sapsystems/sap_system_id>PRD</a></td><td>v0</td></tr>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<tr><td>.*check_circle.*</td><td><a href=/hosts/netweaver01>netweaver01</a></td><td>192.168.10.10</td><td>azure</td><td><a href=/clusters/cluster_id>netweaver</a></td><td>v0</td></tr>"), responseBody)
 }
 
 func TestSAPResourceHandler404Error(t *testing.T) {

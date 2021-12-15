@@ -1,4 +1,5 @@
 {{ define "hosts_table" }}
+    {{ $hideSAPystems := .HideSAPSystems }}
     {{ $hideTags := .HideTags }}
     <div class='table-responsive'>
         <table class='table eos-table'>
@@ -9,7 +10,9 @@
                 <th scope='col'>Address</th>
                 <th scope='col'>Cloud provider</th>
                 <th scope='col'>Cluster</th>
-                <th scope='col'>System</th>
+                {{ if not $hideSAPystems }}
+                    <th scope='col'>SAP System</th>
+                {{ end}}
                 <th scope='col'>Agent version</th>
                 {{ if not $hideTags }}
                     <th scope='col'>Tags</th>
@@ -41,11 +44,13 @@
                             {{ .ClusterName }}
                         {{- end }}
                     </td>
+                    {{ if not $hideSAPystems }}
                     <td>
                         {{- range .SAPSystems }} 
                             <a href="{{- if eq .Type "database" }}/databases{{- else }}/sapsystems{{- end }}/{{ .ID }}">{{ .SID }}</a>
                         {{- end }}
                     </td>
+                    {{ end }}
                     <td>
                         {{ .AgentVersion }}
                     </td>

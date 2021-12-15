@@ -149,9 +149,10 @@ func NewSAPResourceHandler(hostsService services.HostsService, sapSystemsService
 		}
 
 		c.HTML(http.StatusOK, "sap_system.html.tmpl", gin.H{
-			"SAPSystem": sapSystem,
-			"Hosts":     hosts,
-			"HideTags":  true,
+			"SAPSystem":      sapSystem,
+			"Hosts":          hosts,
+			"HideSAPSystems": true,
+			"HideTags":       true,
 		})
 	}
 }

@@ -7,18 +7,14 @@
                   life of SAP Applications administrators</p>
                 <hr/>
                 <dl class="row">
-                    <dt class="col-sm-3">Web version</dt>
-                    <dd class="col-sm-9">v{{ .Version }}</dd>
                     <dt class="col-sm-3">Trento flavor</dt>
                     <dd class="col-sm-9">{{ .Flavor }}</dd>
+                    <dt class="col-sm-3">Server version</dt>
+                    <dd class="col-sm-9">v{{ .Version }}</dd>
                     <dt class="col-sm-3">Github repository</dt>
                     <dd class="col-sm-9"><a href="https://github.com/trento-project/trento" target="_blank">https://github.com/trento-project/trento</a></dd>
-                    <dt class="col-sm-3">Subscription</dt>
-                    <dd class="col-sm-9"><span class='badge badge-{{ if .PremiumData.IsPremium }}success{{ else }}secondary{{ end }}'>{{ if .PremiumData.IsPremium }}Premium{{ else }}Community{{ end }}</span></dd>
-                    {{- if .PremiumData.IsPremium }}
-                    <dt class="col-sm-3">SLES_SAP machines</dt>
-                    <dd class="col-sm-9">{{ .PremiumData.Sles4SapCount }}</dd>
-                    {{- end }}
+                    <dt class="col-sm-3">SLES4SAP Subscriptions</dt>
+                    <dd class="col-sm-9"><span data-toggle='tooltip' data-original-title='You need at least one SLES4SAP subscription to activate Trento premium' class='badge badge-{{ if .PremiumData.IsPremium }}success{{ else }}secondary{{ end }}'>{{ .PremiumData.Sles4SapCount }} Found</span></dd>
                 </dl>
             </div>
             <div class="col-sm-6">

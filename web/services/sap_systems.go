@@ -76,6 +76,7 @@ func (s *sapSystemsService) GetApplicationsCount() (int, error) {
 
 	err := s.db.
 		Model(&entities.SAPSystemInstance{}).
+		Distinct("id").
 		Group("type").
 		Having("type = ?", models.SAPSystemTypeApplication).
 		Count(&count).
@@ -89,6 +90,7 @@ func (s *sapSystemsService) GetDatabasesCount() (int, error) {
 
 	err := s.db.
 		Model(&entities.SAPSystemInstance{}).
+		Distinct("id").
 		Group("type").
 		Having("type = ?", models.SAPSystemTypeDatabase).
 		Count(&count).

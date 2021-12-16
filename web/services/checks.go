@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/mitchellh/mapstructure"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
@@ -37,7 +38,7 @@ type ChecksService interface {
 	// Check catalog services
 	GetChecksCatalog() (models.ChecksCatalog, error)
 	GetChecksCatalogByGroup() (models.GroupedCheckList, error)
-	CreateChecksCatalogEntry(check *models.Check) error
+	CreateChecksCatalogEntry(check *models.Check) error // seems to be never used
 	CreateChecksCatalog(checkList models.ChecksCatalog) error
 	// Check result services
 	GetChecksResult() (map[string]*models.Results, error)
@@ -55,12 +56,17 @@ type ChecksService interface {
 }
 
 type checksService struct {
-	araService ara.AraService
-	db         *gorm.DB
+	db               *gorm.DB
+	araService       ara.AraService
+	premiumDetection PremiumDetectionService
 }
 
-func NewChecksService(araService ara.AraService, db *gorm.DB) *checksService {
-	return &checksService{araService: araService, db: db}
+func NewChecksService(db *gorm.DB, araService ara.AraService, premiumDetection PremiumDetectionService) *checksService {
+	return &checksService{
+		db:               db,
+		araService:       araService,
+		premiumDetection: premiumDetection,
+	}
 }
 
 /*
@@ -69,7 +75,17 @@ Checks catalog services
 
 func (c *checksService) GetChecksCatalog() (models.ChecksCatalog, error) {
 	var checksEntity entities.CheckList
-	result := c.db.Order("payload->>'name'").Find(&checksEntity)
+	isPremiumActive, _ := c.premiumDetection.IsPremiumActive()
+
+	var result *gorm.DB
+	qb := c.db.Order("payload->>'name'")
+
+	if isPremiumActive {
+		result = c.db.Find(&checksEntity)
+	} else {
+		result = qb.Find(&checksEntity, datatypes.JSONQuery("payload").Equals(false, "premium"))
+	}
+
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -266,12 +282,35 @@ func (c *checksService) GetSelectedChecksById(id string) (models.SelectedChecks,
 		SelectedChecks: []string{},
 	}
 
-	result := c.db.Where("id", id).First(&selectedChecks)
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		return selectedChecks, nil
+	catalog, err := c.GetChecksCatalog()
+	if err != nil {
+		return selectedChecks, err
 	}
 
-	return selectedChecks, result.Error
+	err = c.db.Where("id", id).First(&selectedChecks).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return selectedChecks, nil
+		}
+		return selectedChecks, err
+	}
+
+	set := make(map[string]struct{})
+	var filteredChecks []string
+
+	for _, availableCheck := range catalog {
+		set[availableCheck.ID] = struct{}{}
+	}
+
+	for _, s := range selectedChecks.SelectedChecks {
+		if _, ok := set[s]; ok {
+			filteredChecks = append(filteredChecks, s)
+		}
+	}
+
+	selectedChecks.SelectedChecks = filteredChecks
+
+	return selectedChecks, err
 }
 
 func (c *checksService) CreateSelectedChecks(id string, selectedChecksList []string) error {

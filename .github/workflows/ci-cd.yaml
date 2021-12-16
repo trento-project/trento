@@ -211,7 +211,7 @@ jobs:
       - name: Set up chart-testing
         uses: helm/chart-testing-action@v2.1.0
       - name: Lint
-        run: ct lint --config=ct.yaml
+        run: ct lint --config=ct.yaml --lint-conf=helmlintconf.yaml
 
   build-static-binary:
     runs-on: ubuntu-20.04

@@ -145,6 +145,10 @@ func (suite *SAPSystemsServiceTestSuite) TestSAPSystemsService_GetAllApplication
 				Type: models.SAPSystemTypeDatabase,
 				Instances: []*models.SAPSystemInstance{
 					{
+						HostID:                  "2",
+						Hostname:                "dbhost_1",
+						ClusterID:               "cluster_id_2",
+						ClusterName:             "dbcluster",
 						Features:                "features",
 						InstanceNumber:          "10",
 						SystemReplication:       "Primary",
@@ -153,6 +157,10 @@ func (suite *SAPSystemsServiceTestSuite) TestSAPSystemsService_GetAllApplication
 						Type:                    models.SAPSystemTypeDatabase,
 					},
 					{
+						HostID:                  "3",
+						Hostname:                "dbhost_2",
+						ClusterID:               "cluster_id_2",
+						ClusterName:             "dbcluster",
 						Features:                "features",
 						InstanceNumber:          "11",
 						SystemReplication:       "Secondary",

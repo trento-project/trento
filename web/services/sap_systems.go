@@ -233,6 +233,7 @@ func (s *sapSystemsService) getAttachedDatabase(dbName string, dbHost string) (*
 	var instances entities.SAPSystemInstances
 	err = s.db.
 		Where("id", primaryInstance.ID).
+		Preload("Host").
 		Find(&instances).
 		Error
 

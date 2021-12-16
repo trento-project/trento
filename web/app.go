@@ -94,18 +94,18 @@ func DefaultDependencies(config *Config) Dependencies {
 	projectorRegistry := datapipeline.InitProjectorsRegistry(db)
 	projectorWorkersPool := datapipeline.NewProjectorsWorkerPool(projectorRegistry)
 
+	settingsService := services.NewSettingsService(db)
 	tagsService := services.NewTagsService(db)
 	araService := ara.NewAraService(viper.GetString("ara-addr"))
-	checksService := services.NewChecksService(araService, db)
 	subscriptionsService := services.NewSubscriptionsService(db)
 	hostsService := services.NewHostsService(db)
 	sapSystemsService := services.NewSAPSystemsService(db)
+	premiumDetection := services.NewPremiumDetection(version.Flavor, subscriptionsService, settingsService)
+	checksService := services.NewChecksService(db, araService, premiumDetection)
 	clustersService := services.NewClustersService(db, checksService)
 	collectorService := services.NewCollectorService(db, projectorWorkersPool.GetChannel())
-	settingsService := services.NewSettingsService(db)
 	telemetryRegistry := telemetry.NewTelemetryRegistry(db)
 	telemetryPublisher := telemetry.NewTelemetryPublisher()
-	premiumDetection := services.NewPremiumDetection(version.Flavor, subscriptionsService, settingsService)
 
 	return Dependencies{
 		webEngine, collectorEngine, store, projectorWorkersPool,

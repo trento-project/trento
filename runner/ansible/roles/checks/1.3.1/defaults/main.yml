@@ -12,6 +12,7 @@ remediation: |
 
   ## Remediation
   Run the following commands in order:
+
   1. Put cluster into maintenance mode:
      ```crm configure property maintenance-mode=true```
   2. Stop the cluster:

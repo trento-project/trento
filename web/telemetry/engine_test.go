@@ -9,11 +9,15 @@ import (
 	"github.com/google/uuid"
 	mock "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"github.com/trento-project/trento/web/services"
 )
 
 type EngineTestSuite struct {
 	suite.Suite
-	dummyInstallationId uuid.UUID
+	dummyInstallationId    uuid.UUID
+	mockedPublisher        *MockPublisher
+	mockedExtractor        *MockExtractor
+	mockedPremiumDetection *services.MockPremiumDetection
 }
 
 func TestEngineTestSuite(t *testing.T) {
@@ -25,37 +29,42 @@ func (suite *EngineTestSuite) SetupSuite() {
 	telemetryCollectionInterval = 50 * time.Millisecond
 }
 
+func (suite *EngineTestSuite) SetupTest() {
+	suite.mockedPublisher = new(MockPublisher)
+	suite.mockedExtractor = new(MockExtractor)
+	suite.mockedPremiumDetection = new(services.MockPremiumDetection)
+	suite.mockedPremiumDetection.On("CanPublishTelemetry").Return(true, nil)
+}
+
 // Test_ExtractsAndPublishesSingleTelemetry tests simple scenario of extracting and publishing single telemetry.
 func (suite *EngineTestSuite) Test_ExtractsAndPublishesSingleTelemetry() {
 	dummyInstallationId := suite.dummyInstallationId
 	ctx, cancel := context.WithCancel(context.Background())
 	callcount := 0
 
-	mockedPublisher := new(MockPublisher)
-	mockedExtractor := new(MockExtractor)
-
-	mockedPublisher.On("Publish", "dummy_1", dummyInstallationId, mock.Anything).Run(func(args mock.Arguments) {
+	suite.mockedPublisher.On("Publish", "dummy_1", dummyInstallationId, mock.Anything).Run(func(args mock.Arguments) {
 		callcount++
 		if callcount == 2 {
 			cancel()
 		}
 	}).Return(nil)
-	mockedExtractor.On("Extract").Return(&struct{}{}, nil)
+	suite.mockedExtractor.On("Extract").Return(&struct{}{}, nil)
 
 	registry := &TelemetryRegistry{
-		"dummy_1": mockedExtractor,
+		"dummy_1": suite.mockedExtractor,
 	}
 
 	engine := NewEngine(
 		dummyInstallationId,
-		mockedPublisher,
+		suite.mockedPublisher,
 		registry,
+		suite.mockedPremiumDetection,
 	)
 
 	engine.Start(ctx)
 
-	mockedPublisher.AssertNumberOfCalls(suite.T(), "Publish", 2)
-	mockedExtractor.AssertNumberOfCalls(suite.T(), "Extract", 2)
+	suite.mockedPublisher.AssertNumberOfCalls(suite.T(), "Publish", 2)
+	suite.mockedExtractor.AssertNumberOfCalls(suite.T(), "Extract", 2)
 }
 
 // Test_ExtractsAndPublishesMultipleTelemetry tests the scenarion of extracting and publishing multiple telemetry.
@@ -64,39 +73,37 @@ func (suite *EngineTestSuite) Test_ExtractsAndPublishesMultipleTelemetry() {
 	ctx, cancel := context.WithCancel(context.Background())
 	callcount := 0
 
-	mockedPublisher := new(MockPublisher)
-	mockedExtractor := new(MockExtractor)
-
-	mockedPublisher.On("Publish", "dummy_1", dummyInstallationId, mock.Anything).Return(nil)
-	mockedPublisher.On("Publish", "dummy_2", dummyInstallationId, mock.Anything).Return(nil)
-	mockedPublisher.On("Publish", "dummy_3", dummyInstallationId, mock.Anything).Return(nil)
-	mockedPublisher.On("Publish", "dummy_4", dummyInstallationId, mock.Anything).Return(nil)
-	mockedPublisher.On("Publish", "dummy_5", dummyInstallationId, mock.Anything).Run(func(args mock.Arguments) {
+	suite.mockedPublisher.On("Publish", "dummy_1", dummyInstallationId, mock.Anything).Return(nil)
+	suite.mockedPublisher.On("Publish", "dummy_2", dummyInstallationId, mock.Anything).Return(nil)
+	suite.mockedPublisher.On("Publish", "dummy_3", dummyInstallationId, mock.Anything).Return(nil)
+	suite.mockedPublisher.On("Publish", "dummy_4", dummyInstallationId, mock.Anything).Return(nil)
+	suite.mockedPublisher.On("Publish", "dummy_5", dummyInstallationId, mock.Anything).Run(func(args mock.Arguments) {
 		callcount++
 		if callcount == 1 {
 			cancel()
 		}
 	}).Return(nil)
-	mockedExtractor.On("Extract").Return(&struct{}{}, nil)
+	suite.mockedExtractor.On("Extract").Return(&struct{}{}, nil)
 
 	registry := &TelemetryRegistry{
-		"dummy_1": mockedExtractor,
-		"dummy_2": mockedExtractor,
-		"dummy_3": mockedExtractor,
-		"dummy_4": mockedExtractor,
-		"dummy_5": mockedExtractor,
+		"dummy_1": suite.mockedExtractor,
+		"dummy_2": suite.mockedExtractor,
+		"dummy_3": suite.mockedExtractor,
+		"dummy_4": suite.mockedExtractor,
+		"dummy_5": suite.mockedExtractor,
 	}
 
 	engine := NewEngine(
 		dummyInstallationId,
-		mockedPublisher,
+		suite.mockedPublisher,
 		registry,
+		suite.mockedPremiumDetection,
 	)
 
 	engine.Start(ctx)
 
-	mockedPublisher.AssertNumberOfCalls(suite.T(), "Publish", 5)
-	mockedExtractor.AssertNumberOfCalls(suite.T(), "Extract", 5)
+	suite.mockedPublisher.AssertNumberOfCalls(suite.T(), "Publish", 5)
+	suite.mockedExtractor.AssertNumberOfCalls(suite.T(), "Extract", 5)
 }
 
 // Test_ExtractsAndPublishesAlsoIdentifiedTelemetries tests the scenario of supporting identified extractors.
@@ -105,43 +112,42 @@ func (suite *EngineTestSuite) Test_ExtractsAndPublishesAlsoIdentifiedExtractors(
 	ctx, cancel := context.WithCancel(context.Background())
 	callcount := 0
 
-	mockedPublisher := new(MockPublisher)
-	mockedExtractor := new(MockExtractor)
 	mockedIdentifiedExtractor := new(MockIdentifiedExtractor)
 
-	mockedPublisher.On("Publish", "dummy_1", dummyInstallationId, mock.Anything).Return(nil)
-	mockedPublisher.On("Publish", "dummy_2", dummyInstallationId, mock.Anything).Return(nil)
-	mockedPublisher.On("Publish", "dummy_3", dummyInstallationId, mock.Anything).Return(nil)
-	mockedPublisher.On("Publish", "dummy_4", dummyInstallationId, mock.Anything).Return(nil)
-	mockedPublisher.On("Publish", "dummy_5", dummyInstallationId, mock.Anything).Run(func(args mock.Arguments) {
+	suite.mockedPublisher.On("Publish", "dummy_1", dummyInstallationId, mock.Anything).Return(nil)
+	suite.mockedPublisher.On("Publish", "dummy_2", dummyInstallationId, mock.Anything).Return(nil)
+	suite.mockedPublisher.On("Publish", "dummy_3", dummyInstallationId, mock.Anything).Return(nil)
+	suite.mockedPublisher.On("Publish", "dummy_4", dummyInstallationId, mock.Anything).Return(nil)
+	suite.mockedPublisher.On("Publish", "dummy_5", dummyInstallationId, mock.Anything).Run(func(args mock.Arguments) {
 		callcount++
 		if callcount == 1 {
 			cancel()
 		}
 	}).Return(nil)
 
-	mockedExtractor.On("Extract").Return(&struct{}{}, nil)
+	suite.mockedExtractor.On("Extract").Return(&struct{}{}, nil)
 	mockedIdentifiedExtractor.On("Extract").Return(&struct{}{}, nil)
 	mockedIdentifiedExtractor.On("WithInstallationID", dummyInstallationId)
 
 	registry := &TelemetryRegistry{
-		"dummy_1": mockedExtractor,
-		"dummy_2": mockedExtractor,
+		"dummy_1": suite.mockedExtractor,
+		"dummy_2": suite.mockedExtractor,
 		"dummy_3": mockedIdentifiedExtractor,
 		"dummy_4": mockedIdentifiedExtractor,
-		"dummy_5": mockedExtractor,
+		"dummy_5": suite.mockedExtractor,
 	}
 
 	engine := NewEngine(
 		dummyInstallationId,
-		mockedPublisher,
+		suite.mockedPublisher,
 		registry,
+		suite.mockedPremiumDetection,
 	)
 
 	engine.Start(ctx)
 
-	mockedPublisher.AssertNumberOfCalls(suite.T(), "Publish", 5)
-	mockedExtractor.AssertNumberOfCalls(suite.T(), "Extract", 3)
+	suite.mockedPublisher.AssertNumberOfCalls(suite.T(), "Publish", 5)
+	suite.mockedExtractor.AssertNumberOfCalls(suite.T(), "Extract", 3)
 	mockedIdentifiedExtractor.AssertNumberOfCalls(suite.T(), "Extract", 2)
 	mockedIdentifiedExtractor.AssertNumberOfCalls(suite.T(), "WithInstallationID", 2)
 }
@@ -153,37 +159,59 @@ func (suite *EngineTestSuite) Test_ExtractsAndPublishesAlsoWithSomeErrors() {
 	ctx, cancel := context.WithCancel(context.Background())
 	callcount := 0
 
-	mockedPublisher := new(MockPublisher)
-	mockedExtractor := new(MockExtractor)
 	mockederroringExtractor := new(MockExtractor)
 
-	mockedPublisher.On("Publish", "dummy_1", dummyInstallationId, mock.Anything).Return(nil)
-	mockedPublisher.On("Publish", "dummy_2", dummyInstallationId, mock.Anything).Return(nil)
-	mockedPublisher.On("Publish", "dummy_3", dummyInstallationId, mock.Anything).Run(func(args mock.Arguments) {
+	suite.mockedPublisher.On("Publish", "dummy_1", dummyInstallationId, mock.Anything).Return(nil)
+	suite.mockedPublisher.On("Publish", "dummy_2", dummyInstallationId, mock.Anything).Return(nil)
+	suite.mockedPublisher.On("Publish", "dummy_3", dummyInstallationId, mock.Anything).Run(func(args mock.Arguments) {
 		callcount++
 		if callcount == 1 {
 			cancel()
 		}
 	}).Return(nil)
 
-	mockedExtractor.On("Extract").Return(&struct{}{}, nil)
+	suite.mockedExtractor.On("Extract").Return(&struct{}{}, nil)
 	mockederroringExtractor.On("Extract").Return(nil, errors.New("dummy error"))
 
 	registry := &TelemetryRegistry{
-		"dummy_1": mockedExtractor,
+		"dummy_1": suite.mockedExtractor,
 		"dummy_2": mockederroringExtractor,
-		"dummy_3": mockedExtractor,
+		"dummy_3": suite.mockedExtractor,
 	}
 
 	engine := NewEngine(
 		dummyInstallationId,
-		mockedPublisher,
+		suite.mockedPublisher,
 		registry,
+		suite.mockedPremiumDetection,
 	)
 
 	engine.Start(ctx)
 
-	mockedPublisher.AssertNumberOfCalls(suite.T(), "Publish", 2)
-	mockedExtractor.AssertNumberOfCalls(suite.T(), "Extract", 2)
+	suite.mockedPublisher.AssertNumberOfCalls(suite.T(), "Publish", 2)
+	suite.mockedExtractor.AssertNumberOfCalls(suite.T(), "Extract", 2)
 	mockederroringExtractor.AssertNumberOfCalls(suite.T(), "Extract", 1)
+}
+
+func (suite *EngineTestSuite) Test_SkippingTelemetry() {
+	ctx := context.Background()
+
+	mockedPremiumDetection := new(services.MockPremiumDetection)
+	mockedPremiumDetection.On("CanPublishTelemetry").Return(false, nil)
+
+	registry := &TelemetryRegistry{
+		"dummy_1": suite.mockedExtractor,
+	}
+
+	engine := NewEngine(
+		suite.dummyInstallationId,
+		suite.mockedPublisher,
+		registry,
+		mockedPremiumDetection,
+	)
+
+	engine.Start(ctx)
+
+	suite.mockedPublisher.AssertNumberOfCalls(suite.T(), "Publish", 0)
+	suite.mockedExtractor.AssertNumberOfCalls(suite.T(), "Extract", 0)
 }

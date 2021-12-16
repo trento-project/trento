@@ -1,10 +1,14 @@
 FROM node:16 AS node-build
 WORKDIR /build
-ADD Makefile /build
-# we add what's needed to run install node packages so that dependencies can be cached in a dedicate layer
+# skip the hack/get_version_from_git.sh execution in the frontend build
+ENV VERSION=""
+# first we only add what's needed to run the makefile
+ADD Makefile /build/
+# then we add what's needed just to install node packages so that dependencies can be cached in a dedicate layer
 ADD web/frontend/package.json web/frontend/package-lock.json /build/web/frontend/
 RUN make web-deps
-ADD web/frontend /build/web/frontend
+# only as last step we add the web frontend sources, this way changing these doesn't retrigger the slow npm install
+ADD web/frontend /build/web/frontend/
 RUN make web-assets
 
 FROM golang:1.16 as go-build

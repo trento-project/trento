@@ -194,7 +194,7 @@ func (suite *EngineTestSuite) Test_ExtractsAndPublishesAlsoWithSomeErrors() {
 }
 
 func (suite *EngineTestSuite) Test_SkippingTelemetry() {
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
 
 	mockedPremiumDetection := new(services.MockPremiumDetection)
 	mockedPremiumDetection.On("CanPublishTelemetry").Return(false, nil)
@@ -210,7 +210,13 @@ func (suite *EngineTestSuite) Test_SkippingTelemetry() {
 		mockedPremiumDetection,
 	)
 
-	engine.Start(ctx)
+	ch := make(chan struct{})
+	go func() {
+		engine.Start(ctx)
+		ch <- struct{}{}
+	}()
+	go cancel()
+	<-ch
 
 	suite.mockedPublisher.AssertNumberOfCalls(suite.T(), "Publish", 0)
 	suite.mockedExtractor.AssertNumberOfCalls(suite.T(), "Extract", 0)

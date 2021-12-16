@@ -48,17 +48,17 @@ type Publisher interface {
 func (e *Engine) Start(ctx context.Context) {
 	log.Infof("Starting Telemetry Engine")
 
-	canPublishTelemetry, err := e.premiumDetection.CanPublishTelemetry()
-	if err != nil {
-		log.Errorf("Unable to start Telemetry Engine. Error: %s", err)
-		return
-	}
-	if !canPublishTelemetry {
-		log.Infof("Telemetry publishing is not supported by this installation")
-		return
-	}
-
 	extractAndPublishFn := func() {
+		canPublishTelemetry, err := e.premiumDetection.CanPublishTelemetry()
+		if err != nil {
+			log.Errorf("Unable to start Telemetry Engine. Error: %s", err)
+			return
+		}
+		if !canPublishTelemetry {
+			log.Infof("Telemetry publishing is not supported by this installation")
+			return
+		}
+
 		for telemetryName, extractor := range *e.telemetryRegistry {
 			if identifiedExtractor, ok := extractor.(InstallationIdAwareExtractor); ok {
 				identifiedExtractor.WithInstallationID(e.installationID)

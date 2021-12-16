@@ -81,7 +81,7 @@ func (c *checksService) GetChecksCatalog() (models.ChecksCatalog, error) {
 	qb := c.db.Order("payload->>'name'")
 
 	if isPremiumActive {
-		result = c.db.Find(&checksEntity)
+		result = qb.Find(&checksEntity)
 	} else {
 		result = qb.Find(&checksEntity, datatypes.JSONQuery("payload").Equals(false, "premium"))
 	}

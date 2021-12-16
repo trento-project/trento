@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"net"
 
 	"github.com/lib/pq"
@@ -201,7 +202,7 @@ func (s *sapSystemsService) getAllByType(sapSystemType string, tagResourceType s
 }
 
 func (s *sapSystemsService) getAttachedDatabase(dbName string, dbHost string) (*models.SAPSystem, error) {
-	var instances entities.SAPSystemInstances
+	var primaryInstance entities.SAPSystemInstance
 
 	db := s.db.
 		Model(&entities.SAPSystemInstance{}).
@@ -215,15 +216,26 @@ func (s *sapSystemsService) getAttachedDatabase(dbName string, dbHost string) (*
 	}
 
 	err := db.Where("tenants && ?", pq.Array([]string{dbName})).
+		Select("id").
+		First(&primaryInstance).
+		Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	var instances entities.SAPSystemInstances
+	err = s.db.
+		Where("id", primaryInstance.ID).
 		Find(&instances).
 		Error
 
 	if err != nil {
 		return nil, err
-	}
-
-	if len(instances) == 0 {
-		return nil, nil
 	}
 
 	return instances.ToModel()[0], nil

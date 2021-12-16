@@ -14,6 +14,7 @@ func setupTestDependencies() Dependencies {
 		store:                cookie.NewStore([]byte("secret")),
 		settingsService:      newMockedSettingsService(),
 		subscriptionsService: newMockedSubscriptionsService(),
+		premiumDetection:     newMockedPremiumDetectionService(),
 	}
 }
 
@@ -39,4 +40,11 @@ func newMockedSubscriptionsService() services.SubscriptionsService {
 	subscriptionsService.On("IsTrentoPremium").Return(true, nil)
 
 	return subscriptionsService
+}
+
+func newMockedPremiumDetectionService() services.PremiumDetectionService {
+	premiumDetection := new(services.MockPremiumDetection)
+	premiumDetection.On("RequiresEulaAcceptance").Return(false, nil)
+
+	return premiumDetection
 }

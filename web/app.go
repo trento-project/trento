@@ -21,6 +21,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/trento-project/trento/internal/db"
+	"github.com/trento-project/trento/version"
 	"github.com/trento-project/trento/web/datapipeline"
 	"github.com/trento-project/trento/web/entities"
 	"github.com/trento-project/trento/web/models"
@@ -70,6 +71,7 @@ type Dependencies struct {
 	settingsService      services.SettingsService
 	telemetryRegistry    *telemetry.TelemetryRegistry
 	telemetryPublisher   telemetry.Publisher
+	premiumDetection     services.PremiumDetectionService
 }
 
 func DefaultDependencies(config *Config) Dependencies {
@@ -103,12 +105,13 @@ func DefaultDependencies(config *Config) Dependencies {
 	settingsService := services.NewSettingsService(db)
 	telemetryRegistry := telemetry.NewTelemetryRegistry(db)
 	telemetryPublisher := telemetry.NewTelemetryPublisher()
+	premiumDetection := services.NewPremiumDetection(version.Flavor, subscriptionsService, settingsService)
 
 	return Dependencies{
 		webEngine, collectorEngine, store, projectorWorkersPool,
 		checksService, subscriptionsService, tagsService,
 		collectorService, sapSystemsService, clustersService, hostsService, settingsService,
-		telemetryRegistry, telemetryPublisher,
+		telemetryRegistry, telemetryPublisher, premiumDetection,
 	}
 }
 
@@ -159,7 +162,7 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 	webEngine.Use(ErrorHandler)
 	webEngine.Use(sessions.Sessions("session", deps.store))
 	webEngine.StaticFS("/static", http.FS(assetsFS))
-	webEngine.Use(EulaMiddleware(deps.settingsService, deps.subscriptionsService))
+	webEngine.Use(EulaMiddleware(deps.premiumDetection))
 	webEngine.GET("/", HomeHandler)
 	webEngine.GET("/about", NewAboutHandler(deps.subscriptionsService))
 	webEngine.GET("/eula", EulaShowHandler())
@@ -265,6 +268,7 @@ func (a *App) Start(ctx context.Context) error {
 		a.InstallationID,
 		a.Dependencies.telemetryPublisher,
 		a.Dependencies.telemetryRegistry,
+		a.Dependencies.premiumDetection,
 	)
 
 	g.Go(func() error {

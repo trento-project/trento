@@ -20,7 +20,6 @@ func TestAboutHandlerPremium(t *testing.T) {
 		Sles4SapCount: 2,
 	}
 	subscriptionsMocks.On("GetPremiumData").Return(premiumData, nil)
-	subscriptionsMocks.On("IsTrentoPremium").Return(true, nil)
 
 	deps := setupTestDependencies()
 	deps.subscriptionsService = subscriptionsMocks
@@ -63,7 +62,6 @@ func TestAboutHandlerCommunity(t *testing.T) {
 		Sles4SapCount: 0,
 	}
 	subscriptionsMocks.On("GetPremiumData").Return(premiumData, nil)
-	subscriptionsMocks.On("IsTrentoPremium").Return(false, nil)
 
 	deps := setupTestDependencies()
 	deps.subscriptionsService = subscriptionsMocks

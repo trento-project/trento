@@ -21,6 +21,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/trento-project/trento/internal/db"
+	"github.com/trento-project/trento/version"
 	"github.com/trento-project/trento/web/datapipeline"
 	"github.com/trento-project/trento/web/entities"
 	"github.com/trento-project/trento/web/models"
@@ -56,20 +57,21 @@ type Config struct {
 	DBConfig      *db.Config
 }
 type Dependencies struct {
-	webEngine            *gin.Engine
-	collectorEngine      *gin.Engine
-	store                cookie.Store
-	projectorWorkersPool *datapipeline.ProjectorsWorkerPool
-	checksService        services.ChecksService
-	subscriptionsService services.SubscriptionsService
-	tagsService          services.TagsService
-	collectorService     services.CollectorService
-	sapSystemsService    services.SAPSystemsService
-	clustersService      services.ClustersService
-	hostsService         services.HostsService
-	settingsService      services.SettingsService
-	telemetryRegistry    *telemetry.TelemetryRegistry
-	telemetryPublisher   telemetry.Publisher
+	webEngine               *gin.Engine
+	collectorEngine         *gin.Engine
+	store                   cookie.Store
+	projectorWorkersPool    *datapipeline.ProjectorsWorkerPool
+	checksService           services.ChecksService
+	subscriptionsService    services.SubscriptionsService
+	tagsService             services.TagsService
+	collectorService        services.CollectorService
+	sapSystemsService       services.SAPSystemsService
+	clustersService         services.ClustersService
+	hostsService            services.HostsService
+	settingsService         services.SettingsService
+	telemetryRegistry       *telemetry.TelemetryRegistry
+	telemetryPublisher      telemetry.Publisher
+	premiumDetectionService services.PremiumDetectionService
 }
 
 func DefaultDependencies(config *Config) Dependencies {
@@ -92,15 +94,16 @@ func DefaultDependencies(config *Config) Dependencies {
 	projectorRegistry := datapipeline.InitProjectorsRegistry(db)
 	projectorWorkersPool := datapipeline.NewProjectorsWorkerPool(projectorRegistry)
 
+	settingsService := services.NewSettingsService(db)
 	tagsService := services.NewTagsService(db)
 	araService := ara.NewAraService(viper.GetString("ara-addr"))
-	checksService := services.NewChecksService(araService, db)
 	subscriptionsService := services.NewSubscriptionsService(db)
 	hostsService := services.NewHostsService(db)
 	sapSystemsService := services.NewSAPSystemsService(db)
+	premiumDetection := services.NewPremiumDetectionService(version.Flavor, subscriptionsService, settingsService)
+	checksService := services.NewChecksService(db, araService, premiumDetection)
 	clustersService := services.NewClustersService(db, checksService)
 	collectorService := services.NewCollectorService(db, projectorWorkersPool.GetChannel())
-	settingsService := services.NewSettingsService(db)
 	telemetryRegistry := telemetry.NewTelemetryRegistry(db)
 	telemetryPublisher := telemetry.NewTelemetryPublisher()
 
@@ -108,7 +111,7 @@ func DefaultDependencies(config *Config) Dependencies {
 		webEngine, collectorEngine, store, projectorWorkersPool,
 		checksService, subscriptionsService, tagsService,
 		collectorService, sapSystemsService, clustersService, hostsService, settingsService,
-		telemetryRegistry, telemetryPublisher,
+		telemetryRegistry, telemetryPublisher, premiumDetection,
 	}
 }
 
@@ -159,7 +162,7 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 	webEngine.Use(ErrorHandler)
 	webEngine.Use(sessions.Sessions("session", deps.store))
 	webEngine.StaticFS("/static", http.FS(assetsFS))
-	webEngine.Use(EulaMiddleware(deps.settingsService, deps.subscriptionsService))
+	webEngine.Use(EulaMiddleware(deps.premiumDetectionService))
 	webEngine.GET("/", HomeHandler)
 	webEngine.GET("/about", NewAboutHandler(deps.subscriptionsService))
 	webEngine.GET("/eula", EulaShowHandler())
@@ -265,6 +268,7 @@ func (a *App) Start(ctx context.Context) error {
 		a.InstallationID,
 		a.Dependencies.telemetryPublisher,
 		a.Dependencies.telemetryRegistry,
+		a.Dependencies.premiumDetectionService,
 	)
 
 	g.Go(func() error {

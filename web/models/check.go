@@ -28,7 +28,7 @@ type Check struct {
 	Remediation    string `json:"remediation,omitempty" mapstructure:"remediation,omitempty"`
 	Implementation string `json:"implementation,omitempty" mapstructure:"implementation,omitempty"`
 	Labels         string `json:"labels,omitempty" mapstructure:"labels,omitempty"`
-	Premium        bool   `json:"premium,omitempty" mapstructure:"premium,omitempty"`
+	Premium        bool   `json:"premium" mapstructure:"premium"`
 	Selected       bool   `json:"selected,omitempty" mapstructure:"selected,omitempty"`
 	Result         string `json:"result,omitempty" mapstructure:"result,omitempty"`
 	Msg            string `json:"msg,omitempty" mapstructure:"msg,omitempty"`

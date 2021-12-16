@@ -96,11 +96,13 @@ func TestApiClusterCheckResultsHandler(t *testing.T) {
 				"description": "description 1",
 				"hosts": gin.H{
 					"host1": gin.H{
-						"result": "passing",
-						"msg":    "some random message",
+						"premium": false,
+						"result":  "passing",
+						"msg":     "some random message",
 					},
 					"host2": gin.H{
-						"result": "passing",
+						"premium": false,
+						"result":  "passing",
 					},
 				},
 			},
@@ -110,10 +112,12 @@ func TestApiClusterCheckResultsHandler(t *testing.T) {
 				"description": "description 2",
 				"hosts": gin.H{
 					"host1": gin.H{
-						"result": "warning",
+						"premium": false,
+						"result":  "warning",
 					},
 					"host2": gin.H{
-						"result": "critical",
+						"premium": false,
+						"result":  "critical",
 					},
 				},
 			},

@@ -258,9 +258,10 @@ func (suite *ClustersServiceTestSuite) TestClustersService_GetAllSIDs() {
 
 func (suite *ClustersServiceTestSuite) TestClustersService_GetAllClustersSettingsReturnsNoSettings() {
 	mockAra := new(araMocks.AraService)
+	mockPremiumDetection := new(MockPremiumDetection)
 
 	tx := suite.tx.Raw("TRUNCATE TABLE clusters")
-	checksService := NewChecksService(mockAra, tx)
+	checksService := NewChecksService(tx, mockAra, mockPremiumDetection)
 	suite.clustersService = NewClustersService(tx, checksService)
 
 	clustersSettings, err := suite.clustersService.GetAllClustersSettings()
@@ -271,81 +272,47 @@ func (suite *ClustersServiceTestSuite) TestClustersService_GetAllClustersSetting
 }
 
 func (suite *ClustersServiceTestSuite) TestClustersService_GetAllClustersSettingsReturnsExpectedSettings() {
-	mockAra := new(araMocks.AraService)
-	checksService := NewChecksService(mockAra, suite.db)
-	suite.clustersService = NewClustersService(suite.db, checksService)
+	suite.checksService.On("GetSelectedChecksById", "1").Return(models.SelectedChecks{
+		ID:             "1",
+		SelectedChecks: []string{"A", "B", "C"},
+	}, nil)
+	suite.checksService.On("GetSelectedChecksById", "2").Return(models.SelectedChecks{
+		ID:             "2",
+		SelectedChecks: []string{},
+	}, nil)
+	suite.checksService.On("GetSelectedChecksById", "3").Return(models.SelectedChecks{
+		ID:             "3",
+		SelectedChecks: []string{},
+	}, nil)
 
-	loadClustersSettingsFixtures(suite.db)
+	suite.checksService.On("GetConnectionSettingsById", "1").Return(map[string]models.ConnectionSettings{
+		"host1": {
+			ID:   "1",
+			Node: "host1",
+			User: "theuser",
+		},
+	}, nil)
+	suite.checksService.On("GetConnectionSettingsById", "2").Return(map[string]models.ConnectionSettings{
+		"host2": {
+			ID:   "2",
+			Node: "host2",
+			User: "root",
+		},
+	}, nil)
+	suite.checksService.On("GetConnectionSettingsById", "3").Return(map[string]models.ConnectionSettings{
+		"host3": {
+			ID:   "3",
+			Node: "host3",
+			User: "",
+		},
+	}, nil)
 
 	clustersSettings, err := suite.clustersService.GetAllClustersSettings()
 	suite.NoError(err)
 	suite.NotEmpty(clustersSettings)
 	suite.Len(clustersSettings, 3)
 
-	suite.EqualValues(expectedClustersSettingsFixtures(), clustersSettings)
-}
-
-func (suite *ClustersServiceTestSuite) TestClustersService_GetClusterSettings() {
-	mockAra := new(araMocks.AraService)
-	checksService := NewChecksService(mockAra, suite.db)
-	suite.clustersService = NewClustersService(suite.db, checksService)
-
-	loadClustersSettingsFixtures(suite.db)
-
-	clusterSettings, err := suite.clustersService.GetClusterSettingsByID("1")
-	suite.NoError(err)
-
-	suite.EqualValues("1", clusterSettings.ID)
-	suite.EqualValues([]string{"A", "B", "C"}, clusterSettings.SelectedChecks)
-	suite.EqualValues([]*models.HostConnection{
-		{
-			Name:    "host1",
-			Address: "10.74.2.10",
-			User:    "theuser",
-		},
-	}, clusterSettings.Hosts)
-}
-
-func (suite *ClustersServiceTestSuite) TestClustersService_GetClusterSettings_NotFound() {
-	mockAra := new(araMocks.AraService)
-	checksService := NewChecksService(mockAra, suite.db)
-	suite.clustersService = NewClustersService(suite.db, checksService)
-
-	loadClustersSettingsFixtures(suite.db)
-
-	clusterSettings, err := suite.clustersService.GetClusterSettingsByID("not_found")
-	suite.NoError(err)
-	suite.Nil(clusterSettings)
-}
-
-func loadClustersSettingsFixtures(db *gorm.DB) {
-	db.Create(&models.SelectedChecks{
-		ID:             "1",
-		SelectedChecks: []string{"A", "B", "C"},
-	})
-	db.Create(&models.SelectedChecks{
-		ID:             "2",
-		SelectedChecks: []string{},
-	})
-	db.Create(&models.ConnectionSettings{
-		ID:   "1",
-		Node: "host1",
-		User: "theuser",
-	})
-	db.Create(&models.ConnectionSettings{
-		ID:   "2",
-		Node: "host2",
-		User: "root",
-	})
-	db.Create(&models.ConnectionSettings{
-		ID:   "3",
-		Node: "host3",
-		User: "",
-	})
-}
-
-func expectedClustersSettingsFixtures() models.ClustersSettings {
-	return models.ClustersSettings{
+	suite.EqualValues(models.ClustersSettings{
 		{
 			ID:             "1",
 			SelectedChecks: []string{"A", "B", "C"},
@@ -379,5 +346,38 @@ func expectedClustersSettingsFixtures() models.ClustersSettings {
 				},
 			},
 		},
-	}
+	}, clustersSettings)
+}
+
+func (suite *ClustersServiceTestSuite) TestClustersService_GetClusterSettings() {
+	suite.checksService.On("GetSelectedChecksById", "1").Return(models.SelectedChecks{
+		ID:             "1",
+		SelectedChecks: []string{"A", "B", "C"},
+	}, nil)
+	suite.checksService.On("GetConnectionSettingsById", "1").Return(map[string]models.ConnectionSettings{
+		"host1": {
+			ID:   "1",
+			Node: "host1",
+			User: "theuser",
+		},
+	}, nil)
+
+	clusterSettings, err := suite.clustersService.GetClusterSettingsByID("1")
+	suite.NoError(err)
+
+	suite.EqualValues("1", clusterSettings.ID)
+	suite.EqualValues([]string{"A", "B", "C"}, clusterSettings.SelectedChecks)
+	suite.EqualValues([]*models.HostConnection{
+		{
+			Name:    "host1",
+			Address: "10.74.2.10",
+			User:    "theuser",
+		},
+	}, clusterSettings.Hosts)
+}
+
+func (suite *ClustersServiceTestSuite) TestClustersService_GetClusterSettings_NotFound() {
+	clusterSettings, err := suite.clustersService.GetClusterSettingsByID("not_found")
+	suite.NoError(err)
+	suite.Nil(clusterSettings)
 }

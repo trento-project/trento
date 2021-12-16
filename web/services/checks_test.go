@@ -114,6 +114,7 @@ func TestGetChecksResult(t *testing.T) {
 	db := helpers.SetupTestDatabase(t)
 
 	mockAra := new(araMocks.AraService)
+	mockPremiumDetection := new(MockPremiumDetection)
 
 	rList := &ara.RecordList{
 		Count: 3,
@@ -147,7 +148,7 @@ func TestGetChecksResult(t *testing.T) {
 		araResultRecord(), nil,
 	)
 
-	checksService := NewChecksService(mockAra, db)
+	checksService := NewChecksService(db, mockAra, mockPremiumDetection)
 	c, err := checksService.GetChecksResult()
 
 	expectedResults := map[string]*models.Results{
@@ -208,6 +209,7 @@ func TestGetChecksResultEmpty(t *testing.T) {
 	db := helpers.SetupTestDatabase(t)
 
 	mockAra := new(araMocks.AraService)
+	mockPremiumDetection := new(MockPremiumDetection)
 
 	rList := &ara.RecordList{}
 
@@ -215,7 +217,7 @@ func TestGetChecksResultEmpty(t *testing.T) {
 		rList, nil,
 	)
 
-	checksService := NewChecksService(mockAra, db)
+	checksService := NewChecksService(db, mockAra, mockPremiumDetection)
 	c, err := checksService.GetChecksResult()
 
 	expectedResults := map[string]*models.Results(nil)
@@ -230,6 +232,7 @@ func TestGetChecksResultListError(t *testing.T) {
 	db := helpers.SetupTestDatabase(t)
 
 	mockAra := new(araMocks.AraService)
+	mockPremiumDetection := new(MockPremiumDetection)
 
 	rList := &ara.RecordList{}
 
@@ -237,7 +240,7 @@ func TestGetChecksResultListError(t *testing.T) {
 		rList, fmt.Errorf("Some error"),
 	)
 
-	checksService := NewChecksService(mockAra, db)
+	checksService := NewChecksService(db, mockAra, mockPremiumDetection)
 	c, err := checksService.GetChecksResult()
 
 	expectedResults := map[string]*models.Results(nil)
@@ -252,6 +255,7 @@ func TestGetChecksResultRecordError(t *testing.T) {
 	db := helpers.SetupTestDatabase(t)
 
 	mockAra := new(araMocks.AraService)
+	mockPremiumDetection := new(MockPremiumDetection)
 
 	rList := &ara.RecordList{
 		Count: 3,
@@ -275,7 +279,7 @@ func TestGetChecksResultRecordError(t *testing.T) {
 		r, fmt.Errorf("Some other error"),
 	)
 
-	checksService := NewChecksService(mockAra, db)
+	checksService := NewChecksService(db, mockAra, mockPremiumDetection)
 	c, err := checksService.GetChecksResult()
 
 	expectedResults := map[string]*models.Results(nil)
@@ -290,6 +294,7 @@ func TestGetChecksResultByCluster(t *testing.T) {
 	db := helpers.SetupTestDatabase(t)
 
 	mockAra := new(araMocks.AraService)
+	mockPremiumDetection := new(MockPremiumDetection)
 
 	rList := &ara.RecordList{
 		Count: 3,
@@ -323,7 +328,7 @@ func TestGetChecksResultByCluster(t *testing.T) {
 		araResultRecord(), nil,
 	)
 
-	checksService := NewChecksService(mockAra, db)
+	checksService := NewChecksService(db, mockAra, mockPremiumDetection)
 	c, err := checksService.GetChecksResultByCluster("myClusterId")
 
 	expectedResults := &models.Results{
@@ -382,6 +387,7 @@ func TestGetAggregatedChecksResultByHost(t *testing.T) {
 	db := helpers.SetupTestDatabase(t)
 
 	mockAra := new(araMocks.AraService)
+	mockPremiumDetection := new(MockPremiumDetection)
 
 	rList := &ara.RecordList{
 		Count: 3,
@@ -415,7 +421,7 @@ func TestGetAggregatedChecksResultByHost(t *testing.T) {
 		araResultRecord(), nil,
 	)
 
-	checksService := NewChecksService(mockAra, db)
+	checksService := NewChecksService(db, mockAra, mockPremiumDetection)
 	c, err := checksService.GetAggregatedChecksResultByHost("myClusterId")
 
 	expectedResults := map[string]*AggregatedCheckData{
@@ -441,6 +447,7 @@ func TestGetAggregatedChecksResultByCluster(t *testing.T) {
 	db := helpers.SetupTestDatabase(t)
 
 	mockAra := new(araMocks.AraService)
+	mockPremiumDetection := new(MockPremiumDetection)
 
 	rList := &ara.RecordList{
 		Count: 3,
@@ -474,7 +481,7 @@ func TestGetAggregatedChecksResultByCluster(t *testing.T) {
 		araResultRecord(), nil,
 	)
 
-	checksService := NewChecksService(mockAra, db)
+	checksService := NewChecksService(db, mockAra, mockPremiumDetection)
 	c, err := checksService.GetAggregatedChecksResultByCluster("myClusterId")
 
 	expectedResults := &AggregatedCheckData{
@@ -491,10 +498,11 @@ func TestGetAggregatedChecksResultByCluster(t *testing.T) {
 
 type ChecksServiceTestSuite struct {
 	suite.Suite
-	db            *gorm.DB
-	tx            *gorm.DB
-	ara           *araMocks.AraService
-	checksService ChecksService
+	db               *gorm.DB
+	tx               *gorm.DB
+	ara              *araMocks.AraService
+	checksService    ChecksService
+	premiumDetection *MockPremiumDetection
 }
 
 func TestChecksServiceTestSuite(t *testing.T) {
@@ -504,6 +512,8 @@ func TestChecksServiceTestSuite(t *testing.T) {
 func (suite *ChecksServiceTestSuite) SetupSuite() {
 	suite.db = helpers.SetupTestDatabase(suite.T())
 	suite.ara = new(araMocks.AraService)
+	suite.premiumDetection = new(MockPremiumDetection)
+	suite.premiumDetection.On("IsPremiumActive").Return(false, nil)
 
 	suite.db.AutoMigrate(
 		entities.Check{}, models.SelectedChecks{}, models.ConnectionSettings{})
@@ -521,7 +531,7 @@ func (suite *ChecksServiceTestSuite) TearDownSuite() {
 
 func (suite *ChecksServiceTestSuite) SetupTest() {
 	suite.tx = suite.db.Begin()
-	suite.checksService = NewChecksService(suite.ara, suite.tx)
+	suite.checksService = NewChecksService(suite.tx, suite.ara, suite.premiumDetection)
 }
 
 func (suite *ChecksServiceTestSuite) TearDownTest() {
@@ -589,35 +599,45 @@ func loadAraFixtures(a *araMocks.AraService) {
 }
 
 func loadChecksCatalogFixtures(db *gorm.DB) {
-	check1payload := `{"id":"check1","name":"name1","group":"group1","description":"description1"}`
+	check1payload := `{"id":"check1","name":"name1","group":"group1","description":"description1","premium": false}`
 	db.Create(&entities.Check{
 		ID:      "check1",
 		Payload: datatypes.JSON([]byte(check1payload)),
 	})
-	check3payload := `{"id":"check3","name":"name3","group":"group2","description":"description3"}`
+	check2payload := `{"id":"check2","name":"name2","group":"group1","description":"description2","premium": false}`
+	db.Create(&entities.Check{
+		ID:      "check2",
+		Payload: datatypes.JSON([]byte(check2payload)),
+	})
+	check3payload := `{"id":"check3","name":"name3","group":"group2","description":"description3","premium": false}`
 	db.Create(&entities.Check{
 		ID:      "check3",
 		Payload: datatypes.JSON([]byte(check3payload)),
 	})
-	check2payload := `{"id":"check2","name":"name2","group":"group1","description":"description2"}`
+	premiumCheck1payload := `{"id":"premium1","name":"name3","group":"group2","description":"description3","premium": true}`
 	db.Create(&entities.Check{
-		ID:      "check2",
-		Payload: datatypes.JSON([]byte(check2payload)),
+		ID:      "check3",
+		Payload: datatypes.JSON([]byte(premiumCheck1payload)),
+	})
+	premiumCheck2payload := `{"id":"premium2","name":"name3","group":"group2","description":"description3","premium": true}`
+	db.Create(&entities.Check{
+		ID:      "check3",
+		Payload: datatypes.JSON([]byte(premiumCheck2payload)),
 	})
 }
 
 func loadSelectedChecksFixtures(db *gorm.DB) {
 	db.Create(&models.SelectedChecks{
 		ID:             "group1",
-		SelectedChecks: []string{"ABCDEF", "123456"},
+		SelectedChecks: []string{"check1", "check2"},
 	})
 	db.Create(&models.SelectedChecks{
 		ID:             "group2",
-		SelectedChecks: []string{"ABC123", "123ABC"},
+		SelectedChecks: []string{"check3", "check1"},
 	})
 	db.Create(&models.SelectedChecks{
 		ID:             "group3",
-		SelectedChecks: []string{"DEF456", "456DEF"},
+		SelectedChecks: []string{"check2", "check3"},
 	})
 }
 
@@ -834,12 +854,12 @@ func (suite *ChecksServiceTestSuite) TestChecksService_GetSelectedChecksById() {
 	selectedChecks, err := suite.checksService.GetSelectedChecksById("group1")
 
 	suite.NoError(err)
-	suite.ElementsMatch([]string{"ABCDEF", "123456"}, selectedChecks.SelectedChecks)
+	suite.ElementsMatch([]string{"check1", "check2"}, selectedChecks.SelectedChecks)
 
 	selectedChecks, err = suite.checksService.GetSelectedChecksById("group2")
 
 	suite.NoError(err)
-	suite.ElementsMatch([]string{"ABC123", "123ABC"}, selectedChecks.SelectedChecks)
+	suite.ElementsMatch([]string{"check3", "check1"}, selectedChecks.SelectedChecks)
 }
 
 func (suite *ChecksServiceTestSuite) TestChecksService_GetSelectedChecksByIdError() {

@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"github.com/trento-project/trento/internal"
+	"github.com/trento-project/trento/web/services"
 )
 
 var telemetryCollectionInterval = 24 * time.Hour
@@ -16,6 +17,7 @@ type Engine struct {
 	installationID    uuid.UUID
 	publisher         Publisher
 	telemetryRegistry *TelemetryRegistry
+	premiumDetection  services.PremiumDetectionService
 }
 
 //go:generate mockery --name=Extractor --inpackage --filename=extractor_mock.go
@@ -47,6 +49,16 @@ func (e *Engine) Start(ctx context.Context) {
 	log.Infof("Starting Telemetry Engine")
 
 	extractAndPublishFn := func() {
+		canPublishTelemetry, err := e.premiumDetection.CanPublishTelemetry()
+		if err != nil {
+			log.Errorf("Unable to start Telemetry Engine. Error: %s", err)
+			return
+		}
+		if !canPublishTelemetry {
+			log.Infof("Telemetry publishing is not supported by this installation")
+			return
+		}
+
 		for telemetryName, extractor := range *e.telemetryRegistry {
 			if identifiedExtractor, ok := extractor.(InstallationIdAwareExtractor); ok {
 				identifiedExtractor.WithInstallationID(e.installationID)
@@ -74,11 +86,13 @@ func NewEngine(
 	installationID uuid.UUID,
 	publisher Publisher,
 	telemetries *TelemetryRegistry,
+	premium services.PremiumDetectionService,
 ) *Engine {
 	return &Engine{
 		installationID:    installationID,
 		publisher:         publisher,
 		telemetryRegistry: telemetries,
+		premiumDetection:  premium,
 	}
 }
 

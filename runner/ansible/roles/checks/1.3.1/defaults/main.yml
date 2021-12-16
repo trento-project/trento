@@ -4,7 +4,7 @@ name: 1.3.1
 group: SBD
 labels: generic
 description: |
-  Test if SBD_PACEMAKER value is correctly set in SBD configuration
+  SBD_PACEMAKER value is correctly set in SBD configuration
 remediation: |
   ## Abstract
   For proper SBD fencing, make sure that the integration with Pacemaker is enabled.

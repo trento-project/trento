@@ -4,7 +4,7 @@ name: 1.1.1.runtime
 group: Corosync
 labels: generic
 description: |
-  Test if the configured corosync Token has the correct value during runtime: {{ expected['1.1.1'] }}
+  The configured corosync Token has the correct value during runtime: {{ expected['1.1.1'] }}
 remediation: |
   ## Abstract
   The runtime value of the Corosync `token` timeout is not set as recommended.

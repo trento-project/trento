@@ -4,7 +4,7 @@ name: 1.5.2
 group: Miscellaneous
 labels: generic
 description: |
-  Test if the 'hacluster' user password has been change from default 'linux'
+  The 'hacluster' user password has been change from default 'linux'
 remediation: |
   ## Abstract
   The password of the hacluster user should be changed after setting

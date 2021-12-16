@@ -4,7 +4,7 @@ name: 1.1.3
 group: Corosync
 labels: generic
 description: |
-  Test if the configured corosync max_messages has the correct value: {{ expected[name] }}
+  The configured corosync max_messages has the correct value: {{ expected[name] }}
 remediation: |
   ## Remediation
   Adjust the Corosync `max_messages` parameter as recommended on the Azure best practices.

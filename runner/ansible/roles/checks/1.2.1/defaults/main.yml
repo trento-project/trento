@@ -4,7 +4,7 @@ name: 1.2.1
 group: Pacemaker
 labels: generic
 description: |
-  Test if fencing is enabled in the cluster attributes
+  Fencing is enabled in the cluster attributes
 remediation: |
   ## Abstract
   Fencing is mandatory to guarantee data integrity for your SAP Applications.

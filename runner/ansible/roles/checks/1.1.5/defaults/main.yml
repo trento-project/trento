@@ -4,7 +4,7 @@ name: 1.1.5
 group: Corosync
 labels: generic
 description: |
-  Test if the configured corosync token_retransmits_before_loss_const has the correct value: {{ expected[name] }}
+  The configured corosync token_retransmits_before_loss_const has the correct value: {{ expected[name] }}
 remediation: |
   ## Remediation
   Adjust the corosync `token_retransmits_before_loss_const` parameter as recommended on the Azure best practices.

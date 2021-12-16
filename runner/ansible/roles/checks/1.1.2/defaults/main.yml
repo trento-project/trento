@@ -4,7 +4,7 @@ name: 1.1.2
 group: Corosync
 labels: generic
 description: |
-  Test if the configured corosync consensus has the correct value: {{ expected[name] }}
+  The configured corosync consensus has the correct value: {{ expected[name] }}
 remediation: |
   ## Remediation
   Adjust the Corosync `consensus` timeout as recommended on the Azure best practices.

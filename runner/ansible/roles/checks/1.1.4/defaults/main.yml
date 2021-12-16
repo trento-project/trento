@@ -4,7 +4,7 @@ name: 1.1.4
 group: Corosync
 labels: generic
 description: |
-  Test if the configured corosync join parameter has the correct value: {{ expected[name] }}
+  The configured corosync join parameter has the correct value: {{ expected[name] }}
 remediation: |
   ## Remediation
   Adjust the Corosync `join` parameter as recommended on the Azure best practices.

@@ -56,16 +56,16 @@ type ChecksService interface {
 }
 
 type checksService struct {
-	db               *gorm.DB
-	araService       ara.AraService
-	premiumDetection PremiumDetectionService
+	db                      *gorm.DB
+	araService              ara.AraService
+	premiumDetectionService PremiumDetectionService
 }
 
-func NewChecksService(db *gorm.DB, araService ara.AraService, premiumDetection PremiumDetectionService) *checksService {
+func NewChecksService(db *gorm.DB, araService ara.AraService, premiumDetectionService PremiumDetectionService) *checksService {
 	return &checksService{
-		db:               db,
-		araService:       araService,
-		premiumDetection: premiumDetection,
+		db:                      db,
+		araService:              araService,
+		premiumDetectionService: premiumDetectionService,
 	}
 }
 
@@ -75,7 +75,7 @@ Checks catalog services
 
 func (c *checksService) GetChecksCatalog() (models.ChecksCatalog, error) {
 	var checksEntity entities.CheckList
-	isPremiumActive, _ := c.premiumDetection.IsPremiumActive()
+	isPremiumActive, _ := c.premiumDetectionService.IsPremiumActive()
 
 	var result *gorm.DB
 	qb := c.db.Order("payload->>'name'")

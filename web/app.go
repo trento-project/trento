@@ -57,21 +57,21 @@ type Config struct {
 	DBConfig      *db.Config
 }
 type Dependencies struct {
-	webEngine            *gin.Engine
-	collectorEngine      *gin.Engine
-	store                cookie.Store
-	projectorWorkersPool *datapipeline.ProjectorsWorkerPool
-	checksService        services.ChecksService
-	subscriptionsService services.SubscriptionsService
-	tagsService          services.TagsService
-	collectorService     services.CollectorService
-	sapSystemsService    services.SAPSystemsService
-	clustersService      services.ClustersService
-	hostsService         services.HostsService
-	settingsService      services.SettingsService
-	telemetryRegistry    *telemetry.TelemetryRegistry
-	telemetryPublisher   telemetry.Publisher
-	premiumDetection     services.PremiumDetectionService
+	webEngine               *gin.Engine
+	collectorEngine         *gin.Engine
+	store                   cookie.Store
+	projectorWorkersPool    *datapipeline.ProjectorsWorkerPool
+	checksService           services.ChecksService
+	subscriptionsService    services.SubscriptionsService
+	tagsService             services.TagsService
+	collectorService        services.CollectorService
+	sapSystemsService       services.SAPSystemsService
+	clustersService         services.ClustersService
+	hostsService            services.HostsService
+	settingsService         services.SettingsService
+	telemetryRegistry       *telemetry.TelemetryRegistry
+	telemetryPublisher      telemetry.Publisher
+	premiumDetectionService services.PremiumDetectionService
 }
 
 func DefaultDependencies(config *Config) Dependencies {
@@ -100,7 +100,7 @@ func DefaultDependencies(config *Config) Dependencies {
 	subscriptionsService := services.NewSubscriptionsService(db)
 	hostsService := services.NewHostsService(db)
 	sapSystemsService := services.NewSAPSystemsService(db)
-	premiumDetection := services.NewPremiumDetection(version.Flavor, subscriptionsService, settingsService)
+	premiumDetection := services.NewPremiumDetectionService(version.Flavor, subscriptionsService, settingsService)
 	checksService := services.NewChecksService(db, araService, premiumDetection)
 	clustersService := services.NewClustersService(db, checksService)
 	collectorService := services.NewCollectorService(db, projectorWorkersPool.GetChannel())
@@ -162,7 +162,7 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 	webEngine.Use(ErrorHandler)
 	webEngine.Use(sessions.Sessions("session", deps.store))
 	webEngine.StaticFS("/static", http.FS(assetsFS))
-	webEngine.Use(EulaMiddleware(deps.premiumDetection))
+	webEngine.Use(EulaMiddleware(deps.premiumDetectionService))
 	webEngine.GET("/", HomeHandler)
 	webEngine.GET("/about", NewAboutHandler(deps.subscriptionsService))
 	webEngine.GET("/eula", EulaShowHandler())
@@ -268,7 +268,7 @@ func (a *App) Start(ctx context.Context) error {
 		a.InstallationID,
 		a.Dependencies.telemetryPublisher,
 		a.Dependencies.telemetryRegistry,
-		a.Dependencies.premiumDetection,
+		a.Dependencies.premiumDetectionService,
 	)
 
 	g.Go(func() error {

@@ -5,8 +5,8 @@ import (
 )
 
 const (
-	Premium   = "Premium"
-	Community = "Community"
+	premium   = "Premium"
+	community = "Community"
 )
 
 //go:generate mockery --name=PremiumDetection --inpackage --filename=premium_detection_mock.go
@@ -17,21 +17,21 @@ type PremiumDetectionService interface {
 	IsPremiumActive() (bool, error)
 }
 
-type premiumDetection struct {
+type premiumDetectionService struct {
 	flavor        string
 	subscriptions SubscriptionsService
 	settings      SettingsService
 }
 
-func NewPremiumDetection(flavor string, subscriptions SubscriptionsService, settings SettingsService) *premiumDetection {
-	return &premiumDetection{
+func NewPremiumDetectionService(flavor string, subscriptions SubscriptionsService, settings SettingsService) *premiumDetectionService {
+	return &premiumDetectionService{
 		flavor,
 		subscriptions,
 		settings,
 	}
 }
 
-func (premiumDetection *premiumDetection) RequiresEulaAcceptance() (bool, error) {
+func (premiumDetection *premiumDetectionService) RequiresEulaAcceptance() (bool, error) {
 	if !premiumDetection.isPremiumFlavor() {
 		return false, nil
 	}
@@ -43,7 +43,7 @@ func (premiumDetection *premiumDetection) RequiresEulaAcceptance() (bool, error)
 	return !isEulaAccepted, err
 }
 
-func (premiumDetection *premiumDetection) CanPublishTelemetry() (bool, error) {
+func (premiumDetection *premiumDetectionService) CanPublishTelemetry() (bool, error) {
 	if !premiumDetection.isPremiumFlavor() {
 		return false, nil
 	}
@@ -55,7 +55,7 @@ func (premiumDetection *premiumDetection) CanPublishTelemetry() (bool, error) {
 	return isEulaAccepted, nil
 }
 
-func (premiumDetection *premiumDetection) IsPremiumActive() (bool, error) {
+func (premiumDetection *premiumDetectionService) IsPremiumActive() (bool, error) {
 	if !premiumDetection.isPremiumFlavor() {
 		return false, nil
 	}
@@ -67,6 +67,6 @@ func (premiumDetection *premiumDetection) IsPremiumActive() (bool, error) {
 	return isPremiumActive, nil
 }
 
-func (premiumDetection *premiumDetection) isPremiumFlavor() bool {
-	return Premium == premiumDetection.flavor
+func (premiumDetection *premiumDetectionService) isPremiumFlavor() bool {
+	return premium == premiumDetection.flavor
 }

@@ -26,13 +26,13 @@ func (suite *PremiumDetectionTestSuite) SetupTest() {
 }
 
 func (suite *PremiumDetectionTestSuite) Test_DoesNotRequireEulaAcceptanceOnCommunityFlavor() {
-	premiumDetection := NewPremiumDetection(
-		Community,
+	premiumDetectionService := NewPremiumDetectionService(
+		community,
 		suite.subscriptions,
 		suite.settings,
 	)
 
-	requiresEulaAcceptance, err := premiumDetection.RequiresEulaAcceptance()
+	requiresEulaAcceptance, err := premiumDetectionService.RequiresEulaAcceptance()
 	suite.NoError(err)
 	suite.False(requiresEulaAcceptance)
 }
@@ -40,8 +40,8 @@ func (suite *PremiumDetectionTestSuite) Test_DoesNotRequireEulaAcceptanceOnCommu
 func (suite *PremiumDetectionTestSuite) Test_RequiresEulaAcceptanceOnPremiumFlavor() {
 	suite.settings.On("IsEulaAccepted").Return(false, nil)
 
-	premiumDetection := NewPremiumDetection(
-		Premium,
+	premiumDetection := NewPremiumDetectionService(
+		premium,
 		suite.subscriptions,
 		suite.settings,
 	)
@@ -55,8 +55,8 @@ func (suite *PremiumDetectionTestSuite) Test_RequiresEulaAcceptanceOnPremiumFlav
 func (suite *PremiumDetectionTestSuite) Test_DoesNotRequireEulaAcceptanceOnPremiumFlavor() {
 	suite.settings.On("IsEulaAccepted").Return(true, nil)
 
-	premiumDetection := NewPremiumDetection(
-		Premium,
+	premiumDetection := NewPremiumDetectionService(
+		premium,
 		suite.subscriptions,
 		suite.settings,
 	)
@@ -70,8 +70,8 @@ func (suite *PremiumDetectionTestSuite) Test_DoesNotRequireEulaAcceptanceOnPremi
 func (suite *PremiumDetectionTestSuite) Test_FailsDeterminingEulaAcceptanceRequirement() {
 	suite.settings.On("IsEulaAccepted").Return(false, errors.New("BOO BOO"))
 
-	premiumDetection := NewPremiumDetection(
-		Premium,
+	premiumDetection := NewPremiumDetectionService(
+		premium,
 		suite.subscriptions,
 		suite.settings,
 	)
@@ -83,8 +83,8 @@ func (suite *PremiumDetectionTestSuite) Test_FailsDeterminingEulaAcceptanceRequi
 }
 
 func (suite *PremiumDetectionTestSuite) Test_CannotPublishTelemetryOnCommunityFlavor() {
-	premiumDetection := NewPremiumDetection(
-		Community,
+	premiumDetection := NewPremiumDetectionService(
+		community,
 		suite.subscriptions,
 		suite.settings,
 	)
@@ -97,8 +97,8 @@ func (suite *PremiumDetectionTestSuite) Test_CannotPublishTelemetryOnCommunityFl
 func (suite *PremiumDetectionTestSuite) Test_CanPublishTelemetryOnPremiumFlavor() {
 	suite.settings.On("IsEulaAccepted").Return(true, nil)
 
-	premiumDetection := NewPremiumDetection(
-		Premium,
+	premiumDetection := NewPremiumDetectionService(
+		premium,
 		suite.subscriptions,
 		suite.settings,
 	)
@@ -112,8 +112,8 @@ func (suite *PremiumDetectionTestSuite) Test_CanPublishTelemetryOnPremiumFlavor(
 func (suite *PremiumDetectionTestSuite) Test_CannotPublishTelemetryOnPremiumFlavor() {
 	suite.settings.On("IsEulaAccepted").Return(false, nil)
 
-	premiumDetection := NewPremiumDetection(
-		Premium,
+	premiumDetection := NewPremiumDetectionService(
+		premium,
 		suite.subscriptions,
 		suite.settings,
 	)
@@ -127,8 +127,8 @@ func (suite *PremiumDetectionTestSuite) Test_CannotPublishTelemetryOnPremiumFlav
 func (suite *PremiumDetectionTestSuite) Test_FailsDeterminingTelemetryPublishability() {
 	suite.settings.On("IsEulaAccepted").Return(false, errors.New("KABOOM"))
 
-	premiumDetection := NewPremiumDetection(
-		Premium,
+	premiumDetection := NewPremiumDetectionService(
+		premium,
 		suite.subscriptions,
 		suite.settings,
 	)
@@ -140,8 +140,8 @@ func (suite *PremiumDetectionTestSuite) Test_FailsDeterminingTelemetryPublishabi
 }
 
 func (suite *PremiumDetectionTestSuite) Test_PremiumIsNotActiveOnCommunityFlavor() {
-	premiumDetection := NewPremiumDetection(
-		Community,
+	premiumDetection := NewPremiumDetectionService(
+		community,
 		suite.subscriptions,
 		suite.settings,
 	)
@@ -154,8 +154,8 @@ func (suite *PremiumDetectionTestSuite) Test_PremiumIsNotActiveOnCommunityFlavor
 func (suite *PremiumDetectionTestSuite) Test_PremiumIsNotActiveOnPremiumFlavor() {
 	suite.subscriptions.On("IsTrentoPremium").Return(false, nil)
 
-	premiumDetection := NewPremiumDetection(
-		Premium,
+	premiumDetection := NewPremiumDetectionService(
+		premium,
 		suite.subscriptions,
 		suite.settings,
 	)
@@ -169,8 +169,8 @@ func (suite *PremiumDetectionTestSuite) Test_PremiumIsNotActiveOnPremiumFlavor()
 func (suite *PremiumDetectionTestSuite) Test_PremiumIsActiveOnPremiumFlavor() {
 	suite.subscriptions.On("IsTrentoPremium").Return(true, nil)
 
-	premiumDetection := NewPremiumDetection(
-		Premium,
+	premiumDetection := NewPremiumDetectionService(
+		premium,
 		suite.subscriptions,
 		suite.settings,
 	)
@@ -184,8 +184,8 @@ func (suite *PremiumDetectionTestSuite) Test_PremiumIsActiveOnPremiumFlavor() {
 func (suite *PremiumDetectionTestSuite) Test_FailsDeterminingPremiumIsActive() {
 	suite.subscriptions.On("IsTrentoPremium").Return(false, errors.New("SOME ERROR"))
 
-	premiumDetection := NewPremiumDetection(
-		Premium,
+	premiumDetection := NewPremiumDetectionService(
+		premium,
 		suite.subscriptions,
 		suite.settings,
 	)

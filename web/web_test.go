@@ -9,12 +9,12 @@ import (
 
 func setupTestDependencies() Dependencies {
 	return Dependencies{
-		webEngine:            gin.Default(),
-		collectorEngine:      gin.Default(),
-		store:                cookie.NewStore([]byte("secret")),
-		settingsService:      newMockedSettingsService(),
-		subscriptionsService: newMockedSubscriptionsService(),
-		premiumDetection:     newMockedPremiumDetectionService(),
+		webEngine:               gin.Default(),
+		collectorEngine:         gin.Default(),
+		store:                   cookie.NewStore([]byte("secret")),
+		settingsService:         newMockedSettingsService(),
+		subscriptionsService:    newMockedSubscriptionsService(),
+		premiumDetectionService: newMockedPremiumDetectionService(),
 	}
 }
 

@@ -52,8 +52,7 @@ func TestAboutHandlerPremium(t *testing.T) {
 
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, minified, "About")
-	assert.Regexp(t, regexp.MustCompile("<dt.*>Subscription</dt><dd.*>Premium.*</dd>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<dt.*>SLES_SAP machines</dt><dd.*>2.*</dd>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<dt.*>SLES4SAP Subscriptions</dt><dd.*badge-success.*>2 Found.*</dd>"), minified)
 }
 
 func TestAboutHandlerCommunity(t *testing.T) {
@@ -95,6 +94,6 @@ func TestAboutHandlerCommunity(t *testing.T) {
 
 	assert.Equal(t, 200, resp.Code)
 	assert.Contains(t, minified, "About")
-	assert.Regexp(t, regexp.MustCompile("<dt.*>Subscription</dt><dd.*>Community.*</dd>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<dt.*>SLES4SAP Subscriptions</dt><dd.*badge-secondary.*>0 Found.*</dd>"), minified)
 	assert.NotContains(t, minified, "SLES_SAP machine")
 }

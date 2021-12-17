@@ -12,48 +12,48 @@
     </div>
     <hr class="margin-10px"/>
     <div class="checks-catalog">
-        {{- $groupIndex := 0 }}
-        {{- range .ChecksCatalog }}
-        {{- $groupIndex = sum $groupIndex 1 }}
-        <h4>{{ .Group }}</h4>
-        <div class="table-responsive">
-            <table class="table eos-table">
-                <thead>
-                <tr>
-                    <th scope="col" style="width: 5%">Test ID</th>
-                    <th scope="col" style="width: 95%">Description</th>
-                    <th scope="col"></th>
-                </tr>
-                </thead>
-                <tbody>
-                {{- range .Checks }}
-                    <tr id="{{ .ID }}">
-                        <td class="align-top">{{ .ID }} {{ if .Premium }}<span class="badge badge-trento-premium">Premium</span>{{ end }}</td>
-                        <td class="align-top">
-                            <div class="check-description">{{ markdown (.Description) }}</div>
-                            <div class="check-remediation collapse" id="collapse-{{ .ID }}">
-                                {{ markdown (.Remediation) }}
-                                <h2>Implementation</h2>
-                                <pre>{{ .Implementation }}</pre>
-                            </div>
-                        </td>
-
-                        <td class="align-top text-center">
-                            <a class="link-dark" type="button"
-                               data-toggle="collapse"
-                               href="#collapse-{{ .ID }}"
-                               aria-expanded="false"
-                               aria-controls="collapse-{{ .ID }}"
-                               title="Details">
-                                <i class='eos-icons eos-18'>info</i>
-                            </a>
-                        </td>
+        {{- range $groupIndex, $group := .ChecksCatalog }}
+        <div class="check-group" id="check-group-{{ $groupIndex }}">
+            <h4>{{ .Group }}</h4>
+            <div class="table-responsive">
+                <table class="table eos-table">
+                    <thead>
+                    <tr>
+                        <th scope="col" style="width: 5%">Test ID</th>
+                        <th scope="col" style="width: 95%">Description</th>
+                        <th scope="col"></th>
                     </tr>
-                {{- else }}
-                    {{ template "empty_table_body" 4}}
-                {{- end }}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                    {{- range .Checks }}
+                        <tr class="check-row" id="{{ .ID }}">
+                            <td class="align-top">{{ .ID }} {{ if .Premium }}<span class="badge badge-trento-premium">Premium</span>{{ end }}</td>
+                            <td class="align-top">
+                                <div class="check-description">{{ markdown (.Description) }}</div>
+                                <div class="check-remediation collapse" id="collapse-{{ .ID }}">
+                                    {{ markdown (.Remediation) }}
+                                    <h2>Implementation</h2>
+                                    <pre>{{ .Implementation }}</pre>
+                                </div>
+                            </td>
+
+                            <td class="align-top text-center">
+                                <a class="link-dark" type="button"
+                                   data-toggle="collapse"
+                                   href="#collapse-{{ .ID }}"
+                                   aria-expanded="false"
+                                   aria-controls="collapse-{{ .ID }}"
+                                   title="Details">
+                                    <i class='eos-icons eos-18'>info</i>
+                                </a>
+                            </td>
+                        </tr>
+                    {{- else }}
+                        {{ template "empty_table_body" 4}}
+                    {{- end }}
+                    </tbody>
+                </table>
+            </div>
         </div>
         {{- end }}
     </div>

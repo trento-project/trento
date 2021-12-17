@@ -26,7 +26,7 @@ const RowGroup = ({ name, checks, clusterHosts }) => {
           return (
             <tr key={id}>
               <td>
-                <a href={`/catalog#info-${id}`}>{description}</a>
+                <a href={`/catalog#${id}`}>{description}</a>
               </td>
               <td>{id}</td>
               {Object.keys(clusterHosts).map((hostname) => (

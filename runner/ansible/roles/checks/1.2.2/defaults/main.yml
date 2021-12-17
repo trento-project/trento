@@ -4,7 +4,7 @@ name: 1.2.2
 group: Pacemaker
 labels: generic
 description: |
-  The configured cluster fencing option has the correct timeout
+  Cluster fencing timeout is configured correctly
 remediation: |
   ## Abstract
   The fencing timeout (`stonith-timeout`) determines the time Pacemaker will wait for fencing to succeed.

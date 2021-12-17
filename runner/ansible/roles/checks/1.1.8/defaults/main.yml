@@ -4,7 +4,7 @@ name: 1.1.8
 group: Corosync
 labels: generic
 description: |
-  The configured corosync two_node parameter has the correct value: {{ expected[name] }}
+  Corosync `two_node` is set to `{{ expected[name] }}`
 remediation: |
   ## Abstract
   The runtime value of the corosync `two_node` parameter is not set as recommended.

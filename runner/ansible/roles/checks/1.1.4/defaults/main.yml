@@ -4,10 +4,10 @@ name: 1.1.4
 group: Corosync
 labels: generic
 description: |
-  The configured corosync join parameter has the correct value: {{ expected[name] }}
+  Corosync `join` is set to `{{ expected[name] }}`
 remediation: |
   ## Remediation
-  Adjust the Corosync `join` parameter as recommended on the Azure best practices.
+  Adjust the Corosync `join` parameter as recommended by the Azure best practices.
 
   ## References
   - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker

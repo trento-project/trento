@@ -4,7 +4,7 @@ name: 1.3.2
 group: SBD
 labels: generic
 description: |
-  The SBD_STARTMODE is set to always
+  `SBD_STARTMODE` is set to `always`
 remediation: |
   ## Abstract
   If not set to always, SBD will not automatically start if the node was previously fenced as it will expect the cluster in a clean state.

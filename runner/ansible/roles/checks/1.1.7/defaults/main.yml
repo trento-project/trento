@@ -4,10 +4,10 @@ name: 1.1.7
 group: Corosync
 labels: generic
 description: |
-  The configured corosync expected_votes parameter has the correct value: {{ expected[name] }}
+  Corosync `expected_votes` is set to `{{ expected[name] }}`
 remediation: |
   ## Remediation
-  Adjust the corosync `expected_votes` parameter to `2` to make sure pacemaker calculates the actions properly for a two-node cluster.
+  Adjust the corosync `expected_votes` parameter to `{{ expected[name] }}` to make sure pacemaker calculates the actions properly for a two-node cluster.
 
   ## References
   - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker

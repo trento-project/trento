@@ -4,13 +4,13 @@ name: 1.1.1.runtime
 group: Corosync
 labels: generic
 description: |
-  The configured corosync Token has the correct value during runtime: {{ expected['1.1.1'] }}
+  Corosync is running with `token` timeout set to `{{ expected['1.1.1'] }}`
 remediation: |
   ## Abstract
   The runtime value of the Corosync `token` timeout is not set as recommended.
 
   ## Remediation
-  Adjust the corosync `token` timeout as recommended on the Azure best practices, and reload the corosync service
+  Adjust the corosync `token` timeout as recommended by the Azure best practices, and reload the corosync service
 
   ## References
   - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker

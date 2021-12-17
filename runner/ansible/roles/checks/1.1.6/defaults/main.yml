@@ -4,7 +4,7 @@ name: 1.1.6
 group: Corosync
 labels: generic
 description: |
-  The configured corosync transport parameter has the correct value: {{ expected[name] }}
+  Corosync `transport` is set to `{{ expected[name] }}`
 remediation: |
   ## Remediation
   To change the corosync MCAST transport to UCAST edit the /etc/corosync/corosync.conf

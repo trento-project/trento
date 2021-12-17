@@ -22,48 +22,44 @@
                 </h4>
                 <i class="eos-icons eos-18 collapse-toggle clickable collapsed" data-toggle="collapse" data-target="#collapse-{{ $groupIndex }}"></i>
             </div>
-            <div id="collapse-{{ $groupIndex }}" class="collapse" aria-labelledby="heading-{{ $groupIndex }}" data-parent="#checksAccordion">
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table eos-table">
-                            <thead>
-                            <tr>
-                                <th scope="col" style="width: 15%">Test ID</th>
-                                <th scope="col" style="width: 74%">Description</th>
-                                <th scope="col"></th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {{- range .Checks }}
-                                <tr>
-                                    <td class="align-top">{{ .ID }}</td>
-                                    <td class="align-top">
-                                        {{ .Description }}{{ if .Premium }}<span class="badge badge-trento-premium">Premium</span>{{ end }}
-                                        <div class="ha-check-remediation collapse" id="info-{{ .ID }}">
-                                            {{ markdown (.Remediation) }}
-                                            <h2>Implementation</h2>
-                                            <pre>{{ .Implementation }}</pre>
-                                        </div>
-                                    </td>
+            <div class="table-responsive">
+                <table class="table eos-table">
+                    <thead>
+                    <tr>
+                        <th scope="col" style="width: 15%">Test ID</th>
+                        <th scope="col" style="width: 74%">Description</th>
+                        <th scope="col"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{- range .Checks }}
+                        <tr>
+                            <td class="align-top">{{ .ID }}</td>
+                            <td class="align-top">
+                                <div>{{ markdown (.Description) }}</div>{{ if .Premium }}<span class="badge badge-trento-premium">Premium</span>{{ end }}
+                                <div class="ha-check-remediation collapse" id="info-{{ .ID }}">
+                                    {{ markdown (.Remediation) }}
+                                    <h2>Implementation</h2>
+                                    <pre>{{ .Implementation }}</pre>
+                                </div>
+                            </td>
 
-                                    <td class="align-top text-center">
-                                        <a class="link-dark" type="button"
-                                           data-toggle="collapse"
-                                           href="#info-{{ .ID }}"
-                                           aria-expanded="false"
-                                           aria-controls="info-{{ .ID }}"
-                                           title="Details">
-                                            <i class='eos-icons eos-18'>info</i>
-                                        </a>
-                                    </td>
-                                </tr>
-                            {{- else }}
-                                {{ template "empty_table_body" 4}}
-                            {{- end }}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                            <td class="align-top text-center">
+                                <a class="link-dark" type="button"
+                                   data-toggle="collapse"
+                                   href="#info-{{ .ID }}"
+                                   aria-expanded="false"
+                                   aria-controls="info-{{ .ID }}"
+                                   title="Details">
+                                    <i class='eos-icons eos-18'>info</i>
+                                </a>
+                            </td>
+                        </tr>
+                    {{- else }}
+                        {{ template "empty_table_body" 4}}
+                    {{- end }}
+                    </tbody>
+                </table>
             </div>
         </div>
         {{- end }}

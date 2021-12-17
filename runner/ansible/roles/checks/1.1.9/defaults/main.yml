@@ -4,7 +4,7 @@ name: 1.1.9
 group: Corosync
 labels: generic
 description: |
-  Test if corosync has at least 2 rings configured
+  Corosync has at least 2 rings configured
 remediation: |
   ## Abstract
   It is strongly recommended to add a second ring to the corosync communication.

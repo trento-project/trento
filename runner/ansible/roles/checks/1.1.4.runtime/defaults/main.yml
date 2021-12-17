@@ -4,13 +4,13 @@ name: 1.1.4.runtime
 group: Corosync
 labels: generic
 description: |
-  Test if the configured corosync join parameter has the correct value during runtime: {{ expected['1.1.4'] }}
+  Corosync is running with `join` set to `{{ expected['1.1.4'] }}`
 remediation: |
   ## Abstract
   The runtime value of the Corosync `join` parameter is not set as recommended.
 
   ## Remediation
-  Adjust the corosync `join` parameter as recommended on the Azure best practices, and reload the corosync service.
+  Adjust the corosync `join` parameter as recommended by the Azure best practices, and reload the corosync service.
 
   ## References
   - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker

@@ -4,7 +4,7 @@ name: 2.2.2
 group: OS and package versions
 labels: hana
 description: |
-  Test if the used OS version is supported
+  Operative system version is supported
 remediation: |
   ## Abstract
   You need at least SUSE Linux Enterprise Server for SAP Applications 15 SP1 or newer

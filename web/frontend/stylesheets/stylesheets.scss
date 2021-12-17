@@ -40,7 +40,14 @@ dt {
   width: 30%;
 }
 
-.ha-check-remediation {
+.check-description {
+  p {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+}
+
+.check-remediation {
   padding-top: 1em;
   margin-top: 1em;
   border-top: 1px solid $eos-bc-green-500;
@@ -64,8 +71,6 @@ dt {
     color: $eos-bc-red-900;
   }
   pre {
-    overflow-x: scroll;
-    overflow-y: scroll;
     max-width: 80rem;
     max-height: 30rem;
   }

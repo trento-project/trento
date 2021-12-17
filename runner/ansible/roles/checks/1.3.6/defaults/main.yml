@@ -4,7 +4,7 @@ name: 1.3.6
 group: SBD
 labels: generic
 description: |
-  Test if the SBD msgwait timeout value is two times the watchdog timeout
+  SBD `msgwait` timeout value is two times the watchdog timeout
 remediation: |
   ## Remediation
   Make sure you configure your the SBD msgwait to 2 * (SBD Watchdog Timeout) as recommended on the best practices.

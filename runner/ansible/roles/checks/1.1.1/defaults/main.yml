@@ -4,10 +4,10 @@ name: 1.1.1
 group: Corosync
 labels: generic
 description: |
-  Test if the configured corosync Token has the correct value: {{ expected[name] }}
+  Corosync `token` timeout is set to `{{ expected[name] }}`
 remediation: |
   ## Remediation
-  Adjust the Corosync `token` timeout as recommended on the Azure best practices.
+  Adjust the Corosync `token` timeout as recommended by the Azure best practices.
 
   ## References
   - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker

@@ -132,6 +132,7 @@ web/frontend/assets/stylesheets: web/frontend/node_modules
 	web/frontend/node_modules/.bin/sass \
 		web/frontend/stylesheets/stylesheets.scss:web/frontend/assets/stylesheets/stylesheets.css
 	cp web/frontend/node_modules/eos-icons/dist/css/eos-icons.css web/frontend/assets/stylesheets/eos-icons/eos-icons.css
+	cp web/frontend/node_modules/eos-icons/dist/css/eos-icons-outlined.css web/frontend/assets/stylesheets/eos-icons/eos-icons-outlined.css
 	cp -R web/frontend/node_modules/eos-icons/dist/fonts web/frontend/assets/stylesheets/
 	web/frontend/node_modules/.bin/sass \
 		web/frontend/stylesheets/override.scss:web/frontend/assets/stylesheets/override.css

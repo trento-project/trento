@@ -54,7 +54,9 @@
                         <strong>HANA secondary sync state:</strong><br>
                         {{ $badgeClass := "badge-primary" }}
                         {{- if eq .Cluster.Details.SecondarySyncState "SFAIL" }}
-                            {{ $badgeClass =  "badge-danger" }}
+                            {{ $badgeClass = "badge-danger" }}
+                        {{- else if eq .Cluster.Details.SecondarySyncState "Unknown" }}
+                            {{ $badgeClass = "badge-secondary" }}
                         {{- end }}
                         <span class="badge badge-pill {{ $badgeClass }} ml-0">{{ .Cluster.Details.SecondarySyncState }}</span>
                     </div>
@@ -102,7 +104,7 @@
         </div>
     </div>
     <hr>
-    
+
     {{- if .Cluster.Details.SBDDevices }}
         <h3>SBD/Fencing</h3>
         {{ template "sbd" .Cluster.Details.SBDDevices }}

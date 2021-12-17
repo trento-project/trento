@@ -8,6 +8,8 @@ const (
 	ClusterTypeUnknown      = "Unknown"
 	HANAStatusPrimary       = "Primary"
 	HANAStatusSecondary     = "Secondary"
+	HANAStatusFailed        = "Failed"
+	HANAStatusUnknown       = "Unknown"
 )
 
 type Cluster struct {

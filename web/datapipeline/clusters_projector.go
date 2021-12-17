@@ -131,7 +131,7 @@ func parseHANAClusterDetails(c *cluster.Cluster) (json.RawMessage, error) {
 		systemReplicationMode, _ = parseHANAAttribute(nodes[0], "srmode", sid)
 		systemReplicationOperationMode, _ = parseHANAAttribute(nodes[0], "op_mode", sid)
 		secondarySyncState = parseHANASecondarySyncState(nodes, sid)
-		srHealthState = parseHANAHealthState(nodes[0], sid)
+		srHealthState = parseHANAHealthState(nodes, sid)
 	}
 
 	dateLayout := "Mon Jan 2 15:04:05 2006"
@@ -253,39 +253,61 @@ func parseHANAAttribute(node *entities.HANAClusterNode, attributeName string, si
 // parseHANASecondarySyncState returns the secondary sync state of the HANA cluster
 func parseHANASecondarySyncState(nodes []*entities.HANAClusterNode, sid string) string {
 	for _, n := range nodes {
-		if parseHANAStatus(n, sid) == models.HANAStatusSecondary {
+		status := parseHANAStatus(n, sid)
+		if status == models.HANAStatusSecondary || status == models.HANAStatusFailed {
 			if s, ok := parseHANAAttribute(n, "sync_state", sid); ok {
 				return s
 			}
 		}
 	}
-	return ""
+	return models.HANAStatusUnknown
 }
 
-// parseHANAStatus parses the hana_<SID>_roles string and returns the SAPHanaSR Health state
-// Possible values: Primary, Secondary
+// parseHANAStatus parses the hana_<SID>_roles and hana_<SID>_sync_state strings and returns the SAPHanaSR Health state
+// Possible values: Primary, Secondary, Failed, Unknown
 // e.g. 4:P:master1:master:worker:master returns Primary (second element)
+// e.g. PRIM
 func parseHANAStatus(node *entities.HANAClusterNode, sid string) string {
-	if r, ok := parseHANAAttribute(node, "roles", sid); ok {
-		status := strings.SplitN(r, ":", 3)[1]
+	var status, syncState string
 
-		switch status {
-		case "P":
-			return models.HANAStatusPrimary
-		case "S":
-			return models.HANAStatusSecondary
-		}
+	if r, ok := parseHANAAttribute(node, "roles", sid); ok {
+		status = strings.SplitN(r, ":", 3)[1]
+	} else {
+		return models.HANAStatusUnknown
 	}
-	return ""
+
+	if r, ok := parseHANAAttribute(node, "sync_state", sid); ok {
+		syncState = r
+	} else {
+		return models.HANAStatusUnknown
+	}
+
+	switch {
+	case status == "P" && syncState == "PRIM": // Noraml primary state
+		return models.HANAStatusPrimary
+	case status == "P" && syncState != "PRIM": // This happens when there is an initial failover
+		return models.HANAStatusFailed
+	case status == "S" && syncState == "SOK": // Normal secondary state
+		return models.HANAStatusSecondary
+	case status == "S" && syncState != "SOK": // Abnormal secondary state
+		return models.HANAStatusFailed
+	}
+
+	return models.HANAStatusUnknown
 }
 
 // parseHANAHealthState returns the SAPHanaSR Health state
-func parseHANAHealthState(node *entities.HANAClusterNode, sid string) string {
-	if r, ok := parseHANAAttribute(node, "roles", sid); ok {
-		healthState := strings.SplitN(r, ":", 2)[0]
-		return healthState
+func parseHANAHealthState(nodes []*entities.HANAClusterNode, sid string) string {
+	for _, n := range nodes {
+		status := parseHANAStatus(n, sid)
+		if status == models.HANAStatusSecondary || status == models.HANAStatusFailed {
+			if r, ok := parseHANAAttribute(n, "roles", sid); ok {
+				healthState := strings.SplitN(r, ":", 2)[0]
+				return healthState
+			}
+		}
 	}
-	return ""
+	return "" // Not used unknown value
 }
 
 // parseClusterFencingType returns the cluster fencing type,

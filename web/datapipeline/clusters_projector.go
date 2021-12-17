@@ -304,7 +304,17 @@ func parseClusterFencingType(c *cluster.Cluster) string {
 func parseClusterStoppedResources(c *cluster.Cluster) []*entities.ClusterResource {
 	var stoppedResources []*entities.ClusterResource
 
-	for _, r := range c.Crmmon.Resources {
+	resources := c.Crmmon.Resources
+	// Include resources within clones and groups as well
+	for _, g := range c.Crmmon.Groups {
+		resources = append(resources, g.Resources...)
+	}
+
+	for _, c := range c.Crmmon.Clones {
+		resources = append(resources, c.Resources...)
+	}
+
+	for _, r := range resources {
 		if r.NodesRunningOn == 0 && !r.Active {
 			resource := &entities.ClusterResource{
 				ID: r.Id,

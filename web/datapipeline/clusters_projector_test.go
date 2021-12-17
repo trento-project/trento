@@ -72,7 +72,15 @@ func TestTransformClusterData_HANAScaleUp(t *testing.T) {
 			SRHealthState:                  "4",
 			CIBLastWritten:                 time.Date(2021, time.November, 6, 19, 8, 41, 0, time.UTC),
 			FencingType:                    "external/sbd",
-			StoppedResources:               nil,
+			StoppedResources:               []*entities.ClusterResource{
+				{
+					ID:        "stopped_dummy_resource",
+					Type:      "",
+					Role:      "",
+					Status:    "",
+					FailCount: 0,
+				},
+			},
 			Nodes: []*entities.HANAClusterNode{
 				{
 					Name:       "vmhana01",

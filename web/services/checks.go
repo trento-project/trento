@@ -296,7 +296,7 @@ func (c *checksService) GetSelectedChecksById(id string) (models.SelectedChecks,
 	}
 
 	set := make(map[string]struct{})
-	var filteredChecks []string
+	filteredChecks := []string{}
 
 	for _, availableCheck := range catalog {
 		set[availableCheck.ID] = struct{}{}

@@ -4,7 +4,7 @@ name: 2.2.1
 group: OS and package versions
 labels: hana
 description: |
-  The used OS is supported
+  Operative system vendor is supported
 remediation: |
   ## Abstract
   SAPHanaSR is only supported on SUSE Linux Enterprise Server for SAP Applications.

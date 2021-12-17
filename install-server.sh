@@ -2,12 +2,12 @@
 
 set -e
 
-readonly ARGS=( "$@" )
+readonly ARGS=("$@")
 readonly PROGNAME="./install-server.sh"
 TRENTO_VERSION="0.6.0"
 
 usage() {
-    cat <<- EOF
+    cat <<-EOF
     usage: $PROGNAME options
 
     Install Trento Server
@@ -24,38 +24,39 @@ EOF
 
 cmdline() {
     local arg=
-    for arg
-    do
+    local private_key_absolute_path=
+    for arg; do
         local delim=""
         case "$arg" in
-            --private-key)  args="${args}-p ";;
-            --rolling)      args="${args}-r ";;
-            --help)         args="${args}-h ";;
+        --private-key) args="${args}-p " ;;
+        --rolling) args="${args}-r " ;;
+        --help) args="${args}-h " ;;
 
-            # pass through anything else
-            *) [[ "${arg:0:1}" == "-" ]] || delim="\""
-            args="${args}${delim}${arg}${delim} ";;
+        # pass through anything else
+        *)
+            [[ "${arg:0:1}" == "-" ]] || delim="\""
+            args="${args}${delim}${arg}${delim} "
+            ;;
         esac
     done
 
     eval set -- "$args"
 
-    while getopts "p:rh" OPTION
-    do
+    while getopts "p:rh" OPTION; do
         case $OPTION in
-            h)
-                usage
-                exit 0
+        h)
+            usage
+            exit 0
             ;;
-            p)
-                readonly PRIVATE_KEY=$OPTARG
+        p)
+            PRIVATE_KEY=$OPTARG
             ;;
-            r)
-                readonly ROLLING=true
+        r)
+            readonly ROLLING=true
             ;;
-            *)
-                usage
-                exit 0
+        *)
+            usage
+            exit 0
             ;;
         esac
     done
@@ -63,6 +64,14 @@ cmdline() {
     if [[ -z "$PRIVATE_KEY" ]]; then
         read -rp "Please provide the path of the runner private key: " PRIVATE_KEY </dev/tty
     fi
+
+    # Replace tilde with the current home:
+    PRIVATE_KEY="${PRIVATE_KEY/#\~/$HOME}"
+    private_key_absolute_path=$(realpath -q -e "$PRIVATE_KEY") || {
+        echo "Path '${PRIVATE_KEY}' to private SSH key does not exist, please try again."
+        exit 1
+    }
+    PRIVATE_KEY="$private_key_absolute_path"
 
     if [[ "$ROLLING" == "true" ]]; then
         TRENTO_VERSION="rolling"
@@ -133,11 +142,11 @@ install_trento_server_chart() {
     pushd -- /tmp/trento-"${trento_source_zip}"/packaging/helm/trento-server >/dev/null
     helm dep update >/dev/null
     helm upgrade --install trento-server . \
-    --set-file trento-runner.privateKey="${private_key}" \
-    --set trento-web.image.tag="${TRENTO_VERSION}" \
-    --set trento-runner.image.tag="${TRENTO_VERSION}" \
-    --set trento-runner.image.repository="${runner_image}" \
-    --set trento-web.image.repository="${web_image}"
+        --set-file trento-runner.privateKey="${private_key}" \
+        --set trento-web.image.tag="${TRENTO_VERSION}" \
+        --set trento-runner.image.tag="${TRENTO_VERSION}" \
+        --set trento-runner.image.repository="${runner_image}" \
+        --set trento-web.image.repository="${web_image}"
 
     popd >/dev/null
 }

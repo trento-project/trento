@@ -13,8 +13,11 @@
                     <dd class="col-sm-9">v{{ .Version }}</dd>
                     <dt class="col-sm-3">Github repository</dt>
                     <dd class="col-sm-9"><a href="https://github.com/trento-project/trento" target="_blank">https://github.com/trento-project/trento</a></dd>
-                    <dt class="col-sm-3">SLES4SAP Subscriptions</dt>
-                    <dd class="col-sm-9"><span class='badge badge-{{ if .PremiumData.IsPremium }}success{{ else }}secondary{{ end }}'>{{ .PremiumData.Sles4SapCount }} Found</span><span class='eos-icons eos-18' data-toggle='tooltip' data-original-title='You need at least one SLES4SAP subscription to activate Trento premium'>info</span></dd>
+                    <dt class="col-sm-3">SLES for SAP subscriptions</dt>
+                    <dd class="col-sm-9">
+                        <span class="ml-0 mr-1 badge badge-{{ if .PremiumData.IsPremium }}success{{ else }}secondary{{ end }}">{{ .PremiumData.Sles4SapCount }} Found</span>
+                        <span class="eos-icons eos-18" data-toggle="tooltip" data-original-title="You need at least one SUSE Linux Enterprise Server for SAP Applications subscription to activate Trento Premium">info</span>
+                    </dd>
                 </dl>
             </div>
             <div class="col-sm-6">

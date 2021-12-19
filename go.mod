@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/gin-contrib/sessions v0.0.3
-	github.com/gin-gonic/gin v1.7.0
+	github.com/gin-gonic/gin v1.7.7
 	github.com/go-openapi/jsonreference v0.19.6 // indirect
 	github.com/go-openapi/swag v0.19.15 // indirect
 	github.com/gomarkdown/markdown v0.0.0-20210514010506-3b9f47219fe7

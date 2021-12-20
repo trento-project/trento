@@ -235,7 +235,7 @@ func TestApiCreateChecksCatalogHandler(t *testing.T) {
 
 func TestApiCheckGetSettingsByIdHandler(t *testing.T) {
 	mockClustersService := new(services.MockClustersService)
-	mockClustersService.On("GetClusterSettingsByID", "a615a35f65627be5a757319a0741127f").Return(&models.ClusterSettings{
+	mockClustersService.On("GetClusterSettingsByID", "cluster_id").Return(&models.ClusterSettings{
 		SelectedChecks: []string{"ABCDEF", "123456"},
 		Hosts: []*models.HostConnection{
 			{
@@ -257,7 +257,7 @@ func TestApiCheckGetSettingsByIdHandler(t *testing.T) {
 	assert.NoError(t, err)
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/api/checks/a615a35f65627be5a757319a0741127f/settings", nil)
+	req, err := http.NewRequest("GET", "/api/checks/cluster_id/settings", nil)
 	assert.NoError(t, err)
 
 	app.webEngine.ServeHTTP(resp, req)

@@ -34,7 +34,13 @@
                                 {{- range $i, $v := .VirtualIPs }}{{- if $i }} ,{{- end }}{{ . }}{{- end }}
                             </td>
                             <td>
-                                <span class="badge badge-pill badge-info">HANA {{ .HANAStatus }}</span>
+                                {{ $badgeClass := "badge-info" }}
+                                {{- if eq .HANAStatus "Failed" }}
+                                    {{ $badgeClass = "badge-danger" }}
+                                {{- else if eq .HANAStatus "Unknown" }}
+                                    {{ $badgeClass = "badge-secondary" }}
+                                {{- end }}
+                                <span class="badge badge-pill {{ $badgeClass }}">HANA {{ .HANAStatus }}</span>
                             </td>
 
                             <td class="float-right">

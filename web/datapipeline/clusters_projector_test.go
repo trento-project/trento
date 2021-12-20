@@ -72,7 +72,15 @@ func TestTransformClusterData_HANAScaleUp(t *testing.T) {
 			SRHealthState:                  "4",
 			CIBLastWritten:                 time.Date(2021, time.November, 6, 19, 8, 41, 0, time.UTC),
 			FencingType:                    "external/sbd",
-			StoppedResources:               nil,
+			StoppedResources: []*entities.ClusterResource{
+				{
+					ID:        "stopped_dummy_resource",
+					Type:      "",
+					Role:      "",
+					Status:    "",
+					FailCount: 0,
+				},
+			},
 			Nodes: []*entities.HANAClusterNode{
 				{
 					Name:       "vmhana01",
@@ -170,7 +178,7 @@ func TestTransformClusterData_HANAScaleUp(t *testing.T) {
 						},
 					},
 					VirtualIPs: nil,
-					HANAStatus: "Secondary",
+					HANAStatus: models.HANAStatusFailed,
 				},
 			},
 			SBDDevices: []*entities.SBDDevice{
@@ -209,4 +217,110 @@ func TestTransformClusterData_Unknown(t *testing.T) {
 			ClusterType: models.ClusterTypeUnknown,
 			Details:     datatypes.JSON{},
 		}, clusterOut)
+}
+
+func TestParseHANAStatus_Primary(t *testing.T) {
+	node := &entities.HANAClusterNode{
+		Attributes: map[string]string{
+			"hana_prd_roles":      "4:P:master1:master:worker:master",
+			"hana_prd_sync_state": "PRIM",
+		},
+	}
+
+	status := parseHANAStatus(node, "PRD")
+	assert.Equal(t, models.HANAStatusPrimary, status)
+}
+
+func TestParseHANAStatus_Secondary(t *testing.T) {
+	node := &entities.HANAClusterNode{
+		Attributes: map[string]string{
+			"hana_prd_roles":      "4:S:master1:master:worker:master",
+			"hana_prd_sync_state": "SOK",
+		},
+	}
+
+	status := parseHANAStatus(node, "PRD")
+	assert.Equal(t, models.HANAStatusSecondary, status)
+}
+
+func TestParseHANAStatus_Unknown(t *testing.T) {
+	node := &entities.HANAClusterNode{
+		Attributes: map[string]string{
+			"hana_prd_roles": "4:S:master1:master:worker:master",
+		},
+	}
+
+	status := parseHANAStatus(node, "PRD")
+	assert.Equal(t, models.HANAStatusUnknown, status)
+
+	node = &entities.HANAClusterNode{
+		Attributes: map[string]string{
+			"hana_prd_sync_state": "SOK",
+		},
+	}
+
+	status = parseHANAStatus(node, "PRD")
+	assert.Equal(t, models.HANAStatusUnknown, status)
+}
+
+func TestParseHANAStatus_Failed(t *testing.T) {
+	node := &entities.HANAClusterNode{
+		Attributes: map[string]string{
+			"hana_prd_roles":      "4:P:master1:master:worker:master",
+			"hana_prd_sync_state": "SFAIL",
+		},
+	}
+
+	status := parseHANAStatus(node, "PRD")
+	assert.Equal(t, models.HANAStatusFailed, status)
+
+	node = &entities.HANAClusterNode{
+		Attributes: map[string]string{
+			"hana_prd_roles":      "4:S:master1:master:worker:master",
+			"hana_prd_sync_state": "PRIM",
+		},
+	}
+
+	status = parseHANAStatus(node, "PRD")
+	assert.Equal(t, models.HANAStatusFailed, status)
+}
+
+func TestParseSecondarySyncState(t *testing.T) {
+	nodes := []*entities.HANAClusterNode{
+		&entities.HANAClusterNode{
+			Attributes: map[string]string{
+				"hana_prd_roles":      "4:P:master1:master:worker:master",
+				"hana_prd_sync_state": "PRIM",
+			},
+		},
+		&entities.HANAClusterNode{
+			Attributes: map[string]string{
+				"hana_prd_roles":      "4:S:master1:master:worker:master",
+				"hana_prd_sync_state": "SOK",
+			},
+		},
+	}
+
+	state := parseHANASecondarySyncState(nodes, "PRD")
+	assert.Equal(t, "SOK", state)
+}
+
+func TestParseSecondaryHealthState(t *testing.T) {
+	nodes := []*entities.HANAClusterNode{
+		&entities.HANAClusterNode{
+			Attributes: map[string]string{
+				"hana_prd_roles":      "4:P:master1:master:worker:master",
+				"hana_prd_sync_state": "PRIM",
+			},
+		},
+		&entities.HANAClusterNode{
+			Attributes: map[string]string{
+				"hana_prd_roles":      "4:S:master1:master:worker:master",
+				"hana_prd_sync_state": "SOK",
+			},
+		},
+	}
+
+	state := parseHANAHealthState(nodes, "PRD")
+	assert.Equal(t, "4", state)
 }

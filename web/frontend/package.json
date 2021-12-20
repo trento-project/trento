@@ -7,7 +7,7 @@
   "repository": "trento-project/trento",
   "dependencies": {
     "@yaireo/tagify": "^4.7.2",
-    "axios": "^0.21.4",
+    "axios": "^0.24.0",
     "bootstrap": "^4.6.0",
     "bootstrap-select": "^1.13.18",
     "classnames": "^2.3.1",

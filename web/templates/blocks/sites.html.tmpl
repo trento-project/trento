@@ -8,29 +8,29 @@
                 <table class="table eos-table">
                     <thead>
                     <tr>
-                        <th scope="col"></th>
-                        <th scope="col">Hostname</th>
-                        <th scope="col">IP</th>
-                        <th scope="col">Virtual IP</th>
-                        <th scope="col">Role</th>
-                        <th scope="col"></th>
+                        <th scope="col" class="w-5"></th>
+                        <th scope="col" class="w-20">Hostname</th>
+                        <th scope="col" class="w-30">IP</th>
+                        <th scope="col" class="w-20">Virtual IP</th>
+                        <th scope="col" class="w-20">Role</th>
+                        <th scope="col" class="w-5"></th>
                     </tr>
                     </thead>
                     <tbody>
                     {{- range $nodes}}
                         <tr>
-                            <td>
+                            <td class="w-5">
                                 {{ template "health_icon" .Health }}
                             </td>
-                            <td>
+                            <td class="w-20">
                                 <a href='/hosts/{{ .HostID }}'>
                                     {{ .Name }}
                                 </a>
                             </td>
-                            <td>
+                            <td class="w-30">
                                 {{- range $i, $v := .IPAddresses }}{{- if $i }} ,{{- end }}{{ . }}{{- end }}
                             </td>
-                            <td>
+                            <td class="w-20">
                                 {{- range $i, $v := .VirtualIPs }}{{- if $i }} ,{{- end }}{{ . }}{{- end }}
                             </td>
                             <td>
@@ -42,8 +42,7 @@
                                 {{- end }}
                                 <span class="badge badge-pill {{ $badgeClass }}">HANA {{ .HANAStatus }}</span>
                             </td>
-
-                            <td class="float-right">
+                            <td class="w-5">
                                 <button class="btn btn-secondary btn-sm" data-toggle="modal"
                                         data-target="#{{ .Name }}Modal">
                                     Details

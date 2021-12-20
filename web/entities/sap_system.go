@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"sort"
 	"time"
 
 	"github.com/lib/pq"
@@ -84,5 +85,13 @@ func (s SAPSystemInstances) ToModel() []*models.SAPSystem {
 	for _, sapSystem := range set {
 		sapSystems = append(sapSystems, sapSystem)
 	}
+	sortBySID(sapSystems)
+
 	return sapSystems
+}
+
+func sortBySID(sapSystems []*models.SAPSystem) {
+	sort.Slice(sapSystems, func(i, j int) bool {
+		return sapSystems[i].SID < sapSystems[j].SID
+	})
 }

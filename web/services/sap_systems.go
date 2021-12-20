@@ -172,11 +172,18 @@ func (s *sapSystemsService) GetAllDatabasesTags() ([]string, error) {
 func (s *sapSystemsService) getAllByType(sapSystemType string, tagResourceType string, filter *SAPSystemFilter, page *Page) (models.SAPSystemList, error) {
 	var instances entities.SAPSystemInstances
 
+	paginationSubQuery := s.db.
+		Distinct("id,sid").
+		Where("type = ?", sapSystemType).
+		Scopes(Paginate(page)).
+		Order("sid").
+		Table("sap_system_instances")
+
 	db := s.db.
 		Preload("Host").
-		Scopes(Paginate(page)).
 		Preload("Tags", "resource_type = (?)", tagResourceType).
-		Where("type = ?", sapSystemType)
+		Where("(id,sid) IN (?)", paginationSubQuery).
+		Order("sid, instance_number")
 
 	if filter != nil {
 		if len(filter.SIDs) > 0 {

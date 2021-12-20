@@ -1,8 +1,8 @@
 package entities
 
 import (
-	"time"
 	"sort"
+	"time"
 
 	"github.com/lib/pq"
 	"github.com/trento-project/trento/web/models"

@@ -175,6 +175,17 @@ func (suite *SAPSystemsServiceTestSuite) TestSAPSystemsService_GetAllApplication
 	}, applications)
 }
 
+func (suite *SAPSystemsServiceTestSuite) TestSAPSystemsService_getAllByType_Pagination() {
+	applications, err := suite.sapSystemsService.getAllByType(
+		models.SAPSystemTypeDatabase, models.TagSAPSystemResourceType,
+		&SAPSystemFilter{
+			SIDs: []string{"PRD"}, Tags: []string{},
+		}, &Page{Number: 1, Size: 1})
+	suite.NoError(err)
+	suite.Equal(1, len(applications))
+	suite.Equal(2, len(applications[0].Instances))
+}
+
 func (suite *SAPSystemsServiceTestSuite) TestSAPSystemsService_GetAllApplications_Filter() {
 	applications, err := suite.sapSystemsService.GetAllApplications(&SAPSystemFilter{
 		SIDs: []string{"HA1"}, Tags: []string{"tag1"},

@@ -2,6 +2,7 @@ package entities
 
 import (
 	"time"
+	"sort"
 
 	"github.com/lib/pq"
 	"github.com/trento-project/trento/web/models"
@@ -84,5 +85,13 @@ func (s SAPSystemInstances) ToModel() []*models.SAPSystem {
 	for _, sapSystem := range set {
 		sapSystems = append(sapSystems, sapSystem)
 	}
+	sortBySid(sapSystems)
+
 	return sapSystems
+}
+
+func sortBySid(sapSystems []*models.SAPSystem) {
+	sort.Slice(sapSystems, func(i, j int) bool {
+		return sapSystems[i].SID < sapSystems[j].SID
+	})
 }

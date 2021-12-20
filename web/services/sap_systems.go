@@ -176,7 +176,8 @@ func (s *sapSystemsService) getAllByType(sapSystemType string, tagResourceType s
 		Preload("Host").
 		Scopes(Paginate(page)).
 		Preload("Tags", "resource_type = (?)", tagResourceType).
-		Where("type = ?", sapSystemType)
+		Where("type = ?", sapSystemType).
+		Order("sid, instance_number")
 
 	if filter != nil {
 		if len(filter.SIDs) > 0 {

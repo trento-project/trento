@@ -85,12 +85,12 @@ func (s SAPSystemInstances) ToModel() []*models.SAPSystem {
 	for _, sapSystem := range set {
 		sapSystems = append(sapSystems, sapSystem)
 	}
-	sortBySid(sapSystems)
+	sortBySID(sapSystems)
 
 	return sapSystems
 }
 
-func sortBySid(sapSystems []*models.SAPSystem) {
+func sortBySID(sapSystems []*models.SAPSystem) {
 	sort.Slice(sapSystems, func(i, j int) bool {
 		return sapSystems[i].SID < sapSystems[j].SID
 	})

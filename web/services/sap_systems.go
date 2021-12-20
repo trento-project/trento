@@ -173,7 +173,7 @@ func (s *sapSystemsService) getAllByType(sapSystemType string, tagResourceType s
 	var instances entities.SAPSystemInstances
 
 	paginationSubQuery := s.db.
-		Distinct("sid").
+		Distinct("id,sid").
 		Where("type = ?", sapSystemType).
 		Scopes(Paginate(page)).
 		Order("sid").
@@ -182,7 +182,7 @@ func (s *sapSystemsService) getAllByType(sapSystemType string, tagResourceType s
 	db := s.db.
 		Preload("Host").
 		Preload("Tags", "resource_type = (?)", tagResourceType).
-		Where("sid IN (?)", paginationSubQuery).
+		Where("(id,sid) IN (?)", paginationSubQuery).
 		Order("sid, instance_number")
 
 	if filter != nil {

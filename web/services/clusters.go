@@ -52,15 +52,15 @@ func (s *clustersService) GetAll(filter *ClustersFilter, page *Page) (models.Clu
 
 	if filter != nil {
 		if len(filter.Name) > 0 {
-			db = s.db.Where("name IN (?)", filter.Name)
+			db = db.Where("name IN (?)", filter.Name)
 		}
 
 		if len(filter.ClusterType) > 0 {
-			db = s.db.Where("cluster_type IN (?)", filter.ClusterType)
+			db = db.Where("cluster_type IN (?)", filter.ClusterType)
 		}
 
 		if len(filter.SIDs) > 0 {
-			db = s.db.Where("sid IN (?)", filter.SIDs)
+			db = db.Where("sid IN (?)", filter.SIDs)
 		}
 
 		if len(filter.Tags) > 0 {

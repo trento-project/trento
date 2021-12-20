@@ -203,6 +203,7 @@ func (suite *ClustersServiceTestSuite) TestClustersService_GetAll_Filter() {
 
 	suite.Equal(1, len(clusters))
 	suite.Equal(clusters[0].ID, "1")
+	suite.Equal([]string{"tag1"}, clusters[0].Tags)
 }
 func (suite *ClustersServiceTestSuite) TestClustersService_GetByID() {
 	suite.checksService.On("GetAggregatedChecksResultByCluster", "1").Return(&AggregatedCheckData{PassingCount: 1}, nil)

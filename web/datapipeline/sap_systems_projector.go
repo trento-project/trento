@@ -105,8 +105,8 @@ func SAPSystemsProjector_SAPSystemsDiscoveryHandler(dataCollectedEvent *DataColl
 		// delete obsolete instances
 		if len(instances) > 0 {
 			for _, instance := range instances {
-				db = db.Where("NOT (id = ? AND agent_id = ? AND instance_number = ?)",
-					instance.ID, dataCollectedEvent.AgentID, instance.InstanceNumber)
+				db = db.Where("NOT (id = ? AND instance_number = ?)", instance.ID, instance.InstanceNumber).
+					Where("agent_id = ?", dataCollectedEvent.AgentID)
 			}
 		} else {
 			db = db.Where("id = ? AND agent_id = ?", s.Id, dataCollectedEvent.AgentID)

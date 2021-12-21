@@ -70,23 +70,56 @@ func (s *SAPSystemsProjectorTestSuite) Test_SAPSystemDiscoveryHandler_Database()
 	s.Equal(50014, projectedSAPSystemInstance.HttpsPort)
 }
 
+// Test_SAPSystemDiscoveryHandler_Database_Obsolete tests that old discovered SAP system instances
+// are deleted if the agent stops sending them
 func (s *SAPSystemsProjectorTestSuite) Test_SAPSystemDiscoveryHandler_Database_Obsolete() {
-	err := s.tx.Create(&entities.SAPSystemInstance{
-		SID:                     "PRD",
-		Type:                    models.SAPSystemTypeDatabase,
-		ID:                      "b6fa9c04ee8280357a35baf9ee73539d",
-		AgentID:                 "agent_id",
-		InstanceNumber:          "00",
-		Features:                "HDB|HDB_WORKER",
-		SystemReplication:       "Primary",
-		SystemReplicationStatus: "SFAIL",
-		Tenants:                 pq.StringArray{"PRD"},
-		SAPHostname:             "vmhana01",
-		StartPriority:           "0.3",
-		HttpPort:                50013,
-		HttpsPort:               50014,
+	err := s.tx.Create(&[]entities.SAPSystemInstance{
+		{
+			SID:                     "PRD",
+			Type:                    models.SAPSystemTypeDatabase,
+			ID:                      "b6fa9c04ee8280357a35baf9ee73539d",
+			AgentID:                 "agent_id",
+			InstanceNumber:          "00",
+			Features:                "HDB|HDB_WORKER",
+			SystemReplication:       "Primary",
+			SystemReplicationStatus: "SFAIL",
+			Tenants:                 pq.StringArray{"PRD"},
+			SAPHostname:             "vmhana01",
+			StartPriority:           "0.3",
+			HttpPort:                50013,
+			HttpsPort:               50014,
+		},
+		{
+			SID:                     "PRD",
+			Type:                    models.SAPSystemTypeDatabase,
+			ID:                      "b6fa9c04ee8280357a35baf9ee73539d",
+			AgentID:                 "agent_id",
+			InstanceNumber:          "10",
+			Features:                "HDB|HDB_WORKER",
+			SystemReplication:       "Primary",
+			SystemReplicationStatus: "SFAIL",
+			Tenants:                 pq.StringArray{"PRD"},
+			SAPHostname:             "vmhana02",
+			StartPriority:           "0.3",
+			HttpPort:                50013,
+			HttpsPort:               50014,
+		},
+		{
+			SID:                     "PRD",
+			Type:                    models.SAPSystemTypeDatabase,
+			ID:                      "b6fa9c04ee8280357a35baf9ee73539d",
+			AgentID:                 "other_agent_id",
+			InstanceNumber:          "00",
+			Features:                "HDB|HDB_WORKER",
+			SystemReplication:       "Primary",
+			SystemReplicationStatus: "SFAIL",
+			Tenants:                 pq.StringArray{"PRD"},
+			SAPHostname:             "vmhana03",
+			StartPriority:           "0.3",
+			HttpPort:                50013,
+			HttpsPort:               50014,
+		},
 	}).Error
-
 	s.NoError(err)
 
 	discoveredSAPSystemMock := mocks.NewDiscoveredSAPSystemDatabaseMock()
@@ -102,8 +135,10 @@ func (s *SAPSystemsProjectorTestSuite) Test_SAPSystemDiscoveryHandler_Database_O
 	var projectedSAPSystemInstance []entities.SAPSystemInstance
 	s.tx.Find(&projectedSAPSystemInstance)
 
-	s.Equal(1, len(projectedSAPSystemInstance))
-	s.Equal("e06e328f8d6b0f46c1e66ffcd44d0dd7", projectedSAPSystemInstance[0].ID)
+	s.Equal(2, len(projectedSAPSystemInstance))
+	s.Equal("other_agent_id", projectedSAPSystemInstance[0].AgentID)
+	s.Equal("e06e328f8d6b0f46c1e66ffcd44d0dd7", projectedSAPSystemInstance[1].ID)
+	s.Equal("agent_id", projectedSAPSystemInstance[1].AgentID)
 }
 
 func (s *SAPSystemsProjectorTestSuite) Test_SAPSystemDiscoveryHandler_Application() {

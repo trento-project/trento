@@ -22,7 +22,7 @@ func TestPublisherTestSuite(t *testing.T) {
 }
 
 func (suite *PublisherTestSuite) SetupSuite() {
-	apiHost = "https://httpbin.org/anything"
+	telemetryServiceUrl = "https://httpbin.org/anything"
 }
 
 // Test_PublishesExtractedTelemetry tests whether a DummyExtractedTelemetry is correctly published to the telemetry collection service.
@@ -32,7 +32,7 @@ func (suite *PublisherTestSuite) Test_PublishesExtractedTelemetry() {
 
 	publisher.httpClient.Transport = helpers.RoundTripFunc(func(req *http.Request) *http.Response {
 		expectedRequestBody, _ := json.Marshal(extractedTelemetry)
-		suite.Equal(req.URL.String(), fmt.Sprintf("%s/api/collect/hosts", apiHost))
+		suite.Equal(req.URL.String(), fmt.Sprintf("%s/api/collect/hosts", telemetryServiceUrl))
 
 		outgoingRequestBody, _ := ioutil.ReadAll(req.Body)
 		suite.EqualValues(expectedRequestBody, outgoingRequestBody)
@@ -52,7 +52,7 @@ func (suite *PublisherTestSuite) Test_PublishesExtractedHostTelemetry() {
 
 	publisher.httpClient.Transport = helpers.RoundTripFunc(func(req *http.Request) *http.Response {
 		expectedRequestBody, _ := json.Marshal(extractedHostTelemetry)
-		suite.Equal(req.URL.String(), fmt.Sprintf("%s/api/collect/hosts", apiHost))
+		suite.Equal(req.URL.String(), fmt.Sprintf("%s/api/collect/hosts", telemetryServiceUrl))
 
 		outgoingRequestBody, _ := ioutil.ReadAll(req.Body)
 		suite.EqualValues(expectedRequestBody, outgoingRequestBody)

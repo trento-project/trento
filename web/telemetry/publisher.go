@@ -40,11 +40,11 @@ func (tp *TelemetryPublisher) Publish(telemetryName string, installationID uuid.
 	return nil
 }
 
-var apiHost = "https://telemetry.trento.suse.com"
+var telemetryServiceUrl = "https://telemetry.trento.suse.com"
 
 func NewTelemetryPublisher() Publisher {
 	return &TelemetryPublisher{
-		apiHost:    apiHost,
+		apiHost:    telemetryServiceUrl,
 		httpClient: &http.Client{},
 	}
 }

@@ -1,5 +1,60 @@
 # Changelog
 
+## [0.7.1](https://github.com/trento-project/trento/tree/0.7.1) (2021-12-21)
+
+[Full Changelog](https://github.com/trento-project/trento/compare/0.7.0...0.7.1)
+
+### Added
+
+- Missing info about HANA instance when trento agent is stopped in primary node [\#536](https://github.com/trento-project/trento/issues/536)
+- Add the cluster modal user interaction in the new REST api [\#219](https://github.com/trento-project/trento/issues/219)
+- Add dependabot.yml config for GH [\#612](https://github.com/trento-project/trento/pull/612) (@rtorrero)
+
+### Fixed
+
+- Pacemaker Cluster - created tags don't showed up if other filter selected [\#602](https://github.com/trento-project/trento/issues/602)
+- Make the table cell alignment consistent in the cluster detail page [\#535](https://github.com/trento-project/trento/issues/535)
+- Information missing or wrong information displayed in console after full shutdown [\#515](https://github.com/trento-project/trento/issues/515)
+- Wrong HANA cluster info after failover [\#513](https://github.com/trento-project/trento/issues/513)
+- HANA primary info missing after failover [\#512](https://github.com/trento-project/trento/issues/512)
+- Status of SAP instance doesn't get updated after trento-agent got stopped  [\#491](https://github.com/trento-project/trento/issues/491)
+- The fencing timeout check fails if the time unit is set [\#447](https://github.com/trento-project/trento/issues/447)
+- Point the telemetry service to telemetry.trento.suse.com [\#640](https://github.com/trento-project/trento/pull/640) (@dottorblaster)
+- Fix test 373DB8 to pass if timeout unit is set [\#639](https://github.com/trento-project/trento/pull/639) (@arbulu89)
+- Align properly the cluster sites tables columns [\#628](https://github.com/trento-project/trento/pull/628) (@arbulu89)
+- Fix cluster list filters [\#627](https://github.com/trento-project/trento/pull/627) (@fabriziosestito)
+- Paginate correctly sap systems [\#626](https://github.com/trento-project/trento/pull/626) (@arbulu89)
+- Update gin gonic to the latest version due to major breaking bug in the router mechanism [\#610](https://github.com/trento-project/trento/pull/610) (@fabriziosestito)
+- Fix cluster details resource issues [\#604](https://github.com/trento-project/trento/pull/604) (@arbulu89)
+
+### Closed Issues
+
+- SAP systems view: PAS instance \(01\) not listed under NWP [\#609](https://github.com/trento-project/trento/issues/609)
+- Cluster setting: no field to enter connection user [\#608](https://github.com/trento-project/trento/issues/608)
+- Bad Gateway or always get an error message about fetching checks date for hana\_cluster [\#606](https://github.com/trento-project/trento/issues/606)
+- Pacemaker Clusters details - Health - 'Show check results' is misleading [\#605](https://github.com/trento-project/trento/issues/605)
+- Tilde is not correctly resolved on installation script [\#492](https://github.com/trento-project/trento/issues/492)
+- Trento Agent version name should be consistent [\#490](https://github.com/trento-project/trento/issues/490)
+- Port the SAP systems list to the new architecture [\#339](https://github.com/trento-project/trento/issues/339)
+- Cluster Detail page displays an error even if the trento-runner is running [\#330](https://github.com/trento-project/trento/issues/330)
+
+### Other Changes
+
+- Bump eslint from 7.32.0 to 8.5.0 in /web/frontend [\#632](https://github.com/trento-project/trento/pull/632) (@dependabot[bot])
+- Bump prettier from 2.4.1 to 2.5.1 in /web/frontend [\#630](https://github.com/trento-project/trento/pull/630) (@dependabot[bot])
+- Bump sass from 1.45.0 to 1.45.1 in /web/frontend [\#629](https://github.com/trento-project/trento/pull/629) (@dependabot[bot])
+- Bump github.com/lib/pq from 1.10.2 to 1.10.4 [\#625](https://github.com/trento-project/trento/pull/625) (@dependabot[bot])
+- Bump github.com/tdewolff/minify/v2 from 2.9.16 to 2.9.24 [\#624](https://github.com/trento-project/trento/pull/624) (@dependabot[bot])
+- Bump github.com/swaggo/swag from 1.7.4 to 1.7.6 [\#622](https://github.com/trento-project/trento/pull/622) (@dependabot[bot])
+- Bump github.com/spf13/afero from 1.1.2 to 1.6.0 [\#621](https://github.com/trento-project/trento/pull/621) (@dependabot[bot])
+- Bump @babel/preset-react from 7.14.5 to 7.16.5 in /web/frontend [\#620](https://github.com/trento-project/trento/pull/620) (@dependabot[bot])
+- Bump axios from 0.21.4 to 0.24.0 in /web/frontend [\#618](https://github.com/trento-project/trento/pull/618) (@dependabot[bot])
+- Bump @yaireo/tagify from 4.7.2 to 4.9.4 in /web/frontend [\#617](https://github.com/trento-project/trento/pull/617) (@dependabot[bot])
+- Bump docker/login-action from 1.10.0 to 1.11.0 [\#616](https://github.com/trento-project/trento/pull/616) (@dependabot[bot])
+- Bump sass from 1.32.8 to 1.45.0 in /web/frontend [\#615](https://github.com/trento-project/trento/pull/615) (@dependabot[bot])
+- Bump docker/metadata-action from 3.3.0 to 3.6.2 [\#614](https://github.com/trento-project/trento/pull/614) (@dependabot[bot])
+- Bump actions/setup-python from 1 to 2.3.1 [\#613](https://github.com/trento-project/trento/pull/613) (@dependabot[bot])
+
 ## [0.7.0](https://github.com/trento-project/trento/tree/0.7.0) (2021-12-17)
 
 [Full Changelog](https://github.com/trento-project/trento/compare/0.6.0...0.7.0)

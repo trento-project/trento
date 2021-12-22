@@ -114,7 +114,7 @@ func TestGetChecksResult(t *testing.T) {
 	db := helpers.SetupTestDatabase(t)
 
 	mockAra := new(araMocks.AraService)
-	mockPremiumDetection := new(MockPremiumDetection)
+	mockPremiumDetection := new(MockPremiumDetectionService)
 
 	rList := &ara.RecordList{
 		Count: 3,
@@ -209,7 +209,7 @@ func TestGetChecksResultEmpty(t *testing.T) {
 	db := helpers.SetupTestDatabase(t)
 
 	mockAra := new(araMocks.AraService)
-	mockPremiumDetection := new(MockPremiumDetection)
+	mockPremiumDetection := new(MockPremiumDetectionService)
 
 	rList := &ara.RecordList{}
 
@@ -232,7 +232,7 @@ func TestGetChecksResultListError(t *testing.T) {
 	db := helpers.SetupTestDatabase(t)
 
 	mockAra := new(araMocks.AraService)
-	mockPremiumDetection := new(MockPremiumDetection)
+	mockPremiumDetection := new(MockPremiumDetectionService)
 
 	rList := &ara.RecordList{}
 
@@ -255,7 +255,7 @@ func TestGetChecksResultRecordError(t *testing.T) {
 	db := helpers.SetupTestDatabase(t)
 
 	mockAra := new(araMocks.AraService)
-	mockPremiumDetection := new(MockPremiumDetection)
+	mockPremiumDetection := new(MockPremiumDetectionService)
 
 	rList := &ara.RecordList{
 		Count: 3,
@@ -294,7 +294,7 @@ func TestGetChecksResultByCluster(t *testing.T) {
 	db := helpers.SetupTestDatabase(t)
 
 	mockAra := new(araMocks.AraService)
-	mockPremiumDetection := new(MockPremiumDetection)
+	mockPremiumDetection := new(MockPremiumDetectionService)
 
 	rList := &ara.RecordList{
 		Count: 3,
@@ -387,7 +387,7 @@ func TestGetAggregatedChecksResultByHost(t *testing.T) {
 	db := helpers.SetupTestDatabase(t)
 
 	mockAra := new(araMocks.AraService)
-	mockPremiumDetection := new(MockPremiumDetection)
+	mockPremiumDetection := new(MockPremiumDetectionService)
 
 	rList := &ara.RecordList{
 		Count: 3,
@@ -447,7 +447,7 @@ func TestGetAggregatedChecksResultByCluster(t *testing.T) {
 	db := helpers.SetupTestDatabase(t)
 
 	mockAra := new(araMocks.AraService)
-	mockPremiumDetection := new(MockPremiumDetection)
+	mockPremiumDetection := new(MockPremiumDetectionService)
 
 	rList := &ara.RecordList{
 		Count: 3,
@@ -502,7 +502,7 @@ type ChecksServiceTestSuite struct {
 	tx               *gorm.DB
 	ara              *araMocks.AraService
 	checksService    ChecksService
-	premiumDetection *MockPremiumDetection
+	premiumDetection *MockPremiumDetectionService
 }
 
 func TestChecksServiceTestSuite(t *testing.T) {
@@ -512,7 +512,7 @@ func TestChecksServiceTestSuite(t *testing.T) {
 func (suite *ChecksServiceTestSuite) SetupSuite() {
 	suite.db = helpers.SetupTestDatabase(suite.T())
 	suite.ara = new(araMocks.AraService)
-	suite.premiumDetection = new(MockPremiumDetection)
+	suite.premiumDetection = new(MockPremiumDetectionService)
 	suite.premiumDetection.On("IsPremiumActive").Return(false, nil)
 
 	suite.db.AutoMigrate(

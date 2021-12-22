@@ -9,7 +9,7 @@ const (
 	community = "Community"
 )
 
-//go:generate mockery --name=PremiumDetection --inpackage --filename=premium_detection_mock.go
+//go:generate mockery --name=PremiumDetectionService --inpackage --filename=premium_detection_mock.go
 
 type PremiumDetectionService interface {
 	RequiresEulaAcceptance() (bool, error)

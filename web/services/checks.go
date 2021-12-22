@@ -174,9 +174,7 @@ func (c *checksService) GetChecksResultByCluster(clusterId string) (*models.Chec
 		return nil, result.Error
 	}
 
-	var checksResultModel models.ChecksResult
-	err := json.Unmarshal(checksResult.Payload, &checksResultModel)
-	return &checksResultModel, err
+	return checksResult.ToModel()
 }
 
 func (c *checksService) GetChecksResultAndMetadataByCluster(clusterId string) (*models.ChecksResultAsList, error) {

@@ -70,6 +70,19 @@ definitions:
     - id
     - name
     type: object
+  web.JSONCheckResult:
+    properties:
+      description:
+        type: string
+      group:
+        type: string
+      hosts:
+        additionalProperties:
+          $ref: '#/definitions/web.JSONHosts'
+        type: object
+      id:
+        type: string
+    type: object
   web.JSONChecksGroup:
     properties:
       checks:
@@ -78,6 +91,20 @@ definitions:
         type: array
       group:
         type: string
+    type: object
+  web.JSONChecksResult:
+    properties:
+      checks:
+        additionalProperties:
+          $ref: '#/definitions/web.JSONCheckResult'
+        type: object
+      hosts:
+        additionalProperties:
+          $ref: '#/definitions/web.JSONHosts'
+        type: object
+    required:
+    - checks
+    - hosts
     type: object
   web.JSONChecksSettings:
     properties:
@@ -96,6 +123,15 @@ definitions:
     required:
     - connection_settings
     - selected_checks
+    type: object
+  web.JSONHosts:
+    properties:
+      msg:
+        type: string
+      reachable:
+        type: boolean
+      result:
+        type: string
     type: object
   web.JSONTag:
     properties:
@@ -116,6 +152,34 @@ info:
   title: Trento API
   version: "1.0"
 paths:
+  /checks/{id}/results:
+    post:
+      parameters:
+      - description: Resource Id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Checks result
+        in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/web.JSONChecksResult'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/web.JSONChecksResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a checks result entry
   /checks/{id}/settings:
     get:
       consumes:

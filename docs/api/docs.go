@@ -90,6 +90,49 @@ var doc = `{
                 }
             }
         },
+        "/checks/{id}/results": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Create a checks result entry",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Resource Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Checks result",
+                        "name": "Body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/web.JSONChecksResult"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/web.JSONChecksResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/checks/{id}/settings": {
             "get": {
                 "consumes": [
@@ -784,6 +827,26 @@ var doc = `{
                 }
             }
         },
+        "web.JSONCheckResult": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "hosts": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/web.JSONHosts"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
         "web.JSONChecksGroup": {
             "type": "object",
             "properties": {
@@ -795,6 +858,27 @@ var doc = `{
                 },
                 "group": {
                     "type": "string"
+                }
+            }
+        },
+        "web.JSONChecksResult": {
+            "type": "object",
+            "required": [
+                "checks",
+                "hosts"
+            ],
+            "properties": {
+                "checks": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/web.JSONCheckResult"
+                    }
+                },
+                "hosts": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/web.JSONHosts"
+                    }
                 }
             }
         },
@@ -822,6 +906,20 @@ var doc = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "web.JSONHosts": {
+            "type": "object",
+            "properties": {
+                "msg": {
+                    "type": "string"
+                },
+                "reachable": {
+                    "type": "boolean"
+                },
+                "result": {
+                    "type": "string"
                 }
             }
         },

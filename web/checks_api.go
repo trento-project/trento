@@ -144,15 +144,15 @@ func ApiClusterCheckResultsHandler(s services.ChecksService) gin.HandlerFunc {
 	}
 }
 
-// ApiCreateChecksResultstaHandler godoc
-// @Summary Create a checks results entry
+// ApiCreateChecksResultHandler godoc
+// @Summary Create a checks result entry
 // @Produce json
 // @Param id path string true "Resource Id"
-// @Param Body body JSONChecksResult true "Checks results"
+// @Param Body body JSONChecksResult true "Checks result"
 // @Success 201 {object} JSONChecksResult
 // @Failure 500 {object} map[string]string
 // @Router /checks/{id}/results [post]
-func ApiCreateChecksResultstaHandler(s services.ChecksService) gin.HandlerFunc {
+func ApiCreateChecksResultHandler(s services.ChecksService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var r JSONChecksResult
 

@@ -43,7 +43,7 @@ func newMockedSubscriptionsService() services.SubscriptionsService {
 }
 
 func newMockedPremiumDetectionService() services.PremiumDetectionService {
-	premiumDetection := new(services.MockPremiumDetection)
+	premiumDetection := new(services.MockPremiumDetectionService)
 	premiumDetection.On("RequiresEulaAcceptance").Return(false, nil)
 
 	return premiumDetection

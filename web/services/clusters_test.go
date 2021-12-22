@@ -259,7 +259,7 @@ func (suite *ClustersServiceTestSuite) TestClustersService_GetAllSIDs() {
 
 func (suite *ClustersServiceTestSuite) TestClustersService_GetAllClustersSettingsReturnsNoSettings() {
 	mockAra := new(araMocks.AraService)
-	mockPremiumDetection := new(MockPremiumDetection)
+	mockPremiumDetection := new(MockPremiumDetectionService)
 
 	tx := suite.tx.Raw("TRUNCATE TABLE clusters")
 	checksService := NewChecksService(tx, mockAra, mockPremiumDetection)

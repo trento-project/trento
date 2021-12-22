@@ -17,7 +17,7 @@ type EngineTestSuite struct {
 	dummyInstallationId    uuid.UUID
 	mockedPublisher        *MockPublisher
 	mockedExtractor        *MockExtractor
-	mockedPremiumDetection *services.MockPremiumDetection
+	mockedPremiumDetection *services.MockPremiumDetectionService
 }
 
 func TestEngineTestSuite(t *testing.T) {
@@ -32,7 +32,7 @@ func (suite *EngineTestSuite) SetupSuite() {
 func (suite *EngineTestSuite) SetupTest() {
 	suite.mockedPublisher = new(MockPublisher)
 	suite.mockedExtractor = new(MockExtractor)
-	suite.mockedPremiumDetection = new(services.MockPremiumDetection)
+	suite.mockedPremiumDetection = new(services.MockPremiumDetectionService)
 	suite.mockedPremiumDetection.On("CanPublishTelemetry").Return(true, nil)
 }
 
@@ -196,7 +196,7 @@ func (suite *EngineTestSuite) Test_ExtractsAndPublishesAlsoWithSomeErrors() {
 func (suite *EngineTestSuite) Test_SkippingTelemetry() {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	mockedPremiumDetection := new(services.MockPremiumDetection)
+	mockedPremiumDetection := new(services.MockPremiumDetectionService)
 	mockedPremiumDetection.On("CanPublishTelemetry").Return(false, nil)
 
 	registry := &TelemetryRegistry{

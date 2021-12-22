@@ -3,16 +3,13 @@ package services
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 
-	"github.com/mitchellh/mapstructure"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
 	"github.com/trento-project/trento/web/entities"
 	"github.com/trento-project/trento/web/models"
-	"github.com/trento-project/trento/web/services/ara"
 )
 
 //go:generate mockery --name=ChecksService --inpackage --filename=checks_mock.go
@@ -41,9 +38,9 @@ type ChecksService interface {
 	CreateChecksCatalogEntry(check *models.Check) error // seems to be never used
 	CreateChecksCatalog(checkList models.ChecksCatalog) error
 	// Check result services
-	GetChecksResult() (map[string]*models.Results, error)
-	GetChecksResultByCluster(clusterId string) (*models.Results, error)
-	GetChecksResultAndMetadataByCluster(clusterId string) (*models.ClusterCheckResults, error)
+	CreateChecksResultById(id string, checksResult *models.ChecksResult) error
+	GetChecksResultByCluster(clusterId string) (*models.ChecksResult, error)
+	GetChecksResultAndMetadataByCluster(clusterId string) (*models.ChecksResultAsList, error)
 	GetAggregatedChecksResultByHost(clusterId string) (map[string]*AggregatedCheckData, error)
 	GetAggregatedChecksResultByCluster(clusterId string) (*AggregatedCheckData, error)
 	// Selected checks services
@@ -57,14 +54,12 @@ type ChecksService interface {
 
 type checksService struct {
 	db                      *gorm.DB
-	araService              ara.AraService
 	premiumDetectionService PremiumDetectionService
 }
 
-func NewChecksService(db *gorm.DB, araService ara.AraService, premiumDetectionService PremiumDetectionService) *checksService {
+func NewChecksService(db *gorm.DB, premiumDetectionService PremiumDetectionService) *checksService {
 	return &checksService{
 		db:                      db,
-		araService:              araService,
 		premiumDetectionService: premiumDetectionService,
 	}
 }
@@ -159,43 +154,32 @@ func (c *checksService) CreateChecksCatalog(checkList models.ChecksCatalog) erro
 Checks result services
 */
 
-func (c *checksService) GetChecksResult() (map[string]*models.Results, error) {
-	var checkData = models.CheckData{}
-
-	records, err := c.araService.GetRecordList("key=trento-results&order=-id")
+func (c *checksService) CreateChecksResultById(id string, checksResult *models.ChecksResult) error {
+	jsonData, err := json.Marshal(&checksResult)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	if len(records.Results) == 0 {
-		return nil, fmt.Errorf("Couldn't find any check result record. Check if the runner component is running")
-	}
+	event := entities.ChecksResult{GroupID: id, Payload: jsonData}
+	result := c.db.Create(&event)
 
-	record, err := c.araService.GetRecord(records.Results[0].ID)
-	if err != nil {
-		return nil, err
-	}
-
-	mapstructure.Decode(record.Value, &checkData)
-
-	return checkData.Groups, nil
+	return result.Error
 }
 
-func (c *checksService) GetChecksResultByCluster(clusterId string) (*models.Results, error) {
-	cResult, err := c.GetChecksResult()
-	if err != nil {
-		return nil, err
+func (c *checksService) GetChecksResultByCluster(clusterId string) (*models.ChecksResult, error) {
+	var checksResult entities.ChecksResult
+	result := c.db.Where("group_id", clusterId).Last(&checksResult)
+
+	if result.Error != nil {
+		return nil, result.Error
 	}
 
-	cResultByCluster, ok := cResult[clusterId]
-	if !ok {
-		return nil, fmt.Errorf("Cluster %s not found", clusterId)
-	}
-
-	return cResultByCluster, nil
+	var checksResultModel models.ChecksResult
+	err := json.Unmarshal(checksResult.Payload, &checksResultModel)
+	return &checksResultModel, err
 }
 
-func (c *checksService) GetChecksResultAndMetadataByCluster(clusterId string) (*models.ClusterCheckResults, error) {
+func (c *checksService) GetChecksResultAndMetadataByCluster(clusterId string) (*models.ChecksResultAsList, error) {
 	cResultByCluster, err := c.GetChecksResultByCluster(clusterId)
 	if err != nil {
 		return nil, err
@@ -206,14 +190,14 @@ func (c *checksService) GetChecksResultAndMetadataByCluster(clusterId string) (*
 		return nil, err
 	}
 
-	resultSet := &models.ClusterCheckResults{}
+	resultSet := &models.ChecksResultAsList{}
 	resultSet.Hosts = cResultByCluster.Hosts
-	resultSet.Checks = []models.ClusterCheckResult{}
+	resultSet.Checks = []*models.ChecksByHost{}
 
 	for _, checkMeta := range checkList {
 		for checkId, checkByHost := range cResultByCluster.Checks {
 			if checkId == checkMeta.ID {
-				current := models.ClusterCheckResult{
+				current := &models.ChecksByHost{
 					Group:       checkMeta.Group,
 					Description: checkMeta.Description,
 					Hosts:       checkByHost.Hosts,

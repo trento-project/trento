@@ -27,35 +27,45 @@ func SAPSystemsProjector_SAPSystemsDiscoveryHandler(dataCollectedEvent *DataColl
 		return err
 	}
 
+	// deletes all obsolete instances if no sap system was discovered
+	if len(discoveredSAPSystems) == 0 {
+		return db.
+			Where("agent_id = ?", dataCollectedEvent.AgentID).
+			Delete(&entities.SAPSystemInstance{}).
+			Error
+	}
+
 	for _, s := range discoveredSAPSystems {
-		instance := entities.SAPSystemInstance{
-			AgentID: dataCollectedEvent.AgentID,
-			ID:      s.Id,
-			SID:     s.SID,
-		}
+		var sapSystemType, dbHost, dbName string
+		var tenants []string
 
 		switch s.Type {
 		case 1:
-			var tenants []string
-
 			for _, tenant := range s.Databases {
 				tenants = append(tenants, tenant.Database)
 			}
-
-			instance.Type = models.SAPSystemTypeDatabase
-			instance.Tenants = tenants
+			sapSystemType = models.SAPSystemTypeDatabase
 		case 2:
-			instance.Type = models.SAPSystemTypeApplication
-			instance.DBHost = fmt.Sprint(s.Profile["SAPDBHOST"])
+			sapSystemType = models.SAPSystemTypeApplication
+			dbHost = fmt.Sprint(s.Profile["SAPDBHOST"])
 
 			if hdb, ok := s.Profile["dbs/hdb/dbname"]; ok {
-				if dbName, ok := hdb.(string); ok {
-					instance.DBName = dbName
-				}
+				dbName = hdb.(string)
 			}
 		}
 
+		var instances []entities.SAPSystemInstance
 		for _, i := range s.Instances {
+			instance := entities.SAPSystemInstance{
+				AgentID: dataCollectedEvent.AgentID,
+				ID:      s.Id,
+				SID:     s.SID,
+				Type:    sapSystemType,
+				Tenants: tenants,
+				DBHost:  dbHost,
+				DBName:  dbName,
+			}
+
 			var features string
 			var instanceNumber string
 
@@ -79,23 +89,39 @@ func SAPSystemsProjector_SAPSystemsDiscoveryHandler(dataCollectedEvent *DataColl
 			instance.SystemReplicationStatus = parseReplicationStatus(i.SystemReplication)
 			addSAPControlData(&instance, i.SAPControl)
 
-			err := storeSAPInstance(db,
-				instance,
-				"id", "sid", "type", "features", "instance_number",
-				"system_replication", "system_replication_status",
-				"sap_hostname", "start_priority", "http_port", "https_port", "status",
-				"tenants", "db_host", "db_name")
+			instances = append(instances, instance)
+		}
 
-			if err != nil {
-				return err
+		err := storeSAPInstances(db,
+			instances,
+			"id", "sid", "type", "features", "instance_number",
+			"system_replication", "system_replication_status",
+			"sap_hostname", "start_priority", "http_port", "https_port", "status",
+			"tenants", "db_host", "db_name")
+		if err != nil {
+			return err
+		}
+
+		// delete obsolete instances
+		if len(instances) > 0 {
+			for _, instance := range instances {
+				db = db.Where("NOT (id = ? AND instance_number = ?)", instance.ID, instance.InstanceNumber).
+					Where("agent_id = ?", dataCollectedEvent.AgentID)
 			}
+		} else {
+			db = db.Where("id = ? AND agent_id = ?", s.Id, dataCollectedEvent.AgentID)
+		}
+
+		err = db.Delete(&entities.SAPSystemInstance{}).Error
+		if err != nil {
+			return err
 		}
 	}
 
 	return nil
 }
 
-func storeSAPInstance(db *gorm.DB, sapInstance entities.SAPSystemInstance, updateColumns ...string) error {
+func storeSAPInstances(db *gorm.DB, sapInstances []entities.SAPSystemInstance, updateColumns ...string) error {
 	return db.Clauses(clause.OnConflict{
 		Columns: []clause.Column{
 			{Name: "agent_id"},
@@ -103,7 +129,7 @@ func storeSAPInstance(db *gorm.DB, sapInstance entities.SAPSystemInstance, updat
 			{Name: "instance_number"},
 		},
 		DoUpdates: clause.AssignmentColumns(append(updateColumns, "updated_at")),
-	}).Create(&sapInstance).Error
+	}).Create(&sapInstances).Error
 }
 
 func parseReplicationMode(r sapsystem.SystemReplication) string {

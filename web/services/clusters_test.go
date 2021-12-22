@@ -257,7 +257,7 @@ func (suite *ClustersServiceTestSuite) TestClustersService_GetAllSIDs() {
 }
 
 func (suite *ClustersServiceTestSuite) TestClustersService_GetAllClustersSettingsReturnsNoSettings() {
-	mockPremiumDetection := new(MockPremiumDetection)
+	mockPremiumDetection := new(MockPremiumDetectionService)
 
 	tx := suite.tx.Raw("TRUNCATE TABLE clusters")
 	checksService := NewChecksService(tx, mockPremiumDetection)

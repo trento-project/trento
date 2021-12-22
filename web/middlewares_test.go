@@ -10,7 +10,7 @@ import (
 )
 
 func TestEulaMiddleware(t *testing.T) {
-	mockedPremiumDetection := new(services.MockPremiumDetection)
+	mockedPremiumDetection := new(services.MockPremiumDetectionService)
 	mockedPremiumDetection.On("RequiresEulaAcceptance").Return(true, nil)
 	deps := setupTestDependencies()
 	deps.premiumDetectionService = mockedPremiumDetection
@@ -30,7 +30,7 @@ func TestEulaMiddleware(t *testing.T) {
 }
 
 func TestEulaMiddlewareLettingThrough(t *testing.T) {
-	mockedPremiumDetection := new(services.MockPremiumDetection)
+	mockedPremiumDetection := new(services.MockPremiumDetectionService)
 	mockedPremiumDetection.On("RequiresEulaAcceptance").Return(false, nil)
 	deps := setupTestDependencies()
 	deps.premiumDetectionService = mockedPremiumDetection
@@ -50,7 +50,7 @@ func TestEulaMiddlewareLettingThrough(t *testing.T) {
 }
 
 func TestEulaMiddlewareError(t *testing.T) {
-	mockedPremiumDetection := new(services.MockPremiumDetection)
+	mockedPremiumDetection := new(services.MockPremiumDetectionService)
 	mockedPremiumDetection.On("RequiresEulaAcceptance").Return(false, errors.New("EULA error"))
 	deps := setupTestDependencies()
 	deps.premiumDetectionService = mockedPremiumDetection

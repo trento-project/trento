@@ -55,7 +55,7 @@ type ChecksServiceTestSuite struct {
 	db               *gorm.DB
 	tx               *gorm.DB
 	checksService    ChecksService
-	premiumDetection *MockPremiumDetection
+	premiumDetection *MockPremiumDetectionService
 }
 
 func TestChecksServiceTestSuite(t *testing.T) {
@@ -64,7 +64,7 @@ func TestChecksServiceTestSuite(t *testing.T) {
 
 func (suite *ChecksServiceTestSuite) SetupSuite() {
 	suite.db = helpers.SetupTestDatabase(suite.T())
-	suite.premiumDetection = new(MockPremiumDetection)
+	suite.premiumDetection = new(MockPremiumDetectionService)
 	suite.premiumDetection.On("IsPremiumActive").Return(false, nil)
 
 	suite.db.AutoMigrate(

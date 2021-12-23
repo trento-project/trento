@@ -39,7 +39,6 @@ of existing clusters, rather than deploying new one.
   * [Manually running Trento](#manually-running-trento)
     + [Trento Agents](#trento-agents)
     + [Trento Runner](#trento-runner)
-      - [Setting up and starting ARA](#setting-up-and-starting-ara)
       - [Starting the Trento Runner](#starting-the-trento-runner)
     + [Trento Web UI](#trento-web-ui)
 - [Configuration](#configuration)
@@ -68,11 +67,10 @@ The _Trento Server_ is an independent, cloud-native, distributed system and shou
 
 - The `trento web` application;
 - The `trento runner` worker;
-- An [ARA] service.
 
 The _Trento Agent_ is a single background process (`trento agent`) running in each host of the target infrastructure the user desires to monitor.
 
-Please note that, except for the third-party ones like ARA, all the components are embedded within one single `trento` binary.
+Please note that, except for the third-party ones like Ansible, all the components are embedded within one single `trento` binary.
 
 See the [architecture document](./docs/trento-architecture.md) for additional details.
 
@@ -331,49 +329,19 @@ Those are useful in order to test `mTLS` communication between the Agent and the
 
 ### Trento Runner
 
-The Trento Runner is a worker process responsible for driving automated configuration audits. It is based on [Ansible](https://docs.ansible.com/ansible/latest/index.html) and [ARA](https://ara.recordsansible.org/).
-These 2 components (the Runner and ARA) can be executed in the same host as the Web UI, but it is not mandatory: they can be executed in any other host with network access to the Trento Agents.
-
-The Runner itself and ARA can be even executed in different hosts too, as long as the network connection is available between them.
+The Trento Runner is a worker process responsible for driving automated configuration audits. It is based on [Ansible](https://docs.ansible.com/ansible/latest/index.html).
+This component can be executed in the same host as the Web UI, but it is not mandatory: it can be executed in any other host with network access to the Trento Agents.
 
 Find more information about how to create more Trento health checks [here](docs/runner.md).
 
 In order to start them, some packages must be installed and started. Here a quick go through:
 
-#### Setting up and starting ARA
-
-```shell
-# Install ARA with server dependencies
-pip install 'ara[server]~=1.5.7'
-# Setup ARA database
-ara-manage migrate
-# Start ARA server. This process can be started in background or in other shell terminal
-ara-manage runserver ip:port
-```
-
-> The installed ara version should be at least ara~=1.5.7
-
-If the requests to ARA server fail with a message like the next one, it means that the server address must be allowed:
-
-```
-2021-09-02 07:13:48,715 ERROR django.security.DisallowedHost: Invalid HTTP_HOST header: '10.74.1.5:8000'. You may need to add '10.74.1.5' to ALLOWED_HOSTS.
-2021-09-02 07:13:48,732 WARNING django.request: Bad Request: /api/
-```
-
-To fix it run:
-
-```
-export ARA_ALLOWED_HOSTS="['10.74.1.5']"
-# Or allow all the addresses with
-export ARA_ALLOWED_HOSTS=['*']
-```
-
 #### Starting the Trento Runner
 
-Independently where you decide to run ARA, the Runner needs the `ansible` and `ara` Python packages available locally:
+The Runner needs the `ansible` Python package available locally:
 
 ```shell
-pip install 'ansible~=4.6.0' 'ara~=1.5.7'
+pip install 'ansible~=4.6.0'
 ```
 
 > The installed ansible components versions should be at least ansible~=4.6.0 and ansible-core~=2.11.5
@@ -381,7 +349,7 @@ pip install 'ansible~=4.6.0' 'ara~=1.5.7'
 Once dependencies are in place, you can start the Runner itself:
 
 ```shell
-./trento runner start --ara-server http://$ARA_IP:$ARA_PORT --api-host $WEB_IP --api-port $WEB_PORT -i 5
+./trento runner start --api-host $WEB_IP --api-port $WEB_PORT -i 5
 ```
 
 > *Note:* The Trento Runner component must have SSH access to all the agents via a password-less SSH key pair.
@@ -392,8 +360,6 @@ At this point, we can start the web application as follows:
 
 ```shell
 ./trento web serve
-# If ARA server is not running in the same machine set the ara-addr flag
-./trento web serve --ara-addr araIP:port
 ```
 
 Please consult the `help` CLI command for more insights on the various options.
@@ -430,7 +396,7 @@ Example locations:
 
 `/etc/trento/runner.yaml`
 
-or 
+or
 
 `/usr/etc/trento/agent.yaml`
 
@@ -579,5 +545,4 @@ under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 
-[ARA]: https://ara.recordsansible.org
 [K3S]: https://k3s.io

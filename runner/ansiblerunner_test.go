@@ -9,42 +9,6 @@ import (
 	"github.com/trento-project/trento/runner/mocks"
 )
 
-func TestLoadAraPlugins(t *testing.T) {
-
-	a := DefaultAnsibleRunner()
-
-	cmdCallback := exec.Command("echo", "callback")
-	cmdAction := exec.Command("echo", "action")
-
-	mockCommand := new(mocks.CustomCommand)
-	customExecCommand = mockCommand.Execute
-	mockCommand.On("Execute", "python3", "-m", "ara.setup.callback_plugins").Return(
-		cmdCallback,
-	)
-	mockCommand.On("Execute", "python3", "-m", "ara.setup.action_plugins").Return(
-		cmdAction,
-	)
-
-	err := a.LoadAraPlugins()
-	a.SetAraServer("127.0.0.1")
-
-	expectedMetaRunner := &AnsibleRunner{
-		Playbook: "main.yml",
-		Envs: map[string]string{
-			"ANSIBLE_CALLBACK_PLUGINS": "callback",
-			"ANSIBLE_ACTION_PLUGINS":   "action",
-			"ARA_API_CLIENT":           "http",
-			"ARA_API_SERVER":           "127.0.0.1",
-		},
-		Check: false,
-	}
-
-	assert.NoError(t, err)
-	assert.Equal(t, expectedMetaRunner, a)
-
-	mockCommand.AssertExpectations(t)
-}
-
 func TestRunPlaybookSimple(t *testing.T) {
 
 	runnerInst := &AnsibleRunner{

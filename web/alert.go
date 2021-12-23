@@ -13,8 +13,7 @@ var AlertCatalogNotFound = func() Alert {
 	return Alert{
 		Type:  "danger",
 		Title: "Error loading the checks catalog",
-		Text: "Checks catalog couldn't be retrieved. Check if the ARA service is running" +
-			" and the --ara-addr flag is pointing corretly to the service",
+		Text:  "Checks catalog couldn't be retrieved",
 	}
 }
 

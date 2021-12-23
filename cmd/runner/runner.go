@@ -15,7 +15,6 @@ import (
 	"github.com/trento-project/trento/runner"
 )
 
-var araServer string
 var apiHost string
 var apiPort int
 var interval int
@@ -36,7 +35,6 @@ func NewRunnerCmd() *cobra.Command {
 		},
 	}
 
-	startCmd.Flags().StringVar(&araServer, "ara-server", "http://127.0.0.1:8000", "ARA server url (ex: http://localhost:8000)")
 	startCmd.Flags().StringVar(&apiHost, "api-host", "0.0.0.0", "Trento web server API host")
 	startCmd.Flags().IntVar(&apiPort, "api-port", 8080, "Trento web server API port")
 	startCmd.Flags().IntVarP(&interval, "interval", "i", 5, "Interval in minutes to run the checks")

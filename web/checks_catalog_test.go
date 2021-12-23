@@ -120,8 +120,7 @@ func TestChecksCatalogHandlerError(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Contains(t, responseBody, "<h1>Ooops</h1>")
 
-	tipMsg := "Checks catalog couldn't be retrieved. Check if the ARA service is running" +
-		" and the --ara-addr flag is pointing corretly to the service"
+	tipMsg := "Checks catalog couldn't be retrieved"
 	assert.Regexp(t, regexp.MustCompile("Error during GetChecksCatalogByGroup</br>"), responseBody)
 	assert.Regexp(t, regexp.MustCompile(fmt.Sprintf("%s</br>", tipMsg)), responseBody)
 

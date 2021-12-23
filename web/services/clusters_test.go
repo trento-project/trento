@@ -9,7 +9,6 @@ import (
 	"github.com/trento-project/trento/test/helpers"
 	"github.com/trento-project/trento/web/entities"
 	"github.com/trento-project/trento/web/models"
-	araMocks "github.com/trento-project/trento/web/services/ara/mocks"
 	"gorm.io/gorm"
 )
 
@@ -258,11 +257,10 @@ func (suite *ClustersServiceTestSuite) TestClustersService_GetAllSIDs() {
 }
 
 func (suite *ClustersServiceTestSuite) TestClustersService_GetAllClustersSettingsReturnsNoSettings() {
-	mockAra := new(araMocks.AraService)
 	mockPremiumDetection := new(MockPremiumDetectionService)
 
 	tx := suite.tx.Raw("TRUNCATE TABLE clusters")
-	checksService := NewChecksService(tx, mockAra, mockPremiumDetection)
+	checksService := NewChecksService(tx, mockPremiumDetection)
 	suite.clustersService = NewClustersService(tx, checksService)
 
 	clustersSettings, err := suite.clustersService.GetAllClustersSettings()

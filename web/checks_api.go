@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/mitchellh/mapstructure"
 
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
@@ -35,6 +36,24 @@ type JSONChecksGroup struct {
 
 type JSONChecksGroupedCatalog []*JSONChecksGroup
 
+type JSONChecksResult struct {
+	Hosts  map[string]*JSONHosts       `json:"hosts,omitempty" binding:"required"`
+	Checks map[string]*JSONCheckResult `json:"checks,omitempty" binding:"required"`
+}
+
+type JSONHosts struct {
+	Result    string `json:"result,omitempty"`
+	Reachable bool   `json:"reachable,omitempty"`
+	Msg       string `json:"msg,omitempty"`
+}
+
+type JSONCheckResult struct {
+	ID          string                `json:"id,omitempty"`
+	Hosts       map[string]*JSONHosts `json:"hosts,omitempty"`
+	Group       string                `json:"group,omitempty"`
+	Description string                `json:"description,omitempty"`
+}
+
 // ApiCheckCatalogHandler godoc
 // @Summary Get the whole checks' catalog
 // @Produce json
@@ -57,27 +76,6 @@ func ApiChecksCatalogHandler(s services.ChecksService) gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, groupedCatalog)
-	}
-}
-
-// ApiCheckResultsHandler godoc
-// @Summary Get a specific cluster's check results
-// @Produce json
-// @Param cluster_id path string true "Cluster Id"
-// @Success 200 {object} map[string]interface{}
-// @Failure 500 {object} map[string]string
-// @Router /clusters/{cluster_id}/results [get]
-func ApiClusterCheckResultsHandler(s services.ChecksService) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		clusterId := c.Param("cluster_id")
-
-		checkResults, err := s.GetChecksResultAndMetadataByCluster(clusterId)
-		if err != nil {
-			c.Error(err)
-			return
-		}
-
-		c.JSON(http.StatusOK, checkResults)
 	}
 }
 
@@ -122,6 +120,62 @@ func ApiCreateChecksCatalogHandler(s services.ChecksService) gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, &r)
+	}
+}
+
+// ApiCheckResultsHandler godoc
+// @Summary Get a specific cluster's check results
+// @Produce json
+// @Param cluster_id path string true "Cluster Id"
+// @Success 200 {object} map[string]interface{}
+// @Failure 500 {object} map[string]string
+// @Router /clusters/{cluster_id}/results [get]
+func ApiClusterCheckResultsHandler(s services.ChecksService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		clusterId := c.Param("cluster_id")
+
+		checkResults, err := s.GetChecksResultAndMetadataByCluster(clusterId)
+		if err != nil {
+			c.Error(err)
+			return
+		}
+
+		c.JSON(http.StatusOK, checkResults)
+	}
+}
+
+// ApiCreateChecksResultHandler godoc
+// @Summary Create a checks result entry
+// @Produce json
+// @Param id path string true "Resource Id"
+// @Param Body body JSONChecksResult true "Checks result"
+// @Success 201 {object} JSONChecksResult
+// @Failure 500 {object} map[string]string
+// @Router /checks/{id}/results [post]
+func ApiCreateChecksResultHandler(s services.ChecksService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var r JSONChecksResult
+
+		id := c.Param("id")
+
+		err := c.BindJSON(&r)
+		if err != nil {
+			_ = c.Error(BadRequestError("unable to parse JSON body"))
+			return
+		}
+
+		var results models.ChecksResult
+		results.ID = id
+		// This is the easier way to decode the json format in the internal models
+		mapstructure.Decode(r, &results)
+
+		err = s.CreateChecksResult(&results)
+		if err != nil {
+			c.Error(err)
+			return
+		}
+
+		c.JSON(http.StatusCreated, &r)
 	}
 }
 

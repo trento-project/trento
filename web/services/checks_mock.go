@@ -40,6 +40,20 @@ func (_m *MockChecksService) CreateChecksCatalogEntry(check *models.Check) error
 	return r0
 }
 
+// CreateChecksResult provides a mock function with given fields: checksResult
+func (_m *MockChecksService) CreateChecksResult(checksResult *models.ChecksResult) error {
+	ret := _m.Called(checksResult)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*models.ChecksResult) error); ok {
+		r0 = rf(checksResult)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // CreateConnectionSettings provides a mock function with given fields: node, cluster, user
 func (_m *MockChecksService) CreateConnectionSettings(node string, cluster string, user string) error {
 	ret := _m.Called(node, cluster, user)
@@ -160,39 +174,16 @@ func (_m *MockChecksService) GetChecksCatalogByGroup() (models.GroupedCheckList,
 	return r0, r1
 }
 
-// GetChecksResult provides a mock function with given fields:
-func (_m *MockChecksService) GetChecksResult() (map[string]*models.Results, error) {
-	ret := _m.Called()
-
-	var r0 map[string]*models.Results
-	if rf, ok := ret.Get(0).(func() map[string]*models.Results); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]*models.Results)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetChecksResultAndMetadataByCluster provides a mock function with given fields: clusterId
-func (_m *MockChecksService) GetChecksResultAndMetadataByCluster(clusterId string) (*models.ClusterCheckResults, error) {
+func (_m *MockChecksService) GetChecksResultAndMetadataByCluster(clusterId string) (*models.ChecksResultAsList, error) {
 	ret := _m.Called(clusterId)
 
-	var r0 *models.ClusterCheckResults
-	if rf, ok := ret.Get(0).(func(string) *models.ClusterCheckResults); ok {
+	var r0 *models.ChecksResultAsList
+	if rf, ok := ret.Get(0).(func(string) *models.ChecksResultAsList); ok {
 		r0 = rf(clusterId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.ClusterCheckResults)
+			r0 = ret.Get(0).(*models.ChecksResultAsList)
 		}
 	}
 
@@ -207,15 +198,15 @@ func (_m *MockChecksService) GetChecksResultAndMetadataByCluster(clusterId strin
 }
 
 // GetChecksResultByCluster provides a mock function with given fields: clusterId
-func (_m *MockChecksService) GetChecksResultByCluster(clusterId string) (*models.Results, error) {
+func (_m *MockChecksService) GetChecksResultByCluster(clusterId string) (*models.ChecksResult, error) {
 	ret := _m.Called(clusterId)
 
-	var r0 *models.Results
-	if rf, ok := ret.Get(0).(func(string) *models.Results); ok {
+	var r0 *models.ChecksResult
+	if rf, ok := ret.Get(0).(func(string) *models.ChecksResult); ok {
 		r0 = rf(clusterId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.Results)
+			r0 = ret.Get(0).(*models.ChecksResult)
 		}
 	}
 

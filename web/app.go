@@ -16,7 +16,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
 
@@ -26,7 +25,6 @@ import (
 	"github.com/trento-project/trento/web/entities"
 	"github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
-	"github.com/trento-project/trento/web/services/ara"
 	"github.com/trento-project/trento/web/telemetry"
 
 	swaggerFiles "github.com/swaggo/files"
@@ -96,12 +94,11 @@ func DefaultDependencies(config *Config) Dependencies {
 
 	settingsService := services.NewSettingsService(db)
 	tagsService := services.NewTagsService(db)
-	araService := ara.NewAraService(viper.GetString("ara-addr"))
 	subscriptionsService := services.NewSubscriptionsService(db)
 	hostsService := services.NewHostsService(db)
 	sapSystemsService := services.NewSAPSystemsService(db)
 	premiumDetection := services.NewPremiumDetectionService(version.Flavor, subscriptionsService, settingsService)
-	checksService := services.NewChecksService(db, araService, premiumDetection)
+	checksService := services.NewChecksService(db, premiumDetection)
 	clustersService := services.NewClustersService(db, checksService)
 	collectorService := services.NewCollectorService(db, projectorWorkersPool.GetChannel())
 	telemetryRegistry := telemetry.NewTelemetryRegistry(db)
@@ -127,7 +124,7 @@ func MigrateDB(db *gorm.DB) error {
 		entities.Settings{}, models.Tag{}, models.SelectedChecks{}, models.ConnectionSettings{},
 		entities.Check{}, datapipeline.DataCollectedEvent{}, datapipeline.Subscription{},
 		entities.HostTelemetry{}, entities.Cluster{}, entities.Host{}, entities.HostHeartbeat{},
-		entities.SlesSubscription{}, entities.SAPSystemInstance{},
+		entities.SlesSubscription{}, entities.SAPSystemInstance{}, entities.ChecksResult{},
 	)
 
 	if err != nil {
@@ -196,6 +193,7 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 		apiGroup.POST("/checks/:id/settings", ApiCheckCreateSettingsByIdHandler(deps.checksService))
 		apiGroup.PUT("/checks/catalog", ApiCreateChecksCatalogHandler(deps.checksService))
 		apiGroup.GET("/checks/catalog", ApiChecksCatalogHandler(deps.checksService))
+		apiGroup.POST("/checks/:id/results", ApiCreateChecksResultHandler(deps.checksService))
 	}
 
 	collectorEngine := deps.collectorEngine

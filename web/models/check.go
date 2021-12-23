@@ -4,19 +4,6 @@ import (
 	"sort"
 )
 
-const (
-	CheckPassing   string = "passing"
-	CheckWarning   string = "warning"
-	CheckCritical  string = "critical"
-	CheckSkipped   string = "skipped"
-	CheckUndefined string = "undefined"
-)
-
-type CheckData struct {
-	Metadata Metadata            `json:"metadata,omitempty" mapstructure:"metadata,omitempty"`
-	Groups   map[string]*Results `json:"results,omitempty" mapstructure:"results,omitempty"`
-}
-
 // List is used instead of a map as it guarantees order
 type ChecksCatalog []*Check
 
@@ -40,38 +27,6 @@ type GroupedChecks struct {
 }
 
 type GroupedCheckList []*GroupedChecks
-
-type Metadata struct {
-	Checks ChecksCatalog `json:"checks,omitempty" mapstructure:"checks,omitempty"`
-}
-
-type Results struct {
-	Hosts  map[string]*CheckHost    `json:"hosts,omitempty" mapstructure:"hosts,omitempty"`
-	Checks map[string]*ChecksByHost `json:"checks,omitempty" mapstructure:"checks,omitempty"`
-}
-
-// The ChecksByHost struct stores the checks list, but the results are grouped by hosts
-type ChecksByHost struct {
-	Hosts map[string]*Check `json:"hosts,omitempty" mapstructure:"hosts,omitempty"`
-}
-
-type CheckHost struct {
-	Reachable bool   `json:"reachable" mapstructure:"reachable"`
-	Msg       string `json:"msg" mapstructure:"msg"`
-}
-
-// Simplified models for the frontend
-type ClusterCheckResults struct {
-	Hosts  map[string]*CheckHost `json:"hosts" mapstructure:"hosts,omitempty"`
-	Checks []ClusterCheckResult  `json:"checks" mapstructure:"checks,omitempty"`
-}
-
-type ClusterCheckResult struct {
-	ID          string            `json:"id,omitempty" mapstructure:"id,omitempty"`
-	Hosts       map[string]*Check `json:"hosts,omitempty" mapstructure:"hosts,omitempty"`
-	Group       string            `json:"group,omitempty" mapstructure:"group,omitempty"`
-	Description string            `json:"description,omitempty" mapstructure:"description,omitempty"`
-}
 
 // Sorting methods for GroupedCheckList
 

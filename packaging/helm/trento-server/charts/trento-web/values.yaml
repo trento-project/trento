@@ -49,6 +49,7 @@ collectorService:
   port: 8081
 
 pruneEventsCronjobSchedule: "0 0 * * *"
+pruneChecksCronjobSchedule: "0 0 * * *"
 
 ingress:
   enabled: true

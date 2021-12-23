@@ -44,7 +44,8 @@ func NewWebCmd() *cobra.Command {
 	})
 
 	addServeCmd(webCmd)
-	addPruneCmd(webCmd)
+	addPruneEventsCmd(webCmd)
+	addPruneChecksResultsCmd(webCmd)
 
 	return webCmd
 }
@@ -82,16 +83,33 @@ func addServeCmd(webCmd *cobra.Command) {
 	webCmd.AddCommand(serveCmd)
 }
 
-func addPruneCmd(webCmd *cobra.Command) {
+func addPruneEventsCmd(webCmd *cobra.Command) {
 	var olderThan uint
 
 	pruneCmd := &cobra.Command{
 		Use:   "prune-events",
 		Short: "Prune events older than",
-		Run:   prune,
+		Run:   pruneEvents,
 	}
 
 	pruneCmd.Flags().UintVar(&olderThan, "older-than", 10, "Prune data discovery events older than <value> days.")
+	pruneCmd.Flags().VisitAll(func(f *pflag.Flag) {
+		viper.BindPFlag(f.Name, f)
+	})
+
+	webCmd.AddCommand(pruneCmd)
+}
+
+func addPruneChecksResultsCmd(webCmd *cobra.Command) {
+	var olderThan uint
+
+	pruneCmd := &cobra.Command{
+		Use:   "prune-checks",
+		Short: "Prune checks results older than",
+		Run:   pruneChecksResults,
+	}
+
+	pruneCmd.Flags().UintVar(&olderThan, "older-than", 10, "Prune executed checks results data older than <value> days.")
 	pruneCmd.Flags().VisitAll(func(f *pflag.Flag) {
 		viper.BindPFlag(f.Name, f)
 	})
@@ -127,7 +145,7 @@ func serve(_ *cobra.Command, _ []string) {
 	}
 }
 
-func prune(_ *cobra.Command, _ []string) {
+func pruneEvents(_ *cobra.Command, _ []string) {
 	olderThan := viper.GetUint("older-than")
 	olderThanDuration := time.Duration(olderThan) * 24 * time.Hour
 
@@ -142,4 +160,21 @@ func prune(_ *cobra.Command, _ []string) {
 		log.Fatalf("Error while pruning older events: %s", err)
 	}
 	log.Infof("Events older than %d days pruned.", olderThan)
+}
+
+func pruneChecksResults(_ *cobra.Command, _ []string) {
+	olderThan := viper.GetUint("older-than")
+	olderThanDuration := time.Duration(olderThan) * 24 * time.Hour
+
+	dbConfig := LoadDBConfig()
+	db, err := db.InitDB(dbConfig)
+	if err != nil {
+		log.Fatal("Error while initializing the database: ", err)
+	}
+
+	log.Infof("Pruning checks results older than %d days.", olderThan)
+	if err := datapipeline.PruneChecksResults(olderThanDuration, db); err != nil {
+		log.Fatalf("Error while pruning older events: %s", err)
+	}
+	log.Infof("Checks results older than %d days pruned.", olderThan)
 }

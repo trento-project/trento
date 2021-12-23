@@ -35,8 +35,6 @@ spec:
             - start
             - --log-level
             - {{ .Values.global.logLevel }}
-            - --ara-server
-            - http://{{ .Release.Name }}-{{ .Values.dependencies.ara.name }}:{{ .Values.dependencies.ara.port }}
             - --api-host
             - {{ .Release.Name }}-{{ .Values.dependencies.trentoWeb.name }}
             - --api-port

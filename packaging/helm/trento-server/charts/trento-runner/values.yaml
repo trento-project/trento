@@ -90,6 +90,3 @@ dependencies:
   trentoCollector:
     name: trento-web-collector
     port: 8081
-  ara:
-    name: ara
-    port: 8000

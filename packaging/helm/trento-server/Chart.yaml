@@ -1,12 +1,12 @@
-#!BuildTag: trento/trento-server:0.2.5
-#!BuildTag: trento/trento-server:0.2.5-build%RELEASE%
+#!BuildTag: trento/trento-server:0.2.6
+#!BuildTag: trento/trento-server:0.2.6-build%RELEASE%
 apiVersion: v2
 name: trento-server
 description: The trento server chart contains all the components necessary to run a Trento server.
 type: application
 # This is the chart version. This version number should be incremented each time you make changes
 # to the chart and its templates
-version: 0.2.5
+version: 0.2.6
 
 dependencies:
   - name: trento-web
@@ -15,9 +15,6 @@ dependencies:
   - name: trento-runner
     version: ">0.0.0"
     condition: trento-runner.enabled
-  - name: ara
-    version: ">0.0.0"
-    condition: ara.enabled
   - name: postgresql
     version: ~10.1.4
     repository: https://charts.bitnami.com/bitnami/

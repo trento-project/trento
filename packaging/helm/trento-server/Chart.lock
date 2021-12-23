@@ -5,11 +5,8 @@ dependencies:
 - name: trento-runner
   repository: ""
   version: '>0.0.0'
-- name: ara
-  repository: ""
-  version: '>0.0.0'
 - name: postgresql
   repository: https://charts.bitnami.com/bitnami/
   version: 10.1.4
-digest: sha256:5cdbc1f203be1b601168ea486fa0fb95d76e7d3ee2210dcbb84f8ed2f0a90264
-generated: "2021-12-10T22:17:58.374025204+01:00"
+digest: sha256:4ca440f423831ceb17665407466664a3193b3c7cf251f15466e71be87676df20
+generated: "2021-12-23T14:21:08.608734238+01:00"

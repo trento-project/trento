@@ -35,8 +35,6 @@ spec:
             - serve
             - --log-level
             - {{ .Values.global.logLevel }}
-            - --ara-addr
-            - {{ .Release.Name }}-{{ .Values.dependencies.ara.name }}:{{ .Values.dependencies.ara.port }}
             - --db-host
             - {{ .Release.Name }}-{{ .Values.dependencies.postgresql.name }}
             - --db-port

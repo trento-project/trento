@@ -14,9 +14,6 @@ trento-runner:
     trentoWeb:
       name: web
 
-ara:
-  enabled: true
-
 postgresql:
   enabled: true
   image:

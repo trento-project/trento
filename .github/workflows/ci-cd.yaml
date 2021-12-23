@@ -82,7 +82,6 @@ jobs:
         run: pip install -r requirements.dev.txt
       - name: ansible playbooks and roles lint check
         run: |
-          export ANSIBLE_ACTION_PLUGINS=$(python3 -m ara.setup.action_plugins)
           ansible-lint -vv -x role-name,risky-shell-pipe,no-tabs -w yaml \
             runner/ansible/* runner/ansible/roles/* \
             runner/ansible/roles/checks/* runner/ansible/vars/*

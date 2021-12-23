@@ -94,9 +94,6 @@ affinity: {}
 
 # service dependencies to be consumed by the web deployment
 dependencies:
-  ara:
-    name: ara
-    port: 8000
   postgresql:
     name: postgresql
     port: 5432

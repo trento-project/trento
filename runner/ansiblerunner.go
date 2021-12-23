@@ -1,29 +1,18 @@
-// Find ARA ansible resources information at:
-// https://ara.readthedocs.io/en/latest/
-// https://github.com/ansible-community/ara
-// https://ara.readthedocs.io/en/latest/index.html
-
 package runner
 
 import (
 	"bufio"
 	"fmt"
-	"net/http"
 	"os"
 	"os/exec"
-	"strings"
 
 	log "github.com/sirupsen/logrus"
 )
 
 const (
-	TrentoWebApiHost       = "TRENTO_WEB_API_HOST"
-	TrentoWebApiPort       = "TRENTO_WEB_API_PORT"
-	AnsibleConfigFileEnv   = "ANSIBLE_CONFIG"
-	AnsibleCallbackPlugins = "ANSIBLE_CALLBACK_PLUGINS"
-	AnsibleActionPlugins   = "ANSIBLE_ACTION_PLUGINS"
-	AraApiClient           = "ARA_API_CLIENT"
-	AraApiServer           = "ARA_API_SERVER"
+	TrentoWebApiHost     = "TRENTO_WEB_API_HOST"
+	TrentoWebApiPort     = "TRENTO_WEB_API_PORT"
+	AnsibleConfigFileEnv = "ANSIBLE_CONFIG"
 )
 
 //go:generate mockery --name=CustomCommand
@@ -45,15 +34,6 @@ func DefaultAnsibleRunner() *AnsibleRunner {
 		Envs:     make(map[string]string),
 		Check:    false,
 	}
-}
-
-func DefaultAnsibleRunnerWithAra() (*AnsibleRunner, error) {
-	a := DefaultAnsibleRunner()
-	if err := a.LoadAraPlugins(); err != nil {
-		return a, err
-	}
-
-	return a, nil
 }
 
 func (a *AnsibleRunner) setEnv(name, value string) {
@@ -87,70 +67,6 @@ func (a *AnsibleRunner) SetConfigFile(confFile string) {
 func (a *AnsibleRunner) SetTrentoApiData(host string, port int) {
 	a.setEnv(TrentoWebApiHost, host)
 	a.setEnv(TrentoWebApiPort, fmt.Sprintf("%d", port))
-}
-
-// ARA_API_CLIENT is always set to "http" to ensure the usage of the REST API
-// "offline" mode could be used, but it would only work if the ansible runner is
-// running in the same host, and it doesn't provide much value
-func (a *AnsibleRunner) SetAraServer(host string) {
-	a.setEnv(AraApiClient, "http")
-	a.setEnv(AraApiServer, host)
-}
-
-func (a *AnsibleRunner) LoadAraPlugins() error {
-	log.Info("Loading ARA plugins...")
-
-	araCallback := customExecCommand("python3", "-m", "ara.setup.callback_plugins")
-	araCallbackPath, err := araCallback.Output()
-	if err != nil {
-		log.Errorf("An error occurred getting the ARA callback plugin path: %s", err)
-		return err
-	}
-	araCallbackPathStr := strings.TrimSpace(string(araCallbackPath))
-	log.Debugf("ARA callback plugin found: %s", araCallbackPathStr)
-
-	a.setEnv(AnsibleCallbackPlugins, araCallbackPathStr)
-
-	araAction := customExecCommand("python3", "-m", "ara.setup.action_plugins")
-	araActionPath, err := araAction.Output()
-	if err != nil {
-		log.Errorf("An error occurred getting the ARA actions plugin path: %s", err)
-		return err
-	}
-	araActionPathStr := strings.TrimSpace(string(araActionPath))
-	log.Debugf("ARA actions plugin found: %s", araActionPathStr)
-
-	a.setEnv(AnsibleActionPlugins, araActionPathStr)
-
-	log.Info("ARA plugins loaded successfully")
-
-	return nil
-}
-
-func (a *AnsibleRunner) IsAraServerUp() bool {
-	server, ok := a.Envs[AraApiServer]
-	if !ok {
-		log.Warn("ARA server usage not configured")
-		return false
-	}
-
-	host := fmt.Sprintf("%s/api/", server)
-	log.Debugf("Looking for the ARA server at: %s", host)
-
-	resp, err := http.Get(host)
-
-	if err != nil || resp.StatusCode != http.StatusOK {
-		log.Debugf("Error requesting ARA server api: %s", err)
-		return false
-	}
-
-	log.Debugf("ARA server response code: %s", resp.Status)
-
-	if resp.StatusCode != http.StatusOK {
-		return false
-	}
-
-	return true
 }
 
 func (a *AnsibleRunner) RunPlaybook() error {

@@ -36,7 +36,6 @@ type Runner struct {
 type Config struct {
 	ApiHost       string
 	ApiPort       int
-	AraServer     string
 	Interval      time.Duration
 	AnsibleFolder string
 }
@@ -70,10 +69,6 @@ func (c *Runner) Start() error {
 	metaRunner, err := NewAnsibleMetaRunner(c.config)
 	if err != nil {
 		return err
-	}
-
-	if !metaRunner.IsAraServerUp() {
-		return fmt.Errorf("ARA server not available")
 	}
 
 	if err = metaRunner.RunPlaybook(); err != nil {
@@ -148,32 +143,25 @@ func createAnsibleFiles(folder string) error {
 
 func NewAnsibleMetaRunner(config *Config) (*AnsibleRunner, error) {
 	playbookPath := path.Join(config.AnsibleFolder, AnsibleMeta)
-	ansibleRunner, err := DefaultAnsibleRunnerWithAra()
-	if err != nil {
-		return ansibleRunner, err
-	}
+	ansibleRunner := DefaultAnsibleRunner()
 
-	if err = ansibleRunner.SetPlaybook(playbookPath); err != nil {
+	if err := ansibleRunner.SetPlaybook(playbookPath); err != nil {
 		return ansibleRunner, err
 	}
 
 	configFile := path.Join(config.AnsibleFolder, AnsibleConfigFile)
 	ansibleRunner.SetConfigFile(configFile)
 	ansibleRunner.SetTrentoApiData(config.ApiHost, config.ApiPort)
-	ansibleRunner.SetAraServer(config.AraServer)
 
-	return ansibleRunner, err
+	return ansibleRunner, nil
 }
 
 func NewAnsibleCheckRunner(config *Config) (*AnsibleRunner, error) {
 	playbookPath := path.Join(config.AnsibleFolder, AnsibleMain)
 
-	ansibleRunner, err := DefaultAnsibleRunnerWithAra()
-	if err != nil {
-		return ansibleRunner, err
-	}
+	ansibleRunner := DefaultAnsibleRunner()
 
-	if err = ansibleRunner.SetPlaybook(playbookPath); err != nil {
+	if err := ansibleRunner.SetPlaybook(playbookPath); err != nil {
 		return ansibleRunner, err
 	}
 
@@ -181,7 +169,6 @@ func NewAnsibleCheckRunner(config *Config) (*AnsibleRunner, error) {
 	configFile := path.Join(config.AnsibleFolder, AnsibleConfigFile)
 	ansibleRunner.SetConfigFile(configFile)
 	ansibleRunner.SetTrentoApiData(config.ApiHost, config.ApiPort)
-	ansibleRunner.SetAraServer(config.AraServer)
 
 	return ansibleRunner, nil
 }
@@ -210,10 +197,6 @@ func (c *Runner) startCheckRunnerTicker() {
 			return
 		}
 
-		if !checkRunner.IsAraServerUp() {
-			log.Error("ARA server not found. Skipping ansible execution as the data is not recorded")
-			return
-		}
 		checkRunner.RunPlaybook()
 	}
 

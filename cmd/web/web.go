@@ -52,7 +52,6 @@ func NewWebCmd() *cobra.Command {
 func addServeCmd(webCmd *cobra.Command) {
 	var host string
 	var port int
-	var araAddr string
 
 	var collectorPort int
 	var enablemTLS bool
@@ -68,7 +67,6 @@ func addServeCmd(webCmd *cobra.Command) {
 
 	serveCmd.Flags().StringVar(&host, "host", "0.0.0.0", "The host to bind the HTTP service to")
 	serveCmd.Flags().IntVarP(&port, "port", "p", 8080, "The port for the HTTP service to listen on")
-	serveCmd.Flags().StringVar(&araAddr, "ara-addr", "127.0.0.1:8000", "Address where ARA is running (ex: localhost:80)")
 
 	serveCmd.Flags().IntVar(&collectorPort, "collector-port", 8081, "The port for the data collector service to listen on")
 	serveCmd.Flags().BoolVar(&enablemTLS, "enable-mtls", false, "Enable mTLS authentication between server and agents")

@@ -155,6 +155,7 @@ func TestApiClusterCheckResultsHandler500(t *testing.T) {
 
 func TestApiCreateChecksResultHandler(t *testing.T) {
 	expectedResults := &models.ChecksResult{
+		ID: "47d1190ffb4f781974c8356d7f863b03",
 		Hosts: map[string]*models.HostState{
 			"host1": &models.HostState{
 				Reachable: true,
@@ -190,7 +191,7 @@ func TestApiCreateChecksResultHandler(t *testing.T) {
 	}
 	mockChecksService := new(services.MockChecksService)
 	mockChecksService.On(
-		"CreateChecksResultById", "47d1190ffb4f781974c8356d7f863b03", expectedResults).Return(nil)
+		"CreateChecksResult", expectedResults).Return(nil)
 
 	deps := setupTestDependencies()
 	deps.checksService = mockChecksService
@@ -250,7 +251,7 @@ func TestApiCreateChecksResultHandler(t *testing.T) {
 func TestTestApiCreateChecksResultHandler500(t *testing.T) {
 	mockChecksService := new(services.MockChecksService)
 	mockChecksService.On(
-		"CreateChecksResultById", "other", mock.Anything).Return(fmt.Errorf("error"))
+		"CreateChecksResult", mock.Anything).Return(fmt.Errorf("error"))
 
 	deps := setupTestDependencies()
 	deps.checksService = mockChecksService

@@ -9,6 +9,7 @@ const (
 )
 
 type ChecksResult struct {
+	ID     string                   `json:"-"`
 	Hosts  map[string]*HostState    `json:"hosts,omitempty"`
 	Checks map[string]*ChecksByHost `json:"checks,omitempty"`
 }

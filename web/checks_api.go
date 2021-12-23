@@ -165,10 +165,11 @@ func ApiCreateChecksResultHandler(s services.ChecksService) gin.HandlerFunc {
 		}
 
 		var results models.ChecksResult
+		results.ID = id
 		// This is the easier way to decode the json format in the internal models
 		mapstructure.Decode(r, &results)
 
-		err = s.CreateChecksResultById(id, &results)
+		err = s.CreateChecksResult(&results)
 		if err != nil {
 			c.Error(err)
 			return

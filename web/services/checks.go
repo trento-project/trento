@@ -38,7 +38,7 @@ type ChecksService interface {
 	CreateChecksCatalogEntry(check *models.Check) error // seems to be never used
 	CreateChecksCatalog(checkList models.ChecksCatalog) error
 	// Check result services
-	CreateChecksResultById(id string, checksResult *models.ChecksResult) error
+	CreateChecksResult(checksResult *models.ChecksResult) error
 	GetChecksResultByCluster(clusterId string) (*models.ChecksResult, error)
 	GetChecksResultAndMetadataByCluster(clusterId string) (*models.ChecksResultAsList, error)
 	GetAggregatedChecksResultByHost(clusterId string) (map[string]*AggregatedCheckData, error)
@@ -154,13 +154,13 @@ func (c *checksService) CreateChecksCatalog(checkList models.ChecksCatalog) erro
 Checks result services
 */
 
-func (c *checksService) CreateChecksResultById(id string, checksResult *models.ChecksResult) error {
+func (c *checksService) CreateChecksResult(checksResult *models.ChecksResult) error {
 	jsonData, err := json.Marshal(&checksResult)
 	if err != nil {
 		return err
 	}
 
-	event := entities.ChecksResult{GroupID: id, Payload: jsonData}
+	event := entities.ChecksResult{GroupID: checksResult.ID, Payload: jsonData}
 	result := c.db.Create(&event)
 
 	return result.Error

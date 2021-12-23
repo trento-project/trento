@@ -322,12 +322,13 @@ func (suite *ChecksServiceTestSuite) TestChecksService_CreateChecksCatalog() {
 func (suite *ChecksServiceTestSuite) TestChecksService_GetChecksResultByCluster() {
 	results, err := suite.checksService.GetChecksResultByCluster("group1")
 
-	var checksRsultEntity entities.ChecksResult
+	var checksResultEntity entities.ChecksResult
 	var resultsStored models.ChecksResult
+	resultsStored.ID = "group1"
 
-	suite.tx.Where("group_id", "group1").Last(&checksRsultEntity)
+	suite.tx.Where("group_id", "group1").Last(&checksResultEntity)
 
-	json.Unmarshal(checksRsultEntity.Payload, &resultsStored)
+	json.Unmarshal(checksResultEntity.Payload, &resultsStored)
 	suite.NoError(err)
 	suite.Equal(&resultsStored, results)
 }
@@ -338,8 +339,9 @@ func (suite *ChecksServiceTestSuite) TestChecksService_GetChecksResultByClusterE
 	suite.EqualError(err, "record not found")
 }
 
-func (suite *ChecksServiceTestSuite) TestChecksService_CreateChecksResultsById() {
+func (suite *ChecksServiceTestSuite) TestChecksService_CreateChecksResult() {
 	results := &models.ChecksResult{
+		ID: "group1",
 		Hosts: map[string]*models.HostState{
 			"host1": &models.HostState{
 				Reachable: true,
@@ -374,14 +376,15 @@ func (suite *ChecksServiceTestSuite) TestChecksService_CreateChecksResultsById()
 		},
 	}
 
-	err := suite.checksService.CreateChecksResultById("group1", results)
+	err := suite.checksService.CreateChecksResult(results)
 
-	var checksRsultEntity entities.ChecksResult
+	var checksResultEntity entities.ChecksResult
 	var resultsStored models.ChecksResult
+	resultsStored.ID = "group1"
 
-	suite.tx.Where("group_id", "group1").Last(&checksRsultEntity)
+	suite.tx.Where("group_id", "group1").Last(&checksResultEntity)
 
-	json.Unmarshal(checksRsultEntity.Payload, &resultsStored)
+	json.Unmarshal(checksResultEntity.Payload, &resultsStored)
 	suite.NoError(err)
 	suite.Equal(results, &resultsStored)
 }

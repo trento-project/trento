@@ -40,13 +40,13 @@ func (_m *MockChecksService) CreateChecksCatalogEntry(check *models.Check) error
 	return r0
 }
 
-// CreateChecksResultById provides a mock function with given fields: id, checksResult
-func (_m *MockChecksService) CreateChecksResultById(id string, checksResult *models.ChecksResult) error {
-	ret := _m.Called(id, checksResult)
+// CreateChecksResult provides a mock function with given fields: checksResult
+func (_m *MockChecksService) CreateChecksResult(checksResult *models.ChecksResult) error {
+	ret := _m.Called(checksResult)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, *models.ChecksResult) error); ok {
-		r0 = rf(id, checksResult)
+	if rf, ok := ret.Get(0).(func(*models.ChecksResult) error); ok {
+		r0 = rf(checksResult)
 	} else {
 		r0 = ret.Error(0)
 	}

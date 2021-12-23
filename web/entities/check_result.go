@@ -17,6 +17,7 @@ type ChecksResult struct {
 
 func (c *ChecksResult) ToModel() (*models.ChecksResult, error) {
 	var checkResult models.ChecksResult
+	checkResult.ID = c.GroupID
 	err := json.Unmarshal(c.Payload, &checkResult)
 
 	return &checkResult, err

@@ -28,7 +28,13 @@ func NewWebCmd() *cobra.Command {
 	webCmd := &cobra.Command{
 		Use:   "web",
 		Short: "Command tree related to the web application component",
-		PersistentPreRunE: func(*cobra.Command, []string) error {
+		PersistentPreRunE: func(webCmd *cobra.Command, _ []string) error {
+			webCmd.Flags().VisitAll(func(f *pflag.Flag) {
+				viper.BindPFlag(f.Name, f)
+			})
+			webCmd.PersistentFlags().VisitAll(func(f *pflag.Flag) {
+				viper.BindPFlag(f.Name, f)
+			})
 			return internal.InitConfig("web")
 		},
 	}
@@ -38,10 +44,6 @@ func NewWebCmd() *cobra.Command {
 	webCmd.PersistentFlags().StringVar(&dbUser, "db-user", "postgres", "The database user")
 	webCmd.PersistentFlags().StringVar(&dbPassword, "db-password", "postgres", "The database password")
 	webCmd.PersistentFlags().StringVar(&dbName, "db-name", "trento", "The database name that the application will use")
-
-	webCmd.PersistentFlags().VisitAll(func(f *pflag.Flag) {
-		viper.BindPFlag(f.Name, f)
-	})
 
 	addServeCmd(webCmd)
 	addPruneCmd(webCmd)
@@ -74,11 +76,6 @@ func addServeCmd(webCmd *cobra.Command) {
 	serveCmd.Flags().StringVar(&key, "key", "", "mTLS server key")
 	serveCmd.Flags().StringVar(&ca, "ca", "", "mTLS Certificate Authority")
 
-	// Bind the flags to viper and make them available to the application
-	serveCmd.Flags().VisitAll(func(f *pflag.Flag) {
-		viper.BindPFlag(f.Name, f)
-	})
-
 	webCmd.AddCommand(serveCmd)
 }
 
@@ -92,9 +89,6 @@ func addPruneCmd(webCmd *cobra.Command) {
 	}
 
 	pruneCmd.Flags().UintVar(&olderThan, "older-than", 10, "Prune data discovery events older than <value> days.")
-	pruneCmd.Flags().VisitAll(func(f *pflag.Flag) {
-		viper.BindPFlag(f.Name, f)
-	})
 
 	webCmd.AddCommand(pruneCmd)
 }

@@ -24,26 +24,25 @@ func NewRunnerCmd() *cobra.Command {
 	runnerCmd := &cobra.Command{
 		Use:   "runner",
 		Short: "Command tree related to the runner component",
+		PersistentPreRunE: func(runnerCmd *cobra.Command, _ []string) error {
+			runnerCmd.Flags().VisitAll(func(f *pflag.Flag) {
+				viper.BindPFlag(f.Name, f)
+			})
+
+			return internal.InitConfig("runner")
+		},
 	}
 
 	startCmd := &cobra.Command{
 		Use:   "start",
 		Short: "Starts the runner process. This process takes care of running the checks",
 		Run:   start,
-		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
-			return internal.InitConfig("runner")
-		},
 	}
 
 	startCmd.Flags().StringVar(&apiHost, "api-host", "0.0.0.0", "Trento web server API host")
 	startCmd.Flags().IntVar(&apiPort, "api-port", 8080, "Trento web server API port")
 	startCmd.Flags().IntVarP(&interval, "interval", "i", 5, "Interval in minutes to run the checks")
 	startCmd.Flags().StringVar(&ansibleFolder, "ansible-folder", "/tmp/trento", "Folder where the ansible file structure will be created")
-
-	// Bind the flags to viper and make them available to the application
-	startCmd.Flags().VisitAll(func(f *pflag.Flag) {
-		viper.BindPFlag(f.Name, f)
-	})
 
 	runnerCmd.AddCommand(startCmd)
 

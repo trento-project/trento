@@ -30,15 +30,19 @@ func NewAgentCmd() *cobra.Command {
 	agentCmd := &cobra.Command{
 		Use:   "agent",
 		Short: "Command tree related to the agent component",
+		PersistentPreRunE: func(agentCmd *cobra.Command, _ []string) error {
+			agentCmd.Flags().VisitAll(func(f *pflag.Flag) {
+				viper.BindPFlag(f.Name, f)
+			})
+
+			return internal.InitConfig("agent")
+		},
 	}
 
 	startCmd := &cobra.Command{
 		Use:   "start",
 		Short: "Start the agent",
 		Run:   start,
-		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
-			return internal.InitConfig("agent")
-		},
 	}
 
 	startCmd.Flags().StringVar(&sshAddress, "ssh-address", "", "The address to which the trento-agent should be reachable for ssh connection by the runner for check execution.")
@@ -52,11 +56,6 @@ func NewAgentCmd() *cobra.Command {
 	startCmd.Flags().StringVar(&cert, "cert", "", "mTLS client certificate")
 	startCmd.Flags().StringVar(&key, "key", "", "mTLS client key")
 	startCmd.Flags().StringVar(&ca, "ca", "", "mTLS Certificate Authority")
-
-	// Bind the flags to viper and make them available to the application
-	startCmd.Flags().VisitAll(func(f *pflag.Flag) {
-		viper.BindPFlag(f.Name, f)
-	})
 
 	agentCmd.AddCommand(startCmd)
 

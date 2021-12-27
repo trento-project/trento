@@ -15,12 +15,12 @@ import (
 	"github.com/trento-project/trento/runner"
 )
 
-var apiHost string
-var apiPort int
-var interval int
-var ansibleFolder string
-
 func NewRunnerCmd() *cobra.Command {
+	var apiHost string
+	var apiPort int
+	var interval int
+	var ansibleFolder string
+
 	runnerCmd := &cobra.Command{
 		Use:   "runner",
 		Short: "Command tree related to the runner component",
@@ -49,7 +49,7 @@ func NewRunnerCmd() *cobra.Command {
 	return runnerCmd
 }
 
-func start(cmd *cobra.Command, args []string) {
+func start(*cobra.Command, []string) {
 	var err error
 
 	signals := make(chan os.Signal, 1)

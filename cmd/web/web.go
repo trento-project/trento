@@ -93,7 +93,7 @@ func addPruneCmd(webCmd *cobra.Command) {
 	webCmd.AddCommand(pruneCmd)
 }
 
-func serve(_ *cobra.Command, _ []string) {
+func serve(*cobra.Command, []string) {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 

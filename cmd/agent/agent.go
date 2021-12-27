@@ -62,7 +62,7 @@ func NewAgentCmd() *cobra.Command {
 	return agentCmd
 }
 
-func start(cmd *cobra.Command, args []string) {
+func start(*cobra.Command, []string) {
 	var err error
 
 	signals := make(chan os.Signal, 1)

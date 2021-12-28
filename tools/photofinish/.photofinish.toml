@@ -1,0 +1,12 @@
+[first-test-scenario]
+files = [
+  "../../test/fixtures/discovery/host/expected_published_host_discovery.json",
+  "../../test/fixtures/discovery/sap_system/sap_system_discovery_application.json",
+  "../../test/fixtures/discovery/subscriptions/expected_published_subscriptions_discovery.json",
+]
+
+[second-test-scenario]
+files = [
+  "third file",
+  "fourth-file"
+]

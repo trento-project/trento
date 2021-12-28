@@ -3,11 +3,6 @@
 
 set -e
 
-if [ "$EUID" -ne 0 ]; then
-    echo "Please run as root."
-    exit
-fi
-
 function print_help() {
     cat <<END
 This is a trento-agent installer. Trento is a web-based graphical user interface
@@ -32,6 +27,11 @@ case "$1" in
         exit 0
     ;;
 esac
+
+if [ "$EUID" -ne 0 ]; then
+    echo "Please run as root."
+    exit
+fi
 
 ARGUMENT_LIST=(
     "ssh-address:"

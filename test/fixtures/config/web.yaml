@@ -1,0 +1,12 @@
+host: some-host
+port: 1337
+collector-port: 1338
+enable-mtls: true
+cert: some-cert
+key: some-key
+ca: some-ca
+db-host: some-db-host
+db-port: 6543
+db-user: postgres
+db-password: password
+db-name: trento

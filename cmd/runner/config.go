@@ -11,7 +11,7 @@ func LoadConfig() *runner.Config {
 	return &runner.Config{
 		ApiHost:       viper.GetString("api-host"),
 		ApiPort:       viper.GetInt("api-port"),
-		Interval:      time.Duration(interval) * time.Minute,
+		Interval:      time.Duration(viper.GetInt("interval")) * time.Minute,
 		AnsibleFolder: viper.GetString("ansible-folder"),
 	}
 }

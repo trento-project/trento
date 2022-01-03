@@ -1,0 +1,4 @@
+api-host: some-api-host
+api-port: 1337
+interval: 1
+ansible-folder: path/to/ansible

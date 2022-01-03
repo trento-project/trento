@@ -1,0 +1,8 @@
+ssh-address: some-ssh-address
+discovery-period: 10
+collector-host: localhost
+collector-port: 1337
+enable-mtls: true
+cert: some-cert
+key: some-key
+ca: some-ca

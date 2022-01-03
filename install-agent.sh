@@ -40,7 +40,7 @@ ARGUMENT_LIST=(
     "use-tgz"
 )
 
-readonly TRENTO_VERSION=0.6.0
+readonly TRENTO_VERSION=0.7.1
 
 opts=$(
     getopt \

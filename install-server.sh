@@ -4,7 +4,7 @@ set -e
 
 readonly ARGS=("$@")
 readonly PROGNAME="./install-server.sh"
-TRENTO_VERSION="0.6.0"
+TRENTO_VERSION="0.7.1"
 
 usage() {
     cat <<-EOF

@@ -24,11 +24,12 @@ pub fn parse_scenarios(config: String) -> Vec<Scenario> {
     toml_config
         .iter()
         .map(|(key, value)| {
+            let default_array = toml::value::Array::new();
             let scenario_files: Vec<String> = value["files"]
                 .as_array()
-                .unwrap()
+                .unwrap_or_else(||&default_array)
                 .iter()
-                .map(|file_path| file_path.as_str().unwrap().to_string())
+                .map(|file_path| file_path.as_str().unwrap_or_else(||"").to_string())
                 .collect();
             Scenario {
                 label: key.to_string(),

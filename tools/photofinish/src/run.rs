@@ -15,7 +15,7 @@ pub async fn run(
         None => println!("Non-existing scenario!"),
         Some(scenario) => {
             for file in scenario.files.iter() {
-                let canonical_path = fs::canonicalize(file).unwrap();
+                let canonical_path = fs::canonicalize(file).unwrap_or_default();
                 match fs::read_to_string(canonical_path) {
                     Ok(file_content) => {
                         let response = http_client

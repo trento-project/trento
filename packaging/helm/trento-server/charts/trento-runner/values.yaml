@@ -13,7 +13,7 @@ replicaCount: 1
 image:
   repository: ghcr.io/trento-project/trento-runner
   pullPolicy: Always
-  tag: "rolling"
+  tag: "0.7.1"
 
 imagePullSecrets: []
 nameOverride: ""

@@ -1,6 +1,6 @@
 # photofinish - a little, handy tool to replay events
 
-Since we had the need to replay some events and get fixtures, I tried to get together all the needs we had in a tiny CLI tool.
+This tiny CLI tool aims to fulfill the need to replay some events and get fixtures.
 
 Photofinish reads a `.photofinish.toml` file in the current working directory and:
 

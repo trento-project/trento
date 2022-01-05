@@ -720,8 +720,8 @@ github.com/swaggo/gin-swagger v1.3.3/go.mod h1:ymsZuGpbbu+S7ZoQ49QPpZoDBj6uqhb8W
 github.com/swaggo/swag v1.7.4/go.mod h1:zD8h6h4SPv7t3l+4BKdRquqW1ASWjKZgT6Qv9z3kNqI=
 github.com/swaggo/swag v1.7.8 h1:w249t0l/kc/DKMGlS0fppNJQxKyJ8heNaUWB6nsH3zc=
 github.com/swaggo/swag v1.7.8/go.mod h1:gZ+TJ2w/Ve1RwQsA2IRoSOTidHz6DX+PIG8GWvbnoLU=
-github.com/tdewolff/minify/v2 v2.9.26 h1:eQy5DRs7vH5pxkF0xtFv29bOgyBEL2vInj4v1bFkK88=
-github.com/tdewolff/minify/v2 v2.9.26/go.mod h1:L/bwPtsU/Xx30MxCndlClCMMiLbqROgkR4vZT+QIGXA=
+github.com/tdewolff/minify/v2 v2.9.27 h1:/HXIZwTZzh8pwxoc6cg5lqvujqOLLaIL6O4ojHh5jIw=
+github.com/tdewolff/minify/v2 v2.9.27/go.mod h1:L/bwPtsU/Xx30MxCndlClCMMiLbqROgkR4vZT+QIGXA=
 github.com/tdewolff/parse/v2 v2.5.26 h1:a/q3lwDCi4GIQ+sSbs4UOHuObhqp8GHAhfqop/zDyQQ=
 github.com/tdewolff/parse/v2 v2.5.26/go.mod h1:WzaJpRSbwq++EIQHYIRTpbYKNA3gn9it1Ik++q4zyho=
 github.com/tdewolff/test v1.0.6 h1:76mzYJQ83Op284kMT+63iCNCI7NEERsIN8dLM+RiKr4=

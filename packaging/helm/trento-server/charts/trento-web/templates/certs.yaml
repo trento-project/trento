@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "trento-runner.fullname" . }}-certs
+data:
+  cert: |-
+    {{ .Values.mTLS.cert | b64enc }}
+  key: |-
+    {{ .Values.mTLS.key | b64enc  }}
+  ca: |-
+    {{ .Values.mTLS.ca | b64enc  }}

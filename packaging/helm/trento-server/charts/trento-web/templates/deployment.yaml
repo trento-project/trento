@@ -43,6 +43,15 @@ spec:
             - "{{ .Values.webService.port }}"
             - --collector-port
             - "{{ .Values.collectorService.port }}"
+            {{ if .Values.mTLS.enabled }}
+            - --enable-mtls
+            - --cert
+            - /certs/cert.pem
+            - --key
+            - /certs/key.pem
+            - --ca
+            - /certs/ca.pem
+            {{ end }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -64,6 +73,10 @@ spec:
               port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+          - name: certs
+            mountPath: "/certs"
+            readOnly: true
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -76,3 +89,15 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      volumes:
+      - name: certs
+        secret:
+          secretName: {{ include "trento-runner.fullname" . }}-certs
+          items:
+          - key: cert
+            path: cert.pem
+          - key: ca
+            path: ca.pem
+          - key: key
+            path: key.pem
+            

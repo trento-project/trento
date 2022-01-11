@@ -4,7 +4,7 @@ set -e
 
 readonly ARGS=("$@")
 readonly PROGNAME="./install-server.sh"
-TRENTO_VERSION="0.6.0"
+TRENTO_VERSION="0.7.1"
 
 usage() {
     cat <<-EOF
@@ -13,9 +13,13 @@ usage() {
     Install Trento Server
 
     OPTIONS:
-        -p --private-key  <file>         re-authorized private SSH key used by the runner to connect to the hosts
-        -r --rolling                     use the rolling-release version instead of the stable one
-        -h --help                        show this help
+        -p, --private-key     Private SSH key used by the runner to connect to the hosts.
+        -m, --enable-mtls     Enable mTLS secure communication between the agent and the server.
+        -c, --cert            The path to the TLS certificate file. Required if --enable-mtls is set.
+        -k, --key             The path to the TLS key file. Required if --enable-mtls is set.
+        -a, --ca              The path to the TLS CA file. Required if --enable-mtls is set.
+        -r, --rolling         Use the rolling version instead of the stable one.
+        -h, --help            Print this help.
 
     Example:
        $PROGNAME --private-key ./id_rsa_runner
@@ -24,12 +28,15 @@ EOF
 
 cmdline() {
     local arg=
-    local private_key_absolute_path=
+
     for arg; do
         local delim=""
         case "$arg" in
         --private-key) args="${args}-p " ;;
-        --rolling) args="${args}-r " ;;
+        --enable-mtls) args="${args}-m " ;;
+        --cert) args="${args}-c " ;;
+        --key) args="${args}-k " ;;
+        --ca) args="${args}-a " ;;
         --help) args="${args}-h " ;;
 
         # pass through anything else
@@ -42,18 +49,37 @@ cmdline() {
 
     eval set -- "$args"
 
-    while getopts "p:rh" OPTION; do
+    while getopts "p:c:k:a:mrh" OPTION; do
         case $OPTION in
         h)
             usage
             exit 0
             ;;
+
         p)
             PRIVATE_KEY=$OPTARG
             ;;
+
+        m)
+            ENABLE_MTLS=true
+            ;;
+
+        c)
+            CERT=$OPTARG
+            ;;
+
+        k)
+            KEY=$OPTARG
+            ;;
+
+        a)
+            CA=$OPTARG
+            ;;
+
         r)
             readonly ROLLING=true
             ;;
+
         *)
             usage
             exit 0
@@ -65,19 +91,59 @@ cmdline() {
         read -rp "Please provide the path of the runner private key: " PRIVATE_KEY </dev/tty
     fi
 
-    # Replace tilde with the current home:
-    PRIVATE_KEY="${PRIVATE_KEY/#\~/$HOME}"
-    private_key_absolute_path=$(realpath -q -e "$PRIVATE_KEY") || {
-        echo "Path '${PRIVATE_KEY}' to private SSH key does not exist, please try again."
+    PRIVATE_KEY=$(normalize_path "$PRIVATE_KEY") || {
+        echo "Path to the private key file does not exist, please try again."
         exit 1
     }
-    PRIVATE_KEY="$private_key_absolute_path"
+    
+    configure_mtls
 
     if [[ "$ROLLING" == "true" ]]; then
         TRENTO_VERSION="rolling"
     fi
 
     return 0
+}
+
+function configure_mtls() {
+    if [[ -n "$ENABLE_MTLS" ]]; then
+        if [[ -z "$CERT" ]]; then
+            read -rp "Please provide the TLS certificate path: " CERT </dev/tty
+
+        fi
+        CERT=$(normalize_path "$CERT") || {
+            echo "Path to the TLS cert file does not exist, please try again."
+            exit 1
+        }
+
+        if [[ -z "$KEY" ]]; then
+            read -rp "Please provide the TLS key path: " KEY </dev/tty
+        fi
+        KEY=$(normalize_path "$KEY") || {
+            echo "Path to the TLS key file does not exist, please try again."
+            exit 1
+        }
+
+        if [[ -z "$CA" ]]; then
+            read -rp "Please provide the TLS CA path: " CA </dev/tty
+        fi
+        CA=$(normalize_path "$CA") || {
+            echo "Path to the TLS CA file does not exist, please try again."
+            exit 1
+        }
+    fi
+}
+
+function normalize_path() {
+    local path=$1
+    local absolute_path
+
+    path="${path/#\~/$HOME}"
+    absolute_path=$(realpath -q -e "$path") || {
+        exit 1
+    }
+
+    echo "$absolute_path"
 }
 
 check_requirements() {
@@ -141,12 +207,23 @@ install_trento_server_chart() {
 
     pushd -- /tmp/trento-"${trento_source_zip}"/packaging/helm/trento-server >/dev/null
     helm dep update >/dev/null
-    helm upgrade --install trento-server . \
-        --set-file trento-runner.privateKey="${private_key}" \
-        --set trento-web.image.tag="${TRENTO_VERSION}" \
-        --set trento-runner.image.tag="${TRENTO_VERSION}" \
-        --set trento-runner.image.repository="${runner_image}" \
+
+    local args=(
+        --set-file trento-runner.privateKey="${private_key}"
+        --set trento-web.image.tag="${TRENTO_VERSION}"
+        --set trento-runner.image.tag="${TRENTO_VERSION}"
+        --set trento-runner.image.repository="${runner_image}"
         --set trento-web.image.repository="${web_image}"
+    )
+    if [[ "$ENABLE_MTLS" == "true" ]]; then
+        args+=(
+            --set trento-web.mTLS.enabled=true
+            --set-file trento-web.mTLS.cert="${CERT}"
+            --set-file trento-web.mTLS.key="${KEY}"
+            --set-file trento-web.mTLS.ca="${CA}"
+        )
+    fi
+    helm upgrade --install trento-server . "${args[@]}"
 
     popd >/dev/null
 }

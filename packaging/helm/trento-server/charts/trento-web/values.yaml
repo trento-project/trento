@@ -5,6 +5,12 @@
 global:
   logLevel: info
 
+mTLS:
+  enabled: false
+  cert: ""
+  key: ""
+  ca: ""
+
 replicaCount: 1
 
 image:

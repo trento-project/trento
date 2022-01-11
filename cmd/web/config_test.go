@@ -25,7 +25,11 @@ func (suite *WebCmdTestSuite) SetupTest() {
 
 	cmd := NewWebCmd()
 
+	// disable prunning commands execution
 	cmd.Commands()[1].Run = func(cmd *cobra.Command, args []string) {
+		// do nothing
+	}
+	cmd.Commands()[2].Run = func(cmd *cobra.Command, args []string) {
 		// do nothing
 	}
 

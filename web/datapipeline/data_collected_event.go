@@ -6,6 +6,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
+
+	"github.com/trento-project/trento/web/entities"
 )
 
 const (
@@ -29,4 +31,11 @@ func PruneEvents(olderThan time.Duration, db *gorm.DB) error {
 	log.Debugf("Pruned %d events", prunedEvents.RowsAffected)
 
 	return prunedEvents.Error
+}
+
+func PruneChecksResults(olderThan time.Duration, db *gorm.DB) error {
+	prunedChecksResults := db.Delete(entities.ChecksResult{}, "created_at < ?", time.Now().Add(-olderThan))
+	log.Debugf("Pruned %d checks results", prunedChecksResults.RowsAffected)
+
+	return prunedChecksResults.Error
 }

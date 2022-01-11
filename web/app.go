@@ -38,6 +38,13 @@ var assetsFS embed.FS
 //go:embed templates
 var templatesFS embed.FS
 
+var DBTables = []interface{}{
+	&entities.Settings{}, &models.Tag{}, &models.SelectedChecks{}, &models.ConnectionSettings{},
+	&entities.Check{}, &datapipeline.DataCollectedEvent{}, &datapipeline.Subscription{},
+	&entities.HostTelemetry{}, &entities.Cluster{}, &entities.Host{}, &entities.HostHeartbeat{},
+	&entities.SlesSubscription{}, &entities.SAPSystemInstance{}, &entities.ChecksResult{},
+}
+
 type App struct {
 	InstallationID uuid.UUID
 	config         *Config
@@ -120,12 +127,7 @@ func NewNamedEngine(instance string) *gin.Engine {
 }
 
 func MigrateDB(db *gorm.DB) error {
-	err := db.AutoMigrate(
-		entities.Settings{}, models.Tag{}, models.SelectedChecks{}, models.ConnectionSettings{},
-		entities.Check{}, datapipeline.DataCollectedEvent{}, datapipeline.Subscription{},
-		entities.HostTelemetry{}, entities.Cluster{}, entities.Host{}, entities.HostHeartbeat{},
-		entities.SlesSubscription{}, entities.SAPSystemInstance{}, entities.ChecksResult{},
-	)
+	err := db.AutoMigrate(DBTables...)
 
 	if err != nil {
 		return err

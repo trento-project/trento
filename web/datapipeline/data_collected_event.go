@@ -3,11 +3,7 @@ package datapipeline
 import (
 	"time"
 
-	log "github.com/sirupsen/logrus"
 	"gorm.io/datatypes"
-	"gorm.io/gorm"
-
-	"github.com/trento-project/trento/web/entities"
 )
 
 const (
@@ -24,18 +20,4 @@ type DataCollectedEvent struct {
 	AgentID       string         `json:"agent_id" binding:"required"`
 	DiscoveryType string         `json:"discovery_type" binding:"required"`
 	Payload       datatypes.JSON `json:"payload" binding:"required"`
-}
-
-func PruneEvents(olderThan time.Duration, db *gorm.DB) error {
-	prunedEvents := db.Delete(DataCollectedEvent{}, "created_at < ?", time.Now().Add(-olderThan))
-	log.Debugf("Pruned %d events", prunedEvents.RowsAffected)
-
-	return prunedEvents.Error
-}
-
-func PruneChecksResults(olderThan time.Duration, db *gorm.DB) error {
-	prunedChecksResults := db.Delete(entities.ChecksResult{}, "created_at < ?", time.Now().Add(-olderThan))
-	log.Debugf("Pruned %d checks results", prunedChecksResults.RowsAffected)
-
-	return prunedChecksResults.Error
 }

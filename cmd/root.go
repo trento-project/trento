@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/trento-project/trento/cmd/agent"
+	"github.com/trento-project/trento/cmd/debug"
 	"github.com/trento-project/trento/cmd/runner"
 	"github.com/trento-project/trento/cmd/web"
 )
@@ -40,4 +41,5 @@ func init() {
 	rootCmd.AddCommand(web.NewWebCmd())
 	rootCmd.AddCommand(agent.NewAgentCmd())
 	rootCmd.AddCommand(runner.NewRunnerCmd())
+	rootCmd.AddCommand(debug.NewDebugCmd())
 }

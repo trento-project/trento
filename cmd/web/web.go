@@ -104,13 +104,9 @@ func addPruneChecksResultsCmd(webCmd *cobra.Command) {
 	}
 
 	pruneCmd.Flags().UintVar(&olderThan, "older-than", 10, "Prune executed checks results data older than <value> days.")
-	pruneCmd.Flags().VisitAll(func(f *pflag.Flag) {
-		viper.BindPFlag(f.Name, f)
-	})
 
 	webCmd.AddCommand(pruneCmd)
 }
-
 
 func serve(*cobra.Command, []string) {
 	ctx := context.Background()
@@ -140,7 +136,7 @@ func serve(*cobra.Command, []string) {
 	}
 }
 
-func pruneEvents(_ *cobra.Command, _ []string) {
+func pruneEvents(*cobra.Command, []string) {
 	olderThan := viper.GetUint("older-than")
 	olderThanDuration := time.Duration(olderThan) * 24 * time.Hour
 
@@ -157,7 +153,7 @@ func pruneEvents(_ *cobra.Command, _ []string) {
 	log.Infof("Events older than %d days pruned.", olderThan)
 }
 
-func pruneChecksResults(_ *cobra.Command, _ []string) {
+func pruneChecksResults(*cobra.Command, []string) {
 	olderThan := viper.GetUint("older-than")
 	olderThanDuration := time.Duration(olderThan) * 24 * time.Hour
 

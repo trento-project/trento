@@ -1,7 +1,6 @@
 package collector
 
 import (
-	"bytes"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -80,6 +79,24 @@ func (suite *PublishingTestSuite) TestCollectorClient_PublishingSubscriptionDisc
 	})
 }
 
+func (suite *PublishingTestSuite) TestCollectorClient_PublishingSAPSystemDatabaseDiscovery() {
+	discoveryType := "sap_system_discovery"
+	discoveredSAPSystem := mocks.NewDiscoveredSAPSystemDatabaseMock()
+
+	suite.runDiscoveryScenario(discoveryType, discoveredSAPSystem, func(requestBodyAgainstCollector string) {
+		suite.assertJsonMatchesJsonFileContent("./test/fixtures/discovery/sap_system/expected_published_sap_system_discovery_database.json", requestBodyAgainstCollector)
+	})
+}
+
+func (suite *PublishingTestSuite) TestCollectorClient_PublishingSAPSystemApplicationDiscovery() {
+	discoveryType := "sap_system_discovery"
+	discoveredSAPSystem := mocks.NewDiscoveredSAPSystemApplicationMock()
+
+	suite.runDiscoveryScenario(discoveryType, discoveredSAPSystem, func(requestBodyAgainstCollector string) {
+		suite.assertJsonMatchesJsonFileContent("./test/fixtures/discovery/sap_system/expected_published_sap_system_discovery_application.json", requestBodyAgainstCollector)
+	})
+}
+
 type AssertionFunc func(requestBodyAgainstCollector string)
 
 func (suite *PublishingTestSuite) runDiscoveryScenario(discoveryType string, payload interface{}, assertion AssertionFunc) {
@@ -115,13 +132,7 @@ func (suite *PublishingTestSuite) assertJsonMatchesJsonFileContent(expectedJsonC
 		panic(err)
 	}
 
-	var expectedJsonContentBytesBuffer *bytes.Buffer = new(bytes.Buffer)
+	b, _ := ioutil.ReadAll(expectedJsonContent)
 
-	expectedJsonContentByte, _ := ioutil.ReadAll(expectedJsonContent)
-
-	json.Compact(expectedJsonContentBytesBuffer, expectedJsonContentByte)
-
-	b, _ := ioutil.ReadAll(expectedJsonContentBytesBuffer)
-
-	suite.EqualValues(actualJson, b)
+	suite.JSONEq(string(b), actualJson)
 }

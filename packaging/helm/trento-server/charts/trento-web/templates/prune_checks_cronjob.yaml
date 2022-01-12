@@ -18,7 +18,7 @@ spec:
             - web
             - prune-checks
             - --olther-than
-            - 30
+            - "30"
             - --db-host
             - {{ .Release.Name }}-postgresql
           restartPolicy: OnFailure

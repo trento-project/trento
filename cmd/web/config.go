@@ -5,7 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
-	"github.com/trento-project/trento/internal/db"
+	dbCmd "github.com/trento-project/trento/cmd/db"
 	"github.com/trento-project/trento/web"
 )
 
@@ -40,16 +40,6 @@ func LoadConfig() (*web.Config, error) {
 		Cert:          cert,
 		Key:           key,
 		CA:            ca,
-		DBConfig:      LoadDBConfig(),
+		DBConfig:      dbCmd.LoadConfig(),
 	}, nil
-}
-
-func LoadDBConfig() *db.Config {
-	return &db.Config{
-		Host:     viper.GetString("db-host"),
-		Port:     viper.GetString("db-port"),
-		User:     viper.GetString("db-user"),
-		Password: viper.GetString("db-password"),
-		DBName:   viper.GetString("db-name"),
-	}
 }

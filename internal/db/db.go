@@ -9,14 +9,14 @@ import (
 
 type Config struct {
 	Host     string
-	Port     string
+	Port     int
 	User     string
 	Password string
 	DBName   string
 }
 
 func InitDB(config *Config) (*gorm.DB, error) {
-	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		config.Host,
 		config.Port,
 		config.User,

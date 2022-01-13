@@ -16,7 +16,7 @@ func SetupTestDatabase(t *testing.T) *gorm.DB {
 
 	dbConfig := &db.Config{
 		Host:     viper.GetString("db-host"),
-		Port:     viper.GetString("db-port"),
+		Port:     viper.GetInt("db-port"),
 		User:     viper.GetString("db-user"),
 		Password: viper.GetString("db-password"),
 		DBName:   viper.GetString("db-name"),

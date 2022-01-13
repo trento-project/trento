@@ -5,26 +5,17 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"github.com/trento-project/trento/cmd/db"
 	"github.com/trento-project/trento/internal"
-	"github.com/trento-project/trento/internal/db"
 	"github.com/trento-project/trento/web"
-	"github.com/trento-project/trento/web/datapipeline"
 )
 
 func NewWebCmd() *cobra.Command {
-
-	var dbHost string
-	var dbPort string
-	var dbUser string
-	var dbPassword string
-	var dbName string
-
 	webCmd := &cobra.Command{
 		Use:   "web",
 		Short: "Command tree related to the web application component",
@@ -39,15 +30,8 @@ func NewWebCmd() *cobra.Command {
 		},
 	}
 
-	webCmd.PersistentFlags().StringVar(&dbHost, "db-host", "localhost", "The database host")
-	webCmd.PersistentFlags().StringVar(&dbPort, "db-port", "5432", "The database port to connect to")
-	webCmd.PersistentFlags().StringVar(&dbUser, "db-user", "postgres", "The database user")
-	webCmd.PersistentFlags().StringVar(&dbPassword, "db-password", "postgres", "The database password")
-	webCmd.PersistentFlags().StringVar(&dbName, "db-name", "trento", "The database name that the application will use")
-
+	db.AddDBFlags(webCmd)
 	addServeCmd(webCmd)
-	addPruneEventsCmd(webCmd)
-	addPruneChecksResultsCmd(webCmd)
 
 	return webCmd
 }
@@ -80,34 +64,6 @@ func addServeCmd(webCmd *cobra.Command) {
 	webCmd.AddCommand(serveCmd)
 }
 
-func addPruneEventsCmd(webCmd *cobra.Command) {
-	var olderThan uint
-
-	pruneCmd := &cobra.Command{
-		Use:   "prune-events",
-		Short: "Prune events older than",
-		Run:   pruneEvents,
-	}
-
-	pruneCmd.Flags().UintVar(&olderThan, "older-than", 10, "Prune data discovery events older than <value> days.")
-
-	webCmd.AddCommand(pruneCmd)
-}
-
-func addPruneChecksResultsCmd(webCmd *cobra.Command) {
-	var olderThan uint
-
-	pruneCmd := &cobra.Command{
-		Use:   "prune-checks",
-		Short: "Prune checks results older than",
-		Run:   pruneChecksResults,
-	}
-
-	pruneCmd.Flags().UintVar(&olderThan, "older-than", 10, "Prune executed checks results data older than <value> days.")
-
-	webCmd.AddCommand(pruneCmd)
-}
-
 func serve(*cobra.Command, []string) {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
@@ -134,38 +90,4 @@ func serve(*cobra.Command, []string) {
 	if err := app.Start(ctx); err != nil {
 		log.Fatal("Error while running the web application server: ", err)
 	}
-}
-
-func pruneEvents(*cobra.Command, []string) {
-	olderThan := viper.GetUint("older-than")
-	olderThanDuration := time.Duration(olderThan) * 24 * time.Hour
-
-	dbConfig := LoadDBConfig()
-	db, err := db.InitDB(dbConfig)
-	if err != nil {
-		log.Fatal("Error while initializing the database: ", err)
-	}
-
-	log.Infof("Pruning events older than %d days.", olderThan)
-	if err := datapipeline.PruneEvents(olderThanDuration, db); err != nil {
-		log.Fatalf("Error while pruning older events: %s", err)
-	}
-	log.Infof("Events older than %d days pruned.", olderThan)
-}
-
-func pruneChecksResults(*cobra.Command, []string) {
-	olderThan := viper.GetUint("older-than")
-	olderThanDuration := time.Duration(olderThan) * 24 * time.Hour
-
-	dbConfig := LoadDBConfig()
-	db, err := db.InitDB(dbConfig)
-	if err != nil {
-		log.Fatal("Error while initializing the database: ", err)
-	}
-
-	log.Infof("Pruning checks results older than %d days.", olderThan)
-	if err := datapipeline.PruneChecksResults(olderThanDuration, db); err != nil {
-		log.Fatalf("Error while pruning older events: %s", err)
-	}
-	log.Infof("Checks results older than %d days pruned.", olderThan)
 }

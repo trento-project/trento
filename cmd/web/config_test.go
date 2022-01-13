@@ -25,11 +25,7 @@ func (suite *WebCmdTestSuite) SetupTest() {
 
 	cmd := NewWebCmd()
 
-	// disable prunning commands execution
-	cmd.Commands()[1].Run = func(cmd *cobra.Command, args []string) {
-		// do nothing
-	}
-	cmd.Commands()[2].Run = func(cmd *cobra.Command, args []string) {
+	cmd.Commands()[0].Run = func(cmd *cobra.Command, args []string) {
 		// do nothing
 	}
 
@@ -56,7 +52,7 @@ func (suite *WebCmdTestSuite) TearDownTest() {
 		CA:            "some-ca",
 		DBConfig: &db.Config{
 			Host:     "some-db-host",
-			Port:     "6543",
+			Port:     6543,
 			User:     "postgres",
 			Password: "password",
 			DBName:   "trento",

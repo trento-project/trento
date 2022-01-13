@@ -23,12 +23,11 @@ import (
 // /usr/etc/trento/${context}.yaml
 // $HOME/.config/trento/${context}.yaml
 func InitConfig(configName string) error {
+	BindEnv()
+
 	viper.SetConfigType("yaml")
 	SetLogLevel(viper.GetString("log-level"))
 	SetLogFormatter("2006-01-02 15:04:05")
-	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
-	viper.SetEnvPrefix("TRENTO")
-	viper.AutomaticEnv() // read in environment variables that match
 
 	cfgFile := viper.GetString("config")
 	if cfgFile != "" {
@@ -71,4 +70,10 @@ func InitConfig(configName string) error {
 	}
 
 	return nil
+}
+
+func BindEnv() {
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
+	viper.SetEnvPrefix("TRENTO")
+	viper.AutomaticEnv() // read in environment variables that match
 }

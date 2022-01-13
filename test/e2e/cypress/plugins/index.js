@@ -16,7 +16,26 @@
  * @type {Cypress.PluginConfig}
  */
 // eslint-disable-next-line no-unused-vars
+
+const http = require('http');
+
 module.exports = (on, config) => {
   // `on` is used to hook into various events Cypress emits
   // `config` is the resolved Cypress config
+  on('task', {
+    startAgentHeartbeat(agents) {
+      const {collector_host, collector_port} = config.env
+      agents.forEach((agentId) => {
+        setInterval(() => {
+          http.request({
+            host: collector_host,
+            path: `/api/hosts/${agentId}/heartbeat`,
+            port: collector_port,
+            method: 'POST'
+          }).end()
+        }, 5000)
+      })
+      return null
+    }
+  })
 }

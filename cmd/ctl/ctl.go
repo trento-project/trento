@@ -1,4 +1,4 @@
-package debug
+package ctl
 
 import (
 	"encoding/json"
@@ -19,30 +19,30 @@ import (
 	"gorm.io/gorm"
 )
 
-func NewDebugCmd() *cobra.Command {
-	debugCmd := &cobra.Command{
-		Use:   "debug",
-		Short: "Maintenance commands, USE WITH CAUTION.",
-		PersistentPreRun: func(debugCmd *cobra.Command, _ []string) {
-			debugCmd.Flags().VisitAll(func(f *pflag.Flag) {
+func NewCtlCmd() *cobra.Command {
+	ctlCmd := &cobra.Command{
+		Use:   "ctl",
+		Short: "Admin and maintenance commands, USE WITH CAUTION.",
+		PersistentPreRun: func(ctlCmd *cobra.Command, _ []string) {
+			ctlCmd.Flags().VisitAll(func(f *pflag.Flag) {
 				viper.BindPFlag(f.Name, f)
 			})
-			debugCmd.PersistentFlags().VisitAll(func(f *pflag.Flag) {
+			ctlCmd.PersistentFlags().VisitAll(func(f *pflag.Flag) {
 				viper.BindPFlag(f.Name, f)
 			})
 		},
 	}
 
-	dbCmd.AddDBFlags(debugCmd)
-	addPruneEventsCmd(debugCmd)
-	addPruneChecksResultsCmd(debugCmd)
-	addDBResetCmd(debugCmd)
-	addDumpScenarioCmd(debugCmd)
+	dbCmd.AddDBFlags(ctlCmd)
+	addPruneEventsCmd(ctlCmd)
+	addPruneChecksResultsCmd(ctlCmd)
+	addDBResetCmd(ctlCmd)
+	addDumpScenarioCmd(ctlCmd)
 
-	return debugCmd
+	return ctlCmd
 }
 
-func addPruneEventsCmd(debugCmd *cobra.Command) {
+func addPruneEventsCmd(ctlCmd *cobra.Command) {
 	var olderThan uint
 
 	pruneCmd := &cobra.Command{
@@ -59,10 +59,10 @@ func addPruneEventsCmd(debugCmd *cobra.Command) {
 
 	pruneCmd.Flags().UintVar(&olderThan, "older-than", 10, "Prune data discovery events older than <value> days.")
 
-	debugCmd.AddCommand(pruneCmd)
+	ctlCmd.AddCommand(pruneCmd)
 }
 
-func addPruneChecksResultsCmd(debugCmd *cobra.Command) {
+func addPruneChecksResultsCmd(ctlCmd *cobra.Command) {
 	var olderThan uint
 
 	pruneCmd := &cobra.Command{
@@ -79,10 +79,10 @@ func addPruneChecksResultsCmd(debugCmd *cobra.Command) {
 
 	pruneCmd.Flags().UintVar(&olderThan, "older-than", 10, "Prune executed checks results data older than <value> days.")
 
-	debugCmd.AddCommand(pruneCmd)
+	ctlCmd.AddCommand(pruneCmd)
 }
 
-func addDBResetCmd(debugCmd *cobra.Command) {
+func addDBResetCmd(ctlCmd *cobra.Command) {
 	dbResetCmd := &cobra.Command{
 		Use:   "db-reset",
 		Short: "Reset the database",
@@ -93,10 +93,10 @@ func addDBResetCmd(debugCmd *cobra.Command) {
 		},
 	}
 
-	debugCmd.AddCommand(dbResetCmd)
+	ctlCmd.AddCommand(dbResetCmd)
 }
 
-func addDumpScenarioCmd(debugCmd *cobra.Command) {
+func addDumpScenarioCmd(ctlCmd *cobra.Command) {
 	dumpScenarioCmd := &cobra.Command{
 		Use:   "dump-scenario",
 		Short: "Dump the current scenario",
@@ -115,7 +115,7 @@ func addDumpScenarioCmd(debugCmd *cobra.Command) {
 	dumpScenarioCmd.Flags().StringVar(&scenarioName, "name", "", "The scenario name.")
 	dumpScenarioCmd.MarkFlagRequired("name")
 
-	debugCmd.AddCommand(dumpScenarioCmd)
+	ctlCmd.AddCommand(dumpScenarioCmd)
 }
 
 func initDB() *gorm.DB {

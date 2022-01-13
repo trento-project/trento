@@ -1,4 +1,4 @@
-package debug
+package ctl
 
 import (
 	"testing"
@@ -11,29 +11,29 @@ import (
 	"gorm.io/gorm"
 )
 
-type DebugTestSuite struct {
+type CtlTestSuite struct {
 	suite.Suite
 	db *gorm.DB
 	tx *gorm.DB
 }
 
-func TestDebugTestSuite(t *testing.T) {
-	suite.Run(t, new(DebugTestSuite))
+func TestCtlTestSuite(t *testing.T) {
+	suite.Run(t, new(CtlTestSuite))
 }
 
-func (suite *DebugTestSuite) SetupSuite() {
+func (suite *CtlTestSuite) SetupSuite() {
 	suite.db = helpers.SetupTestDatabase(suite.T())
 }
 
-func (suite *DebugTestSuite) SetupTest() {
+func (suite *CtlTestSuite) SetupTest() {
 	suite.tx = suite.db.Begin()
 }
 
-func (suite *DebugTestSuite) TearDownTest() {
+func (suite *CtlTestSuite) TearDownTest() {
 	suite.tx.Rollback()
 }
 
-func (suite *DebugTestSuite) TestPruneEvents() {
+func (suite *CtlTestSuite) TestPruneEvents() {
 	suite.tx.AutoMigrate(&datapipeline.DataCollectedEvent{})
 
 	events := []datapipeline.DataCollectedEvent{
@@ -70,7 +70,7 @@ func (suite *DebugTestSuite) TestPruneEvents() {
 	suite.Equal(int64(3), prunedEvents[0].ID)
 }
 
-func (suite *DebugTestSuite) TestPruneChecksResults() {
+func (suite *CtlTestSuite) TestPruneChecksResults() {
 	suite.tx.AutoMigrate(&entities.ChecksResult{})
 
 	checksResults := []entities.ChecksResult{

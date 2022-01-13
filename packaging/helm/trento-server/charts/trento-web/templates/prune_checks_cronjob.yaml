@@ -15,7 +15,7 @@ spec:
             image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
             imagePullPolicy: {{ .Values.image.pullPolicy }}
             args:
-            - debug
+            - ctl
             - prune-checks-results
             - --olther-than
             - "30"

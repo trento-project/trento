@@ -15,7 +15,7 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/trento-project/trento-web
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
   tag: "0.7.1"
 
 imagePullSecrets: []

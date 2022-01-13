@@ -3,4 +3,8 @@ dependencies:
   repository: file://../../../packaging/helm/trento-server
   version: 0.3.2
 digest: sha256:0e45ffa919eacedd4264d3d2aef2f3974ad3d019c386ce802f869fd4681d4aba
+<<<<<<< HEAD
 generated: "2022-01-17T16:56:58.179958604+01:00"
+=======
+generated: "2022-01-13T13:59:50.542272826+01:00"
+>>>>>>> 33fb92d8 (Override image tag and pullPolicy in the trento-dev helm chart)

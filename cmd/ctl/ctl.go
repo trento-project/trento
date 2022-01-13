@@ -30,6 +30,8 @@ func NewCtlCmd() *cobra.Command {
 			ctlCmd.PersistentFlags().VisitAll(func(f *pflag.Flag) {
 				viper.BindPFlag(f.Name, f)
 			})
+
+			viper.AutomaticEnv()
 		},
 	}
 

@@ -158,6 +158,7 @@ func (s *hostsService) GetAllSIDs() ([]string, error) {
 
 	err := s.db.
 		Model(&entities.Host{}).
+		Order("sap_system_instances.sid").
 		Joins("JOIN sap_system_instances ON sap_system_instances.agent_id = hosts.agent_id AND sid IS NOT NULL").
 		Distinct().
 		Pluck("sap_system_instances.sid", &sids).
@@ -175,6 +176,7 @@ func (s *hostsService) GetAllTags() ([]string, error) {
 
 	err := s.db.
 		Model(&models.Tag{}).
+		Order("value").
 		Where("resource_type = ?", models.TagHostResourceType).
 		Distinct().
 		Pluck("value", &tags).
@@ -182,7 +184,6 @@ func (s *hostsService) GetAllTags() ([]string, error) {
 
 	if err != nil {
 		return nil, err
-
 	}
 
 	return tags, nil

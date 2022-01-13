@@ -126,9 +126,9 @@ func TestHostListNextHandler(t *testing.T) {
 	assert.Contains(t, minified, "Hosts")
 
 	assert.Regexp(t, regexp.MustCompile("<select name=sids.*>.*PRD.*QAS.*DEV.*</select>"), minified)
-	assert.Regexp(t, regexp.MustCompile(".*check_circle.*<td>.*host1.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*databases/sap_system_id_1.*PRD.*</td><td>v1</td><td>.*<input.*value=tag1.*>.*</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile(".*warning.*<td>.*host2.*</td><td>192.168.1.2</td><td>.*aws.*</td><td>.*sapsystems/sap_system_id_2.*QAS.*</td><td>v1</td><td>.*<input.*value=tag2.*>.*</td>"), minified)
-	assert.Regexp(t, regexp.MustCompile(".*error.*<td>.*host3.*</td><td>192.168.1.3</td><td>.*gcp.*</td><td>.*sapsystems/sap_system_id_3.*DEV.*</td><td>v1</td><td>.*<input.*value=tag3.*>.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile(".*check_circle.*<td .*>.*host1.*</td><td>192.168.1.1</td><td>.*azure.*</td><td>.*databases/sap_system_id_1.*PRD.*</td><td>v1</td><td .*>.*<input.*value=tag1.*>.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile(".*warning.*<td .*>.*host2.*</td><td>192.168.1.2</td><td>.*aws.*</td><td>.*sapsystems/sap_system_id_2.*QAS.*</td><td>v1</td><td .*>.*<input.*value=tag2.*>.*</td>"), minified)
+	assert.Regexp(t, regexp.MustCompile(".*error.*<td .*>.*host3.*</td><td>192.168.1.3</td><td>.*gcp.*</td><td>.*sapsystems/sap_system_id_3.*DEV.*</td><td>v1</td><td .*>.*<input.*value=tag3.*>.*</td>"), minified)
 }
 
 func TestApiHostHeartbeat(t *testing.T) {

@@ -6,6 +6,6 @@
     "cypress:open": "cypress open"
   },
   "devDependencies": {
-    "cypress": "^8.7.0"
+    "cypress": "^9.2.1"
   }
 }

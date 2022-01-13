@@ -23,3 +23,23 @@
 //
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
+
+const initializeOpenSidebar = () => cy.setCookie('collapsedSidebar', 'false')
+
+const selectPagination = (itemsPerPage) => {
+    const pagination = [10, 25, 50, 100]
+    cy.get('.pagination-actions button.dropdown-toggle').click()
+    cy.get(`.pagination-actions .dropdown-menu .dropdown-item:nth-child(${pagination.indexOf(itemsPerPage) + 1})`).click()
+}
+    
+Cypress.Commands.add('navigateToItem', (item) => {
+    initializeOpenSidebar()
+    const items = Array.isArray(item) ? item : [item]
+    items.forEach(it => cy.get('.menu-title').contains(it).click())
+})
+
+Cypress.Commands.add('reloadList', (listName, itemsPerPage) => { 
+    cy.intercept('GET', `/${listName}?per_page=${itemsPerPage}`).as('reloadList')
+    selectPagination(itemsPerPage)
+    cy.wait('@reloadList')
+})

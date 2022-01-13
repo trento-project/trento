@@ -12,7 +12,9 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	dbCmd "github.com/trento-project/trento/cmd/db"
+	"github.com/trento-project/trento/internal"
 	"github.com/trento-project/trento/internal/db"
+
 	"github.com/trento-project/trento/web"
 	"github.com/trento-project/trento/web/datapipeline"
 	"github.com/trento-project/trento/web/entities"
@@ -31,7 +33,7 @@ func NewCtlCmd() *cobra.Command {
 				viper.BindPFlag(f.Name, f)
 			})
 
-			viper.AutomaticEnv()
+			internal.BindEnv()
 		},
 	}
 

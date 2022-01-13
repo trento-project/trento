@@ -223,6 +223,12 @@ install_trento_server_chart() {
             --set-file trento-web.mTLS.ca="${CA}"
         )
     fi
+    if [[ "$ROLLING" == "true" ]]; then
+        args+=(
+            --set trento-web.image.pullPolicy=Always
+            --set trento-runner.image.pullPolicy=Always
+        )
+    fi
     helm upgrade --install trento-server . "${args[@]}"
 
     popd >/dev/null

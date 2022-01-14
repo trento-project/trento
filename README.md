@@ -21,33 +21,34 @@ of existing clusters, rather than deploying new one.
 - [Features](#features)
 - [Introduction](#introduction)
 - [Installation](#installation)
-  * [Requirements](#requirements)
-  * [Quick-Start installation](#quick-start-installation)
-    + [Trento Server installation](#trento-server-installation)
-    + [Trento Agent installation](#trento-agent-installation)
+  - [Requirements](#requirements)
+  - [Quick-Start installation](#quick-start-installation)
+    - [Trento Server installation](#trento-server-installation)
+    - [Trento Agent installation](#trento-agent-installation)
       - [Starting Trento Agent service](#starting-trento-agent-service)
-  * [Manual installation](#manual-installation)
-    + [Pre-built binaries](#pre-built-binaries)
-    + [Compile from source](#compile-from-source)
-  * [Docker images](#docker-images)
-  * [RPM Packages](#rpm-packages)
-  * [Helm chart](#helm-chart)
-    + [Install K3S](#install-k3s)
-    + [Install Helm and chart dependencies](#install-helm-and-chart-dependencies)
-    + [Install the Trento Server Helm chart](#install-the-trento-server-helm-chart)
-    + [Other Helm chart usage examples:](#other-helm-chart-usage-examples-)
-  * [Manually running Trento](#manually-running-trento)
-    + [Trento Agents](#trento-agents)
-    + [Trento Runner](#trento-runner)
+  - [Manual installation](#manual-installation)
+    - [Pre-built binaries](#pre-built-binaries)
+    - [Compile from source](#compile-from-source)
+  - [Docker images](#docker-images)
+  - [RPM Packages](#rpm-packages)
+  - [Helm chart](#helm-chart)
+    - [Install K3S](#install-k3s)
+    - [Install Helm and chart dependencies](#install-helm-and-chart-dependencies)
+    - [Install the Trento Server Helm chart](#install-the-trento-server-helm-chart)
+    - [Other Helm chart usage examples:](#other-helm-chart-usage-examples-)
+  - [Manually running Trento](#manually-running-trento)
+    - [Trento Agents](#trento-agents)
+    - [Trento Runner](#trento-runner)
       - [Starting the Trento Runner](#starting-the-trento-runner)
-    + [Trento Web UI](#trento-web-ui)
+    - [Trento Web UI](#trento-web-ui)
 - [Configuration](#configuration)
 - [Development](#development)
-  * [Helm development chart](#helm-development-chart)
-  * [Build system](#build-system)
-  * [Development dependencies](#development-dependencies)
-  * [Docker](#docker)
-  * [SAPControl web service](#sapcontrol-web-service)
+  - [Helm development chart](#helm-development-chart)
+  - [Build system](#build-system)
+  - [Development dependencies](#development-dependencies)
+  - [Docker](#docker)
+  - [Dump a scenario from a running cluster](#dump-a-scenario-from-a-running-cluster)
+  - [SAPControl web service](#sapcontrol-web-service)
 - [Support](#support)
 - [Contributing](#contributing)
 - [License](#license)
@@ -308,16 +309,18 @@ To start the trento agent:
 
 Trento Agents publish discovery data to a Collector on Trento Server.
 
-The communication can be made secure by enabling `mTLS`  with `--enable-mtls`
+The communication can be made secure by enabling `mTLS` with `--enable-mtls`
 
 See [this tutorial](https://www.digitalocean.com/community/tutorials/openssl-essentials-working-with-ssl-certificates-private-keys-and-csrs) for extra information about SSL Certificates.
 
 #### Server
+
 ```
 $> ./trento web serve [...] --enable-mtls --cert /path/to/certs/server-cert.pem --key /path/to/certs/server-key.pem --ca /path/to/certs/ca-cert.pem
 ```
 
 #### Agent
+
 ```
 $> ./trento agent start [...] --enable-mtls --cert /path/to/certs/client-cert.pem --key /path/to/certs/client-key.pem --ca /path/to/certs/ca-cert.pem
 ```
@@ -352,7 +355,7 @@ Once dependencies are in place, you can start the Runner itself:
 ./trento runner start --api-host $WEB_IP --api-port $WEB_PORT -i 5
 ```
 
-> *Note:* The Trento Runner component must have SSH access to all the agents via a password-less SSH key pair.
+> _Note:_ The Trento Runner component must have SSH access to all the agents via a password-less SSH key pair.
 
 ### Trento Web UI
 
@@ -364,12 +367,12 @@ At this point, we can start the web application as follows:
 
 Please consult the `help` CLI command for more insights on the various options.
 
-
 # Configuration
 
 Trento can be run with a config file in replacement of command-line arguments.
 
 ## Locations
+
 Configuration, if not otherwise specified by the `--config=/path/to/config.yaml` option, would be searched in following locations:
 
 Note that order represents priority
@@ -382,8 +385,8 @@ Note that order represents priority
 
 `yaml` is the only supported format at the moment.
 
-
 ## Naming conventions
+
 Each component of trento supports its own configuration, so the expected config files in the chosen location must be called after the component it is supporting.
 
 So supported names are `(agent|web|runner).yaml`
@@ -445,8 +448,6 @@ Examples:
 
 `cert` -> `TRENTO_CERT=/path/to/certs/server-cert.pem ./trento web serve`
 
-
-
 # Development
 
 ## Helm development chart
@@ -469,6 +470,7 @@ Since integration tests require a running PostgreSQL instance, please make sure 
 The PostgreSQL instance will be accessible at port `localhost:5432`.
 
 If you want to skip database integration tests, you can use a dedicated environment variable as follows:
+
 ```shell
 TRENTO_DB_INTEGRATION_TESTS=false make test
 ```
@@ -515,6 +517,18 @@ docker build -t trento-web . # same as specifying --target trento-web
 > commands in the container, it makes little sense because most of its internals
 > require direct access to the host of the HA Cluster components.
 
+## Dump a scenario from a running cluster
+
+A script to dump a scenario from a running cluster is available at [./hack/dump-scenario.sh](./hack/dump_scenario_from_k8s.sh).
+
+Running this script in the k3s node where trento-server was installed will dump the current state of Trento to a local folder.
+
+Please refer to the script usage help for more details:
+
+```bash
+./hack/dump-scenario.sh --help
+```
+
 ## SAPControl web service
 
 The SAPControl web service soap client was generated by [hooklift/gowsdl](https://github.com/hooklift/gowsdl),
@@ -545,4 +559,4 @@ under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 
-[K3S]: https://k3s.io
+[k3s]: https://k3s.io

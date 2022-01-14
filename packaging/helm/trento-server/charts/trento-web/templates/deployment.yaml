@@ -30,28 +30,30 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
+          env:
+            - name: TRENTO_LOG_LEVEL
+              value: "{{ .Values.global.logLevel }}"
+            - name: TRENTO_DB_HOST
+              value: "{{ .Release.Name }}-{{ .Values.dependencies.postgresql.name }}"
+            - name: TRENTO_DB_PORT
+              value: "{{ .Values.dependencies.postgresql.port }}"
+            - name: TRENTO_PORT
+              value: "{{ .Values.webService.port }}"
+            - name: TRENTO_COLLECTOR_PORT
+              value: "{{ .Values.collectorService.port }}"
+            {{ if .Values.mTLS.enabled }}
+            - name: TRENTO_ENABLE_MTLS
+              value: true
+            - name: TRENTO_CERT
+              value: /certs/cert.pem
+            - name: TRENTO_KEY
+              value: /certs/cert.pem
+            - name: TRENTO_CA
+              value: /certs/ca.pem
+            {{ end }}
           args:
             - web
             - serve
-            - --log-level
-            - {{ .Values.global.logLevel }}
-            - --db-host
-            - {{ .Release.Name }}-{{ .Values.dependencies.postgresql.name }}
-            - --db-port
-            - "{{ .Values.dependencies.postgresql.port }}"
-            - --port
-            - "{{ .Values.webService.port }}"
-            - --collector-port
-            - "{{ .Values.collectorService.port }}"
-            {{ if .Values.mTLS.enabled }}
-            - --enable-mtls
-            - --cert
-            - /certs/cert.pem
-            - --key
-            - /certs/key.pem
-            - --ca
-            - /certs/ca.pem
-            {{ end }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

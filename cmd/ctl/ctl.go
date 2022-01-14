@@ -2,6 +2,7 @@ package ctl
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -208,7 +209,7 @@ func dumpScenario(db *gorm.DB, exportPath string, scenarioName string) {
 			log.Fatal("Error while marshaling event: ", err)
 		}
 
-		filePath := filepath.Join(path, event.AgentID, event.DiscoveryType)
+		filePath := filepath.Join(path, fmt.Sprintf("%s_%s.json", event.AgentID, event.DiscoveryType))
 		err = ioutil.WriteFile(filePath, data, 0644)
 		if err != nil {
 			log.Fatal("Error while writing event: ", err)

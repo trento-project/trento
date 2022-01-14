@@ -1,5 +1,5 @@
-#!BuildTag: trento/trento-server:0.2.9
-#!BuildTag: trento/trento-server:0.2.9-build%RELEASE%
+#!BuildTag: trento/trento-server:0.3.2
+#!BuildTag: trento/trento-server:0.3.2-build%RELEASE%
 apiVersion: v2
 name: trento-server
 description: The trento server chart contains all the components necessary to run a Trento server.

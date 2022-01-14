@@ -38,7 +38,7 @@ spec:
             - name: TRENTO_API_PORT
               value: "{{ .Values.dependencies.trentoWeb.port }}"
             - name: TRENTO_INTERVAL
-              value: 
+              value: "{{ .Values.checkIntervalMins }}"
           args:
             - runner
             - start

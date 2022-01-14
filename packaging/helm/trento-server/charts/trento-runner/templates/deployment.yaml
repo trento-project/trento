@@ -30,17 +30,18 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
+          env:
+            - name: TRENTO_LOG_LEVEL
+              value: "{{ .Values.global.logLevel }}"
+            - name: TRENTO_API_HOST
+              value: "{{ .Release.Name }}-{{ .Values.dependencies.trentoWeb.name }}"
+            - name: TRENTO_API_PORT
+              value: "{{ .Values.dependencies.trentoWeb.port }}"
+            - name: TRENTO_INTERVAL
+              value: 
           args:
             - runner
             - start
-            - --log-level
-            - {{ .Values.global.logLevel }}
-            - --api-host
-            - {{ .Release.Name }}-{{ .Values.dependencies.trentoWeb.name }}
-            - --api-port
-            - "{{ .Values.dependencies.trentoWeb.port }}"
-            - -i
-            - "{{ .Values.checkIntervalMins }}"
           # tty is required to allow a correct ansible execution
           tty: true
           securityContext:

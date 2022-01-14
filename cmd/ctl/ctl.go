@@ -197,6 +197,8 @@ func dumpScenario(db *gorm.DB, exportPath string, scenarioName string) {
 		if err != nil {
 			log.Fatal("Error while creating directory: ", err)
 		}
+	} else {
+		log.Fatalf("Directory %s already exists.", path)
 	}
 
 	for _, event := range events {

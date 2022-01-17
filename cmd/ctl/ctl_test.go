@@ -103,3 +103,65 @@ func (suite *CtlTestSuite) TestPruneChecksResults() {
 	suite.Equal(1, len(prunedChecksResults))
 	suite.Equal(int64(3), prunedChecksResults[0].ID)
 }
+
+func (suite *CtlTestSuite) TestGetLatestEvents() {
+	suite.tx.AutoMigrate(&datapipeline.DataCollectedEvent{})
+
+	events := []datapipeline.DataCollectedEvent{
+		{
+			ID:            1,
+			AgentID:       "agent_id_1",
+			DiscoveryType: "discovery_type_1",
+			Payload:       []byte("{}"),
+		},
+		{
+			ID:            2,
+			AgentID:       "agent_id_1",
+			DiscoveryType: "discovery_type_1",
+			Payload:       []byte("{}"),
+		},
+
+		{
+			ID:            3,
+			AgentID:       "agent_id_2",
+			DiscoveryType: "discovery_type_2",
+			Payload:       []byte("{}"),
+		},
+		{
+			ID:            4,
+			AgentID:       "agent_id_2",
+			DiscoveryType: "discovery_type_2",
+			Payload:       []byte("{}"),
+		},
+		{
+			ID:            5,
+			AgentID:       "agent_id_2",
+			DiscoveryType: "discovery_type_2",
+			Payload:       []byte("{}"),
+		},
+		{
+			ID:            6,
+			AgentID:       "agent_id_1",
+			DiscoveryType: "discovery_type_3",
+			Payload:       []byte("{}"),
+		},
+		{
+			ID:            7,
+			AgentID:       "agent_id_2",
+			DiscoveryType: "discovery_type_3",
+			Payload:       []byte("{}"),
+		},
+	}
+
+	err := suite.tx.Create(&events).Error
+	suite.NoError(err)
+
+	latestEvents, err := getLatestEvents(suite.tx)
+	suite.NoError(err)
+
+	suite.Equal(4, len(latestEvents))
+	suite.Equal(int64(2), latestEvents[0].ID)
+	suite.Equal(int64(5), latestEvents[1].ID)
+	suite.Equal(int64(6), latestEvents[2].ID)
+	suite.Equal(int64(7), latestEvents[3].ID)
+}

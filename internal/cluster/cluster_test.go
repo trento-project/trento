@@ -78,16 +78,16 @@ func TestIsDC(t *testing.T) {
 
 	root.Configuration.CrmConfig = crmConfig
 
-	c := Cluster{
+	c := &Cluster{
 		Cib: *root,
 		Crmmon: crmmon.Root{
 			Version: "1.2.3",
 			Nodes: []crmmon.Node{
-				crmmon.Node{
+				{
 					Name: "othernode",
 					DC:   false,
 				},
-				crmmon.Node{
+				{
 					Name: host,
 					DC:   true,
 				},
@@ -95,18 +95,18 @@ func TestIsDC(t *testing.T) {
 		},
 	}
 
-	assert.Equal(t, true, c.IsDc())
+	assert.Equal(t, true, isDC(c))
 
-	c = Cluster{
+	c = &Cluster{
 		Cib: *root,
 		Crmmon: crmmon.Root{
 			Version: "1.2.3",
 			Nodes: []crmmon.Node{
-				crmmon.Node{
+				{
 					Name: "othernode",
 					DC:   true,
 				},
-				crmmon.Node{
+				{
 					Name: host,
 					DC:   false,
 				},
@@ -114,7 +114,7 @@ func TestIsDC(t *testing.T) {
 		},
 	}
 
-	assert.Equal(t, false, c.IsDc())
+	assert.Equal(t, false, isDC(c))
 }
 
 func TestIsFencingEnabled(t *testing.T) {

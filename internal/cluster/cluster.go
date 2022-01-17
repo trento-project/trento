@@ -39,6 +39,7 @@ type Cluster struct {
 	SBD    SBD         `mapstructure:"sbd,omitempty"`
 	Id     string      `mapstructure:"id"`
 	Name   string      `mapstructure:"name"`
+	DC     bool        `mapstructure:"dc"`
 }
 
 func NewCluster() (Cluster, error) {
@@ -89,6 +90,8 @@ func NewClusterWithDiscoveryTools(discoveryTools *DiscoveryTools) (Cluster, erro
 		cluster.SBD = sbdData
 	}
 
+	cluster.DC = isDC(&cluster)
+
 	return cluster, nil
 }
 
@@ -108,7 +111,7 @@ func getName(c Cluster) string {
 	return ""
 }
 
-func (c *Cluster) IsDc() bool {
+func isDC(c *Cluster) bool {
 	host, _ := os.Hostname()
 
 	for _, nodes := range c.Crmmon.Nodes {

@@ -1,10 +1,18 @@
 package models
 
+import (
+	"github.com/trento-project/trento/internal/cloud"
+)
+
 const (
 	HostHealthPassing  = "passing"
 	HostHealthWarning  = "warning"
 	HostHealthCritical = "critical"
 	HostHealthUnknown  = ""
+
+	Azure = "Azure"
+	Aws   = "AWS"
+	Gcp   = "GCP"
 )
 
 type Host struct {
@@ -34,3 +42,16 @@ type AzureCloudData struct {
 }
 
 type HostList []*Host
+
+func (h *Host) PrettyProvider() string {
+	switch h.CloudProvider {
+	case cloud.Azure:
+		return Azure
+	case cloud.Aws:
+		return Aws
+	case cloud.Gcp:
+		return Gcp
+	default:
+		return ""
+	}
+}

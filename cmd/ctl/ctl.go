@@ -182,11 +182,7 @@ func dbReset(db *gorm.DB) {
 }
 
 func dumpScenario(db *gorm.DB, exportPath string, scenarioName string) {
-	var events []datapipeline.DataCollectedEvent
-
-	err := db.
-		Joins("JOIN subscriptions ON subscriptions.last_projected_event_id = data_collected_events.id").
-		Find(&events).Error
+	events, err := getLatestEvents(db)
 	if err != nil {
 		log.Fatal("Error while exporting scenario from the database: ", err)
 	}
@@ -217,4 +213,22 @@ func dumpScenario(db *gorm.DB, exportPath string, scenarioName string) {
 			log.Fatal("Error while writing event: ", err)
 		}
 	}
+}
+
+func getLatestEvents(db *gorm.DB) ([]datapipeline.DataCollectedEvent, error) {
+	var events []datapipeline.DataCollectedEvent
+	subQuery := db.
+		Model(&datapipeline.DataCollectedEvent{}).
+		Select("MAX(id)").
+		Group("agent_id, discovery_type")
+
+	err := db.
+		Where("id IN (?)", subQuery).
+		Find(&events).
+		Error
+	if err != nil {
+		return nil, err
+	}
+
+	return events, nil
 }

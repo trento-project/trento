@@ -34,9 +34,9 @@ spec:
             - name: TRENTO_LOG_LEVEL
               value: "{{ .Values.global.logLevel }}"
             - name: TRENTO_DB_HOST
-              value: "{{ .Release.Name }}-{{ .Values.dependencies.postgresql.name }}"
+              value: "{{ .Release.Name }}-{{ .Values.global.postgresql.name }}"
             - name: TRENTO_DB_PORT
-              value: "{{ .Values.dependencies.postgresql.port }}"
+              value: "{{ .Values.global.postgresql.servicePort }}"
             - name: TRENTO_PORT
               value: "{{ .Values.webService.port }}"
             - name: TRENTO_COLLECTOR_PORT

@@ -1,12 +1,12 @@
-#!BuildTag: trento/trento-server:0.3.3
-#!BuildTag: trento/trento-server:0.3.3-build%RELEASE%
+#!BuildTag: trento/trento-server:0.3.4
+#!BuildTag: trento/trento-server:0.3.4-build%RELEASE%
 apiVersion: v2
 name: trento-server
 description: The trento server chart contains all the components necessary to run a Trento server.
 type: application
 # This is the chart version. This version number should be incremented each time you make changes
 # to the chart and its templates
-version: 0.3.3
+version: 0.3.4
 
 dependencies:
   - name: trento-web

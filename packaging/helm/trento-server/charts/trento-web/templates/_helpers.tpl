@@ -60,3 +60,14 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Return Trento Web service port
+*/}}
+{{- define "trentoWeb.port" -}}
+{{- if .Values.global.trentoWeb.servicePort }}
+    {{- .Values.global.trentoWeb.servicePort -}}
+{{- else -}}
+    {{- .Values.webService.port -}}
+{{- end -}}
+{{- end -}}

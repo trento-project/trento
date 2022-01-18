@@ -4,6 +4,11 @@
 
 global:
   logLevel: info
+  trentoWeb:
+    servicePort: ""
+  postgresql:
+    name: postgresql
+    servicePort: 5432
 
 mTLS:
   enabled: false
@@ -98,9 +103,3 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
-
-# service dependencies to be consumed by the web deployment
-dependencies:
-  postgresql:
-    name: postgresql
-    port: 5432

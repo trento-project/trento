@@ -19,6 +19,7 @@ type ClustersService interface {
 	GetAll(*ClustersFilter, *Page) (models.ClusterList, error)
 	GetByID(string) (*models.Cluster, error)
 	GetCount() (int, error)
+	GetAllClusterNames() ([]string, error)
 	GetAllClusterTypes() ([]string, error)
 	GetAllSIDs() ([]string, error)
 	GetAllTags() ([]string, error)
@@ -132,6 +133,21 @@ func (s *clustersService) GetCount() (int, error) {
 	err := s.db.Model(&entities.Cluster{}).Count(&count).Error
 
 	return int(count), err
+}
+
+func (s *clustersService) GetAllClusterNames() ([]string, error) {
+	var clusterNames []string
+
+	err := s.db.Model(&entities.Cluster{}).
+		Distinct().
+		Pluck("name", &clusterNames).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return clusterNames, nil
 }
 
 func (s *clustersService) GetAllClusterTypes() ([]string, error) {

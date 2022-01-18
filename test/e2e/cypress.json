@@ -4,6 +4,12 @@
   "viewportHeight": 768,
   "env": {
     "collector_host": "localhost",
-    "collector_port": 8081
+    "collector_port": 8081,
+    "heartbeat_interval": 5000,
+    "db_host": "localhost",
+    "db_port": 5432,
+    "fixtures_path": "./cypress/fixtures",
+    "trento_binary": "../../trento",
+    "photofinish_binary": "photofinish"
   }
 }

@@ -3,6 +3,9 @@ import { allHostNames, agents } from '../fixtures/hosts-overview/available_hosts
 context('Hosts Overview', () => {
     const availableHosts = allHostNames()
     before(() => {
+        cy.resetDatabase()
+        cy.loadScenario('healthy-27-node-SAP-cluster')
+        
         cy.task('startAgentHeartbeat', agents())
         cy.visit('/');
         cy.navigateToItem('Hosts')

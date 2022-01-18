@@ -24,7 +24,7 @@ module.exports = (on, config) => {
   // `config` is the resolved Cypress config
   on('task', {
     startAgentHeartbeat(agents) {
-      const {collector_host, collector_port} = config.env
+      const {collector_host, collector_port, heartbeat_interval} = config.env
       agents.forEach((agentId) => {
         setInterval(() => {
           http.request({
@@ -33,7 +33,7 @@ module.exports = (on, config) => {
             port: collector_port,
             method: 'POST'
           }).end()
-        }, 5000)
+        }, heartbeat_interval)
       })
       return null
     }

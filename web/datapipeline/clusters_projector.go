@@ -36,6 +36,11 @@ func clustersProjector_ClusterDiscoveryHandler(event *DataCollectedEvent, db *go
 		return err
 	}
 
+	if !cluster.DC {
+		log.Debugf("Cluster event from agent %s is not marked as DC. Skipping...", event.AgentID)
+		return nil
+	}
+
 	clusterListReadModel, err := transformClusterData(&cluster)
 	if err != nil {
 		log.Errorf("can't transform data: %s", err)

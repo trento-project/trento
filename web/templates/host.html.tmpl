@@ -42,6 +42,10 @@
                     <div class="col-sm-12">
                         <div class="row mt-5 mb-5">
                           <div class="col-3">
+                              <strong>Provider:</strong><br>
+                              <span class="text-muted">{{ .Host.PrettyProvider }}</span>
+                          </div>
+                          <div class="col-3">
                               <strong>VM Name:</strong><br>
                               <span class="text-muted">{{ $CloudData.VMName }}</span>
                           </div>
@@ -57,12 +61,12 @@
                                 {{ $CloudData.Location }}
                               </span>
                           </div>
+                        </div>
+                        <div class="row mt-5 mb-5">
                           <div class="col-3">
                               <strong>VM Size:</strong><br>
                               <span class="text-muted">{{ $CloudData.VMSize }}</span>
                           </div>
-                        </div>
-                        <div class="row mt-5 mb-5">
                           <div class="col-3">
                               <strong>Data disks number:</strong><br>
                               <span class="text-muted">

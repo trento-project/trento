@@ -1,0 +1,48 @@
+{
+    "discovery_type": "subscription_discovery", 
+    "agent_id": "81e9b629-c1e7-538f-bff1-47d3a6580522", 
+    "payload": [
+        {
+            "status": "Not Registered", 
+            "version": "15.3", 
+            "arch": "x86_64", 
+            "identifier": "XXXX"
+        }, 
+        {
+            "status": "Not Registered", 
+            "version": "15.3", 
+            "arch": "x86_64", 
+            "identifier": "XXXX"
+        }, 
+        {
+            "status": "Not Registered", 
+            "version": "15.3", 
+            "arch": "x86_64", 
+            "identifier": "XXXX"
+        }, 
+        {
+            "status": "Not Registered", 
+            "version": "15.3", 
+            "arch": "x86_64", 
+            "identifier": "XXXX"
+        }, 
+        {
+            "status": "Not Registered", 
+            "version": "15.3", 
+            "arch": "x86_64", 
+            "identifier": "XXXX"
+        }, 
+        {
+            "status": "Not Registered", 
+            "version": "15.3", 
+            "arch": "x86_64", 
+            "identifier": "XXXX"
+        }, 
+        {
+            "status": "Not Registered", 
+            "version": "15.3", 
+            "arch": "x86_64", 
+            "identifier": "XXXX"
+        }
+    ]
+}

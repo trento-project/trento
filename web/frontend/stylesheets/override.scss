@@ -135,3 +135,8 @@ footer.footer-side-menu ul.footer-list {
   font-family: 'Lato', arial, helvetica, sans-serif !important;
   font-size: 14px !important;
 }
+
+.table .form-check-label .eos-checkbox ~ label::before,
+.eos-checkbox ~ label::after {
+  text-indent: 0;
+}

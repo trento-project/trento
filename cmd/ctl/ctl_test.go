@@ -1,6 +1,7 @@
 package ctl
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -164,4 +165,59 @@ func (suite *CtlTestSuite) TestGetLatestEvents() {
 	suite.Equal(int64(5), latestEvents[1].ID)
 	suite.Equal(int64(6), latestEvents[2].ID)
 	suite.Equal(int64(7), latestEvents[3].ID)
+}
+
+func (suite *CtlTestSuite) TestResetDB() {
+	type EntityA struct {
+		ID            int
+		DummyProperty string
+	}
+	type EntityB struct {
+		ID                   int
+		AnotherDummyProperty string
+	}
+
+	targetTables := []interface{}{&EntityA{}, &EntityB{}}
+	suite.tx.AutoMigrate(targetTables...)
+
+	var entitiesA []EntityA
+	var entitiesB []EntityB
+
+	for i := 1; i <= 10; i++ {
+		entitiesA = append(entitiesA, EntityA{
+			ID:            i,
+			DummyProperty: fmt.Sprintf("prop-%d", i),
+		})
+		entitiesB = append(entitiesB, EntityB{
+			ID:                   i,
+			AnotherDummyProperty: fmt.Sprintf("another-prop-%d", i),
+		})
+	}
+
+	err := suite.tx.Create(&entitiesA).Error
+	suite.NoError(err)
+	err = suite.tx.Create(&entitiesB).Error
+	suite.NoError(err)
+
+	storedItemsCount := func(tx *gorm.DB) (int, int) {
+		var storedEntitiesA []EntityA
+		var storedEntitiesB []EntityB
+
+		err = suite.tx.Find(&storedEntitiesA).Error
+		suite.NoError(err)
+		err = suite.tx.Find(&storedEntitiesB).Error
+		suite.NoError(err)
+
+		return len(storedEntitiesA), len(storedEntitiesB)
+	}
+
+	beforeResetEntitiesA, beforeResetEntitiesB := storedItemsCount(suite.tx)
+	suite.Equal(10, beforeResetEntitiesA)
+	suite.Equal(10, beforeResetEntitiesB)
+
+	dbReset(suite.tx, targetTables)
+
+	afterResetEntitiesA, afterResetEntitiesB := storedItemsCount(suite.tx)
+	suite.Equal(0, afterResetEntitiesA)
+	suite.Equal(0, afterResetEntitiesB)
 }

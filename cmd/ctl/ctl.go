@@ -15,8 +15,8 @@ import (
 	dbCmd "github.com/trento-project/trento/cmd/db"
 	"github.com/trento-project/trento/internal"
 	"github.com/trento-project/trento/internal/db"
-
 	"github.com/trento-project/trento/web"
+
 	"github.com/trento-project/trento/web/datapipeline"
 	"github.com/trento-project/trento/web/entities"
 	"gorm.io/gorm"
@@ -94,7 +94,7 @@ func addDBResetCmd(ctlCmd *cobra.Command) {
 		Run: func(*cobra.Command, []string) {
 			db := initDB()
 
-			dbReset(db)
+			dbReset(db, web.DBTables)
 		},
 	}
 
@@ -157,15 +157,15 @@ func pruneChecksResults(db *gorm.DB, olderThan time.Duration) {
 	log.Infof("Checks results older than %d days pruned.", olderThan)
 }
 
-func dbReset(db *gorm.DB) {
+func dbReset(db *gorm.DB, tables []interface{}) {
 	log.Info("Resetting database...")
 	err := db.Transaction(func(tx *gorm.DB) error {
-		for _, t := range web.DBTables {
+		for _, t := range tables {
 			stmt := &gorm.Statement{DB: db}
 			stmt.Parse(t)
 			tableName := stmt.Schema.Table
 
-			err := tx.Raw("TRUNCATE TABLE ?", tableName).Error
+			err := tx.Exec(fmt.Sprintf("TRUNCATE TABLE %s", tableName)).Error
 			if err != nil {
 				log.Fatalf("Error while truncating table %s: %s", tableName, err)
 			}

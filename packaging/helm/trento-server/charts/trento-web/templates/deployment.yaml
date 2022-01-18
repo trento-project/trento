@@ -94,7 +94,7 @@ spec:
       volumes:
       - name: certs
         secret:
-          secretName: {{ include "trento-runner.fullname" . }}-certs
+          secretName: {{ include "trento-web.fullname" . }}-certs
           items:
           - key: cert
             path: cert.pem

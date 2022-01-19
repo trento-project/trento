@@ -23,7 +23,7 @@ require (
 	github.com/swaggo/files v0.0.0-20210815190702-a29dd2bc99b2
 	github.com/swaggo/gin-swagger v1.4.0
 	github.com/swaggo/swag v1.7.8
-	github.com/tdewolff/minify/v2 v2.9.28
+	github.com/tdewolff/minify/v2 v2.9.29
 	github.com/tklauser/go-sysconf v0.3.9 // indirect
 	github.com/ugorji/go v1.1.13 // indirect
 	github.com/vektra/mockery/v2 v2.9.4

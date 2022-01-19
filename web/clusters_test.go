@@ -322,6 +322,10 @@ func TestClustersListHandler(t *testing.T) {
 	mockClusterService := new(services.MockClustersService)
 	mockClusterService.On("GetAll", mock.Anything, mock.Anything).Return(clustersList, nil)
 	mockClusterService.On("GetCount").Return(4, nil)
+	mockClusterService.On("GetAllClusterNames", mock.Anything).Return(
+		[]string{"hana_cluster", "other_cluster", "netweaver_cluster"},
+		nil,
+	)
 	mockClusterService.On("GetAllClusterTypes", mock.Anything).Return(
 		[]string{models.ClusterTypeHANAScaleUp, models.ClusterTypeUnknown},
 		nil,

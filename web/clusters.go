@@ -57,6 +57,12 @@ func NewClusterListHandler(clustersService services.ClustersService) gin.Handler
 			return
 		}
 
+		filterClusterNames, err := clustersService.GetAllClusterNames()
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
 		filterClusterTypes, err := clustersService.GetAllClusterTypes()
 		if err != nil {
 			_ = c.Error(err)
@@ -88,6 +94,7 @@ func NewClusterListHandler(clustersService services.ClustersService) gin.Handler
 		c.HTML(http.StatusOK, "clusters.html.tmpl", gin.H{
 			"ClustersTable":      clusterList,
 			"AppliedFilters":     query,
+			"filterClusterNames": filterClusterNames,
 			"FilterClusterTypes": filterClusterTypes,
 			"FilterSIDs":         filterSIDs,
 			"FilterTags":         filterTags,

@@ -20,31 +20,26 @@
     <div class="horizontal-container">
         <script>
           $(document).ready(function () {
-              {{- range $Key, $Value := .AppliedFilters }}
-            $("#{{ $Key }}").selectpicker("val", {{ $Value }});
-              {{- end }}
-            $('#clean').click(function () {
-              $('.selectpicker').selectpicker("deselectAll")
-            });
+            {{- range $Key, $Value := .AppliedFilters }}
+            $("[name='{{ $Key }}']").selectpicker("val", {{ $Value }});
+            {{- end }}
           });
         </script>
         {{ template "health_filter" }}
-        <select name="name" id="name_filter" class="selectpicker" multiple
+        <select name="name" class="selectpicker" multiple
                 data-selected-text-format="count > 3" data-actions-box="true" data-live-search="true"
                 title="Cluster name">
-            {{- range .ClustersTable }}
-                {{- if .Name }}
-                    <option value="{{ .Name }}">{{ .Name }}</option>
-                {{- end }}
+            {{- range .filterClusterNames }}
+                <option value="{{ . }}">{{ . }}</option>
             {{- end}}
         </select>
-        <select name="sids" id="sid_filter" class="selectpicker" multiple
+        <select name="sids" class="selectpicker" multiple
                 data-selected-text-format="count > 3" data-actions-box="true" data-live-search="true" title="SID">
             {{- range .FilterSIDs }}
                 <option value="{{ . }}">{{ . }}</option>
             {{- end }}
         </select>
-        <select name="cluster_type" id="cluster_type_filter" class="selectpicker" multiple
+        <select name="cluster_type" class="selectpicker" multiple
                 data-selected-text-format="count > 3" data-actions-box="true" data-live-search="true"
                 title="Cluster type">
             {{- range .FilterClusterTypes }}

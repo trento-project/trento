@@ -22,17 +22,14 @@
         <div class="horizontal-container">
             <script>
               $(document).ready(function () {
-                  {{- range $Key, $Value := .AppliedFilters }}
-                $("#{{ $Key }}").selectpicker("val", {{ $Value }});
-                  {{- end }}
-                $('#clean').click(function () {
-                  $('.selectpicker').selectpicker("deselectAll")
-                });
+                {{- range $Key, $Value := .AppliedFilters }}
+                $("[name='{{ $Key }}']").selectpicker("val", {{ $Value }});
+                {{- end }}
               });
             </script>
             {{ template "health_filter" }}
-            <select name="sids" id="trento-sap-systems" class="selectpicker" multiple
-                    data-selected-text-format="count > 3" data-actions-box="true" data-live-search="true" 
+            <select name="sids" class="selectpicker" multiple
+                    data-selected-text-format="count > 3" data-actions-box="true" data-live-search="true"
                     title="SAP system...">
                 {{- range .FilterSIDs }}
                     <option value="{{ . }}">{{ . }}</option>

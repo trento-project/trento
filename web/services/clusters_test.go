@@ -238,6 +238,11 @@ func (suite *ClustersServiceTestSuite) TestClustersService_GetClustersCount() {
 	suite.Equal(3, count)
 }
 
+func (suite *ClustersServiceTestSuite) TestClustersService_GetAllClusterNames() {
+	clusterNames, _ := suite.clustersService.GetAllClusterNames()
+	suite.ElementsMatch([]string{"cluster1", "cluster2", "cluster3"}, clusterNames)
+}
+
 func (suite *ClustersServiceTestSuite) TestClustersService_GetAllClusterTypes() {
 	clusterTypes, _ := suite.clustersService.GetAllClusterTypes()
 	suite.ElementsMatch(

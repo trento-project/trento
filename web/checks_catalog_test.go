@@ -84,7 +84,7 @@ func TestChecksCatalogHandler(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("<td.*?>ABCDEF</td>"), responseBody)
 	assert.Regexp(t, regexp.MustCompile("<div class=check-description>.*description 1.*</div>"), responseBody)
 	assert.Regexp(t, regexp.MustCompile("<div class=\"check-remediation collapse\" id=collapse-ABCDEF.*?>.*remediation 1.*<pre>implementation 1</pre>"), responseBody)
-	assert.Regexp(t, regexp.MustCompile("<tr class=check-row id=123456><td.*?>123456 <span class=\"badge badge-trento-premium\">Premium</span></td>"), responseBody)
+	assert.Regexp(t, regexp.MustCompile("<div class=check-description>.*<p>description 2 <span class=\"badge badge-trento-premium\">Premium</span></p>.*</div>"), responseBody)
 	assert.Equal(t, 2, strings.Count(responseBody, "<div class=check-group"))
 	assert.Equal(t, 3, strings.Count(responseBody, "<tr class=check-row"))
 

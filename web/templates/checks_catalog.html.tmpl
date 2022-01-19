@@ -27,9 +27,11 @@
                     <tbody>
                     {{- range .Checks }}
                         <tr class="check-row" id="{{ .ID }}">
-                            <td class="align-top">{{ .ID }} {{ if .Premium }}<span class="badge badge-trento-premium">Premium</span>{{ end }}</td>
+                            <td class="align-top">{{ .ID }}</td>
                             <td class="align-top">
-                                <div class="check-description">{{ markdown (.Description) }}</div>
+                                {{ $premiumBadge := "" }}
+                                {{- if .Premium }}{{ $premiumBadge = " <span class=\"badge badge-trento-premium\">Premium</span>" }}{{- end }}
+                                <div class="check-description">{{ markdown (print .Description $premiumBadge) }}</div>
                                 <div class="check-remediation collapse" id="collapse-{{ .ID }}">
                                     {{ markdown (.Remediation) }}
                                     <h2>Implementation</h2>

@@ -2,7 +2,6 @@ package web
 
 import (
 	"math"
-	"strconv"
 )
 
 const (
@@ -24,20 +23,6 @@ type Page struct {
 
 func getPageCount(items, perPage int) int {
 	return int((float64(items) + float64(perPage) - 1) / float64(perPage))
-}
-
-func NewPaginationWithStrings(items int, page, perPage string) *Pagination {
-	pageInt, err := strconv.Atoi(page)
-	if err != nil {
-		pageInt = defaultPageIndex
-	}
-
-	perPageInt, err := strconv.Atoi(perPage)
-	if err != nil {
-		perPageInt = defaultPerPage
-	}
-
-	return NewPagination(items, pageInt, perPageInt)
 }
 
 func NewPagination(items, page, perPage int) *Pagination {

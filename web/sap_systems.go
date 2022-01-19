@@ -32,7 +32,13 @@ func NewSAPSystemListHandler(sapSystemsService services.SAPSystemsService) gin.H
 			Size:   pageSize,
 		}
 
-		sapSystems, err := sapSystemsService.GetAllApplications(tagsFilter, page)
+		sapSystemsPaginated, err := sapSystemsService.GetAllApplications(tagsFilter, page)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
+		sapSystemsAll, err := sapSystemsService.GetAllApplications(tagsFilter, nil)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -50,16 +56,11 @@ func NewSAPSystemListHandler(sapSystemsService services.SAPSystemsService) gin.H
 			return
 		}
 
-		count, err := sapSystemsService.GetApplicationsCount()
-		if err != nil {
-			_ = c.Error(err)
-			return
-		}
-		pagination := NewPagination(count, pageNumber, pageSize)
+		pagination := NewPagination(len(sapSystemsAll), pageNumber, pageSize)
 
 		c.HTML(http.StatusOK, "sap_systems.html.tmpl", gin.H{
 			"Type":           models.SAPSystemTypeApplication,
-			"SAPSystems":     sapSystems,
+			"SAPSystems":     sapSystemsPaginated,
 			"AppliedFilters": query,
 			"FilterSIDs":     filterSIDs,
 			"FilterTags":     filterTags,
@@ -91,7 +92,13 @@ func NewHANADatabaseListHandler(sapSystemsService services.SAPSystemsService) gi
 			Size:   pageSize,
 		}
 
-		databases, err := sapSystemsService.GetAllDatabases(tagsFilter, page)
+		databasesPaginated, err := sapSystemsService.GetAllDatabases(tagsFilter, page)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
+		databasesAll, err := sapSystemsService.GetAllDatabases(tagsFilter, nil)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -109,16 +116,11 @@ func NewHANADatabaseListHandler(sapSystemsService services.SAPSystemsService) gi
 			return
 		}
 
-		count, err := sapSystemsService.GetDatabasesCount()
-		if err != nil {
-			_ = c.Error(err)
-			return
-		}
-		pagination := NewPagination(count, pageNumber, pageSize)
+		pagination := NewPagination(len(databasesAll), pageNumber, pageSize)
 
 		c.HTML(http.StatusOK, "sap_systems.html.tmpl", gin.H{
 			"Type":           models.SAPSystemTypeDatabase,
-			"SAPSystems":     databases,
+			"SAPSystems":     databasesPaginated,
 			"AppliedFilters": query,
 			"FilterSIDs":     filterSIDs,
 			"FilterTags":     filterTags,

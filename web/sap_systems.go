@@ -32,13 +32,13 @@ func NewSAPSystemListHandler(sapSystemsService services.SAPSystemsService) gin.H
 			Size:   pageSize,
 		}
 
-		sapSystemsPaginated, err := sapSystemsService.GetAllApplications(tagsFilter, page)
+		paginatedSapSystems, err := sapSystemsService.GetAllApplications(tagsFilter, page)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 
-		sapSystemsAll, err := sapSystemsService.GetAllApplications(tagsFilter, nil)
+		sapSystems, err := sapSystemsService.GetAllApplications(tagsFilter, nil)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -56,11 +56,11 @@ func NewSAPSystemListHandler(sapSystemsService services.SAPSystemsService) gin.H
 			return
 		}
 
-		pagination := NewPagination(len(sapSystemsAll), pageNumber, pageSize)
+		pagination := NewPagination(len(sapSystems), pageNumber, pageSize)
 
 		c.HTML(http.StatusOK, "sap_systems.html.tmpl", gin.H{
 			"Type":           models.SAPSystemTypeApplication,
-			"SAPSystems":     sapSystemsPaginated,
+			"SAPSystems":     paginatedSapSystems,
 			"AppliedFilters": query,
 			"FilterSIDs":     filterSIDs,
 			"FilterTags":     filterTags,
@@ -92,13 +92,13 @@ func NewHANADatabaseListHandler(sapSystemsService services.SAPSystemsService) gi
 			Size:   pageSize,
 		}
 
-		databasesPaginated, err := sapSystemsService.GetAllDatabases(tagsFilter, page)
+		paginatedDatabases, err := sapSystemsService.GetAllDatabases(tagsFilter, page)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 
-		databasesAll, err := sapSystemsService.GetAllDatabases(tagsFilter, nil)
+		databases, err := sapSystemsService.GetAllDatabases(tagsFilter, nil)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -116,11 +116,11 @@ func NewHANADatabaseListHandler(sapSystemsService services.SAPSystemsService) gi
 			return
 		}
 
-		pagination := NewPagination(len(databasesAll), pageNumber, pageSize)
+		pagination := NewPagination(len(databases), pageNumber, pageSize)
 
 		c.HTML(http.StatusOK, "sap_systems.html.tmpl", gin.H{
 			"Type":           models.SAPSystemTypeDatabase,
-			"SAPSystems":     databasesPaginated,
+			"SAPSystems":     paginatedDatabases,
 			"AppliedFilters": query,
 			"FilterSIDs":     filterSIDs,
 			"FilterTags":     filterTags,

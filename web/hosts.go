@@ -49,13 +49,13 @@ func NewHostListHandler(hostsService services.HostsService) gin.HandlerFunc {
 			Size:   pageSize,
 		}
 
-		hostListPaginated, err := hostsService.GetAll(hostsFilter, page)
+		paginatedHostList, err := hostsService.GetAll(hostsFilter, page)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 
-		hostListAll, err := hostsService.GetAll(hostsFilter, nil)
+		hostList, err := hostsService.GetAll(hostsFilter, nil)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -73,13 +73,13 @@ func NewHostListHandler(hostsService services.HostsService) gin.HandlerFunc {
 			return
 		}
 
-		pagination := NewPagination(len(hostListAll), pageNumber, pageSize)
+		pagination := NewPagination(len(hostList), pageNumber, pageSize)
 
-		hContainer := NewHostsHealthContainer(hostListAll)
+		hContainer := NewHostsHealthContainer(hostList)
 		hContainer.Layout = "horizontal"
 
 		c.HTML(http.StatusOK, "hosts.html.tmpl", gin.H{
-			"Hosts":           hostListPaginated,
+			"Hosts":           paginatedHostList,
 			"AppliedFilters":  query,
 			"FilterSIDs":      filterSIDs,
 			"FilterTags":      filterTags,

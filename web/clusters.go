@@ -51,13 +51,13 @@ func NewClusterListHandler(clustersService services.ClustersService) gin.Handler
 			Size:   pageSize,
 		}
 
-		clusterListPaginated, err := clustersService.GetAll(clustersFilter, page)
+		paginatedClusterList, err := clustersService.GetAll(clustersFilter, page)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 
-		clusterListAll, err := clustersService.GetAll(clustersFilter, nil)
+		clusterList, err := clustersService.GetAll(clustersFilter, nil)
 		if err != nil {
 			_ = c.Error(err)
 			return
@@ -87,13 +87,13 @@ func NewClusterListHandler(clustersService services.ClustersService) gin.Handler
 			return
 		}
 
-		healthContainer := NewClustersHealthContainer(clusterListAll)
+		healthContainer := NewClustersHealthContainer(clusterList)
 		healthContainer.Layout = "horizontal"
 
-		pagination := NewPagination(len(clusterListAll), pageNumber, pageSize)
+		pagination := NewPagination(len(clusterList), pageNumber, pageSize)
 
 		c.HTML(http.StatusOK, "clusters.html.tmpl", gin.H{
-			"ClustersTable":      clusterListPaginated,
+			"ClustersTable":      paginatedClusterList,
 			"AppliedFilters":     query,
 			"filterClusterNames": filterClusterNames,
 			"FilterClusterTypes": filterClusterTypes,

@@ -5,7 +5,7 @@ context('Hosts Overview', () => {
     before(() => {
         cy.resetDatabase()
         cy.loadScenario('healthy-27-node-SAP-cluster')
-        
+
         cy.task('startAgentHeartbeat', agents())
         cy.visit('/');
         cy.navigateToItem('Hosts')
@@ -15,6 +15,12 @@ context('Hosts Overview', () => {
     describe('Registered Hosts should be available in the overview', () => {
         it('should show 10 of the 27 registered hosts with default pagination settings', () => {
             cy.get('.tn-hostname').its('length').should('eq', 10)
+        })
+        it('should show 27 as total items in the pagination controls', () => {
+            cy.get('.pagination-count').should('contain', '27 items')
+        })
+        it('should have 5 pages', () => {
+            cy.get('.page-item').its('length').should('eq', 5)
         })
         it('should show all of the all 27 registered hosts when increasing pagination limit to 100', () => {
             cy.reloadList('hosts', 100)
@@ -34,17 +40,16 @@ context('Hosts Overview', () => {
 
     describe('Health Detection', () => {
         describe('Health Container shows the health overview of the entire cluster', () => {
-            it('should show health status of the first 10 visible hosts', () => {
-                cy.log("This test needs to be removed in favor of having the Health Container showing information of the entire cluster")
+            it('should show health status of the entire cluster of 27 hosts with partial pagination', () => {
                 cy.reloadList('hosts', 10)
-                cy.get('.health-container .health-passing').should('contain', 10)
+                cy.get('.health-container .health-passing').should('contain', 27)
             })
             it('should show health status of the entire cluster of 27 hosts', () => {
                 cy.reloadList('hosts', 100)
                 cy.get('.health-container .health-passing').should('contain', 27)
             })
         })
-    
+
         describe('Detected hosts Health matches deployed server status', () => {
             it('all 27 hosts in the cluster should be up', () => {
                 availableHosts.forEach((hostName) => cy.get(`#host-${hostName} > .row-status > i`).should('have.class', 'text-success'))
@@ -93,7 +98,7 @@ context('Hosts Overview', () => {
             cy.wait('@resetFilter')
         }
 
-        describe('Filtering by health', () => { 
+        describe('Filtering by health', () => {
             before(() => {
                 cy.get('.tn-filters > :nth-child(2) > .btn').click()
             })
@@ -104,12 +109,14 @@ context('Hosts Overview', () => {
             ]
             healthScenarios.forEach(([health, expectedHostsWithThisHealth], index) => {
                 it(`should show ${expectedHostsWithThisHealth || 'an empty list of'} hosts when filtering by health '${health}'`, () => {
-                    cy.intercept('GET', `/hosts?per_page=100&health=${health}`).as('filterByHealthStatus') 
+                    cy.intercept('GET', `/hosts?per_page=100&health=${health}`).as('filterByHealthStatus')
                     const selectedOption = `#bs-select-1-${index}`
                     cy.get(selectedOption).click()
                     cy.wait('@filterByHealthStatus').then(() => {
                         expectedHostsWithThisHealth == 0 && cy.get('.table.eos-table').contains('There are currently no records to be shown')
                         expectedHostsWithThisHealth > 0 && cy.get('.tn-hostname').its('length').should('eq', expectedHostsWithThisHealth)
+                        cy.get('.pagination-count').should('contain', `${expectedHostsWithThisHealth} items`)
+                        cy.get('.page-item').its('length').should('eq', Math.ceil(expectedHostsWithThisHealth/100)+2)
                         resetFilter(selectedOption)
                     })
                 })
@@ -127,15 +134,17 @@ context('Hosts Overview', () => {
                 ['NWD', 4],
                 ['NWP', 4],
                 ['NWQ', 4],
-                
+
             ]
             SAPSystemsScenarios.forEach(([sapsystem, expectedRelatedHosts], index) => {
                 it(`should have ${expectedRelatedHosts} hosts related to SAP system '${sapsystem}'`, () => {
-                    cy.intercept('GET', `/hosts?per_page=100&sids=${sapsystem}`).as('filterBySAPSystem')            
+                    cy.intercept('GET', `/hosts?per_page=100&sids=${sapsystem}`).as('filterBySAPSystem')
                     const selectedOption = `#bs-select-2-${index}`
                     cy.get(selectedOption).click()
                     cy.wait('@filterBySAPSystem').then(() => {
                         cy.get('.tn-hostname').its('length').should('eq', expectedRelatedHosts)
+                        cy.get('.pagination-count').should('contain', `${expectedRelatedHosts} items`)
+                        cy.get('.page-item').its('length').should('eq', Math.ceil(expectedRelatedHosts/100)+2)
                         resetFilter(selectedOption)
                     })
                 })
@@ -158,6 +167,8 @@ context('Hosts Overview', () => {
                     cy.get(selectedOption).click()
                     cy.wait('@filterByTags').then(() => {
                         cy.get('.tn-hostname').its('length').should('eq', expectedTaggedHosts)
+                        cy.get('.pagination-count').should('contain', `${expectedTaggedHosts} items`)
+                        cy.get('.page-item').its('length').should('eq', Math.ceil(expectedTaggedHosts/100)+2)
                         resetFilter(selectedOption)
                     })
                 })

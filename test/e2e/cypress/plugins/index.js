@@ -25,15 +25,16 @@ module.exports = (on, config) => {
   on('task', {
     startAgentHeartbeat(agents) {
       const {collector_host, collector_port, heartbeat_interval} = config.env
+      const heartbeat = (agentId) => http.request({
+        host: collector_host,
+        path: `/api/hosts/${agentId}/heartbeat`,
+        port: collector_port,
+        method: 'POST'
+      }).end()
+
       agents.forEach((agentId) => {
-        setInterval(() => {
-          http.request({
-            host: collector_host,
-            path: `/api/hosts/${agentId}/heartbeat`,
-            port: collector_port,
-            method: 'POST'
-          }).end()
-        }, heartbeat_interval)
+        heartbeat(agentId)
+        setInterval(() => heartbeat(agentId), heartbeat_interval)
       })
       return null
     }

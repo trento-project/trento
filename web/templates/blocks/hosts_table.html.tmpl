@@ -21,11 +21,11 @@
             </thead>
             <tbody>
             {{- range .Hosts }}
-                <tr>
+                <tr id="host-{{ .Name }}">
                     <td class="row-status">
                         {{ template "health_icon" .Health }}
                     </td>
-                    <td>
+                    <td class="tn-hostname">
                         <a href='/hosts/{{ .ID }}'>
                             {{ .Name }}
                         </a>
@@ -55,7 +55,7 @@
                         {{ .AgentVersion }}
                     </td>
                     {{- if not $hideTags }}
-                    <td>
+                    <td class="tn-host-tags">
                         <input class="tags-input"
                             value="{{- range .Tags }}{{ . }},{{- end }}"
                             data-resource-type="hosts"

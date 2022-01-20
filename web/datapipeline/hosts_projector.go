@@ -99,7 +99,7 @@ func storeHost(db *gorm.DB, host entities.Host, updateColumns ...string) error {
 		Columns: []clause.Column{
 			{Name: "agent_id"},
 		},
-		DoUpdates: clause.AssignmentColumns(append(updateColumns, "updated_at")),
+		DoUpdates: clause.AssignmentColumns(append(updateColumns, "agent_id", "updated_at")),
 	}).Create(&host).Error
 }
 

@@ -1,0 +1,56 @@
+{
+    "discovery_type": "subscription_discovery", 
+    "agent_id": "99cf8a3a-48d6-57a4-b302-6e4482227ab6", 
+    "payload": [
+        {
+            "status": "Registered", 
+            "arch": "x86_64", 
+            "expires_at": "2026-10-18 06:23:46 UTC", 
+            "version": "15.3", 
+            "subscription_status": "ACTIVE", 
+            "starts_at": "2021-10-18 06:23:46 UTC", 
+            "identifier": "XXXX", 
+            "type": "internal"
+        }, 
+        {
+            "status": "Registered", 
+            "version": "15.3", 
+            "arch": "x86_64", 
+            "identifier": "XXXX"
+        }, 
+        {
+            "status": "Registered", 
+            "version": "15.3", 
+            "arch": "x86_64", 
+            "identifier": "XXXX"
+        }, 
+        {
+            "status": "Registered", 
+            "version": "15.3", 
+            "arch": "x86_64", 
+            "identifier": "XXXX"
+        }, 
+        {
+            "status": "Registered", 
+            "arch": "x86_64", 
+            "expires_at": "2026-10-18 06:23:46 UTC", 
+            "version": "15.3", 
+            "subscription_status": "ACTIVE", 
+            "starts_at": "2021-10-18 06:23:46 UTC", 
+            "identifier": "XXXX", 
+            "type": "internal"
+        }, 
+        {
+            "status": "Registered", 
+            "version": "15.3", 
+            "arch": "x86_64", 
+            "identifier": "XXXX"
+        }, 
+        {
+            "status": "Registered", 
+            "version": "15.3", 
+            "arch": "x86_64", 
+            "identifier": "XXXX"
+        }
+    ]
+}

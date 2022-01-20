@@ -1,15 +1,11 @@
 context('Trento About page', () => {
-  beforeEach(() => {
+  before(() => {
     cy.visit('/');
+    cy.navigateToItem(['Settings', 'About'])
+    cy.url().should('include', '/about');
   });
 
   it('should contain all relevant information', () => {
-    cy.get('.js-sidebar-toggle').click();
-    cy.get('.menu-title').contains('Settings').click();
-    cy.get('.menu-title').contains('About').click();
-    cy.url().should('include', '/about');
-
-
     cy.get('dl').should('contain', 'Trento flavor');
     cy.get('dl').should('contain', 'Server version');
     cy.get('dl').should('contain', 'Github repository');

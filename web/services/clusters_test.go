@@ -9,7 +9,6 @@ import (
 	"github.com/trento-project/trento/test/helpers"
 	"github.com/trento-project/trento/web/entities"
 	"github.com/trento-project/trento/web/models"
-	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -30,7 +29,6 @@ func (suite *ClustersServiceTestSuite) SetupSuite() {
 
 	suite.db.AutoMigrate(entities.Cluster{}, entities.Host{}, models.Tag{}, models.SelectedChecks{}, models.ConnectionSettings{}, entities.ChecksResult{})
 	loadClustersFixtures(suite.db)
-	loadChecksFixtures(suite.db)
 }
 
 func (suite *ClustersServiceTestSuite) TearDownSuite() {
@@ -141,32 +139,6 @@ func loadClustersFixtures(db *gorm.DB) {
 	})
 }
 
-func loadChecksFixtures(db *gorm.DB) {
-	group1payloadCritical := `{"hosts":{"host1":{"reachable": true, "msg":""},"host2":{"reachable":false,"msg":"error connecting"}},
-	"checks":{"check1":{"hosts":{"host1":{"result":"passing"},"host2":{"result":"passing"}}},
-	"check2":{"hosts":{"host1":{"result":"warning"}, "host2":{"result":"critical"}}}}}`
-	db.Create(&entities.ChecksResult{
-		GroupID: "1",
-		Payload: datatypes.JSON([]byte(group1payloadCritical)),
-	})
-
-	group1payloadPassing := `{"hosts":{"host1":{"reachable": true, "msg":""},"host2":{"reachable":false,"msg":"error connecting"}},
-	"checks":{"check1":{"hosts":{"host1":{"result":"passing"},"host2":{"result":"passing"}}},
-	"check2":{"hosts":{"host1":{"result":"passing"}, "host2":{"result":"passing"}}}}}`
-	db.Create(&entities.ChecksResult{
-		GroupID: "1",
-		Payload: datatypes.JSON([]byte(group1payloadPassing)),
-	})
-
-	group2payloadPassing := `{"hosts":{"host1":{"reachable": true, "msg":""},"host2":{"reachable":false,"msg":"error connecting"}},
-	"checks":{"check1":{"hosts":{"host1":{"result":"passing"},"host2":{"result":"passing"}}},
-	"check2":{"hosts":{"host1":{"result":"passing"}, "host2":{"result":"passing"}}}}}`
-	db.Create(&entities.ChecksResult{
-		GroupID: "2",
-		Payload: datatypes.JSON([]byte(group2payloadPassing)),
-	})
-}
-
 func (suite *ClustersServiceTestSuite) TestClustersService_GetAll() {
 	suite.checksService.On("GetAggregatedChecksResultByCluster", "1").Return(&models.AggregatedCheckData{PassingCount: 1}, nil)
 	suite.checksService.On("GetAggregatedChecksResultByCluster", "2").Return(&models.AggregatedCheckData{WarningCount: 1}, nil)
@@ -218,7 +190,46 @@ func (suite *ClustersServiceTestSuite) TestClustersService_GetAll() {
 }
 
 func (suite *ClustersServiceTestSuite) TestClustersService_GetAll_Filter() {
-	suite.checksService.On("GetAggregatedChecksResultByCluster", "1").Return(&models.AggregatedCheckData{PassingCount: 1}, nil)
+	suite.checksService.On("GetLastExecutionByGroup").Return(
+		[]*models.ChecksResult{
+			&models.ChecksResult{
+				ID: "1",
+				Checks: map[string]*models.ChecksByHost{
+					"check1": &models.ChecksByHost{
+						Hosts: map[string]*models.Check{
+							"host1": &models.Check{Result: models.CheckPassing},
+							"host2": &models.Check{Result: models.CheckPassing},
+						},
+					},
+					"check2": &models.ChecksByHost{
+						Hosts: map[string]*models.Check{
+							"host1": &models.Check{Result: models.CheckPassing},
+							"host2": &models.Check{Result: models.CheckPassing},
+						},
+					},
+				},
+			},
+			&models.ChecksResult{
+				ID: "2",
+				Checks: map[string]*models.ChecksByHost{
+					"check1": &models.ChecksByHost{
+						Hosts: map[string]*models.Check{
+							"host1": &models.Check{Result: models.CheckCritical},
+							"host2": &models.Check{Result: models.CheckPassing},
+						},
+					},
+					"check2": &models.ChecksByHost{
+						Hosts: map[string]*models.Check{
+							"host1": &models.Check{Result: models.CheckWarning},
+							"host2": &models.Check{Result: models.CheckPassing},
+						},
+					},
+				},
+			},
+		}, nil,
+	)
+	suite.checksService.On("GetAggregatedChecksResultByCluster", "1").Return(
+		&models.AggregatedCheckData{PassingCount: 1}, nil)
 
 	clusters, _ := suite.clustersService.GetAll(&ClustersFilter{
 		Name:        []string{"cluster1"},

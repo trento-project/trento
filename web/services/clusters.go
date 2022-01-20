@@ -53,20 +53,15 @@ func (s *clustersService) GetAll(filter *ClustersFilter, page *Page) (models.Clu
 
 	// Filter the clusters by Health
 	if filter != nil && len(filter.Health) > 0 {
-		var checksResults []entities.ChecksResult
-
-		err := s.db.Where("(group_id, created_at) IN (?)", s.db.Model(&entities.ChecksResult{}).
-			Select("group_id, max(created_at)").
-			Group("group_id")).Find(&checksResults).Error
+		checksResults, err := s.checksService.GetLastExecutionByGroup()
 		if err != nil {
 			return nil, err
 		}
 
 		for _, checksResult := range checksResults {
-			checksResultModel, _ := checksResult.ToModel()
-			clusterHealth := checksResultModel.GetAggregatedChecksResultByCluster().String()
+			clusterHealth := checksResult.GetAggregatedChecksResultByCluster().String()
 			if internal.Contains(filter.Health, clusterHealth) {
-				healthFilteredClusters = append(healthFilteredClusters, checksResultModel.ID)
+				healthFilteredClusters = append(healthFilteredClusters, checksResult.ID)
 			}
 		}
 	}

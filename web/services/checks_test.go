@@ -134,7 +134,7 @@ func loadChecksResultFixtures(db *gorm.DB) {
 		GroupID: "group1",
 		Payload: datatypes.JSON([]byte(group1payloadLast)),
 	})
-	group2payload := `{"hosts":{"host3":{"reachable":true "msg":""},"host4":{"reachable":true,"msg":""}},
+	group2payload := `{"hosts":{"host3":{"reachable":true, "msg":""},"host4":{"reachable":true,"msg":""}},
 	"checks":{"check1":{"hosts":{"host3":{"result":"critical"},"host4":{"result":"critical"}}},
 	"check2":{"hosts":{"host3":{"result":"passing"},"host4":{"result":"warning"}}}}}`
 	db.Create(&entities.ChecksResult{
@@ -317,6 +317,15 @@ func (suite *ChecksServiceTestSuite) TestChecksService_CreateChecksCatalog() {
 	var count int64
 	suite.tx.Table("checks").Count(&count)
 	suite.Equal(int64(2), count)
+}
+
+func (suite *ChecksServiceTestSuite) TestChecksService_GetLastExecutionByGroup() {
+	results, err := suite.checksService.GetLastExecutionByGroup()
+
+	suite.NoError(err)
+	suite.Equal(len(results), 2)
+	suite.Equal(results[0].ID, "group1")
+	suite.Equal(results[1].ID, "group2")
 }
 
 func (suite *ChecksServiceTestSuite) TestChecksService_GetChecksResultByCluster() {

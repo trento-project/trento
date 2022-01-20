@@ -22,6 +22,7 @@ type ChecksService interface {
 	CreateChecksCatalog(checkList models.ChecksCatalog) error
 	// Check result services
 	CreateChecksResult(checksResult *models.ChecksResult) error
+	GetLastExecutionByGroup() ([]*models.ChecksResult, error)
 	GetChecksResultByCluster(clusterId string) (*models.ChecksResult, error)
 	GetChecksResultAndMetadataByCluster(clusterId string) (*models.ChecksResultAsList, error)
 	GetAggregatedChecksResultByHost(clusterId string) (map[string]*models.AggregatedCheckData, error)
@@ -147,6 +148,25 @@ func (c *checksService) CreateChecksResult(checksResult *models.ChecksResult) er
 	result := c.db.Create(&event)
 
 	return result.Error
+}
+
+func (c *checksService) GetLastExecutionByGroup() ([]*models.ChecksResult, error) {
+	var checksResults []entities.ChecksResult
+
+	err := c.db.Where("(group_id, created_at) IN (?)", c.db.Model(&entities.ChecksResult{}).
+		Select("group_id, max(created_at)").
+		Group("group_id")).Order("id").Find(&checksResults).Error
+	if err != nil {
+		return nil, err
+	}
+
+	var checksResultModels []*models.ChecksResult
+	for _, checksResult := range checksResults {
+		cModel, _ := checksResult.ToModel()
+		checksResultModels = append(checksResultModels, cModel)
+	}
+
+	return checksResultModels, nil
 }
 
 func (c *checksService) GetChecksResultByCluster(clusterId string) (*models.ChecksResult, error) {

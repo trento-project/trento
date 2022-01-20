@@ -264,6 +264,29 @@ func (_m *MockChecksService) GetConnectionSettingsByNode(node string) (models.Co
 	return r0, r1
 }
 
+// GetLastExecutionByGroup provides a mock function with given fields:
+func (_m *MockChecksService) GetLastExecutionByGroup() ([]*models.ChecksResult, error) {
+	ret := _m.Called()
+
+	var r0 []*models.ChecksResult
+	if rf, ok := ret.Get(0).(func() []*models.ChecksResult); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*models.ChecksResult)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetSelectedChecksById provides a mock function with given fields: id
 func (_m *MockChecksService) GetSelectedChecksById(id string) (models.SelectedChecks, error) {
 	ret := _m.Called(id)

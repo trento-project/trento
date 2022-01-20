@@ -83,7 +83,6 @@ func TestSAPSystemsListHandler(t *testing.T) {
 			AttachedDatabase: &models.SAPSystem{},
 		},
 	}, nil)
-	sapSystemsService.On("GetApplicationsCount").Return(1, nil)
 	sapSystemsService.On("GetAllApplicationsSIDs").Return([]string{"HA1"}, nil)
 	sapSystemsService.On("GetAllApplicationsTags").Return([]string{"tag1"}, nil)
 
@@ -139,7 +138,6 @@ func TestSAPDatabaseListHandler(t *testing.T) {
 			},
 		},
 	}, nil)
-	sapSystemsService.On("GetDatabasesCount").Return(1, nil)
 	sapSystemsService.On("GetAllDatabasesSIDs").Return([]string{"PRD"}, nil)
 	sapSystemsService.On("GetAllDatabasesTags").Return([]string{"tag1"}, nil)
 

@@ -16,7 +16,7 @@ import (
 )
 
 func TestAggregatedCheckDataString(t *testing.T) {
-	aCritical := &AggregatedCheckData{
+	aCritical := &models.AggregatedCheckData{
 		PassingCount:  2,
 		WarningCount:  1,
 		CriticalCount: 1,
@@ -24,7 +24,7 @@ func TestAggregatedCheckDataString(t *testing.T) {
 
 	assert.Equal(t, aCritical.String(), "critical")
 
-	aWarning := &AggregatedCheckData{
+	aWarning := &models.AggregatedCheckData{
 		PassingCount:  2,
 		WarningCount:  1,
 		CriticalCount: 0,
@@ -32,7 +32,7 @@ func TestAggregatedCheckDataString(t *testing.T) {
 
 	assert.Equal(t, aWarning.String(), "warning")
 
-	aPassing := &AggregatedCheckData{
+	aPassing := &models.AggregatedCheckData{
 		PassingCount:  2,
 		WarningCount:  0,
 		CriticalCount: 0,
@@ -40,7 +40,7 @@ func TestAggregatedCheckDataString(t *testing.T) {
 
 	assert.Equal(t, aPassing.String(), "passing")
 
-	aUndefined := &AggregatedCheckData{
+	aUndefined := &models.AggregatedCheckData{
 		PassingCount:  0,
 		WarningCount:  0,
 		CriticalCount: 0,
@@ -392,13 +392,13 @@ func (suite *ChecksServiceTestSuite) TestChecksService_CreateChecksResult() {
 func (suite *ChecksServiceTestSuite) TestChecksService_GetAggregatedChecksResultByHost() {
 	results, err := suite.checksService.GetAggregatedChecksResultByHost("group1")
 
-	expectedResults := map[string]*AggregatedCheckData{
-		"host1": &AggregatedCheckData{
+	expectedResults := map[string]*models.AggregatedCheckData{
+		"host1": &models.AggregatedCheckData{
 			PassingCount:  1,
 			WarningCount:  1,
 			CriticalCount: 0,
 		},
-		"host2": &AggregatedCheckData{
+		"host2": &models.AggregatedCheckData{
 			PassingCount:  1,
 			WarningCount:  0,
 			CriticalCount: 1,
@@ -412,7 +412,7 @@ func (suite *ChecksServiceTestSuite) TestChecksService_GetAggregatedChecksResult
 func (suite *ChecksServiceTestSuite) TestChecksService_GetAggregatedChecksResultByCluster() {
 	results, err := suite.checksService.GetAggregatedChecksResultByCluster("group1")
 
-	expectedResults := &AggregatedCheckData{
+	expectedResults := &models.AggregatedCheckData{
 		PassingCount:  2,
 		WarningCount:  1,
 		CriticalCount: 1,

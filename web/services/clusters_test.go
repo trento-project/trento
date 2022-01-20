@@ -9,6 +9,7 @@ import (
 	"github.com/trento-project/trento/test/helpers"
 	"github.com/trento-project/trento/web/entities"
 	"github.com/trento-project/trento/web/models"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -27,12 +28,13 @@ func TestClustersServiceTestSuite(t *testing.T) {
 func (suite *ClustersServiceTestSuite) SetupSuite() {
 	suite.db = helpers.SetupTestDatabase(suite.T())
 
-	suite.db.AutoMigrate(entities.Cluster{}, entities.Host{}, models.Tag{}, models.SelectedChecks{}, models.ConnectionSettings{})
+	suite.db.AutoMigrate(entities.Cluster{}, entities.Host{}, models.Tag{}, models.SelectedChecks{}, models.ConnectionSettings{}, entities.ChecksResult{})
 	loadClustersFixtures(suite.db)
+	loadChecksFixtures(suite.db)
 }
 
 func (suite *ClustersServiceTestSuite) TearDownSuite() {
-	suite.db.Migrator().DropTable(entities.Cluster{}, entities.Host{}, models.Tag{}, models.SelectedChecks{}, models.ConnectionSettings{})
+	suite.db.Migrator().DropTable(entities.Cluster{}, entities.Host{}, models.Tag{}, models.SelectedChecks{}, models.ConnectionSettings{}, entities.ChecksResult{})
 }
 
 func (suite *ClustersServiceTestSuite) SetupTest() {
@@ -139,10 +141,36 @@ func loadClustersFixtures(db *gorm.DB) {
 	})
 }
 
+func loadChecksFixtures(db *gorm.DB) {
+	group1payloadCritical := `{"hosts":{"host1":{"reachable": true, "msg":""},"host2":{"reachable":false,"msg":"error connecting"}},
+	"checks":{"check1":{"hosts":{"host1":{"result":"passing"},"host2":{"result":"passing"}}},
+	"check2":{"hosts":{"host1":{"result":"warning"}, "host2":{"result":"critical"}}}}}`
+	db.Create(&entities.ChecksResult{
+		GroupID: "1",
+		Payload: datatypes.JSON([]byte(group1payloadCritical)),
+	})
+
+	group1payloadPassing := `{"hosts":{"host1":{"reachable": true, "msg":""},"host2":{"reachable":false,"msg":"error connecting"}},
+	"checks":{"check1":{"hosts":{"host1":{"result":"passing"},"host2":{"result":"passing"}}},
+	"check2":{"hosts":{"host1":{"result":"passing"}, "host2":{"result":"passing"}}}}}`
+	db.Create(&entities.ChecksResult{
+		GroupID: "1",
+		Payload: datatypes.JSON([]byte(group1payloadPassing)),
+	})
+
+	group2payloadPassing := `{"hosts":{"host1":{"reachable": true, "msg":""},"host2":{"reachable":false,"msg":"error connecting"}},
+	"checks":{"check1":{"hosts":{"host1":{"result":"passing"},"host2":{"result":"passing"}}},
+	"check2":{"hosts":{"host1":{"result":"passing"}, "host2":{"result":"passing"}}}}}`
+	db.Create(&entities.ChecksResult{
+		GroupID: "2",
+		Payload: datatypes.JSON([]byte(group2payloadPassing)),
+	})
+}
+
 func (suite *ClustersServiceTestSuite) TestClustersService_GetAll() {
-	suite.checksService.On("GetAggregatedChecksResultByCluster", "1").Return(&AggregatedCheckData{PassingCount: 1}, nil)
-	suite.checksService.On("GetAggregatedChecksResultByCluster", "2").Return(&AggregatedCheckData{WarningCount: 1}, nil)
-	suite.checksService.On("GetAggregatedChecksResultByCluster", "3").Return(&AggregatedCheckData{CriticalCount: 1}, nil)
+	suite.checksService.On("GetAggregatedChecksResultByCluster", "1").Return(&models.AggregatedCheckData{PassingCount: 1}, nil)
+	suite.checksService.On("GetAggregatedChecksResultByCluster", "2").Return(&models.AggregatedCheckData{WarningCount: 1}, nil)
+	suite.checksService.On("GetAggregatedChecksResultByCluster", "3").Return(&models.AggregatedCheckData{CriticalCount: 1}, nil)
 
 	clusters, _ := suite.clustersService.GetAll(nil, nil)
 
@@ -190,7 +218,7 @@ func (suite *ClustersServiceTestSuite) TestClustersService_GetAll() {
 }
 
 func (suite *ClustersServiceTestSuite) TestClustersService_GetAll_Filter() {
-	suite.checksService.On("GetAggregatedChecksResultByCluster", "1").Return(&AggregatedCheckData{PassingCount: 1}, nil)
+	suite.checksService.On("GetAggregatedChecksResultByCluster", "1").Return(&models.AggregatedCheckData{PassingCount: 1}, nil)
 
 	clusters, _ := suite.clustersService.GetAll(&ClustersFilter{
 		Name:        []string{"cluster1"},
@@ -205,8 +233,8 @@ func (suite *ClustersServiceTestSuite) TestClustersService_GetAll_Filter() {
 	suite.Equal([]string{"tag1"}, clusters[0].Tags)
 }
 func (suite *ClustersServiceTestSuite) TestClustersService_GetByID() {
-	suite.checksService.On("GetAggregatedChecksResultByCluster", "1").Return(&AggregatedCheckData{PassingCount: 1}, nil)
-	suite.checksService.On("GetAggregatedChecksResultByHost", "1").Return(map[string]*AggregatedCheckData{
+	suite.checksService.On("GetAggregatedChecksResultByCluster", "1").Return(&models.AggregatedCheckData{PassingCount: 1}, nil)
+	suite.checksService.On("GetAggregatedChecksResultByHost", "1").Return(map[string]*models.AggregatedCheckData{
 		"host1": {PassingCount: 1},
 	}, nil)
 

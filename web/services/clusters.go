@@ -49,6 +49,28 @@ func NewClustersService(db *gorm.DB, checksService ChecksService) *clustersServi
 
 func (s *clustersService) GetAll(filter *ClustersFilter, page *Page) (models.ClusterList, error) {
 	var clusters []entities.Cluster
+	var healthFilteredClusters []string
+
+	// Filter the clusters by Health
+	if filter != nil && len(filter.Health) > 0 {
+		var checksResults []entities.ChecksResult
+
+		err := s.db.Where("(group_id, created_at) IN (?)", s.db.Model(&entities.ChecksResult{}).
+			Select("group_id, max(created_at)").
+			Group("group_id")).Find(&checksResults).Error
+		if err != nil {
+			return nil, err
+		}
+
+		for _, checksResult := range checksResults {
+			checksResultModel, _ := checksResult.ToModel()
+			clusterHealth := checksResultModel.GetAggregatedChecksResultByCluster().String()
+			if internal.Contains(filter.Health, clusterHealth) {
+				healthFilteredClusters = append(healthFilteredClusters, checksResultModel.ID)
+			}
+		}
+	}
+
 	db := s.db.Preload("Tags").Scopes(Paginate(page))
 
 	if filter != nil {
@@ -71,6 +93,10 @@ func (s *clustersService) GetAll(filter *ClustersFilter, page *Page) (models.Clu
 				Where("value IN ?", filter.Tags),
 			)
 		}
+
+		if len(filter.Health) > 0 {
+			db = db.Where("id IN (?)", healthFilteredClusters)
+		}
 	}
 
 	err := db.Order("name").Order("id").Find(&clusters).Error
@@ -84,10 +110,6 @@ func (s *clustersService) GetAll(filter *ClustersFilter, page *Page) (models.Clu
 	}
 
 	s.enrichClusterList(clusterList)
-
-	if filter != nil && len(filter.Health) > 0 {
-		clusterList = filterByHealth(clusterList, filter.Health)
-	}
 
 	return clusterList, nil
 }
@@ -315,39 +337,37 @@ func (s *clustersService) enrichClusterList(clusterList models.ClusterList) {
 }
 
 func (s *clustersService) enrichCluster(cluster *models.Cluster) {
-	health, _ := s.checksService.GetAggregatedChecksResultByCluster(cluster.ID)
+	health, err := s.checksService.GetAggregatedChecksResultByCluster(cluster.ID)
 
-	cluster.Health = health.String()
-	cluster.PassingCount = health.PassingCount
-	cluster.WarningCount = health.WarningCount
-	cluster.CriticalCount = health.CriticalCount
-
+	if err != nil {
+		cluster.Health = models.CheckUndefined
+	} else {
+		cluster.Health = health.String()
+		cluster.PassingCount = health.PassingCount
+		cluster.WarningCount = health.WarningCount
+		cluster.CriticalCount = health.CriticalCount
+	}
 }
 
 func (s *clustersService) enrichClusterNodes(nodes []*models.HANAClusterNode, clusterID string, hosts []*entities.Host) {
+	checkResults, checkResultsErr := s.checksService.GetAggregatedChecksResultByHost(clusterID)
+
 	for _, node := range nodes {
 		for _, host := range hosts {
 			if node.Name == host.Name {
 				node.HostID = host.AgentID
 				node.IPAddresses = append(node.IPAddresses, host.IPAddresses...)
+				node.Health = models.CheckUndefined
 				break
 			}
 		}
-		c, _ := s.checksService.GetAggregatedChecksResultByHost(clusterID)
-		if _, ok := c[node.Name]; ok {
-			node.Health = c[node.Name].String()
+
+		if checkResultsErr != nil {
+			continue
+		}
+
+		if _, ok := checkResults[node.Name]; ok {
+			node.Health = checkResults[node.Name].String()
 		}
 	}
-}
-
-func filterByHealth(clusterList models.ClusterList, health []string) models.ClusterList {
-	var filteredClusterList models.ClusterList
-
-	for _, c := range clusterList {
-		if internal.Contains(health, c.Health) {
-			filteredClusterList = append(filteredClusterList, c)
-		}
-	}
-
-	return filteredClusterList
 }

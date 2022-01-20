@@ -13,23 +13,6 @@ import (
 )
 
 //go:generate mockery --name=ChecksService --inpackage --filename=checks_mock.go
-type AggregatedCheckData struct {
-	PassingCount  int
-	WarningCount  int
-	CriticalCount int
-}
-
-func (a *AggregatedCheckData) String() string {
-	if a.CriticalCount > 0 {
-		return models.CheckCritical
-	} else if a.WarningCount > 0 {
-		return models.CheckWarning
-	} else if a.PassingCount > 0 {
-		return models.CheckPassing
-	}
-
-	return models.CheckUndefined
-}
 
 type ChecksService interface {
 	// Check catalog services
@@ -41,8 +24,8 @@ type ChecksService interface {
 	CreateChecksResult(checksResult *models.ChecksResult) error
 	GetChecksResultByCluster(clusterId string) (*models.ChecksResult, error)
 	GetChecksResultAndMetadataByCluster(clusterId string) (*models.ChecksResultAsList, error)
-	GetAggregatedChecksResultByHost(clusterId string) (map[string]*AggregatedCheckData, error)
-	GetAggregatedChecksResultByCluster(clusterId string) (*AggregatedCheckData, error)
+	GetAggregatedChecksResultByHost(clusterId string) (map[string]*models.AggregatedCheckData, error)
+	GetAggregatedChecksResultByCluster(clusterId string) (*models.AggregatedCheckData, error)
 	// Selected checks services
 	GetSelectedChecksById(id string) (models.SelectedChecks, error)
 	CreateSelectedChecks(id string, selectedChecksList []string) error
@@ -210,48 +193,22 @@ func (c *checksService) GetChecksResultAndMetadataByCluster(clusterId string) (*
 	return resultSet, nil
 }
 
-func (c *checksService) GetAggregatedChecksResultByHost(clusterId string) (map[string]*AggregatedCheckData, error) {
+func (c *checksService) GetAggregatedChecksResultByHost(clusterId string) (map[string]*models.AggregatedCheckData, error) {
 	cResultByCluster, err := c.GetChecksResultByCluster(clusterId)
 	if err != nil {
 		return nil, err
 	}
 
-	aCheckDataByHost := make(map[string]*AggregatedCheckData)
-
-	for _, check := range cResultByCluster.Checks {
-		for hostName, host := range check.Hosts {
-			if _, ok := aCheckDataByHost[hostName]; !ok {
-				aCheckDataByHost[hostName] = &AggregatedCheckData{}
-			}
-			switch host.Result {
-			case models.CheckCritical:
-				aCheckDataByHost[hostName].CriticalCount += 1
-			case models.CheckWarning:
-				aCheckDataByHost[hostName].WarningCount += 1
-			case models.CheckPassing:
-				aCheckDataByHost[hostName].PassingCount += 1
-			}
-		}
-	}
-
-	return aCheckDataByHost, nil
+	return cResultByCluster.GetAggregatedChecksResultByHost(), nil
 }
 
-func (c *checksService) GetAggregatedChecksResultByCluster(clusterId string) (*AggregatedCheckData, error) {
-	aCheckData := &AggregatedCheckData{}
-
-	aCheckDataByHost, err := c.GetAggregatedChecksResultByHost(clusterId)
+func (c *checksService) GetAggregatedChecksResultByCluster(clusterId string) (*models.AggregatedCheckData, error) {
+	cResultByCluster, err := c.GetChecksResultByCluster(clusterId)
 	if err != nil {
-		return aCheckData, err
+		return nil, err
 	}
 
-	for _, aData := range aCheckDataByHost {
-		aCheckData.CriticalCount += aData.CriticalCount
-		aCheckData.WarningCount += aData.WarningCount
-		aCheckData.PassingCount += aData.PassingCount
-	}
-
-	return aCheckData, nil
+	return cResultByCluster.GetAggregatedChecksResultByCluster(), nil
 }
 
 /*

@@ -5,3 +5,11 @@ trento-server:
     initdbScripts:
       init.sql: |
         CREATE DATABASE trento_test;
+  trento-web:
+    image:
+      tag: rolling
+      pullPolicy: Always
+  trento-runner:
+    image:
+      tag: rolling
+      pullPolicy: Always

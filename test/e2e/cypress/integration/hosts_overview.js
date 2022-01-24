@@ -5,7 +5,7 @@ context('Hosts Overview', () => {
     before(() => {
         cy.resetDatabase()
         cy.loadScenario('healthy-27-node-SAP-cluster')
-        
+
         cy.task('startAgentHeartbeat', agents())
         cy.visit('/');
         cy.navigateToItem('Hosts')
@@ -44,7 +44,7 @@ context('Hosts Overview', () => {
                 cy.get('.health-container .health-passing').should('contain', 27)
             })
         })
-    
+
         describe('Detected hosts Health matches deployed server status', () => {
             it('all 27 hosts in the cluster should be up', () => {
                 availableHosts.forEach((hostName) => cy.get(`#host-${hostName} > .row-status > i`).should('have.class', 'text-success'))
@@ -93,7 +93,7 @@ context('Hosts Overview', () => {
             cy.wait('@resetFilter')
         }
 
-        describe('Filtering by health', () => { 
+        describe('Filtering by health', () => {
             before(() => {
                 cy.get('.tn-filters > :nth-child(2) > .btn').click()
             })
@@ -104,7 +104,7 @@ context('Hosts Overview', () => {
             ]
             healthScenarios.forEach(([health, expectedHostsWithThisHealth], index) => {
                 it(`should show ${expectedHostsWithThisHealth || 'an empty list of'} hosts when filtering by health '${health}'`, () => {
-                    cy.intercept('GET', `/hosts?per_page=100&health=${health}`).as('filterByHealthStatus') 
+                    cy.intercept('GET', `/hosts?per_page=100&health=${health}`).as('filterByHealthStatus')
                     const selectedOption = `#bs-select-1-${index}`
                     cy.get(selectedOption).click()
                     cy.wait('@filterByHealthStatus').then(() => {
@@ -127,11 +127,11 @@ context('Hosts Overview', () => {
                 ['NWD', 4],
                 ['NWP', 4],
                 ['NWQ', 4],
-                
+
             ]
             SAPSystemsScenarios.forEach(([sapsystem, expectedRelatedHosts], index) => {
                 it(`should have ${expectedRelatedHosts} hosts related to SAP system '${sapsystem}'`, () => {
-                    cy.intercept('GET', `/hosts?per_page=100&sids=${sapsystem}`).as('filterBySAPSystem')            
+                    cy.intercept('GET', `/hosts?per_page=100&sids=${sapsystem}`).as('filterBySAPSystem')
                     const selectedOption = `#bs-select-2-${index}`
                     cy.get(selectedOption).click()
                     cy.wait('@filterBySAPSystem').then(() => {
@@ -160,6 +160,45 @@ context('Hosts Overview', () => {
                         cy.get('.tn-hostname').its('length').should('eq', expectedTaggedHosts)
                         resetFilter(selectedOption)
                     })
+                })
+            })
+        })
+
+        describe('Removing filtered tags', () => {
+            const tag = 'tag1'
+            before(() => {
+                cy.intercept('/api/hosts/**').as('tagPosted')
+                cy.intercept('GET', '/api/tags?resource_type=hosts').as('filterRefreshed')
+                cy.get(`#host-${availableHosts[0]} > .tn-host-tags > .tagify`).type(tag).click()
+                cy.wait('@tagPosted')
+                cy.wait('@filterRefreshed')
+                cy.get(`#host-${availableHosts[1]} > .tn-host-tags > .tagify`).type(tag).click()
+                cy.wait('@tagPosted')
+                cy.wait('@filterRefreshed')
+                cy.get('.dropdown-item').contains(tag)
+                cy.get('.tn-filters > :nth-child(4) > .btn').click()
+            })
+
+            it(`should reload the hosts table when filtered tags are removed`, () => {
+                cy.intercept('GET', `/hosts?per_page=100&tags=${tag}`).as('filterByTags')
+                cy.get('.dropdown-item').contains(tag).click()
+                cy.wait('@filterByTags').then(() => {
+                    cy.get('.tn-hostname').should('have.length', 2)
+                })
+
+                cy.get('.tn-filters > :nth-child(4) > .btn').click()
+
+                cy.intercept('GET', `/hosts?per_page=100&tags=${tag}`).as('firstTagRemoved')
+                cy.get(`#host-${availableHosts[0]} > .tn-host-tags tag`).filter(`[value="${tag}"]`).find('> x').click()
+                cy.wait('@firstTagRemoved').then(() => {
+                    cy.get('.tn-hostname').should('have.length', 1)
+                })
+
+                cy.intercept('GET', '/hosts?per_page=100').as('secondTagRemoved')
+                cy.get(`#host-${availableHosts[1]} > .tn-host-tags tag`).filter(`[value="${tag}"]`).find('> x').click()
+                cy.wait('@secondTagRemoved').then(() => {
+                    cy.get('.dropdown-item').contains(tag).should('not.exist')
+                    cy.get('.tn-hostname').should('have.length', availableHosts.length)
                 })
             })
         })

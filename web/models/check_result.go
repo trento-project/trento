@@ -32,3 +32,56 @@ type HostState struct {
 	Reachable bool   `json:"reachable"`
 	Msg       string `json:"msg"`
 }
+
+type AggregatedCheckData struct {
+	PassingCount  int
+	WarningCount  int
+	CriticalCount int
+}
+
+func (c *ChecksResult) GetAggregatedChecksResultByHost() map[string]*AggregatedCheckData {
+	aCheckDataByHost := make(map[string]*AggregatedCheckData)
+
+	for _, check := range c.Checks {
+		for hostName, host := range check.Hosts {
+			if _, ok := aCheckDataByHost[hostName]; !ok {
+				aCheckDataByHost[hostName] = &AggregatedCheckData{}
+			}
+			switch host.Result {
+			case CheckCritical:
+				aCheckDataByHost[hostName].CriticalCount += 1
+			case CheckWarning:
+				aCheckDataByHost[hostName].WarningCount += 1
+			case CheckPassing:
+				aCheckDataByHost[hostName].PassingCount += 1
+			}
+		}
+	}
+
+	return aCheckDataByHost
+}
+
+func (c *ChecksResult) GetAggregatedChecksResultByCluster() *AggregatedCheckData {
+	aCheckData := &AggregatedCheckData{}
+	aCheckDataByHost := c.GetAggregatedChecksResultByHost()
+
+	for _, aData := range aCheckDataByHost {
+		aCheckData.CriticalCount += aData.CriticalCount
+		aCheckData.WarningCount += aData.WarningCount
+		aCheckData.PassingCount += aData.PassingCount
+	}
+
+	return aCheckData
+}
+
+func (a *AggregatedCheckData) String() string {
+	if a.CriticalCount > 0 {
+		return CheckCritical
+	} else if a.WarningCount > 0 {
+		return CheckWarning
+	} else if a.PassingCount > 0 {
+		return CheckPassing
+	}
+
+	return CheckUndefined
+}

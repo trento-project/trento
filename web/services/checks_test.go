@@ -16,7 +16,7 @@ import (
 )
 
 func TestAggregatedCheckDataString(t *testing.T) {
-	aCritical := &AggregatedCheckData{
+	aCritical := &models.AggregatedCheckData{
 		PassingCount:  2,
 		WarningCount:  1,
 		CriticalCount: 1,
@@ -24,7 +24,7 @@ func TestAggregatedCheckDataString(t *testing.T) {
 
 	assert.Equal(t, aCritical.String(), "critical")
 
-	aWarning := &AggregatedCheckData{
+	aWarning := &models.AggregatedCheckData{
 		PassingCount:  2,
 		WarningCount:  1,
 		CriticalCount: 0,
@@ -32,7 +32,7 @@ func TestAggregatedCheckDataString(t *testing.T) {
 
 	assert.Equal(t, aWarning.String(), "warning")
 
-	aPassing := &AggregatedCheckData{
+	aPassing := &models.AggregatedCheckData{
 		PassingCount:  2,
 		WarningCount:  0,
 		CriticalCount: 0,
@@ -40,7 +40,7 @@ func TestAggregatedCheckDataString(t *testing.T) {
 
 	assert.Equal(t, aPassing.String(), "passing")
 
-	aUndefined := &AggregatedCheckData{
+	aUndefined := &models.AggregatedCheckData{
 		PassingCount:  0,
 		WarningCount:  0,
 		CriticalCount: 0,
@@ -134,7 +134,7 @@ func loadChecksResultFixtures(db *gorm.DB) {
 		GroupID: "group1",
 		Payload: datatypes.JSON([]byte(group1payloadLast)),
 	})
-	group2payload := `{"hosts":{"host3":{"reachable":true "msg":""},"host4":{"reachable":true,"msg":""}},
+	group2payload := `{"hosts":{"host3":{"reachable":true, "msg":""},"host4":{"reachable":true,"msg":""}},
 	"checks":{"check1":{"hosts":{"host3":{"result":"critical"},"host4":{"result":"critical"}}},
 	"check2":{"hosts":{"host3":{"result":"passing"},"host4":{"result":"warning"}}}}}`
 	db.Create(&entities.ChecksResult{
@@ -319,6 +319,15 @@ func (suite *ChecksServiceTestSuite) TestChecksService_CreateChecksCatalog() {
 	suite.Equal(int64(2), count)
 }
 
+func (suite *ChecksServiceTestSuite) TestChecksService_GetLastExecutionByGroup() {
+	results, err := suite.checksService.GetLastExecutionByGroup()
+
+	suite.NoError(err)
+	suite.Equal(len(results), 2)
+	suite.Equal(results[0].ID, "group1")
+	suite.Equal(results[1].ID, "group2")
+}
+
 func (suite *ChecksServiceTestSuite) TestChecksService_GetChecksResultByCluster() {
 	results, err := suite.checksService.GetChecksResultByCluster("group1")
 
@@ -392,13 +401,13 @@ func (suite *ChecksServiceTestSuite) TestChecksService_CreateChecksResult() {
 func (suite *ChecksServiceTestSuite) TestChecksService_GetAggregatedChecksResultByHost() {
 	results, err := suite.checksService.GetAggregatedChecksResultByHost("group1")
 
-	expectedResults := map[string]*AggregatedCheckData{
-		"host1": &AggregatedCheckData{
+	expectedResults := map[string]*models.AggregatedCheckData{
+		"host1": &models.AggregatedCheckData{
 			PassingCount:  1,
 			WarningCount:  1,
 			CriticalCount: 0,
 		},
-		"host2": &AggregatedCheckData{
+		"host2": &models.AggregatedCheckData{
 			PassingCount:  1,
 			WarningCount:  0,
 			CriticalCount: 1,
@@ -412,7 +421,7 @@ func (suite *ChecksServiceTestSuite) TestChecksService_GetAggregatedChecksResult
 func (suite *ChecksServiceTestSuite) TestChecksService_GetAggregatedChecksResultByCluster() {
 	results, err := suite.checksService.GetAggregatedChecksResultByCluster("group1")
 
-	expectedResults := &AggregatedCheckData{
+	expectedResults := &models.AggregatedCheckData{
 		PassingCount:  2,
 		WarningCount:  1,
 		CriticalCount: 1,

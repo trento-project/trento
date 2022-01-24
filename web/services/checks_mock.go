@@ -83,15 +83,15 @@ func (_m *MockChecksService) CreateSelectedChecks(id string, selectedChecksList 
 }
 
 // GetAggregatedChecksResultByCluster provides a mock function with given fields: clusterId
-func (_m *MockChecksService) GetAggregatedChecksResultByCluster(clusterId string) (*AggregatedCheckData, error) {
+func (_m *MockChecksService) GetAggregatedChecksResultByCluster(clusterId string) (*models.AggregatedCheckData, error) {
 	ret := _m.Called(clusterId)
 
-	var r0 *AggregatedCheckData
-	if rf, ok := ret.Get(0).(func(string) *AggregatedCheckData); ok {
+	var r0 *models.AggregatedCheckData
+	if rf, ok := ret.Get(0).(func(string) *models.AggregatedCheckData); ok {
 		r0 = rf(clusterId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*AggregatedCheckData)
+			r0 = ret.Get(0).(*models.AggregatedCheckData)
 		}
 	}
 
@@ -106,15 +106,15 @@ func (_m *MockChecksService) GetAggregatedChecksResultByCluster(clusterId string
 }
 
 // GetAggregatedChecksResultByHost provides a mock function with given fields: clusterId
-func (_m *MockChecksService) GetAggregatedChecksResultByHost(clusterId string) (map[string]*AggregatedCheckData, error) {
+func (_m *MockChecksService) GetAggregatedChecksResultByHost(clusterId string) (map[string]*models.AggregatedCheckData, error) {
 	ret := _m.Called(clusterId)
 
-	var r0 map[string]*AggregatedCheckData
-	if rf, ok := ret.Get(0).(func(string) map[string]*AggregatedCheckData); ok {
+	var r0 map[string]*models.AggregatedCheckData
+	if rf, ok := ret.Get(0).(func(string) map[string]*models.AggregatedCheckData); ok {
 		r0 = rf(clusterId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]*AggregatedCheckData)
+			r0 = ret.Get(0).(map[string]*models.AggregatedCheckData)
 		}
 	}
 
@@ -257,6 +257,29 @@ func (_m *MockChecksService) GetConnectionSettingsByNode(node string) (models.Co
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(node)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetLastExecutionByGroup provides a mock function with given fields:
+func (_m *MockChecksService) GetLastExecutionByGroup() ([]*models.ChecksResult, error) {
+	ret := _m.Called()
+
+	var r0 []*models.ChecksResult
+	if rf, ok := ret.Get(0).(func() []*models.ChecksResult); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*models.ChecksResult)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
 	} else {
 		r1 = ret.Error(1)
 	}

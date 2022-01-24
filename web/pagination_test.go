@@ -35,20 +35,6 @@ func TestNewPagination(t *testing.T) {
 	assert.Equal(t, p.PageIndex, 5)
 }
 
-func TestNewPaginationWithStrings(t *testing.T) {
-	p := NewPaginationWithStrings(10, "1", "10")
-	assert.Equal(t, p.ItemCount, 10)
-	assert.Equal(t, p.PageIndex, 1)
-	assert.Equal(t, p.PerPage, 10)
-	assert.Equal(t, p.PageCount, 1)
-
-	p = NewPaginationWithStrings(10, "a", "b")
-	assert.Equal(t, p.ItemCount, 10)
-	assert.Equal(t, p.PageIndex, 1)
-	assert.Equal(t, p.PerPage, 10)
-	assert.Equal(t, p.PageCount, 1)
-}
-
 func TestGetCurrentPages(t *testing.T) {
 	p := NewPagination(111, 1, 10)
 	pages := p.GetCurrentPages()

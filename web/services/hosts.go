@@ -44,6 +44,25 @@ func NewHostsService(db *gorm.DB) *hostsService {
 
 func (s *hostsService) GetAll(filter *HostsFilter, page *Page) (models.HostList, error) {
 	var hosts []entities.Host
+	var healthFilteredHosts []string
+
+	// Filter the hosts by Health
+	if filter != nil && len(filter.Health) > 0 {
+		var heartbeats []entities.HostHeartbeat
+
+		err := s.db.Find(&heartbeats).Error
+		if err != nil {
+			return nil, err
+		}
+
+		for _, hearbeat := range heartbeats {
+			hearbeatHealth := computeHearbeatHealth(&hearbeat)
+			if internal.Contains(filter.Health, hearbeatHealth) {
+				healthFilteredHosts = append(healthFilteredHosts, hearbeat.AgentID)
+			}
+		}
+	}
+
 	db := s.db.
 		Model(&entities.Host{}).
 		Scopes(Paginate(page)).
@@ -67,6 +86,10 @@ func (s *hostsService) GetAll(filter *HostsFilter, page *Page) (models.HostList,
 				Where("value IN ?", filter.Tags),
 			)
 		}
+
+		if len(filter.Health) > 0 {
+			db = db.Where("agent_id IN (?)", healthFilteredHosts)
+		}
 	}
 
 	err := db.Order("name").Find(&hosts).Error
@@ -78,12 +101,6 @@ func (s *hostsService) GetAll(filter *HostsFilter, page *Page) (models.HostList,
 	for _, h := range hosts {
 		host := h.ToModel()
 		host.Health = computeHealth(&h)
-
-		if filter != nil && len(filter.Health) > 0 {
-			if !internal.Contains(filter.Health, host.Health) {
-				continue
-			}
-		}
 		hostList = append(hostList, host)
 	}
 
@@ -203,11 +220,15 @@ func (s *hostsService) Heartbeat(agentID string) error {
 }
 
 func computeHealth(host *entities.Host) string {
-	if host.Heartbeat == nil {
+	return computeHearbeatHealth(host.Heartbeat)
+}
+
+func computeHearbeatHealth(hearbeat *entities.HostHeartbeat) string {
+	if hearbeat == nil {
 		return models.HostHealthUnknown
 	}
 
-	if timeSince(host.Heartbeat.UpdatedAt) > HeartbeatTreshold {
+	if timeSince(hearbeat.UpdatedAt) > HeartbeatTreshold {
 		return models.HostHealthCritical
 	}
 

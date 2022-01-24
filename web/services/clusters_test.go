@@ -27,12 +27,12 @@ func TestClustersServiceTestSuite(t *testing.T) {
 func (suite *ClustersServiceTestSuite) SetupSuite() {
 	suite.db = helpers.SetupTestDatabase(suite.T())
 
-	suite.db.AutoMigrate(entities.Cluster{}, entities.Host{}, models.Tag{}, models.SelectedChecks{}, models.ConnectionSettings{})
+	suite.db.AutoMigrate(entities.Cluster{}, entities.Host{}, models.Tag{}, models.SelectedChecks{}, models.ConnectionSettings{}, entities.ChecksResult{})
 	loadClustersFixtures(suite.db)
 }
 
 func (suite *ClustersServiceTestSuite) TearDownSuite() {
-	suite.db.Migrator().DropTable(entities.Cluster{}, entities.Host{}, models.Tag{}, models.SelectedChecks{}, models.ConnectionSettings{})
+	suite.db.Migrator().DropTable(entities.Cluster{}, entities.Host{}, models.Tag{}, models.SelectedChecks{}, models.ConnectionSettings{}, entities.ChecksResult{})
 }
 
 func (suite *ClustersServiceTestSuite) SetupTest() {
@@ -140,9 +140,9 @@ func loadClustersFixtures(db *gorm.DB) {
 }
 
 func (suite *ClustersServiceTestSuite) TestClustersService_GetAll() {
-	suite.checksService.On("GetAggregatedChecksResultByCluster", "1").Return(&AggregatedCheckData{PassingCount: 1}, nil)
-	suite.checksService.On("GetAggregatedChecksResultByCluster", "2").Return(&AggregatedCheckData{WarningCount: 1}, nil)
-	suite.checksService.On("GetAggregatedChecksResultByCluster", "3").Return(&AggregatedCheckData{CriticalCount: 1}, nil)
+	suite.checksService.On("GetAggregatedChecksResultByCluster", "1").Return(&models.AggregatedCheckData{PassingCount: 1}, nil)
+	suite.checksService.On("GetAggregatedChecksResultByCluster", "2").Return(&models.AggregatedCheckData{WarningCount: 1}, nil)
+	suite.checksService.On("GetAggregatedChecksResultByCluster", "3").Return(&models.AggregatedCheckData{CriticalCount: 1}, nil)
 
 	clusters, _ := suite.clustersService.GetAll(nil, nil)
 
@@ -190,7 +190,46 @@ func (suite *ClustersServiceTestSuite) TestClustersService_GetAll() {
 }
 
 func (suite *ClustersServiceTestSuite) TestClustersService_GetAll_Filter() {
-	suite.checksService.On("GetAggregatedChecksResultByCluster", "1").Return(&AggregatedCheckData{PassingCount: 1}, nil)
+	suite.checksService.On("GetLastExecutionByGroup").Return(
+		[]*models.ChecksResult{
+			&models.ChecksResult{
+				ID: "1",
+				Checks: map[string]*models.ChecksByHost{
+					"check1": &models.ChecksByHost{
+						Hosts: map[string]*models.Check{
+							"host1": &models.Check{Result: models.CheckPassing},
+							"host2": &models.Check{Result: models.CheckPassing},
+						},
+					},
+					"check2": &models.ChecksByHost{
+						Hosts: map[string]*models.Check{
+							"host1": &models.Check{Result: models.CheckPassing},
+							"host2": &models.Check{Result: models.CheckPassing},
+						},
+					},
+				},
+			},
+			&models.ChecksResult{
+				ID: "2",
+				Checks: map[string]*models.ChecksByHost{
+					"check1": &models.ChecksByHost{
+						Hosts: map[string]*models.Check{
+							"host1": &models.Check{Result: models.CheckCritical},
+							"host2": &models.Check{Result: models.CheckPassing},
+						},
+					},
+					"check2": &models.ChecksByHost{
+						Hosts: map[string]*models.Check{
+							"host1": &models.Check{Result: models.CheckWarning},
+							"host2": &models.Check{Result: models.CheckPassing},
+						},
+					},
+				},
+			},
+		}, nil,
+	)
+	suite.checksService.On("GetAggregatedChecksResultByCluster", "1").Return(
+		&models.AggregatedCheckData{PassingCount: 1}, nil)
 
 	clusters, _ := suite.clustersService.GetAll(&ClustersFilter{
 		Name:        []string{"cluster1"},
@@ -205,8 +244,8 @@ func (suite *ClustersServiceTestSuite) TestClustersService_GetAll_Filter() {
 	suite.Equal([]string{"tag1"}, clusters[0].Tags)
 }
 func (suite *ClustersServiceTestSuite) TestClustersService_GetByID() {
-	suite.checksService.On("GetAggregatedChecksResultByCluster", "1").Return(&AggregatedCheckData{PassingCount: 1}, nil)
-	suite.checksService.On("GetAggregatedChecksResultByHost", "1").Return(map[string]*AggregatedCheckData{
+	suite.checksService.On("GetAggregatedChecksResultByCluster", "1").Return(&models.AggregatedCheckData{PassingCount: 1}, nil)
+	suite.checksService.On("GetAggregatedChecksResultByHost", "1").Return(map[string]*models.AggregatedCheckData{
 		"host1": {PassingCount: 1},
 	}, nil)
 

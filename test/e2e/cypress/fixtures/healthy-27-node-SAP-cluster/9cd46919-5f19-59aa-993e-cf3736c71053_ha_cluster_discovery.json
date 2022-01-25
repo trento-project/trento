@@ -2,6 +2,7 @@
  "agent_id": "9cd46919-5f19-59aa-993e-cf3736c71053",
  "discovery_type": "ha_cluster_discovery",
  "payload": {
+  "DC": true,
   "Id": "9c832998801e28cd70ad77380e82a5c0",
   "Cib": {
    "Configuration": {
@@ -13,7 +14,7 @@
        {
         "Id": "nodes-1-lpa_hdp_lpt",
         "Name": "lpa_hdp_lpt",
-        "Value": "1642452702"
+        "Value": "1643125019"
        },
        {
         "Id": "nodes-1-hana_hdp_vhost",
@@ -600,7 +601,7 @@
      "Disabled": 0
     },
     "LastChange": {
-     "Time": "Mon Jan 17 20:51:43 2022"
+     "Time": "Tue Jan 25 15:36:59 2022"
     },
     "ClusterOptions": {
      "StonithEnabled": true
@@ -718,7 +719,7 @@
        },
        {
         "Name": "lpa_hdp_lpt",
-        "Value": "1642452702"
+        "Value": "1643125019"
        },
        {
         "Name": "master-rsc_SAPHana_HDP_HDB10",

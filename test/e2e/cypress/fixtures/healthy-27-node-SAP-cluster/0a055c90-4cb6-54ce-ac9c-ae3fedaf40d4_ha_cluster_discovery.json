@@ -2,6 +2,7 @@
  "agent_id": "0a055c90-4cb6-54ce-ac9c-ae3fedaf40d4",
  "discovery_type": "ha_cluster_discovery",
  "payload": {
+  "DC": false,
   "Id": "04b8f8c21f9fd8991224478e8c4362f8",
   "Cib": {
    "Configuration": {
@@ -13,7 +14,7 @@
        {
         "Id": "nodes-1-lpa_hdd_lpt",
         "Name": "lpa_hdd_lpt",
-        "Value": "1642452689"
+        "Value": "10"
        },
        {
         "Id": "nodes-1-hana_hdd_vhost",
@@ -49,7 +50,7 @@
        {
         "Id": "nodes-2-lpa_hdd_lpt",
         "Name": "lpa_hdd_lpt",
-        "Value": "30"
+        "Value": "1643125026"
        },
        {
         "Id": "nodes-2-hana_hdd_op_mode",
@@ -119,7 +120,7 @@
       {
        "Id": "SAPHanaSR-hana_hdd_site_srHook_WDF",
        "Name": "hana_hdd_site_srHook_WDF",
-       "Value": "SOK"
+       "Value": "PRIM"
       }
      ]
     },
@@ -441,7 +442,7 @@
      "ExpectedUp": true,
      "Maintenance": false,
      "StandbyOnFail": false,
-     "ResourcesRunning": 5
+     "ResourcesRunning": 2
     },
     {
      "DC": false,
@@ -456,7 +457,7 @@
      "ExpectedUp": true,
      "Maintenance": false,
      "StandbyOnFail": false,
-     "ResourcesRunning": 2
+     "ResourcesRunning": 4
     }
    ],
    "Clones": [
@@ -473,7 +474,7 @@
         "Name": "vmhdbdev02",
         "Cached": true
        },
-       "Role": "Slave",
+       "Role": "Master",
        "Agent": "ocf::suse:SAPHana",
        "Active": true,
        "Failed": false,
@@ -485,20 +486,16 @@
       },
       {
        "Id": "rsc_SAPHana_HDD_HDB10",
-       "Node": {
-        "Id": "1",
-        "Name": "vmhdbdev01",
-        "Cached": true
-       },
-       "Role": "Master",
+       "Node": null,
+       "Role": "Stopped",
        "Agent": "ocf::suse:SAPHana",
-       "Active": true,
+       "Active": false,
        "Failed": false,
        "Blocked": false,
        "Managed": true,
        "Orphaned": false,
        "FailureIgnored": false,
-       "NodesRunningOn": 1
+       "NodesRunningOn": 0
       }
      ],
      "MultiState": true,
@@ -556,8 +553,8 @@
       {
        "Id": "rsc_ip_HDD_HDB10",
        "Node": {
-        "Id": "1",
-        "Name": "vmhdbdev01",
+        "Id": "2",
+        "Name": "vmhdbdev02",
         "Cached": true
        },
        "Role": "Started",
@@ -573,8 +570,8 @@
       {
        "Id": "rsc_socat_HDD_HDB10",
        "Node": {
-        "Id": "1",
-        "Name": "vmhdbdev01",
+        "Id": "2",
+        "Name": "vmhdbdev02",
         "Cached": true
        },
        "Role": "Started",
@@ -600,7 +597,7 @@
      "Disabled": 0
     },
     "LastChange": {
-     "Time": "Mon Jan 17 20:51:29 2022"
+     "Time": "Tue Jan 25 15:37:06 2022"
     },
     "ClusterOptions": {
      "StonithEnabled": true
@@ -631,6 +628,16 @@
      {
       "Name": "vmhdbdev02",
       "ResourceHistory": [
+       {
+        "Name": "rsc_ip_HDD_HDB10",
+        "FailCount": 0,
+        "MigrationThreshold": 5000
+       },
+       {
+        "Name": "rsc_socat_HDD_HDB10",
+        "FailCount": 0,
+        "MigrationThreshold": 5000
+       },
        {
         "Name": "rsc_SAPHana_HDD_HDB10",
         "FailCount": 0,
@@ -663,7 +670,7 @@
        },
        {
         "Name": "rsc_SAPHana_HDD_HDB10",
-        "FailCount": 0,
+        "FailCount": 1000000,
         "MigrationThreshold": 5000
        },
        {
@@ -682,7 +689,7 @@
       "Attributes": [
        {
         "Name": "hana_hdd_clone_state",
-        "Value": "PROMOTED"
+        "Value": "UNDEFINED"
        },
        {
         "Name": "hana_hdd_op_mode",
@@ -694,11 +701,60 @@
        },
        {
         "Name": "hana_hdd_roles",
-        "Value": "4:P:master1:master:worker:master"
+        "Value": "1:P:master1::worker:"
        },
        {
         "Name": "hana_hdd_site",
         "Value": "NBG"
+       },
+       {
+        "Name": "hana_hdd_srmode",
+        "Value": "sync"
+       },
+       {
+        "Name": "hana_hdd_sync_state",
+        "Value": "SFAIL"
+       },
+       {
+        "Name": "hana_hdd_version",
+        "Value": "2.00.057.00.1629894416"
+       },
+       {
+        "Name": "hana_hdd_vhost",
+        "Value": "vmhdbdev01"
+       },
+       {
+        "Name": "lpa_hdd_lpt",
+        "Value": "10"
+       },
+       {
+        "Name": "master-rsc_SAPHana_HDD_HDB10",
+        "Value": "-9000"
+       }
+      ]
+     },
+     {
+      "Name": "vmhdbdev02",
+      "Attributes": [
+       {
+        "Name": "hana_hdd_clone_state",
+        "Value": "PROMOTED"
+       },
+       {
+        "Name": "hana_hdd_op_mode",
+        "Value": "logreplay"
+       },
+       {
+        "Name": "hana_hdd_remoteHost",
+        "Value": "vmhdbdev01"
+       },
+       {
+        "Name": "hana_hdd_roles",
+        "Value": "4:P:master1:master:worker:master"
+       },
+       {
+        "Name": "hana_hdd_site",
+        "Value": "WDF"
        },
        {
         "Name": "hana_hdd_srmode",
@@ -714,64 +770,15 @@
        },
        {
         "Name": "hana_hdd_vhost",
-        "Value": "vmhdbdev01"
-       },
-       {
-        "Name": "lpa_hdd_lpt",
-        "Value": "1642452689"
-       },
-       {
-        "Name": "master-rsc_SAPHana_HDD_HDB10",
-        "Value": "150"
-       }
-      ]
-     },
-     {
-      "Name": "vmhdbdev02",
-      "Attributes": [
-       {
-        "Name": "hana_hdd_clone_state",
-        "Value": "DEMOTED"
-       },
-       {
-        "Name": "hana_hdd_op_mode",
-        "Value": "logreplay"
-       },
-       {
-        "Name": "hana_hdd_remoteHost",
-        "Value": "vmhdbdev01"
-       },
-       {
-        "Name": "hana_hdd_roles",
-        "Value": "4:S:master1:master:worker:master"
-       },
-       {
-        "Name": "hana_hdd_site",
-        "Value": "WDF"
-       },
-       {
-        "Name": "hana_hdd_srmode",
-        "Value": "sync"
-       },
-       {
-        "Name": "hana_hdd_sync_state",
-        "Value": "SOK"
-       },
-       {
-        "Name": "hana_hdd_version",
-        "Value": "2.00.057.00.1629894416"
-       },
-       {
-        "Name": "hana_hdd_vhost",
         "Value": "vmhdbdev02"
        },
        {
         "Name": "lpa_hdd_lpt",
-        "Value": "30"
+        "Value": "1643125026"
        },
        {
         "Name": "master-rsc_SAPHana_HDD_HDB10",
-        "Value": "100"
+        "Value": "150"
        }
       ]
      }

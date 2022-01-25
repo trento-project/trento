@@ -2,6 +2,7 @@
  "agent_id": "99cf8a3a-48d6-57a4-b302-6e4482227ab6",
  "discovery_type": "ha_cluster_discovery",
  "payload": {
+  "DC": true,
   "Id": "4e905d706da85f5be14f85fa947c1e39",
   "Cib": {
    "Configuration": {
@@ -13,7 +14,7 @@
        {
         "Id": "nodes-1-lpa_hdq_lpt",
         "Name": "lpa_hdq_lpt",
-        "Value": "1642452700"
+        "Value": "1643125033"
        },
        {
         "Id": "nodes-1-hana_hdq_vhost",
@@ -600,7 +601,7 @@
      "Disabled": 0
     },
     "LastChange": {
-     "Time": "Mon Jan 17 20:51:40 2022"
+     "Time": "Tue Jan 25 15:37:13 2022"
     },
     "ClusterOptions": {
      "StonithEnabled": true
@@ -718,7 +719,7 @@
        },
        {
         "Name": "lpa_hdq_lpt",
-        "Value": "1642452700"
+        "Value": "1643125033"
        },
        {
         "Name": "master-rsc_SAPHana_HDQ_HDB10",

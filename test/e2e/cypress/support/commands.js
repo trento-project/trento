@@ -32,14 +32,14 @@ const selectPagination = (itemsPerPage) => {
     cy.get(`.pagination-actions .dropdown-menu .dropdown-item:nth-child(${pagination.indexOf(itemsPerPage) + 1})`).click()
     cy.wait(100)
 }
-    
+
 Cypress.Commands.add('navigateToItem', (item) => {
     initializeOpenSidebar()
     const items = Array.isArray(item) ? item : [item]
     items.forEach(it => cy.get('.menu-title').contains(it).click())
 })
 
-Cypress.Commands.add('reloadList', (listName, itemsPerPage) => { 
+Cypress.Commands.add('reloadList', (listName, itemsPerPage) => {
     cy.intercept('GET', `/${listName}?per_page=${itemsPerPage}`).as('reloadList')
     selectPagination(itemsPerPage)
     cy.wait('@reloadList')
@@ -64,4 +64,24 @@ Cypress.Commands.add('loadScenario', (scenario) => {
     ]
     cy.log(`Loading scenario "${scenario}"...`)
     cy.exec(`cd ${fixturesPath} && ${photofinishBinary} run --url "http://${collectorHost}:${collectorPort}/api/collect" ${scenario}`)
+})
+
+Cypress.Commands.add('loadChecksCatalog', (catalog) => {
+    const [
+        fixturesPath,
+        webApiHost,
+        webApiPort
+    ] = [
+        Cypress.env('fixtures_path'),
+        Cypress.env('web_api_host'),
+        Cypress.env('web_api_port')
+    ]
+    cy.log(`Loading checks catalog "${catalog}"...`)
+    cy.fixture(`${catalog}`).then((file) => {
+        cy.request({
+           method: 'PUT',
+           url: `http://${webApiHost}:${webApiPort}/api/checks/catalog`,
+           body: file
+        })
+    })
 })

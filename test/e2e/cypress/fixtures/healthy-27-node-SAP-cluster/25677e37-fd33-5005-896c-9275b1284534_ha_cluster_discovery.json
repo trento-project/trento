@@ -2,6 +2,7 @@
  "agent_id": "25677e37-fd33-5005-896c-9275b1284534",
  "discovery_type": "ha_cluster_discovery",
  "payload": {
+  "DC": true,
   "Id": "acf59e7a5338f76f55d5055af3273480",
   "Cib": {
    "Configuration": {
@@ -663,7 +664,7 @@
        },
        {
         "Name": "rsc_fs_NWQ_ERS10",
-        "FailCount": 0,
+        "FailCount": 1,
         "MigrationThreshold": 3
        },
        {
@@ -688,7 +689,7 @@
        },
        {
         "Name": "rsc_fs_NWQ_ASCS00",
-        "FailCount": 0,
+        "FailCount": 1,
         "MigrationThreshold": 3
        },
        {

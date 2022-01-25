@@ -2,6 +2,7 @@
  "agent_id": "422686d6-b2d1-5092-93e8-a744854f5085",
  "discovery_type": "ha_cluster_discovery",
  "payload": {
+  "DC": true,
   "Id": "a034a158905404befe08775682910ee1",
   "Cib": {
    "Configuration": {

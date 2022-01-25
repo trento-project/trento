@@ -23,9 +23,9 @@ context('Checks catalog', () => {
             it(`should include group '${group}'`, () => {
                 cy.get('.check-group > h4').should('contain', group)
             })
-            checks.forEach((check_id) => {
-                it(`should include check '${check_id}'`, () => {
-                    cy.get('.check-row').should('contain', check_id)
+            checks.forEach((checkId) => {
+                it(`should include check '${checkId}'`, () => {
+                    cy.get('.check-row').should('contain', checkId)
                 })
             })
         })
@@ -34,21 +34,16 @@ context('Checks catalog', () => {
     describe('Individual checks data is expanded', () => {
         it('should expand check data when clicked', () => {
           const firstCheck = availableChecks.get('Corosync')[0]
-          cy.get('.check-row').filter(
-            `[id="${firstCheck}"]`).find('td > a.link-dark').click()
-          cy.get('.check-row').find(
-            `#collapse-${firstCheck}`).should('be.visible')
-
-          cy.get('.check-row').filter(
-            `[id="${firstCheck}"]`).find('td > a.link-dark').click()
-          cy.get('.check-row').find(
-            `#collapse-${firstCheck}`).should('not.be.visible')
+          cy.get(`#${firstCheck}`).find('a.link-dark').click()
+          cy.get(`#collapse-${firstCheck}`).should('be.visible')
+          cy.get(`#collapse-${firstCheck}`).should('have.class', 'show')
+          cy.get(`#${firstCheck}`).find('a.link-dark').click()
+          cy.get(`#collapse-${firstCheck}`).should('not.be.visible')
         })
         it('should expand check data when id is added in the url', () => {
             const firstCheck = availableChecks.get('Corosync')[0]
             cy.visit(`/catalog#${firstCheck}`)
-            cy.get('.check-row').find(
-              `#collapse-${firstCheck}`).should('be.visible')
+            cy.get(`div#collapse-${firstCheck}`).should('be.visible')
         })
     })
 })

@@ -68,16 +68,14 @@ Cypress.Commands.add('loadScenario', (scenario) => {
 
 Cypress.Commands.add('loadChecksCatalog', (catalog) => {
     const [
-        fixturesPath,
         webApiHost,
         webApiPort
     ] = [
-        Cypress.env('fixtures_path'),
         Cypress.env('web_api_host'),
         Cypress.env('web_api_port')
     ]
     cy.log(`Loading checks catalog "${catalog}"...`)
-    cy.fixture(`${catalog}`).then((file) => {
+    cy.fixture(catalog).then((file) => {
         cy.request({
            method: 'PUT',
            url: `http://${webApiHost}:${webApiPort}/api/checks/catalog`,

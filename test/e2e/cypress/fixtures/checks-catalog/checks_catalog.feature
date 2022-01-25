@@ -20,5 +20,5 @@ Scenario: Check detailed information is expanded if the information icon is clic
     Then the detailed information box is collapsed
 
 Scenario: Check detailed information is expanded if catalog url included the check id
-    When I naviaate the Checks catalog adding a specific check id (/catalog#00081D)
+    When I navigate the Checks catalog adding a specific check id (/catalog#00081D)
     Then the detailed information box is expanded

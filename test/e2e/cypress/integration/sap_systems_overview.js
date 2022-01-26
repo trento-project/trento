@@ -17,7 +17,7 @@ context('SAP Systems Overview', () => {
                     systemReplication: '',
                     systemReplicationStatus: '',
                     clusterName: 'netweaver_cluster',
-                    clusterID: '057f083c3be591f4398eed816d4c8cd7',
+                    clusterID: '',
                     hostname: 'vmnwdev01',
                     hostID: '7269ee51-5007-5849-aaa7-7c4a98b0c9ce',
                 },
@@ -50,7 +50,7 @@ context('SAP Systems Overview', () => {
                     systemReplication: '',
                     systemReplicationStatus: '',
                     clusterName: 'netweaver_cluster',
-                    clusterID: '057f083c3be591f4398eed816d4c8cd7',
+                    clusterID: '',
                     hostname: 'vmnwdev02',
                     hostID: 'fb2c6b8a-9915-5969-a6b7-8b5a42de1971',
                 },
@@ -96,7 +96,7 @@ context('SAP Systems Overview', () => {
                     systemReplication: '',
                     systemReplicationStatus: '',
                     clusterName: 'netweaver_cluster',
-                    clusterID: '057f083c3be591f4398eed816d4c8cd7',
+                    clusterID: '',
                     hostname: 'vmnwprd01',
                     hostID: '116d49bd-85e1-5e59-b820-83f66db8800c',
                 },
@@ -129,7 +129,7 @@ context('SAP Systems Overview', () => {
                     systemReplication: '',
                     systemReplicationStatus: '',
                     clusterName: 'netweaver_cluster',
-                    clusterID: '057f083c3be591f4398eed816d4c8cd7',
+                    clusterID: '',
                     hostname: 'vmnwprd02',
                     hostID: '4b30a6af-4b52-5bda-bccb-f2248a12c992',
                 },
@@ -175,7 +175,7 @@ context('SAP Systems Overview', () => {
                     systemReplication: '',
                     systemReplicationStatus: '',
                     clusterName: 'netweaver_cluster',
-                    clusterID: '057f083c3be591f4398eed816d4c8cd7',
+                    clusterID: '',
                     hostname: 'vmnwqas01',
                     hostID: '25677e37-fd33-5005-896c-9275b1284534',
                 },
@@ -208,7 +208,7 @@ context('SAP Systems Overview', () => {
                     systemReplication: '',
                     systemReplicationStatus: '',
                     clusterName: 'netweaver_cluster',
-                    clusterID: '057f083c3be591f4398eed816d4c8cd7',
+                    clusterID: '',
                     hostname: 'vmnwqas02',
                     hostID: '3711ea88-9ccc-5b07-8f9d-042be449d72b',
                 },
@@ -309,11 +309,16 @@ context('SAP Systems Overview', () => {
                         })
                 })
 
-                it(`should have a link to the clusters`, () => {
+                it(`should have a link to known type clusters`, () => {
+                    cy.on('uncaught:exception', (err, runnable) => {
+                        // do not fail on XHR requests in the cluster page
+                        return false
+                    })
+                      
                     cy.get(`#instances-${id}`)
                         .find('tr')
                         .each((row, index) => {
-                            if (instances[index].clusterName !== '') {
+                            if (instances[index].clusterName !== '' && instances[index].clusterID !== '') {
                                 cy.wrap(row).get('td').contains(instances[index].clusterName).click({ force: true });
                                 cy.location('pathname').should('eq', `/clusters/${instances[index].clusterID}`);
                                 cy.go('back');

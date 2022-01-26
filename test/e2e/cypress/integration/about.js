@@ -1,9 +1,9 @@
 context('Trento About page', () => {
   before(() => {
-    cy.resetDatabase()
-    cy.loadScenario('healthy-27-node-SAP-cluster')
+    cy.resetDatabase();
+    cy.loadScenario('healthy-27-node-SAP-cluster');
     cy.visit('/');
-    cy.navigateToItem(['Settings', 'About'])
+    cy.navigateToItem(['Settings', 'About']);
     cy.url().should('include', '/about');
   });
 

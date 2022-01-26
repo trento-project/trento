@@ -174,5 +174,44 @@ context('Hosts Overview', () => {
                 })
             })
         })
+
+        describe('Removing filtered tags', () => {
+            const tag = 'tag1'
+            before(() => {
+                cy.intercept('/api/hosts/**').as('tagPosted')
+                cy.intercept('GET', '/api/tags?resource_type=hosts').as('filterRefreshed')
+                cy.get(`#host-${availableHosts[0]} > .tn-host-tags > .tagify`).type(tag).click()
+                cy.wait('@tagPosted')
+                cy.wait('@filterRefreshed')
+                cy.get(`#host-${availableHosts[1]} > .tn-host-tags > .tagify`).type(tag).click()
+                cy.wait('@tagPosted')
+                cy.wait('@filterRefreshed')
+                cy.get('.dropdown-item').contains(tag)
+                cy.get('.tn-filters > :nth-child(4) > .btn').click()
+            })
+
+            it(`should reload the hosts table when filtered tags are removed`, () => {
+                cy.intercept('GET', `/hosts?per_page=100&tags=${tag}`).as('filterByTags')
+                cy.get('.dropdown-item').contains(tag).click()
+                cy.wait('@filterByTags').then(() => {
+                    cy.get('.tn-hostname').should('have.length', 2)
+                })
+
+                cy.get('.tn-filters > :nth-child(4) > .btn').click()
+
+                cy.intercept('GET', `/hosts?per_page=100&tags=${tag}`).as('firstTagRemoved')
+                cy.get(`#host-${availableHosts[0]} > .tn-host-tags tag`).filter(`[value="${tag}"]`).find('> x').click()
+                cy.wait('@firstTagRemoved').then(() => {
+                    cy.get('.tn-hostname').should('have.length', 1)
+                })
+
+                cy.intercept('GET', '/hosts?per_page=100').as('secondTagRemoved')
+                cy.get(`#host-${availableHosts[1]} > .tn-host-tags tag`).filter(`[value="${tag}"]`).find('> x').click()
+                cy.wait('@secondTagRemoved').then(() => {
+                    cy.get('.dropdown-item').contains(tag).should('not.exist')
+                    cy.get('.tn-hostname').should('have.length', availableHosts.length)
+                })
+            })
+        })
     })
 });

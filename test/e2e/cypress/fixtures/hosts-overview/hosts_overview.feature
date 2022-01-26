@@ -41,7 +41,7 @@ Scenario: Registered Hosts are shown in the list
     When the health container is ready
     Then there should 27 items in Passing status
     And there should be 0 items in Warning status
-    And there should be 0 items in Critical status 
+    And there should be 0 items in Critical status
 
  Scenario: Discovered Hosts in the paginated list (10 items) are healthy
     Given I am in the Hosts Overview
@@ -96,3 +96,15 @@ Scenario: Filtering the Host Overview by Tags
 
     When I filter by tag 'env3'
     Then 8 items should be shown
+
+Scenario: Removing tags when they are being filtered
+    Given the 1st host is tagged with 'tag1'
+    And the 2nd host is tagged with 'tag1'
+    When I filter by tag 'tag1'
+    Then 2 items should be shown
+
+    When I remove the 'tag1' tag from the 2nd host
+    Then 1 items should be shown
+
+    When I remove the 'tag1' tag from the 1st host
+    Then all of the 27 displayed items should be displayed

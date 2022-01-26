@@ -77,7 +77,13 @@
                                     {{- else }}
                                         <td></td>
                                     {{- end }}
-                                    <td><a href="/clusters/{{ .ClusterID }}">{{ .ClusterName }}</a></td>
+                                    <td>
+                                    {{- if ne .ClusterType "Unknown" }}
+                                        <a href="/clusters/{{ .ClusterID }}">{{ .ClusterName }}</a>
+                                    {{- else }}
+                                        {{ .ClusterName }}
+                                    {{- end }}
+                                    </td>
                                     <td><a href="/hosts/{{ .HostID }}">{{ .Hostname }}</a></td>
                                 </tr>
                                 {{- end }}

@@ -53,15 +53,6 @@ func (p *projector) Project(dataCollectedEvent *DataCollectedEvent) error {
 		var subscription Subscription
 		tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where(&Subscription{ProjectorID: p.ID, AgentID: dataCollectedEvent.AgentID}).First(&subscription)
 
-		if subscription.LastProjectedEventID >= dataCollectedEvent.ID {
-			log.Warnf("Projector: %s received an old event: %s %s %d. Skipping",
-				p.ID, dataCollectedEvent.DiscoveryType,
-				dataCollectedEvent.AgentID,
-				dataCollectedEvent.ID)
-
-			return nil
-		}
-
 		tx.Clauses(clause.OnConflict{
 			UpdateAll: true,
 		}).Create(&Subscription{

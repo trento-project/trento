@@ -34,9 +34,9 @@ spec:
             - name: TRENTO_LOG_LEVEL
               value: "{{ .Values.global.logLevel }}"
             - name: TRENTO_API_HOST
-              value: "{{ .Release.Name }}-{{ .Values.dependencies.trentoWeb.name }}"
+              value: "{{ .Release.Name }}-{{ .Values.global.trentoWeb.name }}"
             - name: TRENTO_API_PORT
-              value: "{{ .Values.dependencies.trentoWeb.port }}"
+              value: "{{ .Values.global.trentoWeb.servicePort }}"
             - name: TRENTO_INTERVAL
               value: "{{ .Values.checkIntervalMins }}"
           args:

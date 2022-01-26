@@ -4,6 +4,9 @@
 
 global:
   logLevel: info
+  trentoWeb:
+    name: web
+    servicePort: 8080
 
 privateKey: ""
 checkIntervalMins: 5
@@ -81,12 +84,3 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
-
-# service dependencies to be consumed by the runner deployment
-dependencies:
-  trentoWeb:
-    name: trento-web
-    port: 8080
-  trentoCollector:
-    name: trento-web-collector
-    port: 8081

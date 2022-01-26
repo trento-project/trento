@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {{ include "trento-runner.fullname" . }}-certs
+  name: {{ include "trento-web.fullname" . }}-certs
 data:
   cert: |-
     {{ .Values.mTLS.cert | b64enc }}

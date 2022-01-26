@@ -1,6 +1,12 @@
 ### Global Values ###
 global:
   logLevel: info
+  trentoWeb:
+    name: web
+    servicePort: 8080
+  postgresql:
+    name: postgresql
+    servicePort: 5432
 
 ### Sub Charts Specific Values ###
 trento-web:
@@ -10,9 +16,6 @@ trento-web:
 trento-runner:
   nameOverride: runner
   enabled: true
-  dependencies:
-    trentoWeb:
-      name: web
 
 postgresql:
   enabled: true

@@ -7,7 +7,7 @@ metadata:
 spec:
   type: {{ .Values.webService.type }}
   ports:
-    - port: {{ .Values.webService.port }}
+    - port: {{ template "trentoWeb.port" . }}
       targetPort: http
       protocol: TCP
       name: http

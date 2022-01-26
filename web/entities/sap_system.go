@@ -74,6 +74,7 @@ func (s SAPSystemInstances) ToModel() []*models.SAPSystem {
 		if i.Host != nil {
 			sapSystemInstance.ClusterName = i.Host.ClusterName
 			sapSystemInstance.ClusterID = i.Host.ClusterID
+			sapSystemInstance.ClusterType = i.Host.ClusterType
 			sapSystemInstance.HostID = i.Host.AgentID
 			sapSystemInstance.Hostname = i.Host.Name
 		}

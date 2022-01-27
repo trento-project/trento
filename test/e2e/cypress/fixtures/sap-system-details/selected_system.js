@@ -4,16 +4,6 @@ export const selectedSystem = {
   Type: 'Application server',
   Hosts: [
     {
-      Hostname: 'sapnwdaas1',
-      Instance: '02',
-      Features: 'ABAP|GATEWAY|ICMAN|IGS',
-      HttpPort: '50213',
-      HttpsPort: '50214',
-      StartPriority: '3',
-      Status: 'SAPControl-GREEN',
-      StatusBadge: 'badge-primary',
-    },
-    {
       Hostname: 'sapnwdas',
       Instance: '00',
       Features: 'MESSAGESERVER|ENQUE',
@@ -29,6 +19,16 @@ export const selectedSystem = {
       Features: 'ABAP|GATEWAY|ICMAN|IGS',
       HttpPort: '50113',
       HttpsPort: '50114',
+      StartPriority: '3',
+      Status: 'SAPControl-GREEN',
+      StatusBadge: 'badge-primary',
+    },
+    {
+      Hostname: 'sapnwdaas1',
+      Instance: '02',
+      Features: 'ABAP|GATEWAY|ICMAN|IGS',
+      HttpPort: '50213',
+      HttpsPort: '50214',
       StartPriority: '3',
       Status: 'SAPControl-GREEN',
       StatusBadge: 'badge-primary',

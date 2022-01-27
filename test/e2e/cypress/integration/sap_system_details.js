@@ -68,10 +68,11 @@ context('SAP system details', () => {
     ];
 
     states.forEach(([state, badge]) => {
-      it(`should show ${state} badge in instace when SAPControl-GRAY state is received`, () => {
+      it(`should show ${state} badge in instace when SAPControl-${state} state is received`, () => {
         cy.loadScenario(`sap-system-detail-${state}`);
         cy.visit(`/sapsystems/${selectedSystem.Id}`);
-        cy.get('.eos-table').eq(0).find('tr').eq(-1).find('td').as('tableCell');
+        // using row 3 as the changed instance is the 3rd in order based on instance_number
+        cy.get('.eos-table').eq(0).find('tr').eq(3).find('td').as('tableCell');
         cy.get('@tableCell').eq(6).should('contain', `SAPControl-${state}`);
         cy.get('@tableCell')
           .eq(6)

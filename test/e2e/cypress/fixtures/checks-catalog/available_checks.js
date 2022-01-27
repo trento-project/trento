@@ -1,5 +1,7 @@
 export const availableChecks = new Map([
-    ['Corosync', [
+  [
+    'Corosync',
+    [
       '00081D',
       '0B6DB2',
       '156F64',
@@ -18,20 +20,14 @@ export const availableChecks = new Map([
       'C620DC',
       'D78671',
       'DA114A',
-      'FB0E0D'
-    ]],
-    ['Pacemaker', [
-      '373DB8'
-    ]],
-    ['SBD', [
-      '49591F',
-      '61451E',
-      '68626E',
-      '816815',
-      'A2EF8C',
-      'B089BE'
-    ]],
-    ['OS and package versions', [
+      'FB0E0D',
+    ],
+  ],
+  ['Pacemaker', ['373DB8']],
+  ['SBD', ['49591F', '61451E', '68626E', '816815', 'A2EF8C', 'B089BE']],
+  [
+    'OS and package versions',
+    [
       '222A57',
       '9FAAD0',
       '9FEFB0',
@@ -39,9 +35,8 @@ export const availableChecks = new Map([
       'CAEFF1',
       'D028B9',
       'DC5429',
-      'F50AF5'
-    ]],
-    ['Miscellaneous', [
-      '790926'
-    ]]
-])
+      'F50AF5',
+    ],
+  ],
+  ['Miscellaneous', ['790926']],
+]);

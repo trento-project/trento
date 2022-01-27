@@ -183,7 +183,7 @@ func (s *sapSystemsService) getAllByType(sapSystemType string, tagResourceType s
 		Preload("Host").
 		Preload("Tags", "resource_type = (?)", tagResourceType).
 		Where("(id,sid) IN (?)", paginationSubQuery).
-		Order("sid, instance_number")
+		Order("sid, instance_number, system_replication, id")
 
 	if filter != nil {
 		if len(filter.SIDs) > 0 {
@@ -241,6 +241,7 @@ func (s *sapSystemsService) getAttachedDatabase(dbName string, dbHost string) (*
 	err = s.db.
 		Where("id", primaryInstance.ID).
 		Preload("Host").
+		Order("sid, instance_number, system_replication, id").
 		Find(&instances).
 		Error
 

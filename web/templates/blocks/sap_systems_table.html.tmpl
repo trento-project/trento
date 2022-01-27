@@ -57,7 +57,7 @@
                                     <th scope='col'>Host</th>
                                 </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id='instances-{{ .ID }}'>
                                 {{- range .GetAllInstances }}
                                 <tr>
                                     <td class="row-status">{{ template "health_icon" "unknown" }}</td>
@@ -77,15 +77,22 @@
                                     {{- else }}
                                         <td></td>
                                     {{- end }}
-                                    <td><a href="/clusters/{{ .ClusterID }}">{{ .ClusterName }}</a></td>
+                                    <td>
+                                    {{- if ne .ClusterType "Unknown" }}
+                                        <a href="/clusters/{{ .ClusterID }}">{{ .ClusterName }}</a>
+                                    {{- else }}
+                                        {{ .ClusterName }}
+                                    {{- end }}
+                                    </td>
                                     <td><a href="/hosts/{{ .HostID }}">{{ .Hostname }}</a></td>
-                                <tr>
+                                </tr>
                                 {{- end }}
                                 </tbody>
                             </table>
                         </td>
                     </tr>
                 {{- end }}
+                </tr>
             {{- else }}
                 {{ template "empty_table_body" 5 }}
             {{- end }}

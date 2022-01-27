@@ -32,6 +32,7 @@ type SAPSystemInstance struct {
 	HttpsPort               int
 	ClusterName             string
 	ClusterID               string
+	ClusterType             string
 	HostID                  string
 	Hostname                string
 }

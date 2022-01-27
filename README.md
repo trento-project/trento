@@ -517,6 +517,52 @@ docker build -t trento-web . # same as specifying --target trento-web
 > commands in the container, it makes little sense because most of its internals
 > require direct access to the host of the HA Cluster components.
 
+## End-to-end testing
+End-to-end testing inside Trento is achieved through [Cypress](https://cypress.io), a browser testing tool that can instrument both Chromium/Puppeteer and Firefox. It can be used also as an integration test framework since assertions can be run on JSON payloads too.
+
+Setting the environment up to write or run end-to-end tests is quite simple. Just change directory to `test/e2e`, install the dependencies and open Cypress:
+
+```sh
+cd ./test/e2e/
+
+npm install
+
+npx cypress run # run it command line
+npx cypress open # open the GUI tool to launch tests
+```
+
+### Adjusting environment variables to suit your own needs
+Sometimes it can be useful to change some environment variable just to adjust some behavior to your own needs. Also, this will become handy if you need any new environment variable around.
+
+There are two ways to do that. The first is to edit the `cypress.json` file and modify the `env` field:
+
+```json
+{
+  "baseUrl": "http://localhost:8080",
+  "viewportWidth": 1366,
+  "viewportHeight": 768,
+  "env": {
+    "collector_host": "localhost",
+    "collector_port": 8081,
+    "heartbeat_interval": 5000,
+    "db_host": "localhost",
+    "db_port": 5432,
+    "fixtures_path": "./cypress/fixtures",
+    "trento_binary": "../../trento",
+    "photofinish_binary": "photofinish"
+  }
+}
+```
+
+The second way to provide Cypress an environment variable is to state it as a proper environment variable, prepending `cypress_` to that:
+
+```sh
+cypress_foo=bar npx cypress run
+```
+
+### Further questions about E2E testing?
+If you have any doubts, the team is here to help! Just make sure you also covered [the official Cypress documentation](https://docs.cypress.io/) first. :smile:
+
 ## Dump a scenario from a running cluster
 
 A script to dump a scenario from a running cluster is available at [./hack/dump-scenario.sh](./hack/dump_scenario_from_k8s.sh).

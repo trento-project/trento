@@ -77,7 +77,7 @@ cmdline() {
             ;;
 
         r)
-            readonly ROLLING=true
+            ROLLING=true
             ;;
 
         *)
@@ -95,7 +95,7 @@ cmdline() {
         echo "Path to the private key file does not exist, please try again."
         exit 1
     }
-    
+
     configure_mtls
 
     if [[ "$ROLLING" == "true" ]]; then
@@ -103,6 +103,14 @@ cmdline() {
     fi
 
     return 0
+}
+
+function load_conf() {
+    if [ -f /etc/trento/installer.conf ]; then
+        echo "Loading installer configuration"
+        # shellcheck source=/dev/null
+        source /etc/trento/installer.conf
+    fi
 }
 
 function configure_mtls() {
@@ -190,23 +198,29 @@ update_helm_dependencies() {
 }
 
 install_trento_server_chart() {
+    local download_chart=${DOWNLOAD_CHART:-true}
     local repo_owner=${TRENTO_REPO_OWNER:-"trento-project"}
     local runner_image=${TRENTO_RUNNER_IMAGE:-"ghcr.io/$repo_owner/trento-runner"}
     local web_image=${TRENTO_WEB_IMAGE:-"ghcr.io/$repo_owner/trento-web"}
     local private_key=${PRIVATE_KEY:-"./id_rsa_runner"}
     local trento_source_zip="${TRENTO_VERSION}"
+    local trento_chart_path=${TRENTO_CHART_PATH:-"/tmp/trento-${trento_source_zip}/packaging/helm/trento-server"}
     local trento_packages_url="https://github.com/${repo_owner}/trento/archive/refs/tags"
 
-    echo "Installing trento-server chart..."
-    pushd -- /tmp >/dev/null
-    rm -rf trento-"${trento_source_zip}"
-    rm -f ${trento_source_zip}.zip
-    curl -f -sS -O -L "${trento_packages_url}/${trento_source_zip}.zip" >/dev/null
-    unzip -o "${trento_source_zip}.zip" >/dev/null
-    popd >/dev/null
+    if [[ "$download_chart" == true ]]; then
+        echo "Downloading trento-server chart..."
+        pushd -- /tmp >/dev/null
+        rm -rf trento-"${trento_source_zip}"
+        rm -f ${trento_source_zip}.zip
+        curl -f -sS -O -L "${trento_packages_url}/${trento_source_zip}.zip" >/dev/null
+        unzip -o "${trento_source_zip}.zip" >/dev/null
+        popd >/dev/null
 
-    pushd -- /tmp/trento-"${trento_source_zip}"/packaging/helm/trento-server >/dev/null
-    helm dep update >/dev/null
+        echo "Updating chart dependencies..."
+        pushd -- "$trento_chart_path" >/dev/null
+        helm dep update >/dev/null
+        popd >/dev/null
+    fi
 
     local args=(
         --set-file trento-runner.privateKey="${private_key}"
@@ -229,13 +243,12 @@ install_trento_server_chart() {
             --set trento-runner.image.pullPolicy=Always
         )
     fi
-    helm upgrade --install trento-server . "${args[@]}"
-
-    popd >/dev/null
+    HELM_EXPERIMENTAL_OCI=1 helm upgrade --install trento-server "$trento_chart_path" "${args[@]}"
 }
 
 main() {
     cmdline "${ARGS[@]}"
+    load_conf
     echo "Installing trento-server on k3s..."
     check_requirements
     install_k3s

@@ -1,3 +1,26 @@
 [healthy-27-node-SAP-cluster]
 
 directories = ["./healthy-27-node-SAP-cluster"]
+
+[sap-system-detail-GRAY]
+
+files = ["./sap-system-details/1b0e9297-97dd-55d6-9874-8efde4d84c90_sap_system_discovery_GRAY.json"]
+
+
+[sap-system-detail-GREEN]
+
+files = ["./sap-system-details/1b0e9297-97dd-55d6-9874-8efde4d84c90_sap_system_discovery_GREEN.json"]
+
+
+[sap-system-detail-YELLOW]
+
+files = ["./sap-system-details/1b0e9297-97dd-55d6-9874-8efde4d84c90_sap_system_discovery_YELLOW.json"]
+
+
+[sap-system-detail-RED]
+
+files = ["./sap-system-details/1b0e9297-97dd-55d6-9874-8efde4d84c90_sap_system_discovery_RED.json"]
+
+[sap-system-detail-NEW]
+
+files = ["./sap-system-details/newagent_sap_system_discovery_new.json"]

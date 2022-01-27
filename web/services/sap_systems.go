@@ -57,6 +57,7 @@ func (s *sapSystemsService) GetByID(ID string) (*models.SAPSystem, error) {
 
 	err := s.db.
 		Where("id = ?", ID).
+		Order("sid, instance_number, system_replication, id").
 		Find(&instances).
 		Error
 

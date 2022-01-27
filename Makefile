@@ -13,7 +13,7 @@ else
 endif
 
 .PHONY: default
-default: clean mod-tidy fmt vet-check web-check test build
+default: clean mod-tidy fmt vet-check web-check e2e-check test build
 
 .PHONY: build
 build: trento
@@ -27,7 +27,7 @@ $(ARCHS): web-assets
 	GOOS=linux GOARCH=$@ $(GO_BUILD) -o build/$@/trento
 
 .PHONY: clean
-clean: clean-binary clean-frontend
+clean: clean-binary clean-frontend clean-e2e-tests
 
 .PHONY: clean-binary
 clean-binary:
@@ -48,6 +48,10 @@ clean-web-deps:
 .PHONY: clean-web-assets-js
 clean-web-assets-js:
 	rm -rf web/frontend/assets/js
+
+.PHONY: clean-e2e-tests
+clean-e2e-tests:
+	rm -rf test/e2e/node_modules
 
 .PHONY: fmt
 fmt:
@@ -77,7 +81,7 @@ test: web-assets
 	GIN_MODE=test go test -v -p 1 ./...
 
 .PHONY: full-check
-full-check: generate vet-check test web-check
+full-check: generate vet-check test web-check e2e-check
 
 .PHONY: test-coverage
 test-coverage: build/coverage.out
@@ -109,6 +113,26 @@ web-format-check:
 .PHONY: web-lint
 web-lint:
 	cd web/frontend; npx eslint .
+
+.PHONY: e2e-deps
+e2e-deps: test/e2e/node_modules
+test/e2e/node_modules:
+	cd test/e2e; npm install
+
+.PHONY: e2e-check
+e2e-check: e2e-deps e2e-format-check e2e-lint
+
+.PHONY: e2e-format
+e2e-format:
+	cd test/e2e; npx prettier --write .
+
+.PHONY: e2e-format-check
+e2e-format-check:
+	cd test/e2e; npx prettier --check .
+
+.PHONY: e2e-lint
+e2e-lint:
+	cd test/e2e; npx eslint .
 
 .PHONY: web-assets
 web-assets: web/frontend/assets

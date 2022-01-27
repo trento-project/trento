@@ -24,19 +24,22 @@ module.exports = (on, config) => {
   // `config` is the resolved Cypress config
   on('task', {
     startAgentHeartbeat(agents) {
-      const {collector_host, collector_port, heartbeat_interval} = config.env
-      const heartbeat = (agentId) => http.request({
-        host: collector_host,
-        path: `/api/hosts/${agentId}/heartbeat`,
-        port: collector_port,
-        method: 'POST'
-      }).end()
+      const { collector_host, collector_port, heartbeat_interval } = config.env;
+      const heartbeat = (agentId) =>
+        http
+          .request({
+            host: collector_host,
+            path: `/api/hosts/${agentId}/heartbeat`,
+            port: collector_port,
+            method: 'POST',
+          })
+          .end();
 
       agents.forEach((agentId) => {
-        heartbeat(agentId)
-        setInterval(() => heartbeat(agentId), heartbeat_interval)
-      })
-      return null
-    }
-  })
-}
+        heartbeat(agentId);
+        setInterval(() => heartbeat(agentId), heartbeat_interval);
+      });
+      return null;
+    },
+  });
+};

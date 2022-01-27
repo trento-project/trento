@@ -58,7 +58,7 @@ context('SAP Systems Overview', () => {
     describe('Instances are the expected ones', () => {
       availableSAPSystems.forEach(({ id: id, instances: instances }) => {
         it(`should show the expected instances details`, () => {
-          cy.get('.collapse-toggle').each(($el, index) => {
+          cy.get('.collapse-toggle').each(($el) => {
             cy.wrap($el).click({ force: true });
           });
 
@@ -86,7 +86,7 @@ context('SAP Systems Overview', () => {
         });
 
         it(`should have a link to known type clusters`, () => {
-          cy.on('uncaught:exception', (err, runnable) => {
+          cy.on('uncaught:exception', () => {
             // do not fail on XHR requests in the cluster page
             return false;
           });

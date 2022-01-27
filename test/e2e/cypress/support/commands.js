@@ -34,6 +34,7 @@ const selectPagination = (itemsPerPage) => {
       pagination.indexOf(itemsPerPage) + 1
     })`
   ).click();
+  // eslint-disable-next-line cypress/no-unnecessary-waiting
   cy.wait(100);
 };
 

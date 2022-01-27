@@ -27,16 +27,16 @@ Feature: SAP system details view
         Given I navigate to a specific SAP system ('/sapsystems/a1e80e3e152a903662f7882fb3f8a851')
         When a new SAP system event for this system with the 1st instance with a GRAY status is received
         And the page is refreshed
-        And the status of the 1st instance is GRAY
+        Then the status of the 1st instance is GRAY
         When a new SAP system event for this system with the 1st instance with a GREEN status is received
         And the page is refreshed
-        And the status of the 1st instance is GREEN
+        Then the status of the 1st instance is GREEN
         When a new SAP system event for this system with the 1st instance with a YELLOW status is received
         And the page is refreshed
-        And the status of the 1st instance is YELLOW
+        Then the status of the 1st instance is YELLOW
         When a new SAP system event for this system with the 1st instance with a RED status is received
         And the page is refreshed
-        And the status of the 1st instance is RED
+        Then the status of the 1st instance is RED
 
     Scenario: New instance is discovered in the SAP system
         Given I navigate to a specific SAP system ('/sapsystems/a1e80e3e152a903662f7882fb3f8a851')

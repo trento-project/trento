@@ -1,4 +1,4 @@
-Feature: SAP system details vies
+Feature: SAP system details view
     This is where the user has a detailed view of the status of one specific discovered SAP system
 
     Background:
@@ -7,7 +7,6 @@ Feature: SAP system details vies
         # Sid: 'NWD',
         # Hosts: ['vmnwdev01', 'vmnwdev02', 'vmnwdev03', 'vmnwdev04']
         And 4 hosts associated to the SAP system
-
 
     Scenario: Detailed view of one specific SAP system is available
         When I navigate to a specific SAP system ('/sapsystems/a1e80e3e152a903662f7882fb3f8a851')

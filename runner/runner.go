@@ -10,10 +10,11 @@ import (
 	"sync"
 	"time"
 
+	retryGo "github.com/avast/retry-go/v4"
 	log "github.com/sirupsen/logrus"
-	"github.com/trento-project/trento/internal"
 
 	"github.com/trento-project/trento/api"
+	"github.com/trento-project/trento/internal"
 )
 
 //go:embed ansible
@@ -59,9 +60,26 @@ func (c *Runner) Start() error {
 		return err
 	}
 
-	trentoApi := api.NewTrentoApiService(c.config.ApiHost, c.config.ApiPort)
-	if !trentoApi.IsWebServerUp() {
-		return fmt.Errorf("Trento server api not available")
+	var trentoApi api.TrentoApiService
+	err := retryGo.Do(
+		func() error {
+			trentoApi = api.NewTrentoApiService(c.config.ApiHost, c.config.ApiPort)
+			if !trentoApi.IsWebServerUp() {
+				return fmt.Errorf("Trento server api not available")
+			}
+			return nil
+		},
+		retryGo.OnRetry(func(n uint, err error) {
+			log.Error(err)
+		}),
+		retryGo.Delay(2*time.Second),
+		retryGo.MaxJitter(3*time.Second),
+		retryGo.Attempts(8),
+		retryGo.LastErrorOnly(true),
+		retryGo.Context(c.ctx),
+	)
+	if err != nil {
+		return err
 	}
 
 	c.trentoApi = trentoApi

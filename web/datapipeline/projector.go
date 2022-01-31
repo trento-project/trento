@@ -40,6 +40,12 @@ func (p *projector) AddHandler(discoveryType string, handler ProjectorHandler) {
 // By updating the subscription with the LastProjectedEventID, it leverages the PostgresSQL implicit lock
 // to enforce linearizability if a specific agent tries to use the same projector concurrently
 func (p *projector) Project(dataCollectedEvent *DataCollectedEvent) error {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Error("Projector panicked. Recovered. ", r)
+		}
+	}()
+
 	handler, ok := p.handlers[dataCollectedEvent.DiscoveryType]
 
 	if !ok {

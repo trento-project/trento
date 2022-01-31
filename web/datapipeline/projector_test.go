@@ -82,6 +82,31 @@ func (suite *ProjectorTestSuite) TestProjector_Project_Error() {
 	suite.NotEmpty(subscription.UpdatedAt)
 }
 
+// TestProjector_Project_Panic tests that a projector recovers from panics and does not update the subscription
+func (suite *ProjectorTestSuite) TestProjector_Project_Panic() {
+	projector := NewProjector("dummy_projector", suite.tx)
+	handler := func(dataCollectedEvent *DataCollectedEvent, db *gorm.DB) error {
+		panic("kaboom")
+	}
+
+	suite.tx.Create(&Subscription{
+		LastProjectedEventID: 123,
+		ProjectorID:          "dummy_projector",
+		AgentID:              "345",
+	})
+
+	projector.AddHandler("dummy_discovery_type", handler)
+	projector.Project(&DataCollectedEvent{ID: 666, DiscoveryType: "dummy_discovery_type", AgentID: "345"})
+
+	var subscription Subscription
+	suite.tx.First(&subscription)
+
+	suite.Equal(int64(123), subscription.LastProjectedEventID)
+	suite.Equal("dummy_projector", subscription.ProjectorID)
+	suite.Equal("345", subscription.AgentID)
+	suite.NotEmpty(subscription.UpdatedAt)
+}
+
 // TestProjector_Concurrency tests that a projector routine waits for the previous one to finish
 // if the same projector tries to project data regarding the same Agent
 func (suite *ProjectorTestSuite) TestProjector_Concurrency() {

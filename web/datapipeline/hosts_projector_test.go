@@ -106,6 +106,11 @@ func (s *HostsProjectorTestSuite) Test_CloudDiscoveryHandler() {
 	}, projectedAzureCloudData)
 }
 
+func (s *HostsProjectorTestSuite) Test_parseAzureCloudData_Empty() {
+	azureCloudData := parseAzureCloudData(struct{}{})
+	s.EqualValues(entities.AzureCloudData{}, azureCloudData)
+}
+
 // Test_ClusterDiscoveryHandler tests the ClusterDiscoveryHandler function execution on a ClusterDiscovery published by an agent
 func (s *HostsProjectorTestSuite) Test_ClusterDiscoveryHandler() {
 	discoveredClusterMock := mocks.NewDiscoveredClusterMock()

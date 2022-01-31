@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net"
 
+	"github.com/mitchellh/mapstructure"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/trento-project/trento/internal/cloud"
@@ -128,67 +129,22 @@ func parseCloudData(provider string, metadata interface{}) *entities.AzureCloudD
 }
 
 func parseAzureCloudData(metadata interface{}) entities.AzureCloudData {
-	var cloudData entities.AzureCloudData
-	metadataMap, ok := metadata.(map[string]interface{})
-	if !ok {
-		log.Errorf("can't decode Azure metadata")
-		return cloudData
+	var azureMetadata cloud.AzureMetadata
+
+	err := mapstructure.Decode(metadata, &azureMetadata)
+	if err != nil {
+		log.Errorf("can't decode azure metadata: %s", err)
+		return entities.AzureCloudData{}
 	}
 
-	computeInfo, ok := metadataMap["compute"].(map[string]interface{})
-	if !ok {
-		log.Errorf("can't decode compute metadata")
-		return cloudData
+	return entities.AzureCloudData{
+		VMName:          azureMetadata.Compute.Name,
+		ResourceGroup:   azureMetadata.Compute.ResourceGroupName,
+		Location:        azureMetadata.Compute.Location,
+		VMSize:          azureMetadata.Compute.VmSize,
+		DataDisksNumber: len(azureMetadata.Compute.StorageProfile.DataDisks),
+		Offer:           azureMetadata.Compute.Offer,
+		SKU:             azureMetadata.Compute.Sku,
+		AdminUsername:   azureMetadata.Compute.OsProfile.AdminUserName,
 	}
-
-	if _, ok := computeInfo["name"]; ok {
-		cloudData.VMName = computeInfo["name"].(string)
-	}
-
-	if _, ok := computeInfo["name"]; ok {
-		cloudData.Offer = computeInfo["offer"].(string)
-	}
-
-	if _, ok := computeInfo["resourceGroupName"]; ok {
-		cloudData.ResourceGroup = computeInfo["resourceGroupName"].(string)
-	}
-
-	if _, ok := computeInfo["sku"]; ok {
-		cloudData.SKU = computeInfo["sku"].(string)
-	}
-
-	if _, ok := computeInfo["vmSize"]; ok {
-		cloudData.VMSize = computeInfo["vmSize"].(string)
-	}
-
-	if _, ok := computeInfo["location"]; ok {
-		cloudData.Location = computeInfo["location"].(string)
-	}
-
-	osProfile, ok := computeInfo["osProfile"].(map[string]interface{})
-	if !ok {
-		log.Errorf("can't decode os profile")
-		return cloudData
-	}
-
-	if _, ok := osProfile["adminUsername"]; ok {
-		cloudData.AdminUsername = osProfile["adminUsername"].(string)
-	}
-
-	storageProfile, ok := computeInfo["storageProfile"].(map[string]interface{})
-	if !ok {
-		log.Errorf("can't decode storage profile")
-		return cloudData
-	}
-
-	if _, ok := storageProfile["dataDisks"]; ok {
-		dataDisks, ok := storageProfile["dataDisks"].([]interface{})
-		if !ok {
-			log.Errorf("can't decode Azure data disks")
-			return cloudData
-		}
-		cloudData.DataDisksNumber = len(dataDisks)
-	}
-
-	return cloudData
 }

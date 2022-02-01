@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.8.1](https://github.com/trento-project/trento/tree/0.8.1) (2022-02-01)
+
+[Full Changelog](https://github.com/trento-project/trento/compare/0.8.0...0.8.1)
+
+### Added
+
+- Add e2e tests for hana database details page [\#750](https://github.com/trento-project/trento/pull/750) (@arbulu89)
+
+### Fixed
+
+- web pod crashing when receiving unexpected data [\#755](https://github.com/trento-project/trento/issues/755)
+- Recover and handle panics in projectors [\#757](https://github.com/trento-project/trento/pull/757) (@fabriziosestito)
+- Fix parse azure cloud data [\#756](https://github.com/trento-project/trento/pull/756) (@fabriziosestito)
+
+### Other Changes
+
+- Bump webpack from 5.67.0 to 5.68.0 in /web/frontend [\#759](https://github.com/trento-project/trento/pull/759) (@dependabot[bot])
+- Bump sass from 1.49.0 to 1.49.3 in /web/frontend [\#758](https://github.com/trento-project/trento/pull/758) (@dependabot[bot])
+- Bump eslint from 8.7.0 to 8.8.0 in /web/frontend [\#754](https://github.com/trento-project/trento/pull/754) (@dependabot[bot])
+- Bump github.com/tdewolff/minify/v2 from 2.9.29 to 2.10.0 [\#752](https://github.com/trento-project/trento/pull/752) (@dependabot[bot])
+
 ## [0.8.0](https://github.com/trento-project/trento/tree/0.8.0) (2022-01-27)
 
 [Full Changelog](https://github.com/trento-project/trento/compare/0.7.1...0.8.0)

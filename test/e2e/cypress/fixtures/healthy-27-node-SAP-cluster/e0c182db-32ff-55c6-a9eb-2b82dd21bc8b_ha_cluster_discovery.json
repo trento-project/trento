@@ -100,7 +100,7 @@
             {
               "Id": "cib-bootstrap-options-cluster-name",
               "Name": "cluster-name",
-              "Value": "hana_cluster"
+              "Value": "hana_cluster_2"
             },
             {
               "Id": "cib-bootstrap-options-stonith-enabled",
@@ -426,7 +426,7 @@
         }
       ]
     },
-    "Name": "hana_cluster",
+    "Name": "hana_cluster_2",
     "Crmmon": {
       "Nodes": [
         {

@@ -89,6 +89,26 @@ func (s *HostsProjectorTestSuite) Test_CloudDiscoveryHandler() {
 	s.Equal("", projectedHost.ClusterID)
 	s.Equal("", projectedHost.ClusterName)
 	s.Equal("", projectedHost.ClusterType)
+
+	var projectedAzureCloudData entities.AzureCloudData
+	err := json.Unmarshal(projectedHost.CloudData, &projectedAzureCloudData)
+
+	s.NoError(err)
+	s.EqualValues(entities.AzureCloudData{
+		VMName:          "vmhana01",
+		ResourceGroup:   "RG-HA-SAP-THERESOURCEGROUP",
+		Location:        "westeurope",
+		VMSize:          "Standard_E4s_v3",
+		DataDisksNumber: 7,
+		Offer:           "sles-sap-15-sp2-byos",
+		SKU:             "gen2",
+		AdminUsername:   "cloudadmin",
+	}, projectedAzureCloudData)
+}
+
+func (s *HostsProjectorTestSuite) Test_parseAzureCloudData_Empty() {
+	azureCloudData := parseAzureCloudData(struct{}{})
+	s.EqualValues(entities.AzureCloudData{}, azureCloudData)
 }
 
 // Test_ClusterDiscoveryHandler tests the ClusterDiscoveryHandler function execution on a ClusterDiscovery published by an agent

@@ -15,17 +15,19 @@
             </thead>
             <tbody>
             {{- range . }}
-                <tr>
+                <tr id="cluster-{{ .ID }}" class="cluster-{{ .Name }}">
                     <td class="row-status">{{ template "health_icon" .Health }}</td>
                     <td>
                         {{- if .HasDuplicatedName }}
                             <i class="eos-icons eos-18 text-info" data-toggle="tooltip" data-original-title="This cluster has a duplicated name">info</i>
                         {{- end }}
+                        <span class="tn-clustername">
                         {{- if ne .ClusterType "Unknown" }}
                             <a href="/clusters/{{ .ID }}">{{ .Name }}</a>
                         {{- else }}
                             {{ .Name }}
                         {{- end }}
+                        </span>
                     </td>
                     <td>
                         {{- if ne .ClusterType "Unknown" }}
@@ -38,7 +40,7 @@
                     <td>{{ .SID }}</td>
                     <td>{{ .HostsNumber }}</td>
                     <td>{{ .ResourcesNumber }}</td>
-                    <td>
+                    <td class="tn-cluster-tags">
                         <input class="tags-input"
                             value="{{- range .Tags }}{{ . }},{{- end }}"
                             data-resource-type="clusters"

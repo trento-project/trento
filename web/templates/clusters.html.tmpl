@@ -17,7 +17,7 @@
     <hr class="margin-10px"/>
     {{ template "health_container" .HealthContainer }}
     <h5>Filters</h5>
-    <div class="horizontal-container">
+    <div class="horizontal-container tn-filters">
         <script>
           $(document).ready(function () {
             {{- range $Key, $Value := .AppliedFilters }}

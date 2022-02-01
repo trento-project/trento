@@ -188,6 +188,7 @@ func (s *clustersService) GetAllSIDs() ([]string, error) {
 	err := s.db.Model(&entities.Cluster{}).
 		Distinct().
 		Where("sid IS NOT NULL AND sid <> ''").
+		Order("sid").
 		Pluck("sid", &sids).
 		Error
 

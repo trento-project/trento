@@ -48,7 +48,7 @@ ARGUMENT_LIST=(
     "use-tgz"
 )
 
-readonly TRENTO_VERSION=0.8.0
+readonly TRENTO_VERSION=0.8.1
 
 opts=$(
     getopt \
@@ -66,7 +66,7 @@ while [[ $# -gt 0 ]]; do
             SSH_ADDRESS=$2
             shift 2
         ;;
-        
+
         --server-ip)
             SERVER_IP=$2
             shift 2
@@ -96,12 +96,12 @@ while [[ $# -gt 0 ]]; do
             USE_ROLLING=true
             shift 1
         ;;
-        
+
         --use-tgz)
             USE_TGZ=true
             shift 1
         ;;
-        
+
         *)
             break
         ;;

@@ -157,6 +157,7 @@ func (s *clustersService) GetAllClusterNames() ([]string, error) {
 
 	err := s.db.Model(&entities.Cluster{}).
 		Distinct().
+		Order("name").
 		Pluck("name", &clusterNames).
 		Error
 

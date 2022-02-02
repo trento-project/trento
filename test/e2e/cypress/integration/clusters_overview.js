@@ -197,11 +197,11 @@ context('Clusters Overview', () => {
         cy.get('.tn-filters > :nth-child(3) > .btn').click();
       });
       const clusterNameScenarios = [
-        ['netweaver_cluster', 3],
         ['drbd_cluster', 3],
+        ['hana_cluster_1', 1],
         ['hana_cluster_2', 1],
         ['hana_cluster_3', 1],
-        ['hana_cluster_1', 1],
+        ['netweaver_cluster', 3],
       ];
       clusterNameScenarios.forEach(
         ([clusterName, expectedRelatedClusters], index) => {

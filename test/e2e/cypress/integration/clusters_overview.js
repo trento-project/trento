@@ -30,8 +30,10 @@ context('Clusters Overview', () => {
   });
 
   describe('Registered Clusters should be available in the overview', () => {
-    it('should show 9 of the 9 registered clusters with default pagination settings', () => {
-      cy.get('.tn-clustername').its('length').should('eq', 9);
+    it('should show all of the registered clusters with default pagination settings', () => {
+      cy.get('.tn-clustername')
+        .its('length')
+        .should('eq', availableClusters.length);
     });
     it('should show 9 as total items in the pagination controls', () => {
       cy.get('.pagination-count').should('contain', '9 items');
@@ -53,11 +55,13 @@ context('Clusters Overview', () => {
 
   describe('Health Detection', () => {
     describe('Health Container shows the health overview of all Clusters', () => {
-      it('should show health status of the entire cluster of 9 hosts with partial pagination', () => {
+      it('should show health status of the entire cluster when set to paginate by 10', () => {
         cy.reloadList('clusters', 10);
         cy.get('.health-container .health-passing').should('contain', 1);
+        cy.get('.health-container .health-warning').should('contain', 1);
+        cy.get('.health-container .health-critical').should('contain', 1);
       });
-      it('should show health status of all 9 clusters', () => {
+      it('should show health status of the entire cluster when set to paginate by 100', () => {
         cy.reloadList('clusters', 100);
         cy.get('.health-container .health-passing').should('contain', 1);
         cy.get('.health-container .health-warning').should('contain', 1);
@@ -126,24 +130,16 @@ context('Clusters Overview', () => {
       ];
       healthScenarios.forEach(
         ([health, expectedClustersWithThisHealth], index) => {
-          it(`should show ${
-            expectedClustersWithThisHealth || 'an empty list of'
-          } clusters when filtering by health '${health}'`, () => {
+          it(`should show ${expectedClustersWithThisHealth} clusters when filtering by health '${health}'`, () => {
             cy.intercept('GET', `/clusters?per_page=100&health=${health}`).as(
               'filterByHealthStatus'
             );
             const selectedOption = `#bs-select-1-${index}`;
             cy.get(selectedOption).click();
             cy.wait('@filterByHealthStatus').then(() => {
-              expectedClustersWithThisHealth == 0 &&
-                cy
-                  .get('.table.eos-table')
-                  .contains('There are currently no records to be shown');
-              expectedClustersWithThisHealth > 0 &&
-                cy
-                  .get('.tn-clustername')
-                  .its('length')
-                  .should('eq', expectedClustersWithThisHealth);
+              cy.get('.tn-clustername')
+                .its('length')
+                .should('eq', expectedClustersWithThisHealth);
               cy.get('.pagination-count').should(
                 'contain',
                 `${expectedClustersWithThisHealth} items`
@@ -240,31 +236,21 @@ context('Clusters Overview', () => {
           'filterRefreshed'
         );
 
-        // Clear crap
+        // Clear the filter dropdown by clicking outside
         cy.get('h1').click();
 
-        // We click on the tag button to open the tag modal in the first cluster
-        // and submit the tag
-        cy.get(
-          `#cluster-${availableClustersId[0]} > .tn-cluster-tags > .tagify`
-        )
-          .type(tag)
-          .click();
+        for (let i = 0; i < 2; i++) {
+          cy.get(
+            `#cluster-${availableClustersId[i]} > .tn-cluster-tags > .tagify`
+          )
+            .type(tag)
+            .click();
 
-        // We wait for the POST to finish and the filter to be refreshed
-        cy.wait('@tagPosted');
-        cy.wait('@filterRefreshed');
+          // We wait for the POST to finish and the filter to be refreshed
+          cy.wait('@tagPosted');
+          cy.wait('@filterRefreshed');
+        }
 
-        // We click on the tag button to open the tag modal in the second cluster
-        // and submit the tag
-        cy.get(
-          `#cluster-${availableClustersId[1]} > .tn-cluster-tags > .tagify`
-        )
-          .type(tag)
-          .click();
-
-        cy.wait('@tagPosted');
-        cy.wait('@filterRefreshed');
         cy.get('.dropdown-item').contains(tag);
         cy.get('.tn-filters > :nth-child(6) > .btn').click();
       });

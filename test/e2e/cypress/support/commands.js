@@ -86,3 +86,18 @@ Cypress.Commands.add('loadChecksCatalog', (catalog) => {
     });
   });
 });
+
+Cypress.Commands.add('loadChecksResults', (results, clusterId) => {
+  const [webApiHost, webApiPort] = [
+    Cypress.env('web_api_host'),
+    Cypress.env('web_api_port'),
+  ];
+  cy.log(`Loading checks results "${results}"...`);
+  cy.fixture(results).then((file) => {
+    cy.request({
+      method: 'POST',
+      url: `http://${webApiHost}:${webApiPort}/api/checks/${clusterId}/results`,
+      body: file,
+    });
+  });
+});

@@ -45,14 +45,11 @@ Feature: Pacemaker Clusters Overview
 
     Scenario: Filtering the Clusters Overview by Cluster name
         Given I am in the Clusters Overview
-        When I filter by SAP system HDD
+        When I filter by cluster name 'hana_cluster_1'
         Then 1 items should be displayed
 
-        When I filter by SAP system HDP
-        Then 1 items should be displayed
-
-        When I filter by SAP system HDQ
-        Then 1 items should be displayed
+        When I filter by cluster name 'netweaver_cluster'
+        Then 3 items should be displayed
 
     Scenario: Filtering the Clusters Overview by SAP System
         Given I am in the Clusters Overview

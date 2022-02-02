@@ -192,6 +192,44 @@ context('Clusters Overview', () => {
       );
     });
 
+    describe('Filtering by Cluster name', () => {
+      before(() => {
+        cy.get('.tn-filters > :nth-child(3) > .btn').click();
+      });
+      const clusterNameScenarios = [
+        ['netweaver_cluster', 3],
+        ['drbd_cluster', 3],
+        ['hana_cluster_2', 1],
+        ['hana_cluster_3', 1],
+        ['hana_cluster_1', 1],
+      ];
+      clusterNameScenarios.forEach(
+        ([clusterName, expectedRelatedClusters], index) => {
+          it(`should have ${expectedRelatedClusters} clusters related to name '${clusterName}'`, () => {
+            cy.intercept(
+              'GET',
+              `/clusters?per_page=100&name=${clusterName}`
+            ).as('filterByClusterName');
+            const selectedOption = `#bs-select-2-${index}`;
+            cy.get(selectedOption).click();
+            cy.wait('@filterByClusterName').then(() => {
+              cy.get('.tn-clustername')
+                .its('length')
+                .should('eq', expectedRelatedClusters);
+              cy.get('.pagination-count').should(
+                'contain',
+                `${expectedRelatedClusters} items`
+              );
+              cy.get('.page-item')
+                .its('length')
+                .should('eq', Math.ceil(expectedRelatedClusters / 100) + 2);
+            });
+            resetFilter(selectedOption);
+          });
+        }
+      );
+    });
+
     describe('Filtering by tags', () => {
       before(() => {
         cy.get('.tn-filters > :nth-child(6) > .btn').click();

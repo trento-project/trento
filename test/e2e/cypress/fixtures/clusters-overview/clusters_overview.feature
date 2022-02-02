@@ -63,14 +63,14 @@ Feature: Pacemaker Clusters Overview
         Then 1 items should be displayed
 
     Scenario: Filtering the Clusters Overview by Tags
-        Given all the hosts containing 'hana' in their name are tagged with 'env1'
-        And all the hosts containing 'drbd' in their name are tagged with 'env2'
-        And all the hosts containing 'netweaver' in their name are tagged with 'env3'
-        When I filter by tag 'tag1'
+        Given the cluster containing 'hana_cluster_1' in their name are tagged with 'env1'
+        And the cluster containing 'hana_cluster_2' in their name are tagged with 'env2'
+        And the cluster containing 'hana_cluster_3' in their name are tagged with 'env3'
+        When I filter by tag 'env1'
         Then 1 items should be shown
 
-        When I filter by tag 'tag2'
+        When I filter by tag 'env2'
         Then 1 items should be shown
 
-        When I filter by tag 'tag3'
+        When I filter by tag 'env3'
         Then 1 items should be shown

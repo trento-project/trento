@@ -211,6 +211,8 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 		apiGroup.PUT("/checks/catalog", ApiCreateChecksCatalogHandler(deps.checksService))
 		apiGroup.GET("/checks/catalog", ApiChecksCatalogHandler(deps.checksService))
 		apiGroup.POST("/checks/:id/results", ApiCreateChecksResultHandler(deps.checksService))
+
+		apiGroup.GET("prometheus_http_sd", ApiGetPromHttpSd(deps.hostsService))
 	}
 
 	collectorEngine := deps.collectorEngine

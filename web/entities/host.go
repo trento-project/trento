@@ -53,6 +53,7 @@ func (h *Host) ToModel() *models.Host {
 		ID:            h.AgentID,
 		Name:          h.Name,
 		IPAddresses:   h.IPAddresses,
+		SSHAddress:    h.SSHAddress,
 		CloudProvider: h.CloudProvider,
 		ClusterID:     h.ClusterID,
 		ClusterName:   h.ClusterName,

@@ -136,11 +136,15 @@
               <table class='table eos-table'>
                   <thead>
                   <tr>
+                      <th scope='col'>Element</th>
                       <th scope='col'>Status</th>
                   </tr>
                   </thead>
                   <tbody>
                       <tr>
+                          <td>
+                            Trento agent
+                          </td>
                           <td>
                             {{ if eq .Host.Health "passing" }}
                               <span class='badge badge-pill badge-primary'>running</span>
@@ -149,6 +153,18 @@
                             {{ end }}
                           </td>
                       </tr>
+                      {{- range $Key, $state := .Exporters }}
+                      <tr>
+                          <td>{{ $Key }}  </td>
+                          <td>
+                            {{ if $state }}
+                              <span class='badge badge-pill badge-primary'>running</span>
+                            {{ else }}
+                              <span class='badge badge-pill badge-danger'>not running</span>
+                            {{ end }}
+                          </td>
+                      </tr>
+                      {{- end }}
                   </tbody>
               </table>
           </div>

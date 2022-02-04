@@ -19,6 +19,7 @@ type Host struct {
 	ID            string
 	Name          string
 	Health        string
+	SSHAddress    string
 	IPAddresses   []string
 	CloudProvider string
 	ClusterID     string

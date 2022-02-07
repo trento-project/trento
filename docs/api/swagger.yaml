@@ -140,6 +140,17 @@ definitions:
     required:
     - tag
     type: object
+  web.Targets:
+    properties:
+      labels:
+        additionalProperties:
+          type: string
+        type: object
+      targets:
+        items:
+          type: string
+        type: array
+    type: object
 info:
   contact:
     email: trento-project@suse.com
@@ -513,6 +524,18 @@ paths:
             additionalProperties: true
             type: object
       summary: Delete a specific tag that belongs to a host
+  /prometheus/targets:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/web.Targets'
+            type: array
+      summary: Get prometheus HTTP SD targets
   /sapsystems/{id}/tags:
     post:
       consumes:

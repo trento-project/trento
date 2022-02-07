@@ -580,6 +580,25 @@ var doc = `{
                 }
             }
         },
+        "/prometheus/targets": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get prometheus HTTP SD targets",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/web.Targets"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/sapsystems/{id}/tags": {
             "post": {
                 "consumes": [
@@ -931,6 +950,23 @@ var doc = `{
             "properties": {
                 "tag": {
                     "type": "string"
+                }
+            }
+        },
+        "web.Targets": {
+            "type": "object",
+            "properties": {
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "targets": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         }

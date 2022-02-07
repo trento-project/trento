@@ -1,7 +1,7 @@
 package services
 
 import (
-  "fmt"
+	"fmt"
 
 	"github.com/trento-project/trento/web/entities"
 	"github.com/trento-project/trento/web/models"
@@ -24,23 +24,23 @@ func NewPrometheusService(db *gorm.DB) *prometheusService {
 }
 
 func (p *prometheusService) GetHttpSDTargets() (models.PrometheusTargetsList, error) {
-  var targetsList models.PrometheusTargetsList
-  var hosts []entities.Host
+	var targetsList models.PrometheusTargetsList
+	var hosts []entities.Host
 
-  err := p.db.Find(&hosts).Error
+	err := p.db.Find(&hosts).Error
 	if err != nil {
 		return targetsList, err
 	}
 
-  for _, host := range hosts {
-    targets := &models.PrometheusTargets{
-      Targets: []string{fmt.Sprintf("%s:%d", host.SSHAddress, nodeExporterPort)},
-      Labels: map[string]string{
-        "hostname": host.Name,
-      },
-    }
-    targetsList = append(targetsList, targets)
-  }
+	for _, host := range hosts {
+		targets := &models.PrometheusTargets{
+			Targets: []string{fmt.Sprintf("%s:%d", host.SSHAddress, nodeExporterPort)},
+			Labels: map[string]string{
+				"hostname": host.Name,
+			},
+		}
+		targetsList = append(targetsList, targets)
+	}
 
-  return targetsList, nil
+	return targetsList, nil
 }

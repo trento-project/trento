@@ -4,11 +4,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/mitchellh/mapstructure"
 
-  "github.com/trento-project/trento/web/models"
 	"github.com/trento-project/trento/web/services"
 )
-
 
 type TargetsList []*Targets
 
@@ -31,7 +30,9 @@ func ApiGetPrometheusHttpSdTargets(s services.PrometheusService) gin.HandlerFunc
 			return
 		}
 
-    targetsListJson := models.PrometheusTargetsList(targetsList)
+		var targetsListJson TargetsList
+
+		mapstructure.Decode(targetsList, &targetsListJson)
 
 		c.JSON(http.StatusOK, targetsListJson)
 	}

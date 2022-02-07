@@ -78,6 +78,7 @@ type Dependencies struct {
 	telemetryRegistry       *telemetry.TelemetryRegistry
 	telemetryPublisher      telemetry.Publisher
 	premiumDetectionService services.PremiumDetectionService
+	prometheusService       services.PrometheusService
 }
 
 func DefaultDependencies(config *Config) Dependencies {
@@ -125,12 +126,13 @@ func DefaultDependencies(config *Config) Dependencies {
 	collectorService := services.NewCollectorService(db, projectorWorkersPool.GetChannel())
 	telemetryRegistry := telemetry.NewTelemetryRegistry(db)
 	telemetryPublisher := telemetry.NewTelemetryPublisher()
+	prometheusService := services.NewPrometheusService(db)
 
 	return Dependencies{
 		webEngine, collectorEngine, store, projectorWorkersPool,
 		checksService, subscriptionsService, tagsService,
 		collectorService, sapSystemsService, clustersService, hostsService, settingsService,
-		telemetryRegistry, telemetryPublisher, premiumDetection,
+		telemetryRegistry, telemetryPublisher, premiumDetection, prometheusService,
 	}
 }
 
@@ -211,6 +213,7 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 		apiGroup.PUT("/checks/catalog", ApiCreateChecksCatalogHandler(deps.checksService))
 		apiGroup.GET("/checks/catalog", ApiChecksCatalogHandler(deps.checksService))
 		apiGroup.POST("/checks/:id/results", ApiCreateChecksResultHandler(deps.checksService))
+		apiGroup.GET("/prometheus/targets", ApiGetPrometheusHttpSdTargets(deps.prometheusService))
 	}
 
 	collectorEngine := deps.collectorEngine

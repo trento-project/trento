@@ -123,10 +123,12 @@ func NewHostHandler(hostsService services.HostsService, subsService services.Sub
 			return
 		}
 
+		exportersState, err := hostsService.GetExportersState(host.Name)
+
 		c.HTML(http.StatusOK, "host.html.tmpl", gin.H{
 			"Host":          &host,
 			"Subscriptions": subs,
-			"Exporters": map[string]bool{"Node exporter": hostsService.GetNodeExporterState(host.Name)},
+			"Exporters": exportersState,
 		})
 	}
 }

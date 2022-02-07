@@ -39,6 +39,8 @@ func ApiGetPromHttpSd(s services.HostsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var groups JSONGroups
 
+		sdType := c.DefaultQuery("sd_type", "")
+
 		hosts, err := s.GetAll(nil, nil)
 		if err != nil {
 			c.Error(err)
@@ -46,6 +48,10 @@ func ApiGetPromHttpSd(s services.HostsService) gin.HandlerFunc {
 		}
 
 		for _, host := range hosts {
+			if sdType == "clusters" && host.ClusterID == "" {
+				continue
+			}
+
 			group := &JSONGroup{
 				Targets: []string{fmt.Sprintf("%s:9999", host.SSHAddress)},
 				Labels: map[string]string{

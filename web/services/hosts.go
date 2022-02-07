@@ -5,7 +5,6 @@ import (
 	"errors"
 	"time"
 
-	"os"
 	"fmt"
 	"context"
 
@@ -34,7 +33,7 @@ type HostsService interface {
 	GetAllSIDs() ([]string, error)
 	GetAllTags() ([]string, error)
 	Heartbeat(agentID string) error
-	GetNodeExporterState(hostname string) bool
+	GetExportersState(hostname string) (map[string]bool, error)
 }
 
 type HostsFilter struct {
@@ -244,30 +243,46 @@ func computeHearbeatHealth(hearbeat *entities.HostHeartbeat) string {
 	return models.HostHealthPassing
 }
 
-func (s *hostsService) GetNodeExporterState(hostname string) bool {
+var jobToExporter = map[string]string{
+	"http_sd_clusters": "HA cluster exporter",
+	"http_sd_hosts": "Host exporter",
+}
+
+func (s *hostsService) GetExportersState(hostname string) (map[string]bool, error) {
+	exportersState := make(map[string]bool)
+
 	client, err := api.NewClient(api.Config{
 		Address: "http://localhost:9090",
 	})
 	if err != nil {
 		fmt.Printf("Error creating client: %v\n", err)
-		os.Exit(1)
+		return exportersState, err
 	}
 
 	v1api := v1.NewAPI(client)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	result, warnings, err := v1api.Query(ctx, fmt.Sprintf("up{job=\"http_sd_hosts\", hostname=\"%s\"}", hostname), time.Now())
+	result, warnings, err := v1api.Query(ctx, fmt.Sprintf("up{hostname=\"%s\"}", hostname), time.Now())
 	if err != nil {
 		fmt.Printf("Error querying Prometheus: %v\n", err)
-		os.Exit(1)
+		return exportersState, err
 	}
 	if len(warnings) > 0 {
 		fmt.Printf("Warnings: %v\n", warnings)
 	}
 	fmt.Printf("Result:\n%v\n", result)
+
 	// Here how we could have more generic implementation
 	// https://github.com/prometheus/client_golang/issues/194#issuecomment-254443951
   resultVal := result.(model.Vector)
 
-	return resultVal[0].Value.Equal(1)
+	if len(resultVal) == 0 {
+		return exportersState, nil
+	}
+
+	for _, result := range resultVal {
+		exportersState[jobToExporter[string(result.Metric["job"])]] = (int(result.Value) == 1)
+	}
+
+	return exportersState, nil
 }

@@ -24,3 +24,41 @@ postgresql:
   postgresqlUsername: "postgres"
   postgresqlPassword: "postgres"
   postgresqlDatabase: "trento"
+
+prometheus:
+  enabled: true
+  server:
+    enabled: true
+    extraConfigmapMounts:
+    configMapOverrideName: prometheus-configmap
+  serverFiles:
+    prometheus.yml: {}
+
+  alertmanager:
+    enabled: false
+  pushgateway:
+    enabled: false
+  configmapReload:
+    enabled: false
+  kubeStateMetrics:
+    enabled: false
+  nodeExporter:
+    enabled: false
+
+grafana:
+  enabled: true
+  grafana.ini:
+    auth.anonymous:
+      enabled: true
+    server:
+      root_url: "%(protocol)s://%(domain)s:%(http_port)s/grafana/"
+      serve_from_sub_path: true
+  sidecar:
+    datasources:
+      enabled: true
+  ingress:
+    enabled: true
+    hosts:
+      - ""
+      ## Path for grafana ingress
+    path: /grafana

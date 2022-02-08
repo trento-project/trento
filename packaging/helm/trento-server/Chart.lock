@@ -8,5 +8,11 @@ dependencies:
 - name: postgresql
   repository: https://charts.bitnami.com/bitnami/
   version: 10.1.4
-digest: sha256:4ca440f423831ceb17665407466664a3193b3c7cf251f15466e71be87676df20
-generated: "2021-12-23T14:21:08.608734238+01:00"
+- name: prometheus
+  repository: https://prometheus-community.github.io/helm-charts/
+  version: 15.1.3
+- name: grafana
+  repository: https://grafana.github.io/helm-charts/
+  version: 6.21.2
+digest: sha256:7402958929dc8b7c1820746f5e2521d5229c2eaf87224bd0980d6452d2f307fe
+generated: "2022-02-07T15:38:29.434555278+01:00"

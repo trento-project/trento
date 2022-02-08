@@ -51,6 +51,8 @@ func addServeCmd(webCmd *cobra.Command) {
 	var grafanaUser string
 	var grafanaPassword string
 
+	var prometheusAddress string
+
 	serveCmd := &cobra.Command{
 		Use:   "serve",
 		Short: "Starts the web application",
@@ -70,6 +72,8 @@ func addServeCmd(webCmd *cobra.Command) {
 	serveCmd.Flags().StringVar(&grafanaApiURL, "grafana-api-url", "http://localhost:3000", "Grafana API URL")
 	serveCmd.Flags().StringVar(&grafanaUser, "grafana-user", "admin", "Grafana user")
 	serveCmd.Flags().StringVar(&grafanaPassword, "grafana-password", "", "Grafana password")
+
+	serveCmd.Flags().StringVar(&prometheusAddress, "prometheus-address", "http://localhost:9090", "Prometheus server address")
 
 	webCmd.AddCommand(serveCmd)
 }

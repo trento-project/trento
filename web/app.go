@@ -18,9 +18,11 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
+	prometheusApi "github.com/prometheus/client_golang/api/prometheus/v1"
 
 	trentoDB "github.com/trento-project/trento/internal/db"
 	"github.com/trento-project/trento/internal/grafana"
+	trentoPrometheus "github.com/trento-project/trento/internal/prometheus"
 	"github.com/trento-project/trento/version"
 	"github.com/trento-project/trento/web/datapipeline"
 	"github.com/trento-project/trento/web/entities"
@@ -63,6 +65,7 @@ type Config struct {
 	CA            string
 	DBConfig      *trentoDB.Config
 	GrafanaConfig *grafana.Config
+	PrometheusAddress string
 }
 
 type Dependencies struct {
@@ -106,6 +109,25 @@ func DefaultDependencies(ctx context.Context, config *Config) Dependencies {
 		log.Fatalf("failed initialazing grafana: %s", err)
 	}
 
+	var prom prometheusApi.API
+	err = retryGo.Do(
+		func() error {
+			var err error
+			prom, err = trentoPrometheus.InitPrometheus(config.PrometheusAddress)
+			if err != nil {
+				return err
+			}
+			return nil
+		},
+		retryGo.Delay(1*time.Second),
+		retryGo.MaxJitter(2*time.Second),
+		retryGo.Attempts(8),
+		retryGo.LastErrorOnly(true),
+	)
+	if err != nil {
+		log.Fatalf("failed to connect to proemtheus: %s", err)
+	}
+
 	projectorRegistry := datapipeline.InitProjectorsRegistry(db)
 	projectorWorkersPool := datapipeline.NewProjectorsWorkerPool(projectorRegistry)
 
@@ -120,7 +142,7 @@ func DefaultDependencies(ctx context.Context, config *Config) Dependencies {
 	collectorService := services.NewCollectorService(db, projectorWorkersPool.GetChannel())
 	telemetryRegistry := telemetry.NewTelemetryRegistry(db)
 	telemetryPublisher := telemetry.NewTelemetryPublisher()
-	prometheusService := services.NewPrometheusService(db)
+	prometheusService := services.NewPrometheusService(db, prom)
 	healthSummaryService := services.NewHealthSummaryService(sapSystemsService, clustersService, hostsService)
 
 	return Dependencies{

@@ -12,5 +12,20 @@
     </div>
 </section>
 {{ template "footer" . }}
+
+<button id="feedback-button" class="feedback-tool-button btn btn-large">
+    <i class="eos-icons-outlined eos-18" aria-hidden="true">flag</i>
+    Report feedback
+</button>
+<script type="text/javascript">
+    window.ATL_JQ_PAGE_PROPS =  {
+        "triggerFunction": function(showCollectorDialog) {
+            jQuery("#feedback-button").click(function(e) {
+                e.preventDefault();
+                showCollectorDialog();
+            });
+        }
+    };
+</script>
 </body>
 </html>

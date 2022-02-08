@@ -140,3 +140,22 @@ footer.footer-side-menu ul.footer-list {
 .eos-checkbox ~ label::after {
   text-indent: 0;
 }
+
+.feedback-tool-button {
+  background-color: #0c322c;
+  color: #fff;
+  position: fixed;
+  top: 50%;
+  right: -56px;
+  -webkit-transform: rotate(-90deg);
+  -moz-transform: rotate(-90deg);
+  -o-transform: rotate(-90deg);
+  -ms-transform: rotate(-90deg);
+  transform: rotate(-90deg);
+}
+
+.feedback-tool-button:hover,
+.feedback-tool-button:focus {
+  color: #fff;
+  background-color: #0c322c;
+}

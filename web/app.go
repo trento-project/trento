@@ -139,7 +139,7 @@ func DefaultDependencies(ctx context.Context, config *Config) Dependencies {
 	settingsService := services.NewSettingsService(db)
 	tagsService := services.NewTagsService(db)
 	subscriptionsService := services.NewSubscriptionsService(db)
-	hostsService := services.NewHostsService(db)
+	hostsService := services.NewHostsService(db, prometheusService)
 	sapSystemsService := services.NewSAPSystemsService(db)
 	premiumDetection := services.NewPremiumDetectionService(version.Flavor, subscriptionsService, settingsService)
 	checksService := services.NewChecksService(db, premiumDetection)

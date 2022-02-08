@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"time"
+	"fmt"
 
 	"github.com/lib/pq"
 	"github.com/trento-project/trento/internal"
@@ -11,6 +12,8 @@ import (
 	"github.com/trento-project/trento/web/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+
+	prometheusModel "github.com/prometheus/common/model"
 )
 
 const HeartbeatTreshold = internal.HeartbeatInterval * 2
@@ -26,6 +29,7 @@ type HostsService interface {
 	GetAllSIDs() ([]string, error)
 	GetAllTags() ([]string, error)
 	Heartbeat(agentID string) error
+	GetExportersState(hostname string) (map[string]bool, error)
 }
 
 type HostsFilter struct {
@@ -37,10 +41,11 @@ type HostsFilter struct {
 
 type hostsService struct {
 	db *gorm.DB
+	prometheusService PrometheusService
 }
 
-func NewHostsService(db *gorm.DB) *hostsService {
-	return &hostsService{db}
+func NewHostsService(db *gorm.DB, promService PrometheusService) *hostsService {
+	return &hostsService{db, promService}
 }
 
 func (s *hostsService) GetAll(filter *HostsFilter, page *Page) (models.HostList, error) {
@@ -222,6 +227,26 @@ func (s *hostsService) Heartbeat(agentID string) error {
 		},
 		DoUpdates: clause.AssignmentColumns([]string{"updated_at"}),
 	}).Create(heartbeat).Error
+}
+
+func (s *hostsService) GetExportersState(hostname string) (map[string]bool, error) {
+	jobsState := make(map[string]bool)
+	result, err := s.prometheusService.Query(fmt.Sprintf("up{hostname=\"%s\"}", hostname), time.Now())
+	if err != nil {
+		return jobsState, err
+	}
+
+	resultVector := result.(prometheusModel.Vector)
+
+	if len(resultVector) == 0 {
+		return jobsState, nil
+	}
+
+	for _, r := range resultVector {
+		jobsState[string(r.Metric["job"])] = (int(r.Value) == 1)
+	}
+
+	return jobsState, nil
 }
 
 func computeHealth(host *entities.Host) string {

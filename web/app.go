@@ -18,7 +18,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
-	prometheusApi "github.com/prometheus/client_golang/api/prometheus/v1"
 
 	trentoDB "github.com/trento-project/trento/internal/db"
 	"github.com/trento-project/trento/internal/grafana"
@@ -109,11 +108,17 @@ func DefaultDependencies(ctx context.Context, config *Config) Dependencies {
 		log.Fatalf("failed initialazing grafana: %s", err)
 	}
 
-	var prom prometheusApi.API
+	prom, err := trentoPrometheus.InitPrometheus(config.PrometheusAddress)
+	if err != nil {
+		log.Fatalf("failed to create prometheus client: %s", err)
+	}
+
+	prometheusService := services.NewPrometheusService(db, prom)
+
 	err = retryGo.Do(
 		func() error {
 			var err error
-			prom, err = trentoPrometheus.InitPrometheus(config.PrometheusAddress)
+			_, err = prometheusService.Query("up", time.Now())
 			if err != nil {
 				return err
 			}
@@ -121,11 +126,11 @@ func DefaultDependencies(ctx context.Context, config *Config) Dependencies {
 		},
 		retryGo.Delay(1*time.Second),
 		retryGo.MaxJitter(2*time.Second),
-		retryGo.Attempts(8),
+		retryGo.Attempts(3),
 		retryGo.LastErrorOnly(true),
 	)
 	if err != nil {
-		log.Fatalf("failed to connect to proemtheus: %s", err)
+		log.Fatalf("failed to connect to prometheus: %s", err)
 	}
 
 	projectorRegistry := datapipeline.InitProjectorsRegistry(db)

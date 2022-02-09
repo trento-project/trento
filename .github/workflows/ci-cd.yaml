@@ -1,4 +1,4 @@
-name: Continous Integration and Demo Deployment
+name: Continuous Integration and Demo Deployment
 concurrency: ci-${{ github.ref }}
 on:
   push:
@@ -335,6 +335,43 @@ jobs:
         with:
           files: "trento-*"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+  install-helm-charts:
+    runs-on: ubuntu-20.04
+    needs: [smoke-test-container-images, test-helm-charts]
+    env:
+      TRENTO_REPO_OWNER: ${{ github.repository_owner }}
+      IMAGE_TAG: "${{ (github.event_name == 'release' && github.event.release.tag_name) || (github.event_name == 'push' && github.ref_name == 'main' && 'rolling') || github.sha }}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Create k3d cluster
+        uses: AbsaOSS/k3d-action@v2
+        with:
+          cluster-name: test-cluster
+          args: --agents 1
+      - name: Download trento-web image
+        uses: actions/download-artifact@v2
+        with:
+          name: trento-web
+          path: /tmp
+      - name: Download trento-runner image
+        uses: actions/download-artifact@v2
+        with:
+          name: trento-runner
+          path: /tmp
+      - name: Load images into the cluster
+        run: k3d image import trento-web.tar trento-runner.tar -c test-cluster --verbose
+        working-directory: /tmp
+      - name: Install Helm
+        uses: azure/setup-helm@v1
+      - name: Install chart
+        run: |
+          helm install trento . --dependency-update --wait --debug \
+            --set trento-web.image.repository=ghcr.io/${TRENTO_REPO_OWNER}/trento-web \
+            --set trento-web.image.tag=${IMAGE_TAG} \
+            --set trento-runner.image.repository=ghcr.io/${TRENTO_REPO_OWNER}/trento-runner \
+            --set trento-runner.image.tag=${IMAGE_TAG}
+        working-directory: packaging/helm/trento-server
 
   deploy-server:
     runs-on: [ self-hosted, trento-gh-runner ]

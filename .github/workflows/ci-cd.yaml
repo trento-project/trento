@@ -1,4 +1,4 @@
-name: Continuos Integration and Demo Deployment
+name: Continuous Integration and Demo Deployment
 concurrency: ci-${{ github.ref }}
 on:
   push:

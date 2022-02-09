@@ -14,7 +14,10 @@ import (
 	prometheusModel "github.com/prometheus/common/model"
 )
 
-const nodeExporterPort = 9100
+const (
+	nodeExporterPort = 9100
+	nodeExporterName = "Node Exporter"
+) 
 
 //go:generate mockery --name=PrometheusService --inpackage --filename=prometheus_mock.go
 type PrometheusService interface {
@@ -46,6 +49,7 @@ func (p *prometheusService) GetHttpSDTargets() (models.PrometheusTargetsList, er
 			Labels: map[string]string{
 				"agentID":  host.AgentID,
 				"hostname": host.Name,
+				"exporter_name": nodeExporterName,
 			},
 		}
 		targetsList = append(targetsList, targets)

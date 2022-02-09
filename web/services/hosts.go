@@ -243,7 +243,13 @@ func (s *hostsService) GetExportersState(hostname string) (map[string]bool, erro
 	}
 
 	for _, r := range resultVector {
-		jobsState[string(r.Metric["job"])] = (int(r.Value) == 1)
+		var name string
+		if _, ok := r.Metric["exporter_name"]; ok {
+			name = string(r.Metric["exporter_name"])
+		} else {
+			name = string(r.Metric["job"])
+		}
+		jobsState[name] = (int(r.Value) == 1)
 	}
 
 	return jobsState, nil

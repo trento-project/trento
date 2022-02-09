@@ -9,6 +9,8 @@ global:
     servicePort: 5432
   grafana:
     name: grafana
+  prometheus:
+    name: prometheus-server
 
 ### Sub Charts Specific Values ###
 trento-web:

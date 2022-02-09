@@ -11,6 +11,8 @@ global:
     servicePort: 5432
   grafana:
     name: grafana
+  prometheus:
+    name: prometheus-server
 
 mTLS:
   enabled: false

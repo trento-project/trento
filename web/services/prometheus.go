@@ -1,8 +1,8 @@
 package services
 
 import (
-	"fmt"
 	"context"
+	"fmt"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -10,14 +10,14 @@ import (
 	"github.com/trento-project/trento/web/models"
 	"gorm.io/gorm"
 
-	prometheusApiV1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	prometheusModel "github.com/prometheus/common/model"
+	prometheusInternal "github.com/trento-project/trento/internal/prometheus"
 )
 
 const (
 	nodeExporterPort = 9100
 	nodeExporterName = "Node Exporter"
-) 
+)
 
 //go:generate mockery --name=PrometheusService --inpackage --filename=prometheus_mock.go
 type PrometheusService interface {
@@ -26,12 +26,12 @@ type PrometheusService interface {
 }
 
 type prometheusService struct {
-	db *gorm.DB
-	prometheusApi prometheusApiV1.API
+	db            *gorm.DB
+	prometheusApi prometheusInternal.PrometheusAPI
 }
 
-func NewPrometheusService(db *gorm.DB, v1api prometheusApiV1.API) *prometheusService {
-	return &prometheusService{db, v1api}
+func NewPrometheusService(db *gorm.DB, promApi prometheusInternal.PrometheusAPI) *prometheusService {
+	return &prometheusService{db, promApi}
 }
 
 func (p *prometheusService) GetHttpSDTargets() (models.PrometheusTargetsList, error) {

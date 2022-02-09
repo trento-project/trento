@@ -3,8 +3,8 @@ package services
 import (
 	"encoding/json"
 	"errors"
-	"time"
 	"fmt"
+	"time"
 
 	"github.com/lib/pq"
 	"github.com/trento-project/trento/internal"
@@ -40,7 +40,7 @@ type HostsFilter struct {
 }
 
 type hostsService struct {
-	db *gorm.DB
+	db                *gorm.DB
 	prometheusService PrometheusService
 }
 

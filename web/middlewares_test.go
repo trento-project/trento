@@ -46,7 +46,7 @@ func TestEulaMiddlewareLettingThrough(t *testing.T) {
 	app.webEngine.ServeHTTP(resp, req)
 
 	assert.Equal(t, 200, resp.Code)
-	assert.Contains(t, resp.Body.String(), "Blue Horizon for SAP")
+	assert.Contains(t, resp.Body.String(), "In the hosts overview, the user can")
 }
 
 func TestEulaMiddlewareError(t *testing.T) {

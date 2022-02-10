@@ -45,7 +45,7 @@ type SubmenuItem struct {
 
 var defaultLayoutData = LayoutData{
 	Title:     "Trento Console",
-	Copyright: "© 2020-2021 SUSE LLC",
+	Copyright: "© 2020-2022 SUSE LLC",
 	Version:   version.Version,
 	Flavor:    version.Flavor,
 }

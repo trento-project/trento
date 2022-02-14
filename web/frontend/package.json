@@ -6,7 +6,7 @@
   "description": "An open cloud-native web console improving on the life of SAP Applications administrators.",
   "repository": "trento-project/trento",
   "dependencies": {
-    "@yaireo/tagify": "^4.9.6",
+    "@yaireo/tagify": "^4.9.7",
     "axios": "^0.25.0",
     "bootstrap": "^4.6.1",
     "bootstrap-select": "^1.13.18",

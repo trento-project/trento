@@ -36,7 +36,12 @@ type SAPSystemInstances []*SAPSystemInstance
 func (s SAPSystemInstances) ToModel() []*models.SAPSystem {
 	set := make(map[string]*models.SAPSystem)
 
+	primarySystemReplicationStatuses := make(map[string]string)
+
 	for _, i := range s {
+		if i.Type == models.SAPSystemTypeDatabase && i.SystemReplication == "Primary" {
+			primarySystemReplicationStatuses[i.ID] = i.SystemReplicationStatus
+		}
 
 		sapSystem, ok := set[i.ID]
 		if !ok {
@@ -84,6 +89,14 @@ func (s SAPSystemInstances) ToModel() []*models.SAPSystem {
 
 	var sapSystems []*models.SAPSystem
 	for _, sapSystem := range set {
+		if sapSystem.Type == models.SAPSystemTypeDatabase {
+			for idx, instance := range sapSystem.Instances {
+				if instance.SystemReplication == "Secondary" {
+					instance.SystemReplicationStatus = primarySystemReplicationStatuses[sapSystem.ID]
+					sapSystem.Instances[idx] = instance
+				}
+			}
+		}
 		sapSystems = append(sapSystems, sapSystem)
 	}
 	sortBySID(sapSystems)

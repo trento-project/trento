@@ -22,7 +22,7 @@ Feature: SAP Systems Overview
         Then For each SAP System, the instances details (SID, Feature, Instance number) are the expected ones
         And every instance has the correct host and cluster
         And the link to the host and cluster details page are working
-        And the database instances have the correct System Replication and System replication status
+        And the database instances have the correct System Replication and System replication status attached to Secondary Nodes
 
     Scenario: Filtering the SAP Systems by SID
         Given I navigate to the SAP Systems overview page

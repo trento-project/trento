@@ -37,9 +37,18 @@ const SettingsButton = () => {
 
   useEffect(() => {
     setLoading(true);
-    get('/api/checks/catalog').then(({ data }) => {
-      setChecksCatalog(data);
-    });
+    get('/api/checks/catalog')
+      .then(({ data }) => {
+        data ? setChecksCatalog(data) : setChecksCatalog([]);
+      })
+      .catch((error) => {
+        logError(error);
+        setChecksCatalog([]);
+        showErrorToast({
+          content: 'Error fetching checks catalog data.',
+        });
+      });
+
     get(`/api/checks/${clusterId}/settings`)
       .then(({ data }) => {
         const {

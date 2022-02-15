@@ -39,7 +39,7 @@ const SettingsButton = () => {
     setLoading(true);
     get('/api/checks/catalog')
       .then(({ data }) => {
-        Boolean(data) ? setChecksCatalog(data) : setChecksCatalog([]);
+        data ? setChecksCatalog(data) : setChecksCatalog([]);
       })
       .catch((error) => {
         logError(error);

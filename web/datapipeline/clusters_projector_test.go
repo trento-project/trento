@@ -182,7 +182,14 @@ func TestTransformClusterData_HANAScaleUp(t *testing.T) {
 				},
 			},
 			SBDDevices: []*entities.SBDDevice{
-				{Device: "/dev/disk/by-id/scsi-SLIO-ORG_IBLOCK_649b292b-ae9d-49a4-8002-2e602a0ab56e"},
+				{
+					Device: "/dev/disk/by-id/scsi-SLIO-ORG_IBLOCK_649b292b-ae9d-49a4-8002-2e602a0ab56e",
+					Status: "healthy",
+				},
+				{
+					Device: "/dev/disk/by-id/scsi-SLIO-ORG_IBLOCK_649b292b-ae9d-49a4-8002-2e602a012345",
+					Status: "unhealthy",
+				},
 			},
 		},
 	)

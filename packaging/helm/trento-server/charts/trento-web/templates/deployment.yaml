@@ -1,3 +1,16 @@
+{{ $grafanaSecret := include "trento.grafana.password" . }}
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: trento-server-grafana-secret
+type: Opaque
+data:
+  admin-user: {{ "admin" | b64enc | quote }}
+  admin-password: {{ $grafanaSecret | quote }}
+
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -41,6 +54,10 @@ spec:
               value: "{{ .Values.webService.port }}"
             - name: TRENTO_COLLECTOR_PORT
               value: "{{ .Values.collectorService.port }}"
+            - name: TRENTO_GRAFANA_URL
+              value: "http://{{ .Release.Name }}-{{ .Values.global.grafana.name }}"
+            - name: TRENTO_GRAFANA_PASSWORD
+              value: {{ $grafanaSecret | b64dec }}
             {{ if .Values.mTLS.enabled }}
             - name: TRENTO_ENABLE_MTLS
               value: true

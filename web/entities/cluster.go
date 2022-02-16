@@ -51,6 +51,7 @@ type HANAClusterNode struct {
 
 type SBDDevice struct {
 	Device string `json:"device"`
+	Status string `json:"status"`
 }
 
 func (c *Cluster) ToModel() *models.Cluster {
@@ -113,6 +114,7 @@ func (r *ClusterResource) ToModel() *models.ClusterResource {
 func (s *SBDDevice) ToModel() *models.SBDDevice {
 	return &models.SBDDevice{
 		Device: s.Device,
+		Status: s.Status,
 	}
 }
 

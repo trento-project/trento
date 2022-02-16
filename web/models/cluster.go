@@ -65,6 +65,7 @@ type HANAClusterNode struct {
 
 type SBDDevice struct {
 	Device string
+	Status string
 }
 
 type ClusterNodes []*HANAClusterNode

@@ -20,6 +20,7 @@ import (
 	"gorm.io/gorm"
 
 	trentoDB "github.com/trento-project/trento/internal/db"
+	"github.com/trento-project/trento/internal/grafana"
 	"github.com/trento-project/trento/version"
 	"github.com/trento-project/trento/web/datapipeline"
 	"github.com/trento-project/trento/web/entities"
@@ -61,6 +62,7 @@ type Config struct {
 	Key           string
 	CA            string
 	DBConfig      *trentoDB.Config
+	GrafanaConfig *grafana.Config
 }
 type Dependencies struct {
 	webEngine               *gin.Engine
@@ -225,6 +227,8 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 }
 
 func (a *App) Start(ctx context.Context) error {
+	grafana.InitGrafana(ctx, a.config.GrafanaConfig)
+
 	webServer := &http.Server{
 		Addr:           fmt.Sprintf("%s:%d", a.config.Host, a.config.Port),
 		Handler:        a.webEngine,

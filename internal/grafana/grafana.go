@@ -83,7 +83,6 @@ func createToken(config *Config) (string, error) {
 		log.Fatal("Invalid Grafana URL provided")
 	}
 	authenticatedURL := fmt.Sprintf("%s://%s:%s@%s%s/api/auth/keys", u.Scheme, config.User, config.Password, u.Host, u.Path)
-	fmt.Println(authenticatedURL)
 	req, err := http.NewRequest("POST", authenticatedURL, bytes.NewBuffer(tokenRequest))
 	if err != nil {
 		return "", err

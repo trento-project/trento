@@ -178,8 +178,21 @@ export const availableHanaCluster = {
       ],
     },
   ],
-  sbd: {
-    deviceName:
-      '/dev/disk/by-id/scsi-SLIO-ORG_IBLOCK_8d286026-c3a6-4404-90ac-f2549b924e77',
-  },
+  sbd: [
+    {
+      deviceName:
+        '/dev/disk/by-id/scsi-SLIO-ORG_IBLOCK_8d286026-c3a6-4404-90ac-f2549b924e77',
+      status: 'check_circle',
+    },
+    {
+      deviceName:
+        '/dev/disk/by-id/scsi-SLIO-ORG_IBLOCK_8d286026-c3a6-4404-90ac-f2549b912345',
+      status: 'error',
+    },
+    {
+      deviceName:
+        '/dev/disk/by-id/scsi-SLIO-ORG_IBLOCK_8d286026-c3a6-4404-90ac-f2549b954321',
+      status: 'fiber_manual_record',
+    },
+  ],
 };

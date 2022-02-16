@@ -169,9 +169,18 @@ context('HANA database details', () => {
     });
   });
 
-  describe('Cluster SBD should have the expected device name', () => {
-    it(`should have SBD device name ${availableHanaCluster.sbd.deviceName}`, () => {
-      cy.get('.card-body').contains(availableHanaCluster.sbd.deviceName);
+  describe('Cluster SBD should have the expected devices with the correct status', () => {
+    availableHanaCluster.sbd.forEach((item, index) => {
+      it(`should have SBD device name "${item.deviceName}" and status "${item.status}"`, () => {
+        cy.get('.eos-table')
+          .eq(2)
+          .find('tr')
+          .eq(index + 1)
+          .find('td')
+          .as('tableCell');
+        cy.get('@tableCell').eq(0).should('contain', item.status);
+        cy.get('@tableCell').eq(1).should('contain', item.deviceName);
+      });
     });
   });
 });

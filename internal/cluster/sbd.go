@@ -75,7 +75,6 @@ func NewSBD(cluster, sbdPath, sbdConfigPath string) (SBD, error) {
 		err := sbdDevice.LoadDeviceData()
 		if err != nil {
 			log.Printf("Error getting sbd information: %s", err)
-			continue
 		}
 		s.Devices = append(s.Devices, &sbdDevice)
 	}

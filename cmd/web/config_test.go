@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/suite"
 	"github.com/trento-project/trento/internal/db"
+	"github.com/trento-project/trento/internal/grafana"
 	"github.com/trento-project/trento/web"
 )
 
@@ -57,6 +58,11 @@ func (suite *WebCmdTestSuite) TearDownTest() {
 			Password: "password",
 			DBName:   "trento",
 		},
+		GrafanaConfig: &grafana.Config{
+			URL:      "http://grafana:3000",
+			User:     "adminuser",
+			Password: "password",
+		},
 	}
 	config, err := LoadConfig()
 	suite.NoError(err)
@@ -79,6 +85,9 @@ func (suite *WebCmdTestSuite) TestConfigFromFlags() {
 		"--db-user=postgres",
 		"--db-password=password",
 		"--db-name=trento",
+		"--grafana-url=http://grafana:3000",
+		"--grafana-user=adminuser",
+		"--grafana-password=password",
 	})
 }
 
@@ -95,6 +104,9 @@ func (suite *WebCmdTestSuite) TestConfigFromEnv() {
 	os.Setenv("TRENTO_DB_USER", "postgres")
 	os.Setenv("TRENTO_DB_PASSWORD", "password")
 	os.Setenv("TRENTO_DB_NAME", "trento")
+	os.Setenv("TRENTO_GRAFANA_URL", "http://grafana:3000")
+	os.Setenv("TRENTO_GRAFANA_USER", "adminuser")
+	os.Setenv("TRENTO_GRAFANA_PASSWORD", "password")
 }
 
 func (suite *WebCmdTestSuite) TestConfigFromFile() {

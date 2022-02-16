@@ -35,6 +35,7 @@ BuildRequires:  golang-packaging
 BuildRequires:  golang(API) = 1.16
 BuildRequires:  npm
 BuildRequires:  local-npm-registry
+Requires:       golang-github-prometheus-node_exporter
 Provides:       %{name} = %{version}-%{release}
 
 %{go_nostrip}

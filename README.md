@@ -89,6 +89,9 @@ The _Trento Server_ needs to reach the target infrastructure.
 The _Trento Agent_ component, on the other hand, needs to interact with a number of low-level system components
 which are part of the [SUSE Linux Enterprise Server for SAP Applications](https://www.suse.com/products/sles-for-sap/) Linux distribution.
 These could in theory also be installed and configured on other distributions providing the same functionalities, but this use case is not within the scope of the active development.
+
+In addition to that, the _Trento Agent_ also requires the [Prometheus node_exporter component](https://github.com/prometheus/node_exporter) to be running to collect host information for the monitoring functionality.
+
 The resource footprint of the _Trento Agent_ should not impact the performance of the host it runs on.
 
 ## Quick-Start installation
@@ -296,10 +299,27 @@ Trento Agents are responsible for discovering SAP systems, HA clusters and some 
 Cluster services, so running them in isolated environments (e.g. serverless,
 containers, etc.) makes little sense, as they won't be able as the discovery mechanisms will not be able to report any host information.
 
+> NOTE: Suggested installation instructions for SUSE-based distributions, adjust accordingly
+
+Install and start `node_exporter`:
+
+```shell
+zypper in -y golang-github-prometheus-node_exporter
+systemctl start prometheus-node_exporter
+```
+
 To start the trento agent:
 
 ```shell
 ./trento agent start
+```
+
+Alternatively, you can use the `trento-agent.service` from this repository and start it, which will start
+`node_exporter` automatically as a dependency:
+```shell
+cp packaging/systemd/trento-agent.service /etc/systemd/system
+systemctl daemon-reload
+systemctl start trento-agent.service
 ```
 
 > If the discovery loop is being executed too frequently, and this impacts the Web interface performance, the agent

@@ -417,7 +417,7 @@ jobs:
           set -ex
           for target_host in ${TRENTO_AGENT_HOSTS//,/ }
           do
-            ssh "$TRENTO_USER@$target_host" "sudo zypper in -y golang-github-prometheus-node_exporter" 
+            ssh "$TRENTO_USER@$target_host" "sudo zypper ref && sudo zypper in -y golang-github-prometheus-node_exporter" 
             ssh "$TRENTO_USER@$target_host" "TRENTO_REPO_OWNER=$TRENTO_REPO_OWNER sudo --preserve-env=PATH,TRENTO_REPO_OWNER bash -s" -- < ./install-agent.sh "--rolling" "--use-tgz" "--ssh-address" "$target_host" "--server-ip" "$TRENTO_SERVER_HOST"
             ssh "$TRENTO_USER@$target_host" "sudo systemctl enable --now trento-agent.service"
           done

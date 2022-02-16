@@ -382,3 +382,15 @@ func TestNewSBDError(t *testing.T) {
 	assert.Equal(t, expectedSbd, s)
 	assert.EqualError(t, err, "could not find SBD_DEVICE entry in sbd config file")
 }
+
+func TestNewSBDQuotedDevices(t *testing.T) {
+	sbdDumpExecCommand = mockSbdDump
+	sbdListExecCommand = mockSbdList
+
+	s, err := NewSBD("mycluster", "/bin/sbd", "../../test/sbd_config_quoted_devices")
+
+	assert.Equal(t, len(s.Devices), 2)
+	assert.Equal(t, "/dev/vdc", s.Devices[0].Device)
+	assert.Equal(t, "/dev/vdb", s.Devices[1].Device)
+	assert.NoError(t, err)
+}

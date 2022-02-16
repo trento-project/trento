@@ -70,7 +70,7 @@ func NewSBD(cluster, sbdPath, sbdConfigPath string) (SBD, error) {
 		return s, fmt.Errorf("could not find SBD_DEVICE entry in sbd config file")
 	}
 
-	for _, device := range strings.Split(c["SBD_DEVICE"].(string), ";") {
+	for _, device := range strings.Split(strings.Trim(c["SBD_DEVICE"].(string), "\""), ";") {
 		sbdDevice := NewSBDDevice(sbdPath, device)
 		err := sbdDevice.LoadDeviceData()
 		if err != nil {

@@ -1,8 +1,17 @@
 package models
 
+import (
+	"github.com/trento-project/trento/internal/sapsystem/sapcontrol"
+)
+
 const (
 	SAPSystemTypeApplication = "application"
 	SAPSystemTypeDatabase    = "database"
+
+	SAPSystemHealthPassing  = "passing"
+	SAPSystemHealthWarning  = "warning"
+	SAPSystemHealthCritical = "critical"
+	SAPSystemHealthUnknown  = "unknown"
 )
 
 type SAPSystem struct {
@@ -13,6 +22,7 @@ type SAPSystem struct {
 	AttachedDatabase *SAPSystem
 	DBName           string
 	DBHost           string
+	Health           string
 	Tags             []string
 	// TODO: this is frontend specific, should be removed
 	HasDuplicatedSID bool
@@ -47,4 +57,17 @@ func (s SAPSystem) GetAllInstances() []*SAPSystemInstance {
 	}
 
 	return instances
+}
+
+func (s SAPSystemInstance) Health() string {
+	switch s.Status {
+	case string(sapcontrol.STATECOLOR_RED):
+		return SAPSystemHealthCritical
+	case string(sapcontrol.STATECOLOR_YELLOW):
+		return SAPSystemHealthWarning
+	case string(sapcontrol.STATECOLOR_GREEN):
+		return SAPSystemHealthPassing
+	default:
+		return SAPSystemHealthUnknown
+	}
 }

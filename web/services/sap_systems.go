@@ -257,10 +257,25 @@ func (s *sapSystemsService) ernichSAPSystemList(sapSystemList models.SAPSystemLi
 	sids := make(map[string]int)
 	for _, sapSystem := range sapSystemList {
 		sids[sapSystem.SID] += 1
+		s.computeHealth(sapSystem)
 	}
 	for _, sapSystem := range sapSystemList {
 		if sids[sapSystem.SID] > 1 {
 			sapSystem.HasDuplicatedSID = true
+		}
+	}
+}
+
+func (s *sapSystemsService) computeHealth(sapSystem *models.SAPSystem) {
+	sapSystem.Health = models.SAPSystemHealthPassing
+	for _, sapInstance := range sapSystem.Instances {
+		switch {
+		case sapInstance.Health() == models.SAPSystemHealthCritical:
+			sapSystem.Health = models.SAPSystemHealthCritical
+		case sapSystem.Health != models.SAPSystemHealthCritical && sapInstance.Health() == models.SAPSystemHealthWarning:
+			sapSystem.Health = models.SAPSystemHealthWarning
+		case sapSystem.Health == models.SAPSystemHealthPassing && sapInstance.Health() == models.SAPSystemHealthUnknown:
+			sapSystem.Health = models.SAPSystemHealthUnknown
 		}
 	}
 }

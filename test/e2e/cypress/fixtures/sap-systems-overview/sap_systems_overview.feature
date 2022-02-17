@@ -53,3 +53,10 @@ Feature: SAP Systems Overview
         And the page is refreshed
         Then the status of the 3rd instance in this SAP system is RED
         And the SAP system state is RED
+
+    Scenario: System health state is changed upon new HANA database events attached
+        Given I navigate to the SAP Systems overview page
+        When a new HANA database event for the first SAP system with the 1st HANA instance with a RED status is received
+        And the page is refreshed
+        Then the status of the 1st HANA instance in this SAP system is RED
+        And the SAP system state is RED

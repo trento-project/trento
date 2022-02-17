@@ -37,16 +37,7 @@ func NewSAPSystemsService(db *gorm.DB) *sapSystemsService {
 }
 
 func (s *sapSystemsService) GetAllApplications(filter *SAPSystemFilter, page *Page) (models.SAPSystemList, error) {
-	applications, err := s.getAllByType(models.SAPSystemTypeApplication, models.TagSAPSystemResourceType, filter, page)
-
-	for _, a := range applications {
-		a.AttachedDatabase, err = s.getAttachedDatabase(a.DBName, a.DBHost)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return applications, err
+	return s.getAllByType(models.SAPSystemTypeApplication, models.TagSAPSystemResourceType, filter, page)
 }
 
 func (s *sapSystemsService) GetAllDatabases(filter *SAPSystemFilter, page *Page) (models.SAPSystemList, error) {
@@ -206,7 +197,10 @@ func (s *sapSystemsService) getAllByType(sapSystemType string, tagResourceType s
 	}
 
 	sapSystemList := instances.ToModel()
-	s.ernichSAPSystemList(sapSystemList)
+	err = s.ernichSAPSystemList(sapSystemList)
+	if err != nil {
+		return nil, err
+	}
 
 	return sapSystemList, nil
 }
@@ -253,22 +247,41 @@ func (s *sapSystemsService) getAttachedDatabase(dbName string, dbHost string) (*
 	return instances.ToModel()[0], nil
 }
 
-func (s *sapSystemsService) ernichSAPSystemList(sapSystemList models.SAPSystemList) {
+func (s *sapSystemsService) ernichSAPSystemList(sapSystemList models.SAPSystemList) error {
 	sids := make(map[string]int)
 	for _, sapSystem := range sapSystemList {
-		sids[sapSystem.SID] += 1
+		err := s.attachDatabase(sapSystem)
+		if err != nil {
+			return err
+		}
 		s.computeHealth(sapSystem)
+		// Store already found SIDs to find duplicates
+		sids[sapSystem.SID] += 1
 	}
+
 	for _, sapSystem := range sapSystemList {
 		if sids[sapSystem.SID] > 1 {
 			sapSystem.HasDuplicatedSID = true
 		}
 	}
+
+	return nil
+}
+
+func (s *sapSystemsService) attachDatabase(sapSystem *models.SAPSystem) error {
+	if sapSystem.Type == models.SAPSystemTypeApplication {
+		attachedDatabase, err := s.getAttachedDatabase(sapSystem.DBName, sapSystem.DBHost)
+		if err != nil {
+			return err
+		}
+		sapSystem.AttachedDatabase = attachedDatabase
+	}
+	return nil
 }
 
 func (s *sapSystemsService) computeHealth(sapSystem *models.SAPSystem) {
 	sapSystem.Health = models.SAPSystemHealthPassing
-	for _, sapInstance := range sapSystem.Instances {
+	for _, sapInstance := range sapSystem.GetAllInstances() {
 		switch {
 		case sapInstance.Health() == models.SAPSystemHealthCritical:
 			sapSystem.Health = models.SAPSystemHealthCritical

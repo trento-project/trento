@@ -230,7 +230,9 @@ context('SAP Systems Overview', () => {
       ];
 
       states.forEach(([state, health], index) => {
-        it(`should have ${state} health in SAP system and instance ${index + 1} when SAPControl-${state} state is received`, () => {
+        it(`should have ${state} health in SAP system and instance ${
+          index + 1
+        } when SAPControl-${state} state is received`, () => {
           cy.loadScenario(`sap-systems-overview-${state}`);
           cy.visit(`/sapsystems`);
 
@@ -252,6 +254,30 @@ context('SAP Systems Overview', () => {
 
           cy.get('@instanceTableCell').eq(0).should('contain', health);
         });
+      });
+
+      it(`should have RED health in SAP system and HANA instance 1 when SAPControl-RED state is received`, () => {
+        cy.loadScenario('healthy-27-node-SAP-cluster');
+        cy.loadScenario(`sap-systems-overview-hana-RED`);
+        cy.visit(`/sapsystems`);
+
+        cy.get('.eos-table')
+          .eq(0)
+          .find('tr')
+          .filter(':visible')
+          .eq(1)
+          .find('td')
+          .as('tableCell');
+        cy.get('@tableCell').eq(0).should('contain', 'error');
+
+        cy.get('.eos-table')
+          .eq(0)
+          .find('tr')
+          .eq(8) // + 4 moves selects the row within the collpased table
+          .find('td')
+          .as('instanceTableCell');
+
+        cy.get('@instanceTableCell').eq(0).should('contain', 'error');
       });
     });
   });

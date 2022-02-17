@@ -7,6 +7,8 @@ global:
   postgresql:
     name: postgresql
     servicePort: 5432
+  grafana:
+    name: grafana
 
 ### Sub Charts Specific Values ###
 trento-web:
@@ -47,6 +49,8 @@ prometheus:
 
 grafana:
   enabled: true
+  admin:
+    existingSecret: trento-server-grafana-secret
   grafana.ini:
     auth.anonymous:
       enabled: true

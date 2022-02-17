@@ -2,6 +2,7 @@ export const availableSAPSystems = [
   {
     sid: 'NWD',
     id: 'a1e80e3e152a903662f7882fb3f8a851',
+    health: 'check_circle',
     attachedDatabase: {
       sid: 'HDD',
       id: 'fd44c254ccb14331e54015c720c7a1f2',
@@ -11,6 +12,7 @@ export const availableSAPSystems = [
     instances: [
       {
         sid: 'NWD',
+        health: 'check_circle',
         features: 'MESSAGESERVER|ENQUE',
         instanceNumber: '00',
         systemReplication: '',
@@ -22,6 +24,7 @@ export const availableSAPSystems = [
       },
       {
         sid: 'NWD',
+        health: 'check_circle',
         features: 'ABAP|GATEWAY|ICMAN|IGS',
         instanceNumber: '01',
         systemReplication: '',
@@ -33,6 +36,7 @@ export const availableSAPSystems = [
       },
       {
         sid: 'NWD',
+        health: 'check_circle',
         features: 'ABAP|GATEWAY|ICMAN|IGS',
         instanceNumber: '02',
         systemReplication: '',
@@ -44,6 +48,7 @@ export const availableSAPSystems = [
       },
       {
         sid: 'NWD',
+        health: 'check_circle',
         features: 'ENQREP',
         instanceNumber: '10',
         systemReplication: '',
@@ -55,6 +60,7 @@ export const availableSAPSystems = [
       },
       {
         sid: 'HDD',
+        health: 'check_circle',
         features: 'HDB|HDB_WORKER',
         instanceNumber: '10',
         systemReplication: 'HANA Primary',
@@ -66,6 +72,7 @@ export const availableSAPSystems = [
       },
       {
         sid: 'HDD',
+        health: 'check_circle',
         features: 'HDB|HDB_WORKER',
         instanceNumber: '10',
         systemReplication: 'HANA Secondary',
@@ -81,6 +88,7 @@ export const availableSAPSystems = [
   {
     id: '97a1e70aeff3c0685d65c4c3d32d533b',
     sid: 'NWP',
+    health: 'check_circle',
     attachedDatabase: {
       sid: 'HDP',
       id: '1154f7678ac587e5f0f242830a5201f1',
@@ -90,6 +98,7 @@ export const availableSAPSystems = [
     instances: [
       {
         sid: 'NWP',
+        health: 'check_circle',
         features: 'MESSAGESERVER|ENQUE',
         instanceNumber: '00',
         systemReplication: '',
@@ -101,6 +110,7 @@ export const availableSAPSystems = [
       },
       {
         sid: 'NWP',
+        health: 'check_circle',
         features: 'ABAP|GATEWAY|ICMAN|IGS',
         instanceNumber: '01',
         systemReplication: '',
@@ -112,6 +122,7 @@ export const availableSAPSystems = [
       },
       {
         sid: 'NWP',
+        health: 'check_circle',
         features: 'ABAP|GATEWAY|ICMAN|IGS',
         instanceNumber: '02',
         systemReplication: '',
@@ -123,6 +134,7 @@ export const availableSAPSystems = [
       },
       {
         sid: 'NWP',
+        health: 'check_circle',
         features: 'ENQREP',
         instanceNumber: '10',
         systemReplication: '',
@@ -134,6 +146,7 @@ export const availableSAPSystems = [
       },
       {
         sid: 'HDP',
+        health: 'check_circle',
         features: 'HDB|HDB_WORKER',
         instanceNumber: '10',
         systemReplication: 'HANA Primary',
@@ -145,6 +158,7 @@ export const availableSAPSystems = [
       },
       {
         sid: 'HDP',
+        health: 'check_circle',
         features: 'HDB|HDB_WORKER',
         instanceNumber: '10',
         systemReplication: 'HANA Secondary',
@@ -160,6 +174,7 @@ export const availableSAPSystems = [
   {
     id: 'd01fdc69aeba7bd5133b210eb2884853',
     sid: 'NWQ',
+    health: 'check_circle',
     attachedDatabase: {
       sid: 'HDQ',
       id: '9953878f07bb54cac20d5d5d7ff08af2',
@@ -169,6 +184,7 @@ export const availableSAPSystems = [
     instances: [
       {
         sid: 'NWQ',
+        health: 'check_circle',
         features: 'MESSAGESERVER|ENQUE',
         instanceNumber: '00',
         systemReplication: '',
@@ -180,6 +196,7 @@ export const availableSAPSystems = [
       },
       {
         sid: 'NWQ',
+        health: 'check_circle',
         features: 'ABAP|GATEWAY|ICMAN|IGS',
         instanceNumber: '01',
         systemReplication: '',
@@ -191,6 +208,7 @@ export const availableSAPSystems = [
       },
       {
         sid: 'NWQ',
+        health: 'check_circle',
         features: 'ABAP|GATEWAY|ICMAN|IGS',
         instanceNumber: '02',
         systemReplication: '',
@@ -202,6 +220,7 @@ export const availableSAPSystems = [
       },
       {
         sid: 'NWQ',
+        health: 'check_circle',
         features: 'ENQREP',
         instanceNumber: '10',
         systemReplication: '',
@@ -213,6 +232,7 @@ export const availableSAPSystems = [
       },
       {
         sid: 'HDQ',
+        health: 'check_circle',
         features: 'HDB|HDB_WORKER',
         instanceNumber: '10',
         systemReplication: 'HANA Primary',
@@ -224,6 +244,7 @@ export const availableSAPSystems = [
       },
       {
         sid: 'HDQ',
+        health: 'check_circle',
         features: 'HDB|HDB_WORKER',
         instanceNumber: '10',
         systemReplication: 'HANA Secondary',

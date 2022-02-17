@@ -10,6 +10,7 @@ Feature: SAP Systems Overview
     Scenario: Registered SAP Systems should be available in the overview
         When I navigate to the SAP Systems overview page
         Then the discovered SID ar the expected ones
+        And the health of each of the systems is healthy
         And the links to the to the details page are working
 
     Scenario: Attached databases details should be available for each SAP System
@@ -20,6 +21,7 @@ Feature: SAP Systems Overview
     Scenario: Instances and their details should be available for each SAP System
         When I navigate to the SAP Systems overview page
         Then For each SAP System, the instances details (SID, Feature, Instance number) are the expected ones
+        And every instance has a healthy state
         And every instance has the correct host and cluster
         And the link to the host and cluster details page are working
         And the database instances have the correct System Replication and System replication status

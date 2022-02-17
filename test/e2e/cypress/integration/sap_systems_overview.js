@@ -19,6 +19,21 @@ context('SAP Systems Overview', () => {
       });
     });
 
+    describe('System healths are the expected ones', () => {
+      availableSAPSystems.forEach(({ sid: sid, health: health }, index) => {
+        it(`should have a health ${health} for sid ${sid}`, () => {
+          cy.get('.eos-table')
+            .eq(0)
+            .find('tr')
+            .filter(':visible')
+            .eq(index + 1)
+            .find('td')
+            .as('tableCell');
+          cy.get('@tableCell').eq(0).should('contain', health);
+        });
+      });
+    });
+
     describe('Links to the details page are the expected ones', () => {
       availableSAPSystems.forEach(({ sid: sid, id: id }) => {
         it(`should have a link to the SAP System with id: ${id}`, () => {
@@ -66,6 +81,7 @@ context('SAP Systems Overview', () => {
             .find('tr')
             .each((row, index) => {
               cy.wrap(row).within(() => {
+                cy.get('td').eq(0).should('contain', instances[index].health);
                 cy.get('td').eq(1).should('contain', instances[index].sid);
                 cy.get('td').eq(2).should('contain', instances[index].features);
                 cy.get('td')

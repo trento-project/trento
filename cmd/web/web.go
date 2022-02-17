@@ -66,7 +66,7 @@ func addServeCmd(webCmd *cobra.Command) {
 	serveCmd.Flags().StringVar(&ca, "ca", "", "mTLS Certificate Authority")
 
 	serveCmd.Flags().StringVar(&grafanaURL, "grafana-url", "http://localhost:3000", "Grafana URL")
-	serveCmd.Flags().StringVar(&grafanaUser, "grafana-user", "admin", "Grafan user")
+	serveCmd.Flags().StringVar(&grafanaUser, "grafana-user", "admin", "Grafana user")
 	serveCmd.Flags().StringVar(&grafanaPassword, "grafana-password", "", "Grafana password")
 
 	webCmd.AddCommand(serveCmd)

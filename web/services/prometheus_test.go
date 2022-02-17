@@ -70,15 +70,15 @@ func (suite *PrometheusServiceTestSuite) TestPrometheusService_GetHttpSDTargets(
 	suite.ElementsMatch(models.PrometheusTargetsList{
 		&models.PrometheusTargets{
 			Targets: []string{"192.168.1.1:9100"},
-			Labels:  map[string]string{"hostname": "host1"},
+			Labels:  map[string]string{"agentID": "1", "hostname": "host1"},
 		},
 		&models.PrometheusTargets{
 			Targets: []string{"192.168.1.2:9100"},
-			Labels:  map[string]string{"hostname": "host2"},
+			Labels:  map[string]string{"agentID": "2", "hostname": "host2"},
 		},
 		&models.PrometheusTargets{
 			Targets: []string{"192.168.1.3:9100"},
-			Labels:  map[string]string{"hostname": "host3"},
+			Labels:  map[string]string{"agentID": "3", "hostname": "host3"},
 		},
 	}, targets)
 }

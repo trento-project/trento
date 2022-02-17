@@ -221,5 +221,38 @@ context('SAP Systems Overview', () => {
         });
       });
     });
+
+    describe('Health states are updated', () => {
+      const states = [
+        ['GRAY', 'fiber_manual_record'],
+        ['YELLOW', 'warning'],
+        ['RED', 'error'],
+      ];
+
+      states.forEach(([state, health], index) => {
+        it(`should have ${state} health in SAP system and instance ${index + 1} when SAPControl-${state} state is received`, () => {
+          cy.loadScenario(`sap-systems-overview-${state}`);
+          cy.visit(`/sapsystems`);
+
+          cy.get('.eos-table')
+            .eq(0)
+            .find('tr')
+            .filter(':visible')
+            .eq(1)
+            .find('td')
+            .as('tableCell');
+          cy.get('@tableCell').eq(0).should('contain', health);
+
+          cy.get('.eos-table')
+            .eq(0)
+            .find('tr')
+            .eq(index + 4) // + 4 moves selects the row within the collpased table
+            .find('td')
+            .as('instanceTableCell');
+
+          cy.get('@instanceTableCell').eq(0).should('contain', health);
+        });
+      });
+    });
   });
 });

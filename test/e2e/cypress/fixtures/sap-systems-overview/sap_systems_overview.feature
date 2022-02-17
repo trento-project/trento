@@ -38,3 +38,18 @@ Feature: SAP Systems Overview
         And I tag the SAP System with SID 'NWD' with 'env3'
         When I filter by tag
         Then I should see only the SAP Systems with the tag I filtered by
+
+    Scenario: System health state is changed upon new SAP system events
+        Given I navigate to the SAP Systems overview page
+        When a new SAP system event for the first SAP system with the 1st instance with a GRAY status is received
+        And the page is refreshed
+        Then the status of the 1st instance in this SAP system is GRAY
+        And the SAP system state is GRAY
+        When a new SAP system event for the first SAP system with the 2nd instance with a YELLOW status is received
+        And the page is refreshed
+        Then the status of the 2nd instance in this SAP system is YELLOW
+        And the SAP system state is YELLOW
+        When a new SAP system event for the first SAP system with the 3rd instance with a RED status is received
+        And the page is refreshed
+        Then the status of the 3rd instance in this SAP system is RED
+        And the SAP system state is RED

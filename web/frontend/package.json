@@ -18,7 +18,7 @@
     "react-bootstrap": "^1.6.4",
     "react-dom": "^17.0.2",
     "react-toastify": "^8.2.0",
-    "sass": "^1.49.7"
+    "sass": "^1.49.8"
   },
   "devDependencies": {
     "@babel/core": "^7.17.5",

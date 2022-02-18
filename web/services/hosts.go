@@ -29,6 +29,7 @@ type HostsService interface {
 }
 
 type HostsFilter struct {
+	ID     []string
 	SIDs   []string
 	Tags   []string
 	Health []string
@@ -72,6 +73,10 @@ func (s *hostsService) GetAll(filter *HostsFilter, page *Page) (models.HostList,
 		Preload("SAPSystemInstances.Host")
 
 	if filter != nil {
+		if len(filter.ID) > 0 {
+			db = db.Where("agent_id IN (?)", filter.ID)
+		}
+
 		if len(filter.SIDs) > 0 {
 			db = db.Where("agent_id IN (?)", s.db.Model(&entities.SAPSystemInstance{}).
 				Select("agent_id").

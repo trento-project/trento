@@ -28,6 +28,7 @@ type ClustersService interface {
 }
 
 type ClustersFilter struct {
+	ID          []string
 	Name        []string
 	ClusterType []string
 	SIDs        []string
@@ -69,6 +70,10 @@ func (s *clustersService) GetAll(filter *ClustersFilter, page *Page) (models.Clu
 	db := s.db.Preload("Tags").Scopes(Paginate(page))
 
 	if filter != nil {
+		if len(filter.ID) > 0 {
+			db = db.Where("id IN (?)", filter.ID)
+		}
+
 		if len(filter.Name) > 0 {
 			db = db.Where("name IN (?)", filter.Name)
 		}

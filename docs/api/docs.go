@@ -599,6 +599,37 @@ var doc = `{
                 }
             }
         },
+        "/sapsystems/health": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Retrieve SAP Systems Health Summary",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.SAPSystemHealthSummary"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/sapsystems/{id}/tags": {
             "post": {
                 "consumes": [
@@ -808,6 +839,26 @@ var doc = `{
                     "type": "string"
                 },
                 "user": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.SAPSystemHealthSummary": {
+            "type": "object",
+            "properties": {
+                "clusters_health": {
+                    "type": "string"
+                },
+                "database_health": {
+                    "type": "string"
+                },
+                "hosts_health": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "sid": {
                     "type": "string"
                 }
             }

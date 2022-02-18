@@ -64,6 +64,7 @@ type Config struct {
 	DBConfig      *trentoDB.Config
 	GrafanaConfig *grafana.Config
 }
+
 type Dependencies struct {
 	webEngine               *gin.Engine
 	collectorEngine         *gin.Engine
@@ -77,6 +78,7 @@ type Dependencies struct {
 	clustersService         services.ClustersService
 	hostsService            services.HostsService
 	settingsService         services.SettingsService
+	healthSummaryService    services.HealthSummaryService
 	telemetryRegistry       *telemetry.TelemetryRegistry
 	telemetryPublisher      telemetry.Publisher
 	premiumDetectionService services.PremiumDetectionService
@@ -129,11 +131,12 @@ func DefaultDependencies(config *Config) Dependencies {
 	telemetryRegistry := telemetry.NewTelemetryRegistry(db)
 	telemetryPublisher := telemetry.NewTelemetryPublisher()
 	prometheusService := services.NewPrometheusService(db)
+	healthSummaryService := services.NewHealthSummaryService(sapSystemsService, clustersService, hostsService)
 
 	return Dependencies{
 		webEngine, collectorEngine, store, projectorWorkersPool,
 		checksService, subscriptionsService, tagsService,
-		collectorService, sapSystemsService, clustersService, hostsService, settingsService,
+		collectorService, sapSystemsService, clustersService, hostsService, settingsService, healthSummaryService,
 		telemetryRegistry, telemetryPublisher, premiumDetection, prometheusService,
 	}
 }
@@ -208,6 +211,7 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 		apiGroup.GET("/clusters/settings", ApiGetClustersSettingsHandler(deps.clustersService))
 		apiGroup.POST("/sapsystems/:id/tags", ApiSAPSystemCreateTagHandler(deps.sapSystemsService, deps.tagsService))
 		apiGroup.DELETE("/sapsystems/:id/tags/:tag", ApiSAPSystemDeleteTagHandler(deps.sapSystemsService, deps.tagsService))
+		apiGroup.GET("/sapsystems/health", ApiSAPSystemsHealthSummaryHandler(deps.healthSummaryService))
 		apiGroup.POST("/databases/:id/tags", ApiDatabaseCreateTagHandler(deps.sapSystemsService, deps.tagsService))
 		apiGroup.DELETE("/databases/:id/tags/:tag", ApiDatabaseDeleteTagHandler(deps.sapSystemsService, deps.tagsService))
 		apiGroup.GET("/checks/:id/settings", ApiCheckGetSettingsByIdHandler(deps.clustersService))

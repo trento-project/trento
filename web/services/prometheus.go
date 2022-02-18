@@ -36,6 +36,7 @@ func (p *prometheusService) GetHttpSDTargets() (models.PrometheusTargetsList, er
 		targets := &models.PrometheusTargets{
 			Targets: []string{fmt.Sprintf("%s:%d", host.SSHAddress, nodeExporterPort)},
 			Labels: map[string]string{
+				"agentID":  host.AgentID,
 				"hostname": host.Name,
 			},
 		}

@@ -186,7 +186,7 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 	webEngine.GET("/eula", EulaShowHandler())
 	webEngine.POST("/accept-eula", EulaAcceptHandler(deps.settingsService))
 	webEngine.GET("/hosts", NewHostListHandler(deps.hostsService))
-	webEngine.GET("/hosts/:id", NewHostHandler(deps.hostsService, deps.subscriptionsService))
+	webEngine.GET("/hosts/:id", NewHostHandler(deps.hostsService, deps.subscriptionsService, config.GrafanaConfig.URL))
 	webEngine.GET("/catalog", NewChecksCatalogHandler(deps.checksService))
 	webEngine.GET("/clusters", NewClusterListHandler(deps.clustersService))
 	webEngine.GET("/clusters/:id", NewClusterHandler(deps.clustersService))

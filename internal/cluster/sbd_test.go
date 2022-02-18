@@ -382,3 +382,75 @@ func TestNewSBDError(t *testing.T) {
 	assert.Equal(t, expectedSbd, s)
 	assert.EqualError(t, err, "could not find SBD_DEVICE entry in sbd config file")
 }
+
+func TestNewSBDUnhealthyDevices(t *testing.T) {
+	sbdDumpExecCommand = mockSbdDumpErr
+	sbdListExecCommand = mockSbdListErr
+
+	s, err := NewSBD("mycluster", "/bin/sbd", "../../test/sbd_config")
+
+	expectedSbd := SBD{
+		cluster: "mycluster",
+		Config: map[string]interface{}{
+			"SBD_PACEMAKER":           "yes",
+			"SBD_STARTMODE":           "always",
+			"SBD_DELAY_START":         "no",
+			"SBD_WATCHDOG_DEV":        "/dev/watchdog",
+			"SBD_WATCHDOG_TIMEOUT":    "5",
+			"SBD_TIMEOUT_ACTION":      "flush,reboot",
+			"SBD_MOVE_TO_ROOT_CGROUP": "auto",
+			"SBD_DEVICE":              "/dev/vdc;/dev/vdb",
+			"TEST":                    "Value",
+			"TEST2":                   "Value2",
+		},
+		Devices: []*SBDDevice{
+			&SBDDevice{
+				sbdPath: "/bin/sbd",
+				Device:  "/dev/vdc",
+				Status:  "unhealthy",
+				Dump: SBDDump{
+					Header:          "2.1",
+					Uuid:            "541bdcea-16af-44a4-8ab9-6a98602e65ca",
+					Slots:           0,
+					SectorSize:      0,
+					TimeoutWatchdog: 0,
+					TimeoutAllocate: 0,
+					TimeoutLoop:     0,
+					TimeoutMsgwait:  0,
+				},
+				List: []*SBDNode{},
+			},
+			&SBDDevice{
+				sbdPath: "/bin/sbd",
+				Device:  "/dev/vdb",
+				Status:  "unhealthy",
+				Dump: SBDDump{
+					Header:          "2.1",
+					Uuid:            "541bdcea-16af-44a4-8ab9-6a98602e65ca",
+					Slots:           0,
+					SectorSize:      0,
+					TimeoutWatchdog: 0,
+					TimeoutAllocate: 0,
+					TimeoutLoop:     0,
+					TimeoutMsgwait:  0,
+				},
+				List: []*SBDNode{},
+			},
+		},
+	}
+
+	assert.Equal(t, expectedSbd, s)
+	assert.NoError(t, err)
+}
+
+func TestNewSBDQuotedDevices(t *testing.T) {
+	sbdDumpExecCommand = mockSbdDump
+	sbdListExecCommand = mockSbdList
+
+	s, err := NewSBD("mycluster", "/bin/sbd", "../../test/sbd_config_quoted_devices")
+
+	assert.Equal(t, len(s.Devices), 2)
+	assert.Equal(t, "/dev/vdc", s.Devices[0].Device)
+	assert.Equal(t, "/dev/vdb", s.Devices[1].Device)
+	assert.NoError(t, err)
+}

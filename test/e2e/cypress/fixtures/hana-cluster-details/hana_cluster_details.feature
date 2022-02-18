@@ -37,6 +37,7 @@ Feature: HANA cluster details
         And the "Attribute" tab should show the expected host attributes
         And the "Resources" tab should show the expected host resources
 
-    Scenario: Cluster SBD should have the expected device name
+    Scenario: Cluster SBD should have the expected devices and status
         When I scroll to the SBD section
-        Then it should show the expected SBD device name
+        Then it should show the expected SBD devices name
+        And they should have the expected health

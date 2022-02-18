@@ -359,6 +359,7 @@ func parseSBDDevices(c *cluster.Cluster) []*entities.SBDDevice {
 	for _, s := range c.SBD.Devices {
 		sbdDevice := &entities.SBDDevice{
 			Device: s.Device,
+			Status: s.Status,
 		}
 		sbdDevices = append(sbdDevices, sbdDevice)
 	}

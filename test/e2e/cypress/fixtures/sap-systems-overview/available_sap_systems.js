@@ -1,3 +1,11 @@
+const HANASystemReplicationModes = {
+  Primary: "HANA Primary",
+  Secondary: "HANA Secondary"
+}
+
+export const isHanaSecondary = (instance) => instance.systemReplication == HANASystemReplicationModes.Secondary
+export const isHanaPrimary = (instance) => instance.systemReplication == HANASystemReplicationModes.Primary
+
 export const availableSAPSystems = [
   {
     sid: 'NWD',
@@ -63,7 +71,7 @@ export const availableSAPSystems = [
         health: 'check_circle',
         features: 'HDB|HDB_WORKER',
         instanceNumber: '10',
-        systemReplication: 'HANA Primary',
+        systemReplication: HANASystemReplicationModes.Primary,
         systemReplicationStatus: 'SOK',
         clusterName: 'hana_cluster',
         clusterID: '04b8f8c21f9fd8991224478e8c4362f8',
@@ -75,8 +83,8 @@ export const availableSAPSystems = [
         health: 'check_circle',
         features: 'HDB|HDB_WORKER',
         instanceNumber: '10',
-        systemReplication: 'HANA Secondary',
-        systemReplicationStatus: '',
+        systemReplication: HANASystemReplicationModes.Secondary,
+        systemReplicationStatus: 'SOK',
         clusterName: 'hana_cluster',
         clusterID: '04b8f8c21f9fd8991224478e8c4362f8',
         hostname: 'vmhdbdev02',
@@ -149,7 +157,7 @@ export const availableSAPSystems = [
         health: 'check_circle',
         features: 'HDB|HDB_WORKER',
         instanceNumber: '10',
-        systemReplication: 'HANA Primary',
+        systemReplication: HANASystemReplicationModes.Primary,
         systemReplicationStatus: 'SOK',
         clusterName: 'hana_cluster',
         clusterID: '04b8f8c21f9fd8991224478e8c4362f8',
@@ -161,8 +169,8 @@ export const availableSAPSystems = [
         health: 'check_circle',
         features: 'HDB|HDB_WORKER',
         instanceNumber: '10',
-        systemReplication: 'HANA Secondary',
-        systemReplicationStatus: '',
+        systemReplication: HANASystemReplicationModes.Secondary,
+        systemReplicationStatus: 'SOK',
         clusterName: 'hana_cluster',
         clusterID: '04b8f8c21f9fd8991224478e8c4362f8',
         hostname: 'vmhdbprd02',
@@ -235,7 +243,7 @@ export const availableSAPSystems = [
         health: 'check_circle',
         features: 'HDB|HDB_WORKER',
         instanceNumber: '10',
-        systemReplication: 'HANA Primary',
+        systemReplication:  HANASystemReplicationModes.Primary,
         systemReplicationStatus: 'SOK',
         clusterName: 'hana_cluster',
         clusterID: '04b8f8c21f9fd8991224478e8c4362f8',
@@ -247,8 +255,8 @@ export const availableSAPSystems = [
         health: 'check_circle',
         features: 'HDB|HDB_WORKER',
         instanceNumber: '10',
-        systemReplication: 'HANA Secondary',
-        systemReplicationStatus: '',
+        systemReplication: HANASystemReplicationModes.Secondary,
+        systemReplicationStatus: 'SOK',
         clusterName: 'hana_cluster',
         clusterID: '04b8f8c21f9fd8991224478e8c4362f8',
         hostname: 'vmhdbqas02',

@@ -24,7 +24,7 @@ Feature: SAP Systems Overview
         And every instance has a healthy state
         And every instance has the correct host and cluster
         And the link to the host and cluster details page are working
-        And the database instances have the correct System Replication and System replication status
+        And the database instances have the correct System Replication and System replication status attached to Secondary Nodes
 
     Scenario: Filtering the SAP Systems by SID
         Given I navigate to the SAP Systems overview page

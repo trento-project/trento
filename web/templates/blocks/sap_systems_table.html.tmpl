@@ -67,7 +67,7 @@
                                     {{- if eq .Type "database" }}
                                         {{- if .SystemReplication }}
                                             <td>HANA {{ .SystemReplication }}
-                                            {{- if eq .SystemReplication "Primary" }}
+                                            {{- if eq .SystemReplication "Secondary" }}
                                                 <span class="badge badge-pill badge-{{ if eq .SystemReplicationStatus "SOK" }}success{{ else }}danger{{ end }}">{{ .SystemReplicationStatus }}</span>
                                             {{- end }}
                                             </td>

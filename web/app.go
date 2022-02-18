@@ -45,6 +45,7 @@ var DBTables = []interface{}{
 	&entities.Check{}, &datapipeline.DataCollectedEvent{}, &datapipeline.Subscription{},
 	&entities.HostTelemetry{}, &entities.Cluster{}, &entities.Host{}, &entities.HostHeartbeat{},
 	&entities.SlesSubscription{}, &entities.SAPSystemInstance{}, &entities.ChecksResult{},
+	&entities.HealthState{},
 }
 
 type App struct {

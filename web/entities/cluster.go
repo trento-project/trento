@@ -14,6 +14,7 @@ type Cluster struct {
 	SID             string `gorm:"column:sid"`
 	ResourcesNumber int
 	HostsNumber     int
+	Health          *HealthState  `gorm:"foreignkey:id"`
 	Tags            []*models.Tag `gorm:"polymorphic:Resource;polymorphicValue:clusters"`
 	UpdatedAt       time.Time
 	Hosts           []*Host        `gorm:"foreignkey:cluster_id"`
@@ -61,6 +62,11 @@ func (c *Cluster) ToModel() *models.Cluster {
 		tags = append(tags, tag.Value)
 	}
 
+	health := models.HealthSummaryHealthUnknown
+	if c.Health != nil {
+		health = c.Health.Health
+	}
+
 	return &models.Cluster{
 		ID:              c.ID,
 		Name:            c.Name,
@@ -68,6 +74,7 @@ func (c *Cluster) ToModel() *models.Cluster {
 		SID:             c.SID,
 		ResourcesNumber: c.ResourcesNumber,
 		HostsNumber:     c.HostsNumber,
+		Health:          health,
 		Tags:            tags,
 	}
 }

@@ -24,9 +24,10 @@ func setupTestConfig() *Config {
 		Host: "",
 		Port: 80,
 		GrafanaConfig: &grafana.Config{
-			URL:      "localhost",
-			User:     "admin",
-			Password: "admin",
+			PublicURL: "localhost",
+			ApiURL:    "localhost",
+			User:      "admin",
+			Password:  "admin",
 		},
 	}
 }

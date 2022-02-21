@@ -21,9 +21,17 @@ import (
 var nodeDashboard []byte
 
 type Config struct {
-	URL      string
-	User     string
-	Password string
+	PublicURL string
+	ApiURL    string
+	User      string
+	Password  string
+}
+
+func (config Config) BaseUrl() string {
+	if config.PublicURL != "" {
+		return config.PublicURL
+	}
+	return config.ApiURL
 }
 
 func InitGrafana(ctx context.Context, config *Config) error {
@@ -36,7 +44,7 @@ func InitGrafana(ctx context.Context, config *Config) error {
 				return err
 			}
 
-			dashboardsURL := fmt.Sprintf("%s/%s", config.URL, "api/dashboards/db")
+			dashboardsURL := fmt.Sprintf("%s/%s", config.ApiURL, "api/dashboards/db")
 			req, err := http.NewRequest("POST", dashboardsURL, bytes.NewBuffer(nodeDashboard))
 			if err != nil {
 				return err
@@ -78,7 +86,7 @@ func createToken(config *Config) (string, error) {
 		"secondsToLive": 60,
 	})
 
-	u, err := url.Parse(config.URL)
+	u, err := url.Parse(config.ApiURL)
 	if err != nil {
 		log.Fatal("Invalid Grafana URL provided")
 	}

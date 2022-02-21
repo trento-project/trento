@@ -11,19 +11,6 @@ context('Clusters Overview', () => {
     cy.resetDatabase();
     cy.loadScenario('healthy-27-node-SAP-cluster');
     cy.loadChecksCatalog('checks-catalog/catalog.json');
-    cy.loadChecksResults(
-      'clusters-overview/checks_results_critical.json',
-      '04b8f8c21f9fd8991224478e8c4362f8'
-    );
-    cy.loadChecksResults(
-      'clusters-overview/checks_results_warning.json',
-      '4e905d706da85f5be14f85fa947c1e39'
-    );
-    cy.loadChecksResults(
-      'clusters-overview/checks_results_passing.json',
-      '9c832998801e28cd70ad77380e82a5c0'
-    );
-
     cy.visit('/');
     cy.navigateToItem('Clusters');
     cy.url().should('include', '/clusters');
@@ -53,7 +40,82 @@ context('Clusters Overview', () => {
     });
   });
 
-  describe('Health Detection', () => {
+  describe('Health State', () => {
+    before(() => {
+      cy.pruneChecksResults();
+    });
+
+    const healthStates = [
+      ['check_circle', '4', 'SOK'],
+      ['error', '1', 'SOK'],
+      ['error', '4', 'SFAIL'],
+      ['error', '1', 'SFAIL'],
+    ];
+    healthStates.forEach(([health, srState, syncState]) => {
+      it(`should show a ${health} state when SR health state is ${srState} and sync state is ${syncState}`, () => {
+        cy.loadScenario(`cluster-${srState}-${syncState}`);
+        cy.visit(`/clusters`);
+
+        cy.get(`#cluster-${clusterIdByName('hana_cluster_1')}`)
+          .find('td')
+          .as('tableCell');
+        cy.get('@tableCell').eq(0).should('contain', health);
+      });
+    });
+
+    const healthStatesWithChecks = [
+      ['check_circle', '4', 'SOK', 'passing'],
+      ['error', '1', 'SFAIL', 'passing'],
+      ['warning', '4', 'SOK', 'warning'],
+      ['error', '4', 'SOK', 'critical'],
+    ];
+
+    healthStatesWithChecks.forEach(
+      ([health, srState, syncState, checksResult]) => {
+        it(`should show a ${health} state when SR health state is ${srState} and sync state is ${syncState} and checks results are ${checksResult}`, () => {
+          cy.loadScenario(`cluster-${srState}-${syncState}`);
+          cy.loadChecksResults(
+            `clusters-overview/checks_results_${checksResult}.json`,
+            '04b8f8c21f9fd8991224478e8c4362f8'
+          );
+
+          cy.visit(`/clusters`);
+
+          cy.get(`#cluster-${clusterIdByName('hana_cluster_1')}`)
+            .find('td')
+            .as('tableCell');
+          cy.get('@tableCell').eq(0).should('contain', health);
+        });
+      }
+    );
+
+    it('should show an unknown state when the cluster is not of HANA type', () => {
+      cy.visit(`/clusters`);
+
+      cy.get(`#cluster-${clusterIdByName('drbd_cluster')}`)
+        .find('td')
+        .as('tableCell');
+      cy.get('@tableCell').eq(0).should('contain', 'fiber_manual_record');
+    });
+  });
+
+  describe('Health Container', () => {
+    before(() => {
+      cy.pruneChecksResults();
+      cy.loadChecksResults(
+        'clusters-overview/checks_results_critical.json',
+        '04b8f8c21f9fd8991224478e8c4362f8'
+      );
+      cy.loadChecksResults(
+        'clusters-overview/checks_results_warning.json',
+        '4e905d706da85f5be14f85fa947c1e39'
+      );
+      cy.loadChecksResults(
+        'clusters-overview/checks_results_passing.json',
+        '9c832998801e28cd70ad77380e82a5c0'
+      );
+    });
+
     describe('Health Container shows the health overview of all Clusters', () => {
       it('should show health status of the entire cluster when set to paginate by 10', () => {
         cy.reloadList('clusters', 10);

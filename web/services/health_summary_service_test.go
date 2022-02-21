@@ -23,9 +23,10 @@ func (suite *HealthSummaryServiceTestSuite) TestGetHealthSummary() {
 
 	sapSystemsService.On("GetAllApplications", mock.Anything, mock.Anything).Return(models.SAPSystemList{
 		{
-			ID:   "application_id",
-			SID:  "HA1",
-			Type: models.SAPSystemTypeApplication,
+			ID:     "application_id",
+			SID:    "HA1",
+			Type:   models.SAPSystemTypeApplication,
+			Health: models.SAPSystemHealthPassing,
 			Instances: []*models.SAPSystemInstance{
 				{
 					HostID:    "netweaver01",
@@ -52,10 +53,6 @@ func (suite *HealthSummaryServiceTestSuite) TestGetHealthSummary() {
 
 	clustersService.On("GetAll", mock.Anything, mock.Anything).Return(models.ClusterList{
 		{
-			ID:     "cluster_id",
-			Health: models.CheckPassing,
-		},
-		{
 			ID:     "hana_cluster",
 			Health: models.CheckCritical,
 		},
@@ -76,8 +73,9 @@ func (suite *HealthSummaryServiceTestSuite) TestGetHealthSummary() {
 
 	suite.EqualValues(models.HealthSummary{{
 		ID: "application_id", SID: "HA1",
-		ClustersHealth: "critical",
-		DatabaseHealth: "passing",
-		HostsHealth:    "warning",
+		SAPSystemHealth: models.HealthSummaryHealthPassing,
+		ClustersHealth:  models.HealthSummaryHealthCritical,
+		DatabaseHealth:  models.HealthSummaryHealthPassing,
+		HostsHealth:     models.HealthSummaryHealthWarning,
 	}}, healthSummary)
 }

@@ -68,7 +68,9 @@ func (suite *ChecksServiceTestSuite) SetupSuite() {
 	suite.premiumDetection.On("IsPremiumActive").Return(false, nil)
 
 	suite.db.AutoMigrate(
-		entities.Check{}, entities.ChecksResult{}, models.SelectedChecks{}, models.ConnectionSettings{})
+		entities.Check{}, entities.ChecksResult{}, models.SelectedChecks{},
+		models.ConnectionSettings{}, entities.HealthState{},
+	)
 	loadChecksCatalogFixtures(suite.db)
 	loadChecksResultFixtures(suite.db)
 	loadSelectedChecksFixtures(suite.db)
@@ -76,10 +78,10 @@ func (suite *ChecksServiceTestSuite) SetupSuite() {
 }
 
 func (suite *ChecksServiceTestSuite) TearDownSuite() {
-	suite.db.Migrator().DropTable(entities.Check{})
-	suite.db.Migrator().DropTable(entities.ChecksResult{})
-	suite.db.Migrator().DropTable(models.SelectedChecks{})
-	suite.db.Migrator().DropTable(models.ConnectionSettings{})
+	suite.db.Migrator().DropTable(
+		entities.Check{}, entities.ChecksResult{}, models.SelectedChecks{},
+		models.ConnectionSettings{}, entities.HealthState{},
+	)
 }
 
 func (suite *ChecksServiceTestSuite) SetupTest() {
@@ -396,6 +398,16 @@ func (suite *ChecksServiceTestSuite) TestChecksService_CreateChecksResult() {
 	json.Unmarshal(checksResultEntity.Payload, &resultsStored)
 	suite.NoError(err)
 	suite.Equal(results, &resultsStored)
+
+	var health entities.HealthState
+	suite.tx.First(&health)
+
+	var partialHealth map[string]string
+	json.Unmarshal(health.PartialHealths, &partialHealth)
+
+	suite.Equal(health.ID, "group1")
+	suite.Equal("critical", health.Health)
+	suite.Equal(map[string]string{"config_checks": "critical"}, partialHealth)
 }
 
 func (suite *ChecksServiceTestSuite) TestChecksService_GetAggregatedChecksResultByHost() {

@@ -27,12 +27,18 @@ func TestClustersServiceTestSuite(t *testing.T) {
 func (suite *ClustersServiceTestSuite) SetupSuite() {
 	suite.db = helpers.SetupTestDatabase(suite.T())
 
-	suite.db.AutoMigrate(entities.Cluster{}, entities.Host{}, models.Tag{}, models.SelectedChecks{}, models.ConnectionSettings{}, entities.ChecksResult{})
+	suite.db.AutoMigrate(
+		entities.Cluster{}, entities.Host{}, models.Tag{}, models.SelectedChecks{},
+		models.ConnectionSettings{}, entities.ChecksResult{}, entities.HealthState{},
+	)
 	loadClustersFixtures(suite.db)
 }
 
 func (suite *ClustersServiceTestSuite) TearDownSuite() {
-	suite.db.Migrator().DropTable(entities.Cluster{}, entities.Host{}, models.Tag{}, models.SelectedChecks{}, models.ConnectionSettings{}, entities.ChecksResult{})
+	suite.db.Migrator().DropTable(
+		entities.Cluster{}, entities.Host{}, models.Tag{}, models.SelectedChecks{},
+		models.ConnectionSettings{}, entities.ChecksResult{}, entities.HealthState{},
+	)
 }
 
 func (suite *ClustersServiceTestSuite) SetupTest() {
@@ -136,6 +142,27 @@ func loadClustersFixtures(db *gorm.DB) {
 				CloudData:     cloudData,
 			},
 		},
+	})
+
+	partialHealths1, _ := json.Marshal(map[string]string{"hana_sr_health": "passing"})
+	db.Create(&entities.HealthState{
+		ID:             "1",
+		Health:         "passing",
+		PartialHealths: partialHealths1,
+	})
+
+	partialHealths2, _ := json.Marshal(map[string]string{"hana_sr_health": "warning"})
+	db.Create(&entities.HealthState{
+		ID:             "2",
+		Health:         "warning",
+		PartialHealths: partialHealths2,
+	})
+
+	partialHealths3, _ := json.Marshal(map[string]string{"hana_sr_health": "critical"})
+	db.Create(&entities.HealthState{
+		ID:             "3",
+		Health:         "critical",
+		PartialHealths: partialHealths3,
 	})
 }
 

@@ -43,9 +43,10 @@ func LoadConfig() (*web.Config, error) {
 		CA:            ca,
 		DBConfig:      dbCmd.LoadConfig(),
 		GrafanaConfig: &grafana.Config{
-			URL:      viper.GetString("grafana-url"),
-			User:     viper.GetString("grafana-user"),
-			Password: viper.GetString("grafana-password"),
+			PublicURL: viper.GetString("grafana-public-url"),
+			ApiURL:    viper.GetString("grafana-api-url"),
+			User:      viper.GetString("grafana-user"),
+			Password:  viper.GetString("grafana-password"),
 		},
 	}, nil
 }

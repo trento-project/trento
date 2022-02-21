@@ -405,7 +405,7 @@ func computeDiscoveredHANAHealth(c *entities.Cluster) (string, error) {
 
 	// Passing state if SR Health state is 4 and Sync state is SOK, everything else is critical
 	// If data is not present for some reason the state goes to unknown
-	if srHealthState == models.HANASrHealth4 && srSyncState == models.HANASrSyncSOK {
+	if srHealthState == models.HANASrHealthOK && srSyncState == models.HANASrSyncSOK {
 		srHealth = models.HealthSummaryHealthPassing
 	} else if srHealthState == "" || srSyncState == "" {
 		srHealth = models.HealthSummaryHealthUnknown

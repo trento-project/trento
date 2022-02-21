@@ -76,7 +76,7 @@ Return Trento Web service port
 Return or generate the grafana admin password
 */}}
 {{- define "trento.grafana.password" -}}
-  {{- $secret := (lookup "v1" "Secret" .Release.Namespace "grafana-secret") -}}
+  {{- $secret := (lookup "v1" "Secret" .Release.Namespace "trento-server-grafana-secret") -}}
   {{- if $secret -}}
     {{- index $secret "data" "admin-password" -}}
   {{- else -}}

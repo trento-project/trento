@@ -17,6 +17,22 @@ Feature: Pacemaker Clusters Overview
         When I navigate to the Pacemaker Clusters Overview (/clusters)
         Then the displayed clusters should be the ones listed above
 
+    Scenario: Clusters health state matches the cluster health and checks results outcome
+        Given I am in the Pacemaker Clusters Overview
+        When the SR state is 4 and sync state is SOK and checks are passing
+        Then the cluster with id '04b8f8c21f9fd8991224478e8c4362f8' is in Pasing status
+        When the SR state is 1 and sync state is SFAIL and checks are passing
+        Then the cluster with id '04b8f8c21f9fd8991224478e8c4362f8' is in Critical status
+        When the SR state is 4 and sycn state is SOK and checs are in Warning
+        Then the cluster with id '04b8f8c21f9fd8991224478e8c4362f8' is in Warning status
+        When the SR state is 4 and sycn state is SOK and checs are in Critical
+        Then the cluster with id '04b8f8c21f9fd8991224478e8c4362f8' is in Critical status
+
+    Scenario: Clusters that are not HANA type have unknown health state
+        Given I am in the Pacemaker Clusters Overview
+        When a non HANA cluster is discovered
+        Then the cluster is in Unknown status
+
     Scenario: Health Container information matches the status of the listed clusters
         Given I am in the Pacemaker Clusters Overview
         When the health container is ready

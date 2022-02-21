@@ -1,4 +1,8 @@
-import { availableSAPSystems, isHanaPrimary, isHanaSecondary } from '../fixtures/sap-systems-overview/available_sap_systems';
+import {
+  availableSAPSystems,
+  isHanaPrimary,
+  isHanaSecondary,
+} from '../fixtures/sap-systems-overview/available_sap_systems';
 
 context('SAP Systems Overview', () => {
   before(() => {
@@ -92,13 +96,19 @@ context('SAP Systems Overview', () => {
                   .should('contain', instances[index].systemReplication);
                 if (isHanaPrimary(instances[index])) {
                   cy.get('td')
-                  .eq(4)
-                  .should('not.contain', instances[index].systemReplicationStatus);
+                    .eq(4)
+                    .should(
+                      'not.contain',
+                      instances[index].systemReplicationStatus
+                    );
                 }
                 if (isHanaSecondary(instances[index])) {
                   cy.get('td')
-                  .eq(4)
-                  .should('contain', instances[index].systemReplicationStatus);
+                    .eq(4)
+                    .should(
+                      'contain',
+                      instances[index].systemReplicationStatus
+                    );
                 }
                 cy.get('td')
                   .eq(5)

@@ -1,10 +1,12 @@
 const HANASystemReplicationModes = {
-  Primary: "HANA Primary",
-  Secondary: "HANA Secondary"
-}
+  Primary: 'HANA Primary',
+  Secondary: 'HANA Secondary',
+};
 
-export const isHanaSecondary = (instance) => instance.systemReplication == HANASystemReplicationModes.Secondary
-export const isHanaPrimary = (instance) => instance.systemReplication == HANASystemReplicationModes.Primary
+export const isHanaSecondary = (instance) =>
+  instance.systemReplication == HANASystemReplicationModes.Secondary;
+export const isHanaPrimary = (instance) =>
+  instance.systemReplication == HANASystemReplicationModes.Primary;
 
 export const availableSAPSystems = [
   {
@@ -243,7 +245,7 @@ export const availableSAPSystems = [
         health: 'check_circle',
         features: 'HDB|HDB_WORKER',
         instanceNumber: '10',
-        systemReplication:  HANASystemReplicationModes.Primary,
+        systemReplication: HANASystemReplicationModes.Primary,
         systemReplicationStatus: 'SOK',
         clusterName: 'hana_cluster',
         clusterID: '04b8f8c21f9fd8991224478e8c4362f8',

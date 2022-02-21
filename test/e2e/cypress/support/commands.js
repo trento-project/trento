@@ -59,6 +59,17 @@ Cypress.Commands.add('resetDatabase', () => {
   );
 });
 
+Cypress.Commands.add('pruneChecksResults', () => {
+  cy.log('Resetting DB...');
+  cy.exec(
+    `${Cypress.env(
+      'trento_binary'
+    )} ctl prune-checks-results --db-host=${Cypress.env(
+      'db_host'
+    )} --db-port=${Cypress.env('db_port')}`
+  );
+});
+
 Cypress.Commands.add('loadScenario', (scenario) => {
   const [fixturesPath, photofinishBinary, collectorHost, collectorPort] = [
     Cypress.env('fixtures_path'),

@@ -54,7 +54,9 @@ spec:
               value: "{{ .Values.webService.port }}"
             - name: TRENTO_COLLECTOR_PORT
               value: "{{ .Values.collectorService.port }}"
-            - name: TRENTO_GRAFANA_URL
+            - name: TRENTO_GRAFANA_PUBLIC_URL
+              value: /grafana
+            - name: TRENTO_GRAFANA_API_URL
               value: "http://{{ .Release.Name }}-{{ .Values.global.grafana.name }}"
             - name: TRENTO_GRAFANA_PASSWORD
               value: {{ $grafanaSecret | b64dec }}

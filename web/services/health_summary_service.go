@@ -34,17 +34,12 @@ func (s *healthSummaryService) GetHealthSummary() (models.HealthSummary, error) 
 	}
 
 	for _, sapSystem := range sapSystems {
-		var clusterIDs []string
 		var hostIDs []string
+		var clusterIDs []string
 
 		for _, instance := range sapSystem.GetAllInstances() {
-			clusterIDs = append(clusterIDs, instance.ClusterID)
 			hostIDs = append(hostIDs, instance.HostID)
-		}
-
-		clusters, err := s.clustersService.GetAll(&ClustersFilter{ID: clusterIDs}, nil)
-		if err != nil {
-			return nil, err
+			clusterIDs = append(clusterIDs, instance.ClusterID)
 		}
 
 		hosts, err := s.hostsService.GetAll(&HostsFilter{ID: hostIDs}, nil)
@@ -52,20 +47,33 @@ func (s *healthSummaryService) GetHealthSummary() (models.HealthSummary, error) 
 			return nil, err
 		}
 
+		clusters, err := s.clustersService.GetAll(&ClustersFilter{
+			ID:          clusterIDs,
+			ClusterType: []string{models.ClusterTypeHANAScaleUp},
+		}, nil)
+		if err != nil {
+			return nil, err
+		}
+
 		healthSummary = append(healthSummary, models.SAPSystemHealthSummary{
-			ID:             sapSystem.ID,
-			SID:            sapSystem.SID,
-			DatabaseHealth: computeDatabaseHealth(sapSystem.AttachedDatabase),
-			ClustersHealth: computeAggregatedClustersHealth(clusters),
-			HostsHealth:    computeAggregatedHostsHealth(hosts),
+			ID:              sapSystem.ID,
+			SID:             sapSystem.SID,
+			SAPSystemHealth: computeSAPSystemHealth(sapSystem),
+			DatabaseHealth:  computeSAPSystemHealth(sapSystem.AttachedDatabase),
+			ClustersHealth:  computeAggregatedClustersHealth(clusters),
+			HostsHealth:     computeAggregatedHostsHealth(hosts),
 		})
 	}
 
 	return healthSummary, nil
 }
 
-func computeDatabaseHealth(database *models.SAPSystem) string {
-	switch database.Health {
+func computeSAPSystemHealth(sapsystem *models.SAPSystem) string {
+	if sapsystem == nil {
+		return models.HealthSummaryHealthUnknown
+	}
+
+	switch sapsystem.Health {
 	case models.SAPSystemHealthPassing:
 		return models.HealthSummaryHealthPassing
 	case models.SAPSystemHealthWarning:
@@ -78,6 +86,10 @@ func computeDatabaseHealth(database *models.SAPSystem) string {
 }
 
 func computeAggregatedClustersHealth(clusters []*models.Cluster) string {
+	if len(clusters) == 0 {
+		return models.HealthSummaryHealthUnknown
+	}
+
 	var hasWarningCluster, hasUnknownCluster bool
 
 	for _, c := range clusters {

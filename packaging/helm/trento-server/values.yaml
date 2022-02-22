@@ -49,6 +49,8 @@ prometheus:
 
 grafana:
   enabled: true
+  persistence:
+    enabled: true
   admin:
     existingSecret: trento-server-grafana-secret
   grafana.ini:

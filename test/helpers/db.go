@@ -1,6 +1,10 @@
 package helpers
 
 import (
+	"context"
+	"os"
+	"os/signal"
+	"syscall"
 	"testing"
 
 	"github.com/spf13/viper"
@@ -22,7 +26,18 @@ func SetupTestDatabase(t *testing.T) *gorm.DB {
 		DBName:   viper.GetString("db-name"),
 	}
 
-	db, err := db.InitDB(dbConfig)
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		<-signals
+		cancel()
+	}()
+
+	db, err := db.InitDB(ctx, dbConfig)
 	if err != nil {
 		t.Fatal("could not open test database connection")
 	}

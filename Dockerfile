@@ -37,12 +37,12 @@ ENV TINI_VERSION v0.19.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
 RUN chmod +x /tini
 
-COPY --from=go-build /build/trento /app/trento
+COPY --from=go-build /build/trento /usr/bin/trento
 LABEL org.opencontainers.image.source="https://github.com/trento-project/trento"
-ENTRYPOINT ["/tini", "--", "/app/trento"]
+ENTRYPOINT ["/tini", "--", "/usr/bin/trento"]
 
 FROM gcr.io/distroless/base:debug AS trento-web
-COPY --from=go-build /build/trento /app/trento
+COPY --from=go-build /build/trento /usr/bin/trento
 LABEL org.opencontainers.image.source="https://github.com/trento-project/trento"
 EXPOSE 8080/tcp
-ENTRYPOINT ["/app/trento"]
+ENTRYPOINT ["/usr/bin/trento"]

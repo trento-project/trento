@@ -1,11 +1,11 @@
-name: Continous Integration and Demo Deployment
+name: Continuous Integration and Demo Deployment
 concurrency: ci-${{ github.ref }}
 on:
   push:
     tags-ignore:
-      - '*'
+      - "*"
     branches:
-      - 'main'
+      - "main"
   pull_request:
   release:
     types: [published]
@@ -71,7 +71,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2.3.1
+      - uses: actions/setup-python@v2.3.2
         with:
           python-version: 3.7
       - uses: actions/cache@v2
@@ -101,6 +101,10 @@ jobs:
           POSTGRESQL_DATABASE: trento
         ports:
           - 5432:5432
+      grafana:
+        image: grafana/grafana:8.3.5
+        ports:
+          - 3000:3000
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -123,7 +127,7 @@ jobs:
           cypress_trento_binary: /tmp/trento
           cypress_photofinish_binary: /tmp/photofinish
         with:
-          start: /tmp/trento web serve --log-level=error --db-host=postgres
+          start: /tmp/trento web serve --log-level=error --db-host=postgres --grafana-api-url=http://grafana:3000 --grafana-password=admin
           working-directory: test/e2e
           headless: true
           wait-on-timeout: 30
@@ -134,7 +138,6 @@ jobs:
         with:
           name: e2e-videos
           path: test/e2e/cypress/videos/
-
 
   build-and-push-container-images:
     runs-on: ubuntu-20.04
@@ -158,7 +161,7 @@ jobs:
           fetch-depth: 0
       - uses: docker/setup-buildx-action@v1
       - name: Log in to the Container registry
-        uses: docker/login-action@42d299face0c5c43a0487c477f595ac9cf22f1a7
+        uses: docker/login-action@6af3c118c8376c675363897acf1757f7a9be6583
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -252,7 +255,7 @@ jobs:
       - uses: azure/setup-helm@v2.0
         with:
           version: v3.4.0
-      - uses: actions/setup-python@v2.3.1
+      - uses: actions/setup-python@v2.3.2
         with:
           python-version: 3.7
       - name: Set up chart-testing
@@ -296,10 +299,10 @@ jobs:
         with:
           name: trento-binaries
           path: |
-                  build/trento-amd64.tgz
-                  build/trento-arm64.tgz
-                  build/trento-ppc64le.tgz
-                  build/trento-s390x.tgz
+            build/trento-amd64.tgz
+            build/trento-arm64.tgz
+            build/trento-ppc64le.tgz
+            build/trento-s390x.tgz
 
   release-rolling:
     needs: [test-binary, test-checks, test-e2e]
@@ -336,9 +339,52 @@ jobs:
           files: "trento-*"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+  install-helm-charts:
+    runs-on: ubuntu-20.04
+    needs: [smoke-test-container-images, test-helm-charts]
+    env:
+      TRENTO_REPO_OWNER: ${{ github.repository_owner }}
+      IMAGE_TAG: "${{ (github.event_name == 'release' && github.event.release.tag_name) || (github.event_name == 'push' && github.ref_name == 'main' && 'rolling') || github.sha }}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Create k3d cluster
+        uses: AbsaOSS/k3d-action@v2
+        with:
+          cluster-name: test-cluster
+          args: --agents 1
+      - name: Download trento-web image
+        uses: actions/download-artifact@v2
+        with:
+          name: trento-web
+          path: /tmp
+      - name: Download trento-runner image
+        uses: actions/download-artifact@v2
+        with:
+          name: trento-runner
+          path: /tmp
+      - name: Load images into the cluster
+        run: k3d image import trento-web.tar trento-runner.tar -c test-cluster --verbose
+        working-directory: /tmp
+      - name: Install Helm
+        uses: azure/setup-helm@v1
+      - name: Install chart
+        run: |
+          helm install trento . --dependency-update --wait --debug \
+            --set trento-web.image.repository=ghcr.io/${TRENTO_REPO_OWNER}/trento-web \
+            --set trento-web.image.tag=${IMAGE_TAG} \
+            --set trento-runner.image.repository=ghcr.io/${TRENTO_REPO_OWNER}/trento-runner \
+            --set trento-runner.image.tag=${IMAGE_TAG}
+        working-directory: packaging/helm/trento-server
+
   deploy-server:
-    runs-on: [ self-hosted, trento-gh-runner ]
-    needs: [ smoke-test-container-images, build-and-push-container-images, test-helm-charts, release-rolling ]
+    runs-on: [self-hosted, trento-gh-runner]
+    needs:
+      [
+        smoke-test-container-images,
+        build-and-push-container-images,
+        test-helm-charts,
+        release-rolling,
+      ]
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
     environment: AZURE_DEMO
     env:
@@ -359,8 +405,8 @@ jobs:
         run: ssh "$TRENTO_USER@$TRENTO_SERVER_HOST" "TRENTO_REPO_OWNER=$TRENTO_REPO_OWNER sudo --preserve-env=PATH,TRENTO_REPO_OWNER bash -s" -- < ./install-server.sh -r -p ~/.ssh/id_rsa
 
   deploy-agents:
-    runs-on: [ self-hosted, trento-gh-runner ]
-    needs: [ deploy-server ]
+    runs-on: [self-hosted, trento-gh-runner]
+    needs: [deploy-server]
     if: github.ref_name == 'main'
     environment: AZURE_DEMO
     env:
@@ -375,6 +421,7 @@ jobs:
           set -ex
           for target_host in ${TRENTO_AGENT_HOSTS//,/ }
           do
+            ssh "$TRENTO_USER@$target_host" "sudo zypper ref && sudo zypper in -y golang-github-prometheus-node_exporter" 
             ssh "$TRENTO_USER@$target_host" "TRENTO_REPO_OWNER=$TRENTO_REPO_OWNER sudo --preserve-env=PATH,TRENTO_REPO_OWNER bash -s" -- < ./install-agent.sh "--rolling" "--use-tgz" "--ssh-address" "$target_host" "--server-ip" "$TRENTO_SERVER_HOST"
             ssh "$TRENTO_USER@$target_host" "sudo systemctl enable --now trento-agent.service"
           done
@@ -386,36 +433,36 @@ jobs:
     container:
       image: ghcr.io/trento-project/continuous-delivery:master
       env:
-        GITHUB_OAUTH_TOKEN:  ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_OAUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-    - name: configure OSC
-    # OSC credentials must be configured beforehand as the HOME variables cannot be changed from /github/home
-    # that is used to run osc commands
-      run: |
-        /scripts/init_osc_creds.sh
-        mkdir -p $HOME/.config/osc
-        cp /root/.config/osc/oscrc $HOME/.config/osc
-    - name: Prepare trento.changes file
-    # The .changes file is updated only in release creation. This current task should be improved
-    # in order to add the current rolling release notes
-      if: github.event_name == 'release'
-      run: |
-        osc checkout $OBS_PROJECT trento trento.changes
-        mv trento.changes $FOLDER
-        VERSION=$(./hack/get_version_from_git.sh)
-        TAG=$(echo $VERSION | cut -f1 -d+)
-        hack/gh_release_to_obs_changeset.py $REPOSITORY -a shap-staff@suse.de -t $TAG -f $FOLDER/trento.changes
-    - name: prepare _service file
-      run: |
-        VERSION=$(./hack/get_version_from_git.sh)
-        sed -i 's~%%REVISION%%~${{ github.sha }}~' $FOLDER/_service && \
-        sed -i 's~%%REPOSITORY%%~${{ github.repository }}~' $FOLDER/_service && \
-        sed -i 's~%%VERSION%%~'"${VERSION}"'~' $FOLDER/_service
-    - name: commit changes into OBS
-      run: cp $FOLDER/_service . && /scripts/upload.sh
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: configure OSC
+        # OSC credentials must be configured beforehand as the HOME variables cannot be changed from /github/home
+        # that is used to run osc commands
+        run: |
+          /scripts/init_osc_creds.sh
+          mkdir -p $HOME/.config/osc
+          cp /root/.config/osc/oscrc $HOME/.config/osc
+      - name: Prepare trento.changes file
+        # The .changes file is updated only in release creation. This current task should be improved
+        # in order to add the current rolling release notes
+        if: github.event_name == 'release'
+        run: |
+          osc checkout $OBS_PROJECT trento trento.changes
+          mv trento.changes $FOLDER
+          VERSION=$(./hack/get_version_from_git.sh)
+          TAG=$(echo $VERSION | cut -f1 -d+)
+          hack/gh_release_to_obs_changeset.py $REPOSITORY -a shap-staff@suse.de -t $TAG -f $FOLDER/trento.changes
+      - name: prepare _service file
+        run: |
+          VERSION=$(./hack/get_version_from_git.sh)
+          sed -i 's~%%REVISION%%~${{ github.sha }}~' $FOLDER/_service && \
+          sed -i 's~%%REPOSITORY%%~${{ github.repository }}~' $FOLDER/_service && \
+          sed -i 's~%%VERSION%%~'"${VERSION}"'~' $FOLDER/_service
+      - name: commit changes into OBS
+        run: cp $FOLDER/_service . && /scripts/upload.sh
 
   obs-submit:
     needs: obs-commit
@@ -424,19 +471,19 @@ jobs:
     container:
       image: ghcr.io/trento-project/continuous-delivery:master
     steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-    - name: configure OSC
-      run: |
-        /scripts/init_osc_creds.sh
-        mkdir -p $HOME/.config/osc
-        cp /root/.config/osc/oscrc $HOME/.config/osc
-    - name: prepare _service file
-      run: |
-        VERSION=$(./hack/get_version_from_git.sh)
-        sed -i 's~%%REVISION%%~${{ github.sha }}~' $FOLDER/_service && \
-        sed -i 's~%%REPOSITORY%%~${{ github.repository }}~' $FOLDER/_service && \
-        sed -i 's~%%VERSION%%~'"${VERSION}"'~' $FOLDER/_service
-    - name: submit package
-      run: cp $FOLDER/_service . && /scripts/submit.sh
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: configure OSC
+        run: |
+          /scripts/init_osc_creds.sh
+          mkdir -p $HOME/.config/osc
+          cp /root/.config/osc/oscrc $HOME/.config/osc
+      - name: prepare _service file
+        run: |
+          VERSION=$(./hack/get_version_from_git.sh)
+          sed -i 's~%%REVISION%%~${{ github.sha }}~' $FOLDER/_service && \
+          sed -i 's~%%REPOSITORY%%~${{ github.repository }}~' $FOLDER/_service && \
+          sed -i 's~%%VERSION%%~'"${VERSION}"'~' $FOLDER/_service
+      - name: submit package
+        run: cp $FOLDER/_service . && /scripts/submit.sh

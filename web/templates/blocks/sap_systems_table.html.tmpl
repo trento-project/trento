@@ -18,7 +18,7 @@
             <tbody>
             {{- range $index, $value := .SAPSystems }}
                 <tr>
-                <td class="row-status">{{ template "health_icon" "unknown" }}</td>
+                <td class="row-status">{{ template "health_icon" .Health }}</td>
                 <td class="row-status"><a class="eos-icons eos-18  collapse-toggle clickable collapsed text-dark"
                                           data-toggle="collapse" data-target="#inner_{{ $index }}"></a></td>
                 <td>
@@ -60,14 +60,14 @@
                                 <tbody id='instances-{{ .ID }}'>
                                 {{- range .GetAllInstances }}
                                 <tr>
-                                    <td class="row-status">{{ template "health_icon" "unknown" }}</td>
+                                    <td class="row-status">{{ template "health_icon" .Health }}</td>
                                     <td>{{ .SID }}</td>
                                     <td>{{ .Features }}</td>
                                     <td>{{ .InstanceNumber }}</td>
                                     {{- if eq .Type "database" }}
                                         {{- if .SystemReplication }}
                                             <td>HANA {{ .SystemReplication }}
-                                            {{- if eq .SystemReplication "Primary" }}
+                                            {{- if eq .SystemReplication "Secondary" }}
                                                 <span class="badge badge-pill badge-{{ if eq .SystemReplicationStatus "SOK" }}success{{ else }}danger{{ end }}">{{ .SystemReplicationStatus }}</span>
                                             {{- end }}
                                             </td>

@@ -20,6 +20,7 @@ import (
 	"gorm.io/gorm"
 
 	trentoDB "github.com/trento-project/trento/internal/db"
+	"github.com/trento-project/trento/internal/grafana"
 	"github.com/trento-project/trento/version"
 	"github.com/trento-project/trento/web/datapipeline"
 	"github.com/trento-project/trento/web/entities"
@@ -44,6 +45,7 @@ var DBTables = []interface{}{
 	&entities.Check{}, &datapipeline.DataCollectedEvent{}, &datapipeline.Subscription{},
 	&entities.HostTelemetry{}, &entities.Cluster{}, &entities.Host{}, &entities.HostHeartbeat{},
 	&entities.SlesSubscription{}, &entities.SAPSystemInstance{}, &entities.ChecksResult{},
+	&entities.HealthState{},
 }
 
 type App struct {
@@ -61,7 +63,9 @@ type Config struct {
 	Key           string
 	CA            string
 	DBConfig      *trentoDB.Config
+	GrafanaConfig *grafana.Config
 }
+
 type Dependencies struct {
 	webEngine               *gin.Engine
 	collectorEngine         *gin.Engine
@@ -75,9 +79,11 @@ type Dependencies struct {
 	clustersService         services.ClustersService
 	hostsService            services.HostsService
 	settingsService         services.SettingsService
+	healthSummaryService    services.HealthSummaryService
 	telemetryRegistry       *telemetry.TelemetryRegistry
 	telemetryPublisher      telemetry.Publisher
 	premiumDetectionService services.PremiumDetectionService
+	prometheusService       services.PrometheusService
 }
 
 func DefaultDependencies(config *Config) Dependencies {
@@ -125,12 +131,14 @@ func DefaultDependencies(config *Config) Dependencies {
 	collectorService := services.NewCollectorService(db, projectorWorkersPool.GetChannel())
 	telemetryRegistry := telemetry.NewTelemetryRegistry(db)
 	telemetryPublisher := telemetry.NewTelemetryPublisher()
+	prometheusService := services.NewPrometheusService(db)
+	healthSummaryService := services.NewHealthSummaryService(sapSystemsService, clustersService, hostsService)
 
 	return Dependencies{
 		webEngine, collectorEngine, store, projectorWorkersPool,
 		checksService, subscriptionsService, tagsService,
-		collectorService, sapSystemsService, clustersService, hostsService, settingsService,
-		telemetryRegistry, telemetryPublisher, premiumDetection,
+		collectorService, sapSystemsService, clustersService, hostsService, settingsService, healthSummaryService,
+		telemetryRegistry, telemetryPublisher, premiumDetection, prometheusService,
 	}
 }
 
@@ -182,7 +190,7 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 	webEngine.GET("/eula", EulaShowHandler())
 	webEngine.POST("/accept-eula", EulaAcceptHandler(deps.settingsService))
 	webEngine.GET("/hosts", NewHostListHandler(deps.hostsService))
-	webEngine.GET("/hosts/:id", NewHostHandler(deps.hostsService, deps.subscriptionsService))
+	webEngine.GET("/hosts/:id", NewHostHandler(deps.hostsService, deps.subscriptionsService, config.GrafanaConfig.BaseUrl()))
 	webEngine.GET("/catalog", NewChecksCatalogHandler(deps.checksService))
 	webEngine.GET("/clusters", NewClusterListHandler(deps.clustersService))
 	webEngine.GET("/clusters/:id", NewClusterHandler(deps.clustersService))
@@ -204,6 +212,7 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 		apiGroup.GET("/clusters/settings", ApiGetClustersSettingsHandler(deps.clustersService))
 		apiGroup.POST("/sapsystems/:id/tags", ApiSAPSystemCreateTagHandler(deps.sapSystemsService, deps.tagsService))
 		apiGroup.DELETE("/sapsystems/:id/tags/:tag", ApiSAPSystemDeleteTagHandler(deps.sapSystemsService, deps.tagsService))
+		apiGroup.GET("/sapsystems/health", ApiSAPSystemsHealthSummaryHandler(deps.healthSummaryService))
 		apiGroup.POST("/databases/:id/tags", ApiDatabaseCreateTagHandler(deps.sapSystemsService, deps.tagsService))
 		apiGroup.DELETE("/databases/:id/tags/:tag", ApiDatabaseDeleteTagHandler(deps.sapSystemsService, deps.tagsService))
 		apiGroup.GET("/checks/:id/settings", ApiCheckGetSettingsByIdHandler(deps.clustersService))
@@ -211,6 +220,7 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 		apiGroup.PUT("/checks/catalog", ApiCreateChecksCatalogHandler(deps.checksService))
 		apiGroup.GET("/checks/catalog", ApiChecksCatalogHandler(deps.checksService))
 		apiGroup.POST("/checks/:id/results", ApiCreateChecksResultHandler(deps.checksService))
+		apiGroup.GET("/prometheus/targets", ApiGetPrometheusHttpSdTargets(deps.prometheusService))
 	}
 
 	collectorEngine := deps.collectorEngine
@@ -222,6 +232,8 @@ func NewAppWithDeps(config *Config, deps Dependencies) (*App, error) {
 }
 
 func (a *App) Start(ctx context.Context) error {
+	grafana.InitGrafana(ctx, a.config.GrafanaConfig)
+
 	webServer := &http.Server{
 		Addr:           fmt.Sprintf("%s:%d", a.config.Host, a.config.Port),
 		Handler:        a.webEngine,

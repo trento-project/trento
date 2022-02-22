@@ -21,7 +21,7 @@ func TestClustersProjector_ClusterDiscoveryHandler(t *testing.T) {
 	tx := db.Begin()
 	defer tx.Rollback()
 
-	tx.AutoMigrate(&entities.Cluster{})
+	tx.AutoMigrate(&entities.Cluster{}, &entities.HealthState{})
 	tx.Create(&entities.Cluster{
 		Name:        "test_cluster",
 		ID:          "test_id",
@@ -45,12 +45,21 @@ func TestClustersProjector_ClusterDiscoveryHandler(t *testing.T) {
 	var cluster entities.Cluster
 	tx.First(&cluster)
 
+	var health entities.HealthState
+	tx.First(&health)
+
+	var partialHealth map[string]string
+	json.Unmarshal(health.PartialHealths, &partialHealth)
+
 	assert.Equal(t, "5dfbd28f35cbfb38969f9b99243ae8d4", cluster.ID)
 	assert.Equal(t, models.ClusterTypeHANAScaleUp, cluster.ClusterType)
 	assert.Equal(t, "PRD", cluster.SID)
 	assert.Equal(t, 8, cluster.ResourcesNumber)
 	assert.Equal(t, 2, cluster.HostsNumber)
 	assert.NotNil(t, cluster.Details)
+	assert.Equal(t, health.ID, cluster.ID)
+	assert.Equal(t, "critical", health.Health)
+	assert.Equal(t, map[string]string{"hana_sr_health": "critical"}, partialHealth)
 }
 
 func TestTransformClusterData_HANAScaleUp(t *testing.T) {
@@ -182,7 +191,14 @@ func TestTransformClusterData_HANAScaleUp(t *testing.T) {
 				},
 			},
 			SBDDevices: []*entities.SBDDevice{
-				{Device: "/dev/disk/by-id/scsi-SLIO-ORG_IBLOCK_649b292b-ae9d-49a4-8002-2e602a0ab56e"},
+				{
+					Device: "/dev/disk/by-id/scsi-SLIO-ORG_IBLOCK_649b292b-ae9d-49a4-8002-2e602a0ab56e",
+					Status: "healthy",
+				},
+				{
+					Device: "/dev/disk/by-id/scsi-SLIO-ORG_IBLOCK_649b292b-ae9d-49a4-8002-2e602a012345",
+					Status: "unhealthy",
+				},
 			},
 		},
 	)

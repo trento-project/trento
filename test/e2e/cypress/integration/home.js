@@ -4,15 +4,6 @@ context('Homepage', () => {
   });
 
   describe('The main links in the homepage should work (means the links are the expected ones)', () => {
-    it('should provide correct link to Blue Horizon for SAP', () => {
-      cy.get('#tn-blue-horizon-link')
-        .should('have.attr', 'target', 'blank')
-        .and(
-          'have.attr',
-          'href',
-          'https://github.com/SUSE/blue-horizon-for-sap'
-        );
-    });
     it('should provide correct link to the Hosts page', () => {
       cy.get('#tn-hosts-link').should('have.attr', 'href', '/hosts');
     });

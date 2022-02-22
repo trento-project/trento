@@ -7,6 +7,8 @@ global:
   postgresql:
     name: postgresql
     servicePort: 5432
+  grafana:
+    name: grafana
 
 ### Sub Charts Specific Values ###
 trento-web:
@@ -24,3 +26,45 @@ postgresql:
   postgresqlUsername: "postgres"
   postgresqlPassword: "postgres"
   postgresqlDatabase: "trento"
+
+prometheus:
+  enabled: true
+  server:
+    enabled: true
+    extraConfigmapMounts:
+    configMapOverrideName: prometheus-configmap
+  serverFiles:
+    prometheus.yml: {}
+
+  alertmanager:
+    enabled: false
+  pushgateway:
+    enabled: false
+  configmapReload:
+    enabled: false
+  kubeStateMetrics:
+    enabled: false
+  nodeExporter:
+    enabled: false
+
+grafana:
+  enabled: true
+  admin:
+    existingSecret: trento-server-grafana-secret
+  grafana.ini:
+    auth.anonymous:
+      enabled: true
+    server:
+      root_url: "%(protocol)s://%(domain)s:%(http_port)s/grafana/"
+      serve_from_sub_path: true
+    security:
+      allow_embedding: true
+  sidecar:
+    datasources:
+      enabled: true
+  ingress:
+    enabled: true
+    hosts:
+      - ""
+      ## Path for grafana ingress
+    path: /grafana

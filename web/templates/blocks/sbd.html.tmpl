@@ -1,13 +1,30 @@
 {{ define "sbd" }}
-
-    <div class="card-deck mt-4 mb-4">
-        {{- range . }}
-            <div class="card">
-                <div class="card-body">
-                    <strong>Device name:</strong> {{ .Device }}<br>
-                    <strong>Location:</strong> -
-                </div>
-            </div>
-        {{- end }}
+    <div class='table-responsive'>
+        <table class='table eos-table'>
+            <thead>
+            <tr>
+                <th scope="col" class="w-5"></th>
+                <th scope='col'>Device</th>
+            </tr>
+            </thead>
+            <tbody>
+                {{- range . }}
+                <tr>
+                    <td class="w-5">
+                        {{- if eq .Status "healthy" }}
+                            <i class="eos-icons eos-18 text-success">check_circle</i>
+                        {{- else if eq .Status "unhealthy" }}
+                            <i class="eos-icons eos-18 text-danger">error</i>
+                        {{- else }}
+                            <i class="eos-icons eos-18 text-muted">fiber_manual_record</i>
+                        {{- end }}
+                    </td>
+                    <td>
+                        {{ .Device }}
+                    </td>
+                </tr>
+                {{- end }}
+            </tbody>
+        </table>
     </div>
 {{ end }}

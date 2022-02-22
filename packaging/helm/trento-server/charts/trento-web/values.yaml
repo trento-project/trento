@@ -9,6 +9,8 @@ global:
   postgresql:
     name: postgresql
     servicePort: 5432
+  grafana:
+    name: grafana
 
 mTLS:
   enabled: false

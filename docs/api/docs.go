@@ -580,6 +580,56 @@ var doc = `{
                 }
             }
         },
+        "/prometheus/targets": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get prometheus HTTP SD targets",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/web.Targets"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/sapsystems/health": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Retrieve SAP Systems Health Summary",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.SAPSystemHealthSummary"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/sapsystems/{id}/tags": {
             "post": {
                 "consumes": [
@@ -793,6 +843,26 @@ var doc = `{
                 }
             }
         },
+        "models.SAPSystemHealthSummary": {
+            "type": "object",
+            "properties": {
+                "clusters_health": {
+                    "type": "string"
+                },
+                "database_health": {
+                    "type": "string"
+                },
+                "hosts_health": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "sid": {
+                    "type": "string"
+                }
+            }
+        },
         "web.JSONCheck": {
             "type": "object",
             "required": [
@@ -931,6 +1001,23 @@ var doc = `{
             "properties": {
                 "tag": {
                     "type": "string"
+                }
+            }
+        },
+        "web.Targets": {
+            "type": "object",
+            "properties": {
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "targets": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         }

@@ -6,7 +6,6 @@ import (
 
 	"github.com/lib/pq"
 	log "github.com/sirupsen/logrus"
-	"github.com/trento-project/trento/internal"
 	"github.com/trento-project/trento/internal/cloud"
 	"github.com/trento-project/trento/web/entities"
 	"github.com/trento-project/trento/web/models"
@@ -28,6 +27,7 @@ type ClustersService interface {
 }
 
 type ClustersFilter struct {
+	ID          []string
 	Name        []string
 	ClusterType []string
 	SIDs        []string
@@ -49,26 +49,14 @@ func NewClustersService(db *gorm.DB, checksService ChecksService) *clustersServi
 
 func (s *clustersService) GetAll(filter *ClustersFilter, page *Page) (models.ClusterList, error) {
 	var clusters []entities.Cluster
-	var healthFilteredClusters []string
 
-	// Filter the clusters by Health
-	if filter != nil && len(filter.Health) > 0 {
-		checksResults, err := s.checksService.GetLastExecutionByGroup()
-		if err != nil {
-			return nil, err
-		}
-
-		for _, checksResult := range checksResults {
-			clusterHealth := checksResult.GetAggregatedChecksResultByCluster().String()
-			if internal.Contains(filter.Health, clusterHealth) {
-				healthFilteredClusters = append(healthFilteredClusters, checksResult.ID)
-			}
-		}
-	}
-
-	db := s.db.Preload("Tags").Scopes(Paginate(page))
+	db := s.db.Preload("Health").Preload("Tags").Scopes(Paginate(page))
 
 	if filter != nil {
+		if len(filter.ID) > 0 {
+			db = db.Where("id IN (?)", filter.ID)
+		}
+
 		if len(filter.Name) > 0 {
 			db = db.Where("name IN (?)", filter.Name)
 		}
@@ -90,7 +78,10 @@ func (s *clustersService) GetAll(filter *ClustersFilter, page *Page) (models.Clu
 		}
 
 		if len(filter.Health) > 0 {
-			db = db.Where("id IN (?)", healthFilteredClusters)
+			db = db.Where("id IN (?)", s.db.Model(&entities.HealthState{}).
+				Select("id").
+				Where("health IN ?", filter.Health),
+			)
 		}
 	}
 
@@ -337,10 +328,7 @@ func (s *clustersService) enrichClusterList(clusterList models.ClusterList) {
 func (s *clustersService) enrichCluster(cluster *models.Cluster) {
 	health, err := s.checksService.GetAggregatedChecksResultByCluster(cluster.ID)
 
-	if err != nil {
-		cluster.Health = models.CheckUndefined
-	} else {
-		cluster.Health = health.String()
+	if err == nil {
 		cluster.PassingCount = health.PassingCount
 		cluster.WarningCount = health.WarningCount
 		cluster.CriticalCount = health.CriticalCount

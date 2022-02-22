@@ -466,6 +466,21 @@
         ],
         "Device": "/dev/disk/by-id/scsi-SLIO-ORG_IBLOCK_649b292b-ae9d-49a4-8002-2e602a0ab56e",
         "Status": "healthy"
+      },
+      {
+        "Dump": {
+          "Uuid": "708dc32b-b33e-4be7-b12f-148bcca1234",
+          "Slots": 255,
+          "Header": "2.1",
+          "SectorSize": 0,
+          "TimeoutLoop": 0,
+          "TimeoutMsgwait": 0,
+          "TimeoutAllocate": 0,
+          "TimeoutWatchdog": 0
+        },
+        "List": [],
+        "Device": "/dev/disk/by-id/scsi-SLIO-ORG_IBLOCK_649b292b-ae9d-49a4-8002-2e602a012345",
+        "Status": "unhealthy"
       }
     ]
   },

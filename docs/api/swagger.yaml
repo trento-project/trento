@@ -47,6 +47,19 @@ definitions:
       user:
         type: string
     type: object
+  models.SAPSystemHealthSummary:
+    properties:
+      clusters_health:
+        type: string
+      database_health:
+        type: string
+      hosts_health:
+        type: string
+      id:
+        type: string
+      sid:
+        type: string
+    type: object
   web.JSONCheck:
     properties:
       description:
@@ -139,6 +152,17 @@ definitions:
         type: string
     required:
     - tag
+    type: object
+  web.Targets:
+    properties:
+      labels:
+        additionalProperties:
+          type: string
+        type: object
+      targets:
+        items:
+          type: string
+        type: array
     type: object
 info:
   contact:
@@ -513,6 +537,18 @@ paths:
             additionalProperties: true
             type: object
       summary: Delete a specific tag that belongs to a host
+  /prometheus/targets:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/web.Targets'
+            type: array
+      summary: Get prometheus HTTP SD targets
   /sapsystems/{id}/tags:
     post:
       consumes:
@@ -579,6 +615,26 @@ paths:
             additionalProperties: true
             type: object
       summary: Delete a specific tag that belongs to a SAPSystem
+  /sapsystems/health:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.SAPSystemHealthSummary'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Retrieve SAP Systems Health Summary
   /tags:
     get:
       consumes:

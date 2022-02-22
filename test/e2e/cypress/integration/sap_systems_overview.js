@@ -1,4 +1,8 @@
-import { availableSAPSystems } from '../fixtures/sap-systems-overview/available_sap_systems';
+import {
+  availableSAPSystems,
+  isHanaPrimary,
+  isHanaSecondary,
+} from '../fixtures/sap-systems-overview/available_sap_systems';
 
 context('SAP Systems Overview', () => {
   before(() => {
@@ -15,6 +19,21 @@ context('SAP Systems Overview', () => {
       availableSAPSystems.forEach(({ sid: sid }) => {
         it(`should have a sid named ${sid}`, () => {
           cy.get('td').contains(sid);
+        });
+      });
+    });
+
+    describe('System healths are the expected ones', () => {
+      availableSAPSystems.forEach(({ sid: sid, health: health }, index) => {
+        it(`should have a health ${health} for sid ${sid}`, () => {
+          cy.get('.eos-table')
+            .eq(0)
+            .find('tr')
+            .filter(':visible')
+            .eq(index + 1)
+            .find('td')
+            .as('tableCell');
+          cy.get('@tableCell').eq(0).should('contain', health);
         });
       });
     });
@@ -66,6 +85,7 @@ context('SAP Systems Overview', () => {
             .find('tr')
             .each((row, index) => {
               cy.wrap(row).within(() => {
+                cy.get('td').eq(0).should('contain', instances[index].health);
                 cy.get('td').eq(1).should('contain', instances[index].sid);
                 cy.get('td').eq(2).should('contain', instances[index].features);
                 cy.get('td')
@@ -74,9 +94,22 @@ context('SAP Systems Overview', () => {
                 cy.get('td')
                   .eq(4)
                   .should('contain', instances[index].systemReplication);
-                cy.get('td')
-                  .eq(4)
-                  .should('contain', instances[index].systemReplicationStatus);
+                if (isHanaPrimary(instances[index])) {
+                  cy.get('td')
+                    .eq(4)
+                    .should(
+                      'not.contain',
+                      instances[index].systemReplicationStatus
+                    );
+                }
+                if (isHanaSecondary(instances[index])) {
+                  cy.get('td')
+                    .eq(4)
+                    .should(
+                      'contain',
+                      instances[index].systemReplicationStatus
+                    );
+                }
                 cy.get('td')
                   .eq(5)
                   .should('contain', instances[index].clusterName);
@@ -203,6 +236,65 @@ context('SAP Systems Overview', () => {
             cy.wait('@resetFilter');
           });
         });
+      });
+    });
+
+    describe('Health states are updated', () => {
+      const states = [
+        ['GRAY', 'fiber_manual_record'],
+        ['YELLOW', 'warning'],
+        ['RED', 'error'],
+      ];
+
+      states.forEach(([state, health], index) => {
+        it(`should have ${state} health in SAP system and instance ${
+          index + 1
+        } when SAPControl-${state} state is received`, () => {
+          cy.loadScenario(`sap-systems-overview-${state}`);
+          cy.visit(`/sapsystems`);
+
+          cy.get('.eos-table')
+            .eq(0)
+            .find('tr')
+            .filter(':visible')
+            .eq(1)
+            .find('td')
+            .as('tableCell');
+          cy.get('@tableCell').eq(0).should('contain', health);
+
+          cy.get('.eos-table')
+            .eq(0)
+            .find('tr')
+            .eq(index + 4) // + 4 moves selects the row within the collpased table
+            .find('td')
+            .as('instanceTableCell');
+
+          cy.get('@instanceTableCell').eq(0).should('contain', health);
+        });
+      });
+
+      it(`should have RED health in SAP system and HANA instance 1 when SAPControl-RED state is received`, () => {
+        cy.loadScenario('healthy-27-node-SAP-cluster');
+        cy.loadScenario(`sap-systems-overview-hana-RED`);
+        cy.visit(`/sapsystems`);
+
+        cy.get('.eos-table')
+          .eq(0)
+          .find('tr')
+          .filter(':visible')
+          .eq(1)
+          .find('td')
+          .as('tableCell');
+        cy.get('@tableCell').eq(0).should('contain', 'error');
+
+        cy.get('.eos-table')
+          .eq(0)
+          .find('tr')
+          .eq(8) // + 4 moves selects the row within the collpased table
+          .find('td')
+          .as('instanceTableCell');
+
+        cy.get('@instanceTableCell').eq(0).should('contain', 'error');
       });
     });
   });

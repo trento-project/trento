@@ -32,7 +32,7 @@ context('Host Details', () => {
         .should('include', `/sapsystems/${selectedHost.sapInstanceId}`);
     });
     it(`should show SAP instance with ID ${selectedHost.sapInstanceId}`, () => {
-      cy.get(':nth-child(11) > .table > tbody > tr > :nth-child(1)').should(
+      cy.get(':nth-child(12) > .table > tbody > tr > :nth-child(1)').should(
         'contain',
         selectedHost.sapInstanceId
       );
@@ -51,12 +51,12 @@ context('Host Details', () => {
   describe('Cloud details for this host should be displayed', () => {
     it(`should show ${selectedHost.hostName} under the VM Name`, () => {
       cy.get(
-        ':nth-child(5) > :nth-child(1) > .col-sm-12 > :nth-child(1) > :nth-child(2) > .text-muted'
+        ':nth-child(6) > :nth-child(1) > .col-sm-12 > :nth-child(1) > :nth-child(2) > .text-muted'
       ).should('contain', selectedHost.hostName);
     });
     it(`should show ${selectedHost.resourceGroup} under the Resource group label`, () => {
       cy.get(
-        ':nth-child(5) > :nth-child(1) > .col-sm-12 > :nth-child(1) > :nth-child(3) > .text-muted'
+        ':nth-child(6) > :nth-child(1) > .col-sm-12 > :nth-child(1) > :nth-child(3) > .text-muted'
       ).should('contain', selectedHost.resourceGroup);
     });
   });

@@ -72,9 +72,9 @@ dump-scenario() {
         exit 1
     fi
 
-    kubectl exec -ti deploy/trento-server-web -- /app/trento ctl dump-scenario --name="$name" --path /scenarios
-    kubectl exec deploy/trento-server-web -- tar cf - scenarios | tar xf - -C "$path"
     kubectl exec deploy/trento-server-web -- rm -rf /scenarios
+    kubectl exec -ti deploy/trento-server-web -- /usr/bin/trento ctl dump-scenario --name="$name" --path /scenarios
+    kubectl exec deploy/trento-server-web -- tar cf - scenarios | tar xf - -C "$path"
 }
 
 main() {

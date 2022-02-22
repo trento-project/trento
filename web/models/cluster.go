@@ -10,6 +10,13 @@ const (
 	HANAStatusSecondary     = "Secondary"
 	HANAStatusFailed        = "Failed"
 	HANAStatusUnknown       = "Unknown"
+	// More information about HANASrHealthOK and HANASrSyncSOK:
+	// https://help.sap.com/viewer/4e9b18c116aa42fc84c7dbfd02111aba/2.0.05/en-US/d112a740dfb34dbda309d89e675dd99f.html
+	// https://github.com/SUSE/SAPHanaSR/blob/master/ra/SAPHana#L188
+	// https://help.sap.com/viewer/4e9b18c116aa42fc84c7dbfd02111aba/2.0.05/en-US/f6b1bd1020984ee69e902b21b702c096.html
+	// https://github.com/SUSE/SAPHanaSR/blob/master/ra/SAPHana#L1171
+	HANASrHealthOK = "4"
+	HANASrSyncSOK  = "SOK"
 )
 
 type Cluster struct {
@@ -65,6 +72,7 @@ type HANAClusterNode struct {
 
 type SBDDevice struct {
 	Device string
+	Status string
 }
 
 type ClusterNodes []*HANAClusterNode

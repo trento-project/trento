@@ -71,3 +71,15 @@ Return Trento Web service port
     {{- .Values.webService.port -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Return or generate the grafana admin password
+*/}}
+{{- define "trento.grafana.password" -}}
+  {{- $secret := (lookup "v1" "Secret" .Release.Namespace "trento-server-grafana-secret") -}}
+  {{- if $secret -}}
+    {{- index $secret "data" "admin-password" -}}
+  {{- else -}}
+    {{- (randAlphaNum 40) | b64enc -}}
+  {{- end -}}
+{{- end -}}

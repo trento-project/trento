@@ -6,6 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	dbCmd "github.com/trento-project/trento/cmd/db"
+	"github.com/trento-project/trento/internal/grafana"
 	"github.com/trento-project/trento/web"
 )
 
@@ -41,5 +42,11 @@ func LoadConfig() (*web.Config, error) {
 		Key:           key,
 		CA:            ca,
 		DBConfig:      dbCmd.LoadConfig(),
+		GrafanaConfig: &grafana.Config{
+			PublicURL: viper.GetString("grafana-public-url"),
+			ApiURL:    viper.GetString("grafana-api-url"),
+			User:      viper.GetString("grafana-user"),
+			Password:  viper.GetString("grafana-password"),
+		},
 	}, nil
 }

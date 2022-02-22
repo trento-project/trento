@@ -1,5 +1,7 @@
 [Unit]
 Description=Trento agent service
+Requires=prometheus-node_exporter.service
+After=prometheus-node_exporter.service
 
 [Service]
 ExecStart=/usr/bin/trento agent start

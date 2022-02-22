@@ -84,15 +84,6 @@ func (c *Runner) Start() error {
 
 	c.trentoApi = trentoApi
 
-	metaRunner, err := NewAnsibleMetaRunner(c.config)
-	if err != nil {
-		return err
-	}
-
-	if err = metaRunner.RunPlaybook(); err != nil {
-		return err
-	}
-
 	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
 		log.Println("Starting the runner loop...")
@@ -197,7 +188,17 @@ func (c *Runner) startCheckRunnerTicker() {
 		return
 	}
 
+	metaRunner, err := NewAnsibleMetaRunner(c.config)
+	if err != nil {
+		return
+	}
+
 	tick := func() {
+		if err = metaRunner.RunPlaybook(); err != nil {
+			log.Errorf("Error running the catalog meta-playbook")
+			return
+		}
+
 		content, err := NewClusterInventoryContent(c.trentoApi)
 		if err != nil {
 			log.Errorf("Error creating the ansible inventory content: %s", err)
@@ -212,6 +213,7 @@ func (c *Runner) startCheckRunnerTicker() {
 		}
 
 		if err = checkRunner.SetInventory(inventoryFile); err != nil {
+			log.Errorf("Error setting the ansible inventory file")
 			return
 		}
 

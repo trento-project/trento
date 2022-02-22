@@ -1,12 +1,12 @@
-#!BuildTag: trento/trento-server:0.3.5
-#!BuildTag: trento/trento-server:0.3.5-build%RELEASE%
+#!BuildTag: trento/trento-server:0.4.0
+#!BuildTag: trento/trento-server:0.4.0--build%RELEASE%
 apiVersion: v2
 name: trento-server
 description: The trento server chart contains all the components necessary to run a Trento server.
 type: application
 # This is the chart version. This version number should be incremented each time you make changes
 # to the chart and its templates
-version: 0.3.5
+version: 0.4.0
 
 dependencies:
   - name: trento-web
@@ -19,3 +19,11 @@ dependencies:
     version: ~10.1.4
     repository: https://charts.bitnami.com/bitnami/
     condition: postgresql.enabled
+  - name: prometheus
+    version: ~15.1.3
+    repository: https://prometheus-community.github.io/helm-charts/
+    condition: prometheus.enabled
+  - name: grafana
+    version: ~6.21.2
+    repository: https://grafana.github.io/helm-charts/
+    condition: grafana.enabled

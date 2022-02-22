@@ -17,6 +17,10 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+const (
+	partialSrHealth = "hana_sr_health"
+)
+
 func NewClustersProjector(db *gorm.DB) *projector {
 	clusterProjector := NewProjector("clusters", db)
 	clusterProjector.AddHandler(ClusterDiscovery, clustersProjector_ClusterDiscoveryHandler)
@@ -41,15 +45,26 @@ func clustersProjector_ClusterDiscoveryHandler(event *DataCollectedEvent, db *go
 		return nil
 	}
 
-	clusterListReadModel, err := transformClusterData(&cluster)
+	clusterReadModel, err := transformClusterData(&cluster)
 	if err != nil {
 		log.Errorf("can't transform data: %s", err)
 		return err
 	}
 
+	discoveredHealth, err := computeDiscoveredHealth(clusterReadModel)
+	if err != nil {
+		return err
+	}
+
+	err = ProjectHealth(db, clusterReadModel.ID, partialSrHealth, discoveredHealth)
+	if err != nil {
+		log.Errorf("can't project health: %s", err)
+		return err
+	}
+
 	return db.Clauses(clause.OnConflict{
 		UpdateAll: true,
-	}).Create(clusterListReadModel).Error
+	}).Create(clusterReadModel).Error
 }
 
 // transformClusterData transforms the cluster data into the read model
@@ -359,9 +374,44 @@ func parseSBDDevices(c *cluster.Cluster) []*entities.SBDDevice {
 	for _, s := range c.SBD.Devices {
 		sbdDevice := &entities.SBDDevice{
 			Device: s.Device,
+			Status: s.Status,
 		}
 		sbdDevices = append(sbdDevices, sbdDevice)
 	}
 
 	return sbdDevices
+}
+
+func computeDiscoveredHealth(c *entities.Cluster) (string, error) {
+	switch c.ClusterType {
+	case models.ClusterTypeHANAScaleUp, models.ClusterTypeHANAScaleOut:
+		return computeDiscoveredHANAHealth(c)
+	default:
+		return models.HealthSummaryHealthUnknown, nil
+	}
+}
+
+func computeDiscoveredHANAHealth(c *entities.Cluster) (string, error) {
+	var srHealth string
+	var clusterDetailHANA entities.HANAClusterDetails
+
+	err := json.Unmarshal(c.Details, &clusterDetailHANA)
+	if err != nil {
+		return "", err
+	}
+
+	srHealthState := clusterDetailHANA.SRHealthState
+	srSyncState := clusterDetailHANA.SecondarySyncState
+
+	// Passing state if SR Health state is 4 and Sync state is SOK, everything else is critical
+	// If data is not present for some reason the state goes to unknown
+	if srHealthState == models.HANASrHealthOK && srSyncState == models.HANASrSyncSOK {
+		srHealth = models.HealthSummaryHealthPassing
+	} else if srHealthState == "" || srSyncState == "" {
+		srHealth = models.HealthSummaryHealthUnknown
+	} else {
+		srHealth = models.HealthSummaryHealthCritical
+	}
+
+	return srHealth, nil
 }

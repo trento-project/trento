@@ -8,8 +8,13 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
+	"github.com/trento-project/trento/web/datapipeline"
 	"github.com/trento-project/trento/web/entities"
 	"github.com/trento-project/trento/web/models"
+)
+
+const (
+	partialChecksHealth = "config_checks"
 )
 
 //go:generate mockery --name=ChecksService --inpackage --filename=checks_mock.go
@@ -145,9 +150,24 @@ func (c *checksService) CreateChecksResult(checksResult *models.ChecksResult) er
 	}
 
 	event := entities.ChecksResult{GroupID: checksResult.ID, Payload: jsonData}
-	result := c.db.Create(&event)
+	err = c.db.Create(&event).Error
+	if err != nil {
+		return err
+	}
 
-	return result.Error
+	// Project the current health state
+	aggregatedHealth, err := c.GetAggregatedChecksResultByCluster(checksResult.ID)
+	if err != nil {
+		return err
+	}
+
+	err = datapipeline.ProjectHealth(
+		c.db, checksResult.ID, partialChecksHealth, aggregatedHealth.String())
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *checksService) GetLastExecutionByGroup() ([]*models.ChecksResult, error) {

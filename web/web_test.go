@@ -4,6 +4,7 @@ import (
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/trento-project/trento/internal/grafana"
 	"github.com/trento-project/trento/web/services"
 )
 
@@ -22,6 +23,12 @@ func setupTestConfig() *Config {
 	return &Config{
 		Host: "",
 		Port: 80,
+		GrafanaConfig: &grafana.Config{
+			PublicURL: "localhost",
+			ApiURL:    "localhost",
+			User:      "admin",
+			Password:  "admin",
+		},
 	}
 }
 

@@ -146,9 +146,10 @@ func (suite *SAPSystemsServiceTestSuite) TestSAPSystemsService_GetAllApplication
 				},
 			},
 			AttachedDatabase: &models.SAPSystem{
-				ID:   "sap_system_2",
-				SID:  "PRD",
-				Type: models.SAPSystemTypeDatabase,
+				ID:     "sap_system_2",
+				SID:    "PRD",
+				Type:   models.SAPSystemTypeDatabase,
+				Health: models.SAPSystemHealthWarning,
 				Instances: []*models.SAPSystemInstance{
 					{
 						HostID:                  "2",

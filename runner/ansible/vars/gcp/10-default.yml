@@ -2,7 +2,7 @@
 
 expected_core:
   "1.1.1": "20000"
-  "1.1.2": "" # unkown value, default may apply
+  "1.1.2": "" # unknown value
   "1.1.3": "20"
   "1.1.4": "60"
   "1.1.5": "10"
@@ -10,7 +10,6 @@ expected_core:
   "1.1.7": "2"
   "1.1.8": "1"
   "1.2.1": "true"
-  "1.2.2.fence_gcpstonith": "300" # new variable
   "1.3.1": "" # doesn't apply to gcp
   "1.3.2": "" # doesn't apply to gcp
   "1.3.4": "" # doesn't apply to gcp
@@ -20,8 +19,9 @@ expected_core:
   "2.2.2": "15.1"
   "2.2.3": "2.0.1"
   "2.2.3.exclude": "2.0.3+20200511.2b248d828"
-  "2.2.4": "2.4.5" # unkown value, default may apply
-  "2.2.5": "1.4.0" # unkown value, default may apply
-  "2.2.7": "3.6.5" # unkown value, default may apply
+  "2.2.4": "2.4.5" # unknown value
+  "2.2.5": "1.4.0" # unknown value
+  "2.2.5.exclude": "1.4.0+20190326.c38c5e6"
+  "2.2.7": "3.6.5" # unknown value
 
 expected: "{{ expected_core }}"

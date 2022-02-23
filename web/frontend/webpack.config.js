@@ -9,6 +9,7 @@ const config = {
   entry: {
     check_results: './javascripts/check_results.js',
     cluster_check_settings: './javascripts/cluster_check_settings.js',
+    homepage: './javascripts/homepage.js',
   },
   output: {
     path: path.resolve(__dirname, 'assets/js'),

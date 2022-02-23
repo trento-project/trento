@@ -92,7 +92,7 @@ func serve(*cobra.Command, []string) {
 		log.Fatal("Failed to configure the web application instance: ", err)
 	}
 
-	app, err := web.NewApp(config)
+	app, err := web.NewApp(ctx, config)
 	if err != nil {
 		log.Fatal("Failed to create the web application instance: ", err)
 	}

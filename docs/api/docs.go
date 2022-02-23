@@ -858,6 +858,9 @@ var doc = `{
                 "id": {
                     "type": "string"
                 },
+                "sapsystem_health": {
+                    "type": "string"
+                },
                 "sid": {
                     "type": "string"
                 }

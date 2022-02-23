@@ -105,6 +105,10 @@ jobs:
         image: grafana/grafana:8.3.5
         ports:
           - 3000:3000
+      prometheus:
+        image: bitnami/prometheus:2.33.1-debian-10-r6
+        ports:
+          - 9090:9090
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -127,7 +131,7 @@ jobs:
           cypress_trento_binary: /tmp/trento
           cypress_photofinish_binary: /tmp/photofinish
         with:
-          start: /tmp/trento web serve --log-level=error --db-host=postgres --grafana-api-url=http://grafana:3000 --grafana-password=admin
+          start: /tmp/trento web serve --log-level=error --db-host=postgres --grafana-api-url=http://grafana:3000 --grafana-password=admin --prometheus-url=http://prometheus:9090
           working-directory: test/e2e
           headless: true
           wait-on-timeout: 30
@@ -421,7 +425,7 @@ jobs:
           set -ex
           for target_host in ${TRENTO_AGENT_HOSTS//,/ }
           do
-            ssh "$TRENTO_USER@$target_host" "sudo zypper ref && sudo zypper in -y golang-github-prometheus-node_exporter" 
+            ssh "$TRENTO_USER@$target_host" "sudo zypper ref && sudo zypper in -y golang-github-prometheus-node_exporter"
             ssh "$TRENTO_USER@$target_host" "TRENTO_REPO_OWNER=$TRENTO_REPO_OWNER sudo --preserve-env=PATH,TRENTO_REPO_OWNER bash -s" -- < ./install-agent.sh "--rolling" "--use-tgz" "--ssh-address" "$target_host" "--server-ip" "$TRENTO_SERVER_HOST"
             ssh "$TRENTO_USER@$target_host" "sudo systemctl enable --now trento-agent.service"
           done

@@ -5,11 +5,14 @@ import (
 	"time"
 
 	"github.com/lib/pq"
+	mock "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"github.com/trento-project/trento/test/helpers"
 	"github.com/trento-project/trento/web/entities"
 	"github.com/trento-project/trento/web/models"
 	"gorm.io/gorm"
+
+	prometheusModel "github.com/prometheus/common/model"
 )
 
 func hostsFixtures() []entities.Host {
@@ -73,9 +76,10 @@ func hostsFixtures() []entities.Host {
 
 type HostsServiceTestSuite struct {
 	suite.Suite
-	db           *gorm.DB
-	tx           *gorm.DB
-	hostsService *hostsService
+	db                *gorm.DB
+	tx                *gorm.DB
+	prometheusService *MockPrometheusService
+	hostsService      *hostsService
 }
 
 func TestHostsServiceTestSuite(t *testing.T) {
@@ -100,7 +104,8 @@ func (suite *HostsServiceTestSuite) TearDownSuite() {
 
 func (suite *HostsServiceTestSuite) SetupTest() {
 	suite.tx = suite.db.Begin()
-	suite.hostsService = NewHostsService(suite.tx)
+	suite.prometheusService = new(MockPrometheusService)
+	suite.hostsService = NewHostsService(suite.tx, suite.prometheusService)
 }
 
 func (suite *HostsServiceTestSuite) TearDownTest() {
@@ -249,4 +254,49 @@ func (suite *HostsServiceTestSuite) TestHostsService_computeHealth() {
 
 	host.Heartbeat = nil
 	suite.Equal(models.HostHealthUnknown, computeHealth(&host))
+}
+
+func (suite *HostsServiceTestSuite) TestHostsService_GetExportersState() {
+	exporterStates := prometheusModel.Vector{
+		&prometheusModel.Sample{
+			Metric: prometheusModel.Metric{
+				"exporter_name": "some exporter",
+				"job":           "some job",
+			},
+			Value:     1,
+			Timestamp: 1234567,
+		},
+		&prometheusModel.Sample{
+			Metric: prometheusModel.Metric{
+				"job": "some job",
+			},
+			Value:     0,
+			Timestamp: 1234567,
+		},
+	}
+
+	suite.prometheusService.On("Query", "up{hostname=\"host1\"}", mock.Anything).Return(exporterStates, nil)
+	states, err := suite.hostsService.GetExportersState("host1")
+	suite.NoError(err)
+
+	expectedStates := map[string]string{
+		"some exporter": "passing",
+		"Node Exporter": "",
+	}
+
+	suite.Equal(expectedStates, states)
+}
+
+func (suite *HostsServiceTestSuite) TestHostsService_GetExportersState_Unknown() {
+	exporterStates := prometheusModel.Vector{}
+
+	suite.prometheusService.On("Query", "up{hostname=\"host1\"}", mock.Anything).Return(exporterStates, nil)
+	states, err := suite.hostsService.GetExportersState("host1")
+	suite.NoError(err)
+
+	expectedStates := map[string]string{
+		"Node Exporter": "",
+	}
+
+	suite.Equal(expectedStates, states)
 }

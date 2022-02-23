@@ -148,6 +148,29 @@ func (_m *MockHostsService) GetCount() (int, error) {
 	return r0, r1
 }
 
+// GetExportersState provides a mock function with given fields: hostname
+func (_m *MockHostsService) GetExportersState(hostname string) (map[string]string, error) {
+	ret := _m.Called(hostname)
+
+	var r0 map[string]string
+	if rf, ok := ret.Get(0).(func(string) map[string]string); ok {
+		r0 = rf(hostname)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]string)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(hostname)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Heartbeat provides a mock function with given fields: agentID
 func (_m *MockHostsService) Heartbeat(agentID string) error {
 	ret := _m.Called(agentID)

@@ -197,7 +197,7 @@ func (s *sapSystemsService) getAllByType(sapSystemType string, tagResourceType s
 	}
 
 	sapSystemList := instances.ToModel()
-	err = s.ernichSAPSystemList(sapSystemList)
+	err = s.enrichSAPSystemList(sapSystemList)
 	if err != nil {
 		return nil, err
 	}
@@ -244,10 +244,13 @@ func (s *sapSystemsService) getAttachedDatabase(dbName string, dbHost string) (*
 		return nil, err
 	}
 
-	return instances.ToModel()[0], nil
+	sapSystem := instances.ToModel()[0]
+	s.computeHealth(sapSystem)
+
+	return sapSystem, nil
 }
 
-func (s *sapSystemsService) ernichSAPSystemList(sapSystemList models.SAPSystemList) error {
+func (s *sapSystemsService) enrichSAPSystemList(sapSystemList models.SAPSystemList) error {
 	sids := make(map[string]int)
 	for _, sapSystem := range sapSystemList {
 		err := s.attachDatabase(sapSystem)

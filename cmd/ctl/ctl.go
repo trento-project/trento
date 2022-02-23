@@ -1,11 +1,14 @@
 package ctl
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"syscall"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -54,7 +57,8 @@ func addPruneEventsCmd(ctlCmd *cobra.Command) {
 		Use:   "prune-events",
 		Short: "Prune events older than",
 		Run: func(*cobra.Command, []string) {
-			db := initDB()
+			ctx := getContext()
+			db := initDB(ctx)
 			olderThan := viper.GetUint("older-than")
 			olderThanDuration := time.Duration(olderThan) * 24 * time.Hour
 
@@ -74,7 +78,8 @@ func addPruneChecksResultsCmd(ctlCmd *cobra.Command) {
 		Use:   "prune-checks-results",
 		Short: "Prune checks results older than",
 		Run: func(*cobra.Command, []string) {
-			db := initDB()
+			ctx := getContext()
+			db := initDB(ctx)
 			olderThan := viper.GetUint("older-than")
 			olderThanDuration := time.Duration(olderThan) * 24 * time.Hour
 
@@ -92,7 +97,8 @@ func addDBResetCmd(ctlCmd *cobra.Command) {
 		Use:   "db-reset",
 		Short: "Reset the database",
 		Run: func(*cobra.Command, []string) {
-			db := initDB()
+			ctx := getContext()
+			db := initDB(ctx)
 
 			dbReset(db, web.DBTables)
 		},
@@ -106,7 +112,8 @@ func addDumpScenarioCmd(ctlCmd *cobra.Command) {
 		Use:   "dump-scenario",
 		Short: "Dump the current scenario",
 		Run: func(*cobra.Command, []string) {
-			db := initDB()
+			ctx := getContext()
+			db := initDB(ctx)
 			exportPath := viper.GetString("path")
 			scenarioName := viper.GetString("name")
 
@@ -123,9 +130,25 @@ func addDumpScenarioCmd(ctlCmd *cobra.Command) {
 	ctlCmd.AddCommand(dumpScenarioCmd)
 }
 
-func initDB() *gorm.DB {
+func getContext() context.Context {
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		<-signals
+		log.Infof("Bye!")
+		cancel()
+	}()
+
+	return ctx
+}
+
+func initDB(ctx context.Context) *gorm.DB {
 	dbConfig := dbCmd.LoadConfig()
-	db, err := db.InitDB(dbConfig)
+	db, err := db.InitDB(ctx, dbConfig)
 	if err != nil {
 		log.Fatal("Error while initializing the database: ", err)
 	}

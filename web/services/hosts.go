@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/lib/pq"
+	log "github.com/sirupsen/logrus"
 	"github.com/trento-project/trento/internal"
 	"github.com/trento-project/trento/web/entities"
 	"github.com/trento-project/trento/web/models"
@@ -29,7 +30,7 @@ type HostsService interface {
 	GetAllSIDs() ([]string, error)
 	GetAllTags() ([]string, error)
 	Heartbeat(agentID string) error
-	GetExportersState(hostname string) (map[string]bool, error)
+	GetExportersState(hostname string) (map[string]string, error)
 }
 
 type HostsFilter struct {
@@ -229,10 +230,17 @@ func (s *hostsService) Heartbeat(agentID string) error {
 	}).Create(heartbeat).Error
 }
 
-func (s *hostsService) GetExportersState(hostname string) (map[string]bool, error) {
-	jobsState := make(map[string]bool)
+func initJobsStates() map[string]string {
+	states := make(map[string]string)
+	states[nodeExporterName] = models.HostHealthUnknown
+	return states
+}
+
+func (s *hostsService) GetExportersState(hostname string) (map[string]string, error) {
+	jobsState := initJobsStates()
 	result, err := s.prometheusService.Query(fmt.Sprintf("up{hostname=\"%s\"}", hostname), time.Now())
 	if err != nil {
+		log.Warnf("error querying to prometheus: %s", err)
 		return jobsState, err
 	}
 
@@ -243,13 +251,18 @@ func (s *hostsService) GetExportersState(hostname string) (map[string]bool, erro
 	}
 
 	for _, r := range resultVector {
-		var name string
-		if _, ok := r.Metric["exporter_name"]; ok {
-			name = string(r.Metric["exporter_name"])
-		} else {
-			name = string(r.Metric["job"])
+		if _, ok := r.Metric["exporter_name"]; !ok {
+			continue
 		}
-		jobsState[name] = (int(r.Value) == 1)
+		name := string(r.Metric["exporter_name"])
+		switch int(r.Value) {
+		case 0:
+			jobsState[name] = models.HostHealthCritical
+		case 1:
+			jobsState[name] = models.HostHealthPassing
+		default:
+			jobsState[name] = models.HostHealthUnknown
+		}
 	}
 
 	return jobsState, nil

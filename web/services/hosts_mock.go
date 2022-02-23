@@ -149,15 +149,15 @@ func (_m *MockHostsService) GetCount() (int, error) {
 }
 
 // GetExportersState provides a mock function with given fields: hostname
-func (_m *MockHostsService) GetExportersState(hostname string) (map[string]bool, error) {
+func (_m *MockHostsService) GetExportersState(hostname string) (map[string]string, error) {
 	ret := _m.Called(hostname)
 
-	var r0 map[string]bool
-	if rf, ok := ret.Get(0).(func(string) map[string]bool); ok {
+	var r0 map[string]string
+	if rf, ok := ret.Get(0).(func(string) map[string]string); ok {
 		r0 = rf(hostname)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]bool)
+			r0 = ret.Get(0).(map[string]string)
 		}
 	}
 

@@ -177,9 +177,9 @@ func TestHostHandler(t *testing.T) {
 		},
 	}
 
-	exportersState := map[string]bool{
-		"Node exporter":  true,
-		"Other exporter": false,
+	exportersState := map[string]string{
+		"Node exporter":  "passing",
+		"Other exporter": "critical",
 	}
 
 	subscriptionsMocks.On("GetHostSubscriptions", "2").Return(subscriptionsList, nil)
@@ -259,7 +259,7 @@ func TestHostHandlerAzure(t *testing.T) {
 	subscriptionsMocks.On("GetHostSubscriptions", "1").Return(subscriptionsList, nil)
 	subscriptionsMocks.On("IsTrentoPremium").Return(true, nil)
 	mockHostsService.On("GetByID", "1").Return(hostListFixture()[0], nil)
-	mockHostsService.On("GetExportersState", "host1").Return(make(map[string]bool), nil)
+	mockHostsService.On("GetExportersState", "host1").Return(make(map[string]string), nil)
 
 	deps := setupTestDependencies()
 	deps.subscriptionsService = subscriptionsMocks

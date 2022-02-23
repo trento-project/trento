@@ -162,10 +162,12 @@
                       <tr>
                           <td>{{ $key }}</td>
                           <td>
-                            {{ if $state }}
+                            {{ if eq $state "passing" }}
                               <span class='badge badge-pill badge-primary'>running</span>
-                            {{ else }}
+                            {{ else if eq $state "critical" }}
                               <span class='badge badge-pill badge-danger'>not running</span>
+                            {{ else }}
+                              <span class='badge badge-pill badge-secondary'>unknown state</span>
                             {{ end }}
                           </td>
                       </tr>

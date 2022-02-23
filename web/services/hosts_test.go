@@ -279,9 +279,23 @@ func (suite *HostsServiceTestSuite) TestHostsService_GetExportersState() {
 	states, err := suite.hostsService.GetExportersState("host1")
 	suite.NoError(err)
 
-	expectedStates := map[string]bool{
-		"some exporter": true,
-		"some job":      false,
+	expectedStates := map[string]string{
+		"some exporter": "passing",
+		"Node Exporter": "",
+	}
+
+	suite.Equal(expectedStates, states)
+}
+
+func (suite *HostsServiceTestSuite) TestHostsService_GetExportersState_Unknown() {
+	exporterStates := prometheusModel.Vector{}
+
+	suite.prometheusService.On("Query", "up{hostname=\"host1\"}", mock.Anything).Return(exporterStates, nil)
+	states, err := suite.hostsService.GetExportersState("host1")
+	suite.NoError(err)
+
+	expectedStates := map[string]string{
+		"Node Exporter": "",
 	}
 
 	suite.Equal(expectedStates, states)

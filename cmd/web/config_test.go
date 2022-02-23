@@ -64,7 +64,7 @@ func (suite *WebCmdTestSuite) TearDownTest() {
 			User:      "adminuser",
 			Password:  "password",
 		},
-		PrometheusAddress: "http://prometheus-host:9090",
+		PrometheusURL: "http://prometheus-host:9090",
 	}
 	config, err := LoadConfig()
 	suite.NoError(err)
@@ -91,7 +91,7 @@ func (suite *WebCmdTestSuite) TestConfigFromFlags() {
 		"--grafana-public-url=http://grafana:3000",
 		"--grafana-user=adminuser",
 		"--grafana-password=password",
-		"--prometheus-address=http://prometheus-host:9090",
+		"--prometheus-url=http://prometheus-host:9090",
 	})
 }
 
@@ -112,7 +112,7 @@ func (suite *WebCmdTestSuite) TestConfigFromEnv() {
 	os.Setenv("TRENTO_GRAFANA_API_URL", "http://grafana:3000")
 	os.Setenv("TRENTO_GRAFANA_USER", "adminuser")
 	os.Setenv("TRENTO_GRAFANA_PASSWORD", "password")
-	os.Setenv("TRENTO_PROMETHEUS_ADDRESS", "http://prometheus-host:9090")
+	os.Setenv("TRENTO_PROMETHEUS_URL", "http://prometheus-host:9090")
 }
 
 func (suite *WebCmdTestSuite) TestConfigFromFile() {

@@ -51,7 +51,7 @@ func addServeCmd(webCmd *cobra.Command) {
 	var grafanaUser string
 	var grafanaPassword string
 
-	var prometheusAddress string
+	var prometheusURL string
 
 	serveCmd := &cobra.Command{
 		Use:   "serve",
@@ -73,7 +73,7 @@ func addServeCmd(webCmd *cobra.Command) {
 	serveCmd.Flags().StringVar(&grafanaUser, "grafana-user", "admin", "Grafana user")
 	serveCmd.Flags().StringVar(&grafanaPassword, "grafana-password", "", "Grafana password")
 
-	serveCmd.Flags().StringVar(&prometheusAddress, "prometheus-address", "http://localhost:9090", "Prometheus server address")
+	serveCmd.Flags().StringVar(&prometheusURL, "prometheus-url", "http://localhost:9090", "Prometheus server URL")
 
 	webCmd.AddCommand(serveCmd)
 }

@@ -64,7 +64,7 @@ type Config struct {
 	CA            string
 	DBConfig      *trentoDB.Config
 	GrafanaConfig *grafana.Config
-	PrometheusAddress string
+	PrometheusURL string
 }
 
 type Dependencies struct {
@@ -105,37 +105,18 @@ func DefaultDependencies(ctx context.Context, config *Config) Dependencies {
 	}
 
 	if err := grafana.InitGrafana(ctx, config.GrafanaConfig); err != nil {
-		log.Fatalf("failed initialazing grafana: %s", err)
+		log.Warnf("failed initialazing grafana: %s", err)
 	}
 
-	prom, err := trentoPrometheus.InitPrometheus(config.PrometheusAddress)
+	prom, err := trentoPrometheus.InitPrometheus(ctx, config.PrometheusURL)
 	if err != nil {
-		log.Fatalf("failed to create prometheus client: %s", err)
-	}
-
-	prometheusService := services.NewPrometheusService(db, prom)
-
-	err = retryGo.Do(
-		func() error {
-			var err error
-			_, err = prometheusService.Query("up", time.Now())
-			if err != nil {
-				return err
-			}
-			return nil
-		},
-		retryGo.Delay(1*time.Second),
-		retryGo.MaxJitter(2*time.Second),
-		retryGo.Attempts(3),
-		retryGo.LastErrorOnly(true),
-	)
-	if err != nil {
-		log.Fatalf("failed to connect to prometheus: %s", err)
+		log.Warnf("failed to create prometheus client: %s", err)
 	}
 
 	projectorRegistry := datapipeline.InitProjectorsRegistry(db)
 	projectorWorkersPool := datapipeline.NewProjectorsWorkerPool(projectorRegistry)
 
+	prometheusService := services.NewPrometheusService(db, prom)
 	settingsService := services.NewSettingsService(db)
 	tagsService := services.NewTagsService(db)
 	subscriptionsService := services.NewSubscriptionsService(db)
@@ -147,7 +128,6 @@ func DefaultDependencies(ctx context.Context, config *Config) Dependencies {
 	collectorService := services.NewCollectorService(db, projectorWorkersPool.GetChannel())
 	telemetryRegistry := telemetry.NewTelemetryRegistry(db)
 	telemetryPublisher := telemetry.NewTelemetryPublisher()
-	prometheusService := services.NewPrometheusService(db, prom)
 	healthSummaryService := services.NewHealthSummaryService(sapSystemsService, clustersService, hostsService)
 
 	return Dependencies{

@@ -14,4 +14,4 @@ grafana-api-url: http://grafana:3000
 grafana-public-url: http://grafana:3000
 grafana-user: adminuser
 grafana-password: password
-prometheus-address: http://prometheus-host:9090
+prometheus-url: http://prometheus-host:9090

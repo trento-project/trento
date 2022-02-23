@@ -131,7 +131,7 @@ jobs:
           cypress_trento_binary: /tmp/trento
           cypress_photofinish_binary: /tmp/photofinish
         with:
-          start: /tmp/trento web serve --log-level=error --db-host=postgres --grafana-api-url=http://grafana:3000 --grafana-password=admin --prometheus-address=http://prometheus:9090
+          start: /tmp/trento web serve --log-level=error --db-host=postgres --grafana-api-url=http://grafana:3000 --grafana-password=admin --prometheus-url=http://prometheus:9090
           working-directory: test/e2e
           headless: true
           wait-on-timeout: 30

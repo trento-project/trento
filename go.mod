@@ -32,9 +32,11 @@ require (
 	github.com/vektra/mockery/v2 v2.10.0
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	gorm.io/datatypes v1.0.2
+	gorm.io/datatypes v1.0.5
 	gorm.io/driver/postgres v1.1.2
-	gorm.io/gorm v1.21.15
+	gorm.io/driver/sqlite v1.1.4 // indirect
+	gorm.io/driver/sqlserver v1.0.9 // indirect
+	gorm.io/gorm v1.22.4
 )
 
 replace github.com/trento-project/trento => ./

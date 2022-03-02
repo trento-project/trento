@@ -22,6 +22,7 @@ const (
 	Unknown = iota
 	Database
 	Application
+	DiagnosticsAgent
 )
 
 const (
@@ -41,7 +42,12 @@ var systemTypes = map[int]string{
 	0: "Unknown",
 	1: "Database",
 	2: "Application",
+	3: "Diagnostics agent",
 }
+
+var databaseFeatures = regexp.MustCompile("HDB.*")
+var applicationFeatures = regexp.MustCompile("MESSAGESERVER.*|ENQREP|ABAP.*")
+var diagnosticsAgentFeatures = regexp.MustCompile("SMDAGENT")
 
 type SAPSystemsList []*SAPSystem
 type SAPSystemsMap map[string]*SAPSystem
@@ -287,24 +293,22 @@ func getProfileData(fs afero.Fs, profilePath string) (map[string]interface{}, er
 
 func setSystemId(fs afero.Fs, system *SAPSystem) (*SAPSystem, error) {
 	// Set system ID
+	var err error
+	var id string
+
 	switch system.Type {
 	case Database:
-		databaseId, err := getUniqueIdHana(fs, system.SID)
-		if err != nil {
-			return system, err
-		}
-		system.Id = databaseId
+		id, err = getUniqueIdHana(fs, system.SID)
 	case Application:
-		applicationId, err := getUniqueIdApplication(system.SID)
-		if err != nil {
-			return system, err
-		}
-		system.Id = applicationId
+		id, err = getUniqueIdApplication(system.SID)
+	case DiagnosticsAgent:
+		id, err = getUniqueIdDiagnostics(fs)
 	default:
-		system.Id = "-"
+		id = "-"
 	}
 
-	return system, nil
+	system.Id = id
+	return system, err
 }
 
 func getUniqueIdHana(fs afero.Fs, sid string) (string, error) {
@@ -343,6 +347,18 @@ func getUniqueIdApplication(sid string) (string, error) {
 
 	appIdMd5 := internal.Md5sum(string(sappfpar))
 	return appIdMd5, nil
+}
+
+func getUniqueIdDiagnostics(fs afero.Fs) (string, error) {
+	machineIDBytes, err := afero.ReadFile(fs, "/etc/machine-id")
+
+	if err != nil {
+		return "", err
+	}
+
+	machineID := strings.TrimSpace(string(machineIDBytes))
+	id := internal.Md5sum(machineID)
+	return id, nil
 }
 
 // The content type of the databases.lst looks like
@@ -403,14 +419,18 @@ func NewSAPInstance(w sapcontrol.WebService) (*SAPInstance, error) {
 	}
 
 	sapInstance.SAPControl = scontrol
-	sapInstance.Name = sapInstance.SAPControl.Properties["INSTANCE_NAME"].Value
 
-	_, ok := sapInstance.SAPControl.Properties["HANA Roles"]
-	if ok {
-		sapInstance.Type = Database
-	} else {
-		sapInstance.Type = Application
+	instanceName, ok := sapInstance.SAPControl.Properties["INSTANCE_NAME"]
+	if !ok {
+		return sapInstance, fmt.Errorf("INSTANCE_NAME property not found")
 	}
+	sapInstance.Name = instanceName.Value
+
+	instanceType, err := detectType(sapInstance.SAPControl)
+	if err != nil {
+		return sapInstance, err
+	}
+	sapInstance.Type = instanceType
 
 	if sapInstance.Type == Database {
 		sid := sapInstance.SAPControl.Properties["SAPSYSTEMNAME"].Value
@@ -420,6 +440,31 @@ func NewSAPInstance(w sapcontrol.WebService) (*SAPInstance, error) {
 	}
 
 	return sapInstance, nil
+}
+
+func detectType(sapControl *SAPControl) (int, error) {
+	sapLocalhost, ok := sapControl.Properties["SAPLOCALHOST"]
+	if !ok {
+		return 0, fmt.Errorf("SAPLOCALHOST property not found")
+	}
+
+	var instanceType int
+	for _, instance := range sapControl.Instances {
+		if instance.Hostname == sapLocalhost.Value {
+			switch {
+			case databaseFeatures.MatchString(instance.Features):
+				instanceType = Database
+			case applicationFeatures.MatchString(instance.Features):
+				instanceType = Application
+			case diagnosticsAgentFeatures.MatchString(instance.Features):
+				instanceType = DiagnosticsAgent
+			default:
+				instanceType = Unknown
+			}
+		}
+	}
+
+	return instanceType, nil
 }
 
 func runPythonSupport(sid, instance, script string) map[string]interface{} {

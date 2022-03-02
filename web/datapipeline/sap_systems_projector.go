@@ -52,6 +52,9 @@ func SAPSystemsProjector_SAPSystemsDiscoveryHandler(dataCollectedEvent *DataColl
 			if hdb, ok := s.Profile["dbs/hdb/dbname"]; ok {
 				dbName = hdb.(string)
 			}
+		case 3:
+			log.Infof("SAP diagnostics agent with %s identifier found. Skipping projection", s.SID)
+			continue
 		}
 
 		var instances []entities.SAPSystemInstance

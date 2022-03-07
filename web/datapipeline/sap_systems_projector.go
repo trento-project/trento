@@ -36,7 +36,7 @@ func SAPSystemsProjector_SAPSystemsDiscoveryHandler(dataCollectedEvent *DataColl
 	}
 
 	for _, s := range discoveredSAPSystems {
-		var sapSystemType, dbHost, dbName string
+		var sapSystemType, dbHost, dbName, dbAddress string
 		var tenants []string
 
 		switch s.Type {
@@ -52,6 +52,7 @@ func SAPSystemsProjector_SAPSystemsDiscoveryHandler(dataCollectedEvent *DataColl
 			if hdb, ok := s.Profile["dbs/hdb/dbname"]; ok {
 				dbName = hdb.(string)
 			}
+			dbAddress = s.DBAddress
 		case 3:
 			log.Infof("SAP diagnostics agent with %s identifier found. Skipping projection", s.SID)
 			continue
@@ -60,13 +61,14 @@ func SAPSystemsProjector_SAPSystemsDiscoveryHandler(dataCollectedEvent *DataColl
 		var instances []entities.SAPSystemInstance
 		for _, i := range s.Instances {
 			instance := entities.SAPSystemInstance{
-				AgentID: dataCollectedEvent.AgentID,
-				ID:      s.Id,
-				SID:     s.SID,
-				Type:    sapSystemType,
-				Tenants: tenants,
-				DBHost:  dbHost,
-				DBName:  dbName,
+				AgentID:   dataCollectedEvent.AgentID,
+				ID:        s.Id,
+				SID:       s.SID,
+				Type:      sapSystemType,
+				Tenants:   tenants,
+				DBHost:    dbHost,
+				DBName:    dbName,
+				DBAddress: dbAddress,
 			}
 
 			var features string

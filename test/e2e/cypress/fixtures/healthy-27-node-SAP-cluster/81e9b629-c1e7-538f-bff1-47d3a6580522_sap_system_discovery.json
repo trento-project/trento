@@ -6,8 +6,9 @@
       "Id": "d01fdc69aeba7bd5133b210eb2884853",
       "SID": "NWQ",
       "Type": 2,
+      "DBAddress": "10.90.1.13",
       "Profile": {
-        "SAPDBHOST": "10.90.1.13",
+        "SAPDBHOST": "ha-cluster.suse.de",
         "dbms/name": "HDQ",
         "dbms/type": "hdb",
         "gw/acl_mode": "1",

@@ -102,7 +102,7 @@ func SAPSystemsProjector_SAPSystemsDiscoveryHandler(dataCollectedEvent *DataColl
 			"id", "sid", "type", "features", "instance_number",
 			"system_replication", "system_replication_status",
 			"sap_hostname", "start_priority", "http_port", "https_port", "status",
-			"tenants", "db_host", "db_name")
+			"tenants", "db_host", "db_name", "db_address")
 		if err != nil {
 			return err
 		}

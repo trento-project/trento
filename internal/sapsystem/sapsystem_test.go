@@ -273,6 +273,19 @@ ERR:::
 	assert.ElementsMatch(t, expectedDbs, dbs)
 }
 
+func TestGetDBAddress(t *testing.T) {
+	s := &SAPSystem{Profile: SAPProfile{"SAPDBHOST": "localhost"}}
+	addr, err := getDBAddress(s)
+	assert.NoError(t, err)
+	assert.Equal(t, "127.0.0.1", addr)
+}
+
+func TestGetDBAddress_ResolveError(t *testing.T) {
+	s := &SAPSystem{Profile: SAPProfile{"SAPDBHOST": "other"}}
+	_, err := getDBAddress(s)
+	assert.EqualError(t, err, "could not resolve \"other\" hostname")
+}
+
 func TestNewSAPInstanceDatabase(t *testing.T) {
 	mockWebService := new(sapControlMocks.WebService)
 	mockCommand := new(sapSystemMocks.CustomCommand)

@@ -7,6 +7,8 @@ global:
   postgresql:
     name: postgresql
     servicePort: 5432
+    persistence:
+      mountPath: /bitnami/postgresql
   grafana:
     name: grafana
   prometheus:
@@ -28,6 +30,12 @@ postgresql:
   postgresqlUsername: "postgres"
   postgresqlPassword: "postgres"
   postgresqlDatabase: "trento"
+  postgresqlDataDir: /bitnami/postgresql/trento
+  persistence:
+    existingClaim: "{{ .Release.Name }}-postgresql-pv-claim"
+    mountPath: /bitnami/postgresql
+  volumePermissions:
+    enabled: true
 
 prometheus:
   enabled: true

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"os"
 	"os/exec"
 	"path"
@@ -63,6 +64,8 @@ type SAPSystem struct {
 	Instances map[string]*SAPInstance `mapstructure:"instances,omitempty"`
 	// Only for Database type
 	Databases []*DatabaseData `mapstructure:"databases,omitempty"`
+	// Only for Application type
+	DBAddress string `mapstructure:"db_address,omitempty"`
 }
 
 // The value is interface{} as some of the entries in the SAP profiles files and commands
@@ -202,12 +205,20 @@ func NewSAPSystem(fs afero.Fs, sysPath string) (*SAPSystem, error) {
 		system.Instances[instance.Name] = instance
 	}
 
-	if system.Type == Database {
+	switch system.Type {
+	case Database:
 		databaseList, err := getDatabases(fs, system.SID)
 		if err != nil {
 			log.Printf("Error getting the database list: %s", err)
 		} else {
 			system.Databases = databaseList
+		}
+	case Application:
+		addr, err := getDBAddress(system)
+		if err != nil {
+			log.Printf("Error getting the database address: %s", err)
+		} else {
+			system.DBAddress = addr
 		}
 	}
 
@@ -289,6 +300,29 @@ func getProfileData(fs afero.Fs, profilePath string) (map[string]interface{}, er
 	configMap := internal.FindMatches(`([\w\/]+)\s=\s(.+)`, profileRaw)
 
 	return configMap, nil
+}
+
+func getDBAddress(system *SAPSystem) (string, error) {
+	sapdbhost, found := system.Profile["SAPDBHOST"]
+	if !found {
+		return "", fmt.Errorf("SAPDBHOST field not found in the SAP profile")
+	}
+
+	addrList, err := net.LookupIP(sapdbhost.(string))
+	if err != nil {
+		return "", fmt.Errorf("could not resolve \"%s\" hostname", sapdbhost)
+	}
+
+	// Get 1st IPv4 address
+	for _, addr := range addrList {
+		addrStr := addr.String()
+		ip := net.ParseIP(addrStr)
+		if ip.To4() != nil {
+			return addrStr, nil
+		}
+	}
+
+	return "", fmt.Errorf("could not get any IPv4 address")
 }
 
 func setSystemId(fs afero.Fs, system *SAPSystem) (*SAPSystem, error) {

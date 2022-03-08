@@ -5,6 +5,7 @@
     "Type": 3,
     "Profile": {},
     "Databases": null,
+    "DBAddress": "",
     "Instances": {
       "SMDA98": {
         "Host": "vmhana01",

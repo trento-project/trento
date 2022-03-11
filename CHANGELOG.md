@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.9.1](https://github.com/trento-project/trento/tree/0.9.1) (2022-03-11)
+
+[Full Changelog](https://github.com/trento-project/trento/compare/0.9.0...0.9.1)
+
+### Fixed
+
+- Add /usr/sbin to the PATH for the execution [\#858](https://github.com/trento-project/trento/pull/858) (@arbulu89)
+- Associate attached database properly when the database name is resolved [\#854](https://github.com/trento-project/trento/pull/854) (@arbulu89)
+- Exclude diagnostics service sap systems [\#849](https://github.com/trento-project/trento/pull/849) (@arbulu89)
+
+### Other Changes
+
+- Bump github.com/spf13/cobra from 1.3.0 to 1.4.0 [\#859](https://github.com/trento-project/trento/pull/859) (@dependabot[bot])
+- Bump axios from 0.26.0 to 0.26.1 in /web/frontend [\#857](https://github.com/trento-project/trento/pull/857) (@dependabot[bot])
+- Bump css-loader from 6.7.0 to 6.7.1 in /web/frontend [\#856](https://github.com/trento-project/trento/pull/856) (@dependabot[bot])
+- Bump css-loader from 6.6.0 to 6.7.0 in /web/frontend [\#853](https://github.com/trento-project/trento/pull/853) (@dependabot[bot])
+- Bump eslint-plugin-react from 7.29.2 to 7.29.3 in /web/frontend [\#852](https://github.com/trento-project/trento/pull/852) (@dependabot[bot])
+- Bump webpack from 5.69.1 to 5.70.0 in /web/frontend [\#851](https://github.com/trento-project/trento/pull/851) (@dependabot[bot])
+- Bump docker/login-action from 1.14.0 to 1.14.1 [\#848](https://github.com/trento-project/trento/pull/848) (@dependabot[bot])
+- Bump actions/checkout from 2 to 3 [\#847](https://github.com/trento-project/trento/pull/847) (@dependabot[bot])
+- Bump docker/login-action from 1.13.0 to 1.14.0 [\#845](https://github.com/trento-project/trento/pull/845) (@dependabot[bot])
+- Bump actions/setup-python from 2.3.2 to 3 [\#844](https://github.com/trento-project/trento/pull/844) (@dependabot[bot])
+- Bump eslint-plugin-react from 7.28.0 to 7.29.2 in /web/frontend [\#842](https://github.com/trento-project/trento/pull/842) (@dependabot[bot])
+- Bump eslint from 8.9.0 to 8.10.0 in /web/frontend [\#841](https://github.com/trento-project/trento/pull/841) (@dependabot[bot])
+
 ## [0.9.0](https://github.com/trento-project/trento/tree/0.9.0) (2022-02-25)
 
 [Full Changelog](https://github.com/trento-project/trento/compare/0.8.1...0.9.0)

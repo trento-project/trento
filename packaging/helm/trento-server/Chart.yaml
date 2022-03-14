@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 #!BuildTag: trento/trento-server:0.4.4
 #!BuildTag: trento/trento-server:0.4.4-build%RELEASE%
 apiVersion: v2

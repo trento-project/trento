@@ -418,6 +418,7 @@ jobs:
       TRENTO_USER: ${{ secrets.TRENTO_USER }}
       TRENTO_SERVER_HOST: ${{ secrets.TRENTO_SERVER_HOST }}
       TRENTO_REPO_OWNER: ${{ github.repository_owner }}
+      TRENTO_DISCOVERY_INTERVAL: ${{ secrets.TRENTO_DISCOVERY_INTERVAL }}
     steps:
       - uses: actions/checkout@v3
       - name: install and enable agents
@@ -426,7 +427,7 @@ jobs:
           for target_host in ${TRENTO_AGENT_HOSTS//,/ }
           do
             ssh "$TRENTO_USER@$target_host" "sudo zypper ref && sudo zypper in -y golang-github-prometheus-node_exporter"
-            ssh "$TRENTO_USER@$target_host" "TRENTO_REPO_OWNER=$TRENTO_REPO_OWNER sudo --preserve-env=PATH,TRENTO_REPO_OWNER bash -s" -- < ./install-agent.sh "--rolling" "--use-tgz" "--ssh-address" "$target_host" "--server-ip" "$TRENTO_SERVER_HOST"
+            ssh "$TRENTO_USER@$target_host" "TRENTO_REPO_OWNER=$TRENTO_REPO_OWNER sudo --preserve-env=PATH,TRENTO_REPO_OWNER bash -s" -- < ./install-agent.sh "--rolling" "--use-tgz" "--ssh-address" "$target_host" "--server-ip" "$TRENTO_SERVER_HOST" "--interval" "$TRENTO_DISCOVERY_INTERVAL"
             ssh "$TRENTO_USER@$target_host" "sudo systemctl enable --now trento-agent.service"
           done
 

@@ -6,6 +6,7 @@
       "Id": "a1e80e3e152a903662f7882fb3f8a851",
       "SID": "NWD",
       "Type": 2,
+      "DBAddress": "10.100.1.13",
       "Profile": {
         "SAPDBHOST": "10.100.1.13",
         "dbms/name": "HDD",

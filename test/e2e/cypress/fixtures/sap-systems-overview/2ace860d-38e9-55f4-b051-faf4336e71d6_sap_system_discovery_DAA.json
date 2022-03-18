@@ -1,151 +1,43 @@
 {
-  "agent_id": "1b0e9297-97dd-55d6-9874-8efde4d84c90",
+  "agent_id": "2ace860d-38e9-55f4-b051-faf4336e71d6",
   "discovery_type": "sap_system_discovery",
   "payload": [
     {
       "Id": "a1e80e3e152a903662f7882fb3f8a851",
-      "SID": "NWD",
-      "Type": 2,
-      "DBAddress": "10.100.1.13",
-      "Profile": {
-        "SAPDBHOST": "10.100.1.13",
-        "dbms/name": "HDD",
-        "dbms/type": "hdb",
-        "gw/acl_mode": "1",
-        "gw/sec_info": "$(DIR_GLOBAL)$(DIR_SEP)secinfo$(FT_DAT)",
-        "system/type": "ABAP",
-        "vmcj/enable": "off",
-        "rdisp/mshost": "sapnwdas",
-        "rdisp/msserv": "sapmsNWD",
-        "SAPGLOBALHOST": "sapnwdas",
-        "SAPSYSTEMNAME": "NWD",
-        "rdisp/btctime": "0",
-        "dbs/hdb/dbname": "HDD",
-        "dbs/hdb/schema": "SAPABAP1",
-        "enque/serverhost": "sapnwdas",
-        "enque/serverinst": "00",
-        "icf/user_recheck": "1",
-        "rdisp/bufrefmode": "sendoff",
-        "rsdb/ssfs_connect": "0",
-        "rsec/ssfs_keypath": "$(DIR_GLOBAL)$(DIR_SEP)security$(DIR_SEP)rsecssfs$(DIR_SEP)key",
-        "rdisp/autoabaptime": "0",
-        "rsec/ssfs_datapath": "$(DIR_GLOBAL)$(DIR_SEP)security$(DIR_SEP)rsecssfs$(DIR_SEP)data",
-        "login/system_client": "001",
-        "rdisp/msserv_internal": "3900",
-        "enque/process_location": "REMOTESA",
-        "enque/deque_wait_answer": "TRUE",
-        "service/protectedwebmethods": "SDEFAULT",
-        "system/secure_communication": "ON",
-        "is/HTTP/show_detailed_errors": "FALSE",
-        "login/password_downwards_compatibility": "0",
-        "icm/HTTP/ASJava/disable_url_session_tracking": "TRUE"
-      },
+      "SID": "DAA",
+      "Type": 3,
+      "Profile": {},
       "Databases": null,
       "Instances": {
-        "D02": {
-          "Host": "vmnwdev04",
-          "Name": "D02",
-          "Type": 2,
+        "SMDA98": {
+          "Host": "vmhana01",
+          "Name": "SMDA98",
+          "Type": 3,
           "SAPControl": {
             "Instances": {
-              "sapnwdas": {
-                "features": "MESSAGESERVER|ENQUE",
-                "hostname": "sapnwdas",
-                "httpPort": 50013,
-                "httpsPort": 50014,
+              "vmhana01": {
+                "features": "SMDAGENT",
+                "hostname": "vmhana01",
+                "httpPort": 59813,
                 "dispstatus": "SAPControl-GREEN",
-                "instanceNr": 0,
-                "startPriority": "1"
-              },
-              "sapnwder": {
-                "features": "ENQREP",
-                "hostname": "sapnwder",
-                "httpPort": 51013,
-                "httpsPort": 51014,
-                "dispstatus": "SAPControl-GREEN",
-                "instanceNr": 10,
-                "startPriority": "0.5"
-              },
-              "sapnwdpas": {
-                "features": "ABAP|GATEWAY|ICMAN|IGS",
-                "hostname": "sapnwdpas",
-                "httpPort": 50113,
-                "httpsPort": 50114,
-                "dispstatus": "SAPControl-GREEN",
-                "instanceNr": 1,
+                "instanceNr": 98,
                 "startPriority": "3"
-              },
-              "sapnwdaas1": {
-                "features": "ABAP|GATEWAY|ICMAN|IGS",
-                "hostname": "sapnwdaas1",
-                "httpPort": 50215,
-                "httpsPort": 50216,
-                "dispstatus": "SAPControl-YELLOW",
-                "instanceNr": 2,
-                "startPriority": "5"
               }
             },
             "Processes": {
-              "gwrd": {
-                "pid": 26496,
-                "name": "gwrd",
-                "starttime": "2022 01 11 13:05:00",
+              "jstart": {
+                "pid": 5197,
+                "name": "jstart",
+                "starttime": "2022 03 01 15:39:27",
                 "dispstatus": "SAPControl-GREEN",
-                "textstatus": "Running",
-                "description": "Gateway",
-                "elapsedtime": "151:47:01"
-              },
-              "icman": {
-                "pid": 26497,
-                "name": "icman",
-                "starttime": "2022 01 11 13:05:00",
-                "dispstatus": "SAPControl-GREEN",
-                "textstatus": "Running",
-                "description": "ICM",
-                "elapsedtime": "151:47:01"
-              },
-              "igswd_mt": {
-                "pid": 26476,
-                "name": "igswd_mt",
-                "starttime": "2022 01 11 13:04:57",
-                "dispstatus": "SAPControl-GREEN",
-                "textstatus": "Running",
-                "description": "IGS Watchdog",
-                "elapsedtime": "151:47:04"
-              },
-              "disp+work": {
-                "pid": 26475,
-                "name": "disp+work",
-                "starttime": "2022 01 11 13:04:57",
-                "dispstatus": "SAPControl-GREEN",
-                "textstatus": "Running",
-                "description": "Dispatcher",
-                "elapsedtime": "151:47:04"
+                "textstatus": "All processes running",
+                "description": "J2EE Server",
+                "elapsedtime": "17:06:31"
               }
             },
             "Properties": {
-              "ICM": {
-                "value": "HTTP://sapnwdaas1:0/sap/admin/public/index.html",
-                "property": "ICM",
-                "propertytype": "NodeURL"
-              },
-              "IGS": {
-                "value": "http://sapnwdaas1:40280",
-                "property": "IGS",
-                "propertytype": "NodeURL"
-              },
-              "Syslog": {
-                "value": "ABAPReadSyslog",
-                "property": "Syslog",
-                "propertytype": "NodeWebmethod"
-              },
-              "ICM Cache": {
-                "value": "ICMGetCacheEntries",
-                "property": "ICM Cache",
-                "propertytype": "NodeWebmethod"
-              },
               "SAPSYSTEM": {
-                "value": "02",
+                "value": "98",
                 "property": "SAPSYSTEM",
                 "propertytype": "Attribute"
               },
@@ -154,30 +46,15 @@
                 "property": "Webmethods",
                 "propertytype": "Attribute"
               },
-              "ICM Threads": {
-                "value": "ICMGetThreadList",
-                "property": "ICM Threads",
-                "propertytype": "NodeWebmethod"
-              },
-              "Open Alerts": {
-                "value": "GetAlertTree",
-                "property": "Open Alerts",
-                "propertytype": "NodeWebmethod"
-              },
               "Process List": {
                 "value": "GetProcessList",
                 "property": "Process List",
                 "propertytype": "NodeWebmethod"
               },
               "SAPLOCALHOST": {
-                "value": "sapnwdaas1",
+                "value": "vmhana01",
                 "property": "SAPLOCALHOST",
                 "propertytype": "Attribute"
-              },
-              "ABAP WP Table": {
-                "value": "ABAPGetWPTable",
-                "property": "ABAP WP Table",
-                "propertytype": "NodeWebmethod"
               },
               "Access Points": {
                 "value": "GetAccessPointList",
@@ -185,17 +62,12 @@
                 "propertytype": "NodeWebmethod"
               },
               "INSTANCE_NAME": {
-                "value": "D02",
+                "value": "SMDA98",
                 "property": "INSTANCE_NAME",
                 "propertytype": "Attribute"
               },
-              "Kernel Update": {
-                "value": "https://launchpad.support.sap.com/#/softwarecenter/template/products/_APP=00200682500000001943\u0026_EVENT=DISPHIER\u0026HEADER=Y\u0026FUNCTIONBAR=N\u0026EVENT=TREE\u0026NE=NAVIGATE\u0026ENR=73554900100200005858\u0026V=MAINT",
-                "property": "Kernel Update",
-                "propertytype": "NodeURL"
-              },
               "SAPSYSTEMNAME": {
-                "value": "NWD",
+                "value": "DAA",
                 "property": "SAPSYSTEMNAME",
                 "propertytype": "Attribute"
               },
@@ -204,29 +76,19 @@
                 "property": "StartPriority",
                 "propertytype": "Attribute"
               },
-              "Current Status": {
-                "value": "GetAlertTree",
-                "property": "Current Status",
+              "J2EE GC History": {
+                "value": "J2EEGetVMGCHistory2,J2EEGetVMGCHistory",
+                "property": "J2EE GC History",
                 "propertytype": "NodeWebmethod"
               },
-              "Gateway Clients": {
-                "value": "GWGetClientList",
-                "property": "Gateway Clients",
+              "J2EE Heap Memory": {
+                "value": "J2EEGetVMHeapInfo",
+                "property": "J2EE Heap Memory",
                 "propertytype": "NodeWebmethod"
               },
-              "ICM Connections": {
-                "value": "ICMGetConnectionList",
-                "property": "ICM Connections",
-                "propertytype": "NodeWebmethod"
-              },
-              "Queue Statistic": {
-                "value": "GetQueueStatistic",
-                "property": "Queue Statistic",
-                "propertytype": "NodeWebmethod"
-              },
-              "Gateway Connections": {
-                "value": "GWGetConnectionList",
-                "property": "Gateway Connections",
+              "J2EE Process Table": {
+                "value": "J2EEGetProcessList2,J2EEGetProcessList",
+                "property": "J2EE Process Table",
                 "propertytype": "NodeWebmethod"
               },
               "Protected Webmethods": {
@@ -234,13 +96,8 @@
                 "property": "Protected Webmethods",
                 "propertytype": "Attribute"
               },
-              "ICM Proxy Connections": {
-                "value": "ICMGetProxyConnectionList",
-                "property": "ICM Proxy Connections",
-                "propertytype": "NodeWebmethod"
-              },
               "Parameter Documentation": {
-                "value": "http://sapnwdaas1:50213/sapparamEN.html",
+                "value": "http://vmhana01:59813/sapparamEN.html",
                 "property": "Parameter Documentation",
                 "propertytype": "NodeURL"
               }

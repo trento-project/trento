@@ -92,6 +92,7 @@ func (c *client) Publish(discoveryType string, payload interface{}) error {
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusAccepted {
 		return fmt.Errorf(
@@ -108,6 +109,7 @@ func (c *client) Heartbeat() error {
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusNoContent {
 		return fmt.Errorf("server responded with status code %d while sending heartbeat", resp.StatusCode)

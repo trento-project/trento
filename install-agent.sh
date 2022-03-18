@@ -20,7 +20,8 @@ Arguments:
   --key             The path to the TLS key file. Required if --enable-mtls is set.
   --ca              The path to the TLS CA file. Required if --enable-mtls is set.
   --rolling         Use the rolling version instead of the stable one.
-  --use-tgz         Use the trento tar.gz file from GH releases rather than the RPM
+  --use-tgz         Use the trento tar.gz file from GH releases rather than the RPM.
+  --interval        The polling interval in seconds for the discovery.
   --help            Print this help.
 END
 }
@@ -46,9 +47,10 @@ ARGUMENT_LIST=(
     "ca:"
     "rolling"
     "use-tgz"
+    "interval:"
 )
 
-readonly TRENTO_VERSION=0.8.1
+readonly TRENTO_VERSION=0.9.1
 
 opts=$(
     getopt \
@@ -102,6 +104,11 @@ while [[ $# -gt 0 ]]; do
             shift 1
         ;;
 
+        --interval)
+            INTERVAL=$2
+            shift 2
+        ;;
+
         *)
             break
         ;;
@@ -117,6 +124,7 @@ enable-mtls: @ENABLE_MTLS@
 cert: @CERT@
 key: @KEY@
 ca: @CA@
+discovery-period: @INTERVAL@
 '
 
 . /etc/os-release
@@ -256,6 +264,7 @@ function install_trento_tgz() {
 
 function setup_trento() {
     local enable_mtls=${ENABLE_MTLS:-"false"}
+    local interval=${INTERVAL:-"10"}
 
     echo "* Generating trento-agent config..."
 
@@ -267,7 +276,8 @@ function setup_trento() {
         sed "s|@ENABLE_MTLS@|${enable_mtls}|g" |
         sed "s|@CERT@|${CERT}|g" |
         sed "s|@KEY@|${KEY}|g" |
-        sed "s|@CA@|${CA}|g" \
+        sed "s|@CA@|${CA}|g" |
+        sed "s|@INTERVAL@|${interval}|g" \
             > ${AGENT_CONFIG_FILE}
 }
 

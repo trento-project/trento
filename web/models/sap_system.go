@@ -22,6 +22,7 @@ type SAPSystem struct {
 	AttachedDatabase *SAPSystem
 	DBName           string
 	DBHost           string
+	DBAddress        string
 	Health           string
 	Tags             []string
 	// TODO: this is frontend specific, should be removed

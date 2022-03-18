@@ -189,7 +189,7 @@ export const availableSAPSystems = [
       sid: 'HDQ',
       id: '9953878f07bb54cac20d5d5d7ff08af2',
       tenant: 'HDQ',
-      dbAddress: '10.90.1.13',
+      dbAddress: 'ha-cluster.suse.de',
     },
     instances: [
       {

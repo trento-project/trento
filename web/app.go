@@ -21,6 +21,7 @@ import (
 
 	trentoDB "github.com/trento-project/trento/internal/db"
 	"github.com/trento-project/trento/internal/grafana"
+	trentoPrometheus "github.com/trento-project/trento/internal/prometheus"
 	"github.com/trento-project/trento/version"
 	"github.com/trento-project/trento/web/datapipeline"
 	"github.com/trento-project/trento/web/entities"
@@ -63,6 +64,7 @@ type Config struct {
 	CA            string
 	DBConfig      *trentoDB.Config
 	GrafanaConfig *grafana.Config
+	PrometheusURL string
 }
 
 type Dependencies struct {
@@ -103,16 +105,22 @@ func DefaultDependencies(ctx context.Context, config *Config) Dependencies {
 	}
 
 	if err := grafana.InitGrafana(ctx, config.GrafanaConfig); err != nil {
-		log.Fatalf("failed initialazing grafana: %s", err)
+		log.Warnf("failed initialazing grafana: %s", err)
+	}
+
+	prom, err := trentoPrometheus.InitPrometheus(ctx, config.PrometheusURL)
+	if err != nil {
+		log.Warnf("failed to create prometheus client: %s", err)
 	}
 
 	projectorRegistry := datapipeline.InitProjectorsRegistry(db)
 	projectorWorkersPool := datapipeline.NewProjectorsWorkerPool(projectorRegistry)
 
+	prometheusService := services.NewPrometheusService(db, prom)
 	settingsService := services.NewSettingsService(db)
 	tagsService := services.NewTagsService(db)
 	subscriptionsService := services.NewSubscriptionsService(db)
-	hostsService := services.NewHostsService(db)
+	hostsService := services.NewHostsService(db, prometheusService)
 	sapSystemsService := services.NewSAPSystemsService(db)
 	premiumDetection := services.NewPremiumDetectionService(version.Flavor, subscriptionsService, settingsService)
 	checksService := services.NewChecksService(db, premiumDetection)
@@ -120,7 +128,6 @@ func DefaultDependencies(ctx context.Context, config *Config) Dependencies {
 	collectorService := services.NewCollectorService(db, projectorWorkersPool.GetChannel())
 	telemetryRegistry := telemetry.NewTelemetryRegistry(db)
 	telemetryPublisher := telemetry.NewTelemetryPublisher()
-	prometheusService := services.NewPrometheusService(db)
 	healthSummaryService := services.NewHealthSummaryService(sapSystemsService, clustersService, hostsService)
 
 	return Dependencies{

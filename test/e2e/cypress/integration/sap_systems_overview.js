@@ -297,5 +297,12 @@ context('SAP Systems Overview', () => {
         cy.get('@instanceTableCell').eq(0).should('contain', 'error');
       });
     });
+    describe('SAP diagnostics agent', () => {
+      it(`should skip SAP diagnostics agent discovery visualization`, () => {
+        cy.loadScenario('sap-systems-overview-DAA');
+        cy.visit(`/sapsystems`);
+        cy.get('.eos-table').should('not.contain', 'DAA');
+      });
+    });
   });
 });

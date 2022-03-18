@@ -58,6 +58,10 @@ files = ["./sap-systems-overview/1b0e9297-97dd-55d6-9874-8efde4d84c90_sap_system
 
 files = ["./sap-systems-overview/13e8c25c-3180-5a9a-95c8-51ec38e50cfc_sap_system_discovery_RED.json"]
 
+[sap-systems-overview-DAA]
+
+files = ["./sap-systems-overview/2ace860d-38e9-55f4-b051-faf4336e71d6_sap_system_discovery_DAA.json"]
+
 [cluster-4-SOK]
 
 files = ["./clusters-overview/13e8c25c-3180-5a9a-95c8-51ec38e50cfc_ha_cluster_discovery_4_SOK.json"]

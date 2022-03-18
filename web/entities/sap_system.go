@@ -25,6 +25,7 @@ type SAPSystemInstance struct {
 	SystemReplicationStatus string
 	DBHost                  string
 	DBName                  string
+	DBAddress               string
 	Tenants                 pq.StringArray `gorm:"type:text[]"`
 	Host                    *Host          `gorm:"foreignKey:AgentID"`
 	UpdatedAt               time.Time
@@ -52,12 +53,13 @@ func (s SAPSystemInstances) ToModel() []*models.SAPSystem {
 			}
 
 			sapSystem = &models.SAPSystem{
-				ID:     i.ID,
-				Type:   i.Type,
-				SID:    i.SID,
-				DBName: i.DBName,
-				DBHost: i.DBHost,
-				Tags:   tags,
+				ID:        i.ID,
+				Type:      i.Type,
+				SID:       i.SID,
+				DBName:    i.DBName,
+				DBHost:    i.DBHost,
+				DBAddress: i.DBAddress,
+				Tags:      tags,
 			}
 			set[i.ID] = sapSystem
 		}

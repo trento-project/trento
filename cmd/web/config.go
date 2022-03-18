@@ -48,5 +48,6 @@ func LoadConfig() (*web.Config, error) {
 			User:      viper.GetString("grafana-user"),
 			Password:  viper.GetString("grafana-password"),
 		},
+		PrometheusURL: viper.GetString("prometheus-url"),
 	}, nil
 }

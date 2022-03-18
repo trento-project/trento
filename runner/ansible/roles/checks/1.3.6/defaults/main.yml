@@ -10,7 +10,15 @@ remediation: |
   Make sure you configure your the SBD msgwait to 2 * (SBD Watchdog Timeout) as recommended on the best practices.
 
   ## References
-  -  https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#set-up-sbd-device
+  Azure:
+    - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#set-up-sbd-device
+    - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#set-up-the-iscsi-target-server-sbd-device
+  AWS:
+    - 
+  GCP:
+    - 
+  SUSE / KVM:
+    - https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/#id-verifying-the-sbd-device
 implementation: "{{ lookup('file', 'roles/checks/'+name+'/tasks/main.yml') }}"
 
 # check id. This value must not be changed over the life of this check

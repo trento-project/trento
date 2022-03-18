@@ -24,6 +24,7 @@ func sapSystemsFixtures() entities.SAPSystemInstances {
 			Status:         string(sapcontrol.STATECOLOR_RED),
 			DBHost:         "dbhost_1",
 			DBName:         "tenant",
+			DBAddress:      "192.168.1.10",
 			Host: &entities.Host{
 				AgentID:     "1",
 				Name:        "apphost",
@@ -54,6 +55,7 @@ func sapSystemsFixtures() entities.SAPSystemInstances {
 				Name:        "dbhost_1",
 				ClusterID:   "cluster_id_2",
 				ClusterName: "dbcluster",
+				IPAddresses: pq.StringArray{"192.168.1.10"},
 			},
 			Tags: []*models.Tag{
 				{
@@ -126,12 +128,13 @@ func (suite *SAPSystemsServiceTestSuite) TestSAPSystemsService_GetAllApplication
 
 	suite.EqualValues(models.SAPSystemList{
 		{
-			ID:     "sap_system_1",
-			SID:    "HA1",
-			Type:   models.SAPSystemTypeApplication,
-			DBHost: "dbhost_1",
-			DBName: "tenant",
-			Health: models.SAPSystemHealthCritical,
+			ID:        "sap_system_1",
+			SID:       "HA1",
+			Type:      models.SAPSystemTypeApplication,
+			DBHost:    "dbhost_1",
+			DBName:    "tenant",
+			DBAddress: "192.168.1.10",
+			Health:    models.SAPSystemHealthCritical,
 			Instances: []*models.SAPSystemInstance{
 				{
 					Features:       "features",

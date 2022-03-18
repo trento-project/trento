@@ -32,6 +32,7 @@ func (tp *TelemetryPublisher) Publish(telemetryName string, installationID uuid.
 	if err != nil {
 		return errors.Wrapf(err, "An error occurred while publishing telemetry %s", telemetryName)
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusAccepted {
 		return errors.Errorf("Unexpected response code %d while publishing telemetry %s", resp.StatusCode, telemetryName)

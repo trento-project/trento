@@ -70,6 +70,8 @@ spec:
             - name: TRENTO_CA
               value: /certs/ca.pem
             {{ end }}
+            - name: TRENTO_PROMETHEUS_URL
+              value: "http://{{ .Release.Name }}-{{ .Values.global.prometheus.name }}"
           args:
             - web
             - serve
@@ -121,4 +123,3 @@ spec:
             path: ca.pem
           - key: key
             path: key.pem
-            

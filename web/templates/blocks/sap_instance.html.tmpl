@@ -11,7 +11,7 @@
             </tr>
             </thead>
             <tbody>
-            {{- $SAPSystem := . }}
+            {{- range $Key, $SAPSystem := . }}
             {{- range .Instances }}
                 <tr>
                     <td>{{ $SAPSystem.ID }}</td>
@@ -20,6 +20,7 @@
                     <td>{{ .Features }}</td>
                     <td>{{ .InstanceNumber }}</td>
                 </tr>
+            {{- end  }}
             {{- else }}
                 {{ template "empty_table_body" 5}}
             {{- end }}

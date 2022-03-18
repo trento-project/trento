@@ -177,9 +177,15 @@ func TestHostHandler(t *testing.T) {
 		},
 	}
 
+	exportersState := map[string]string{
+		"Node exporter":  "passing",
+		"Other exporter": "critical",
+	}
+
 	subscriptionsMocks.On("GetHostSubscriptions", "2").Return(subscriptionsList, nil)
 	subscriptionsMocks.On("IsTrentoPremium").Return(true, nil)
 	mockHostsService.On("GetByID", "2").Return(hostListFixture()[1], nil)
+	mockHostsService.On("GetExportersState", "host2").Return(exportersState, nil)
 
 	deps := setupTestDependencies()
 	deps.subscriptionsService = subscriptionsMocks
@@ -214,7 +220,9 @@ func TestHostHandler(t *testing.T) {
 	assert.Regexp(t, regexp.MustCompile("<span.*>host2</span>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<a.*sapsystems/sap_system_id_2.*>QAS</a>"), minified)
 	assert.Regexp(t, regexp.MustCompile("<span.*>v1</span>"), minified)
-	assert.Regexp(t, regexp.MustCompile("<span.*>not running</span>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td>Trento agent</td><td><span.*>not running</span>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td>Node exporter</td><td><span.*>running</span>"), minified)
+	assert.Regexp(t, regexp.MustCompile("<td>Other exporter</td><td><span.*>not running</span>"), minified)
 
 	// Subscriptions
 	assert.Regexp(t, regexp.MustCompile(
@@ -251,6 +259,7 @@ func TestHostHandlerAzure(t *testing.T) {
 	subscriptionsMocks.On("GetHostSubscriptions", "1").Return(subscriptionsList, nil)
 	subscriptionsMocks.On("IsTrentoPremium").Return(true, nil)
 	mockHostsService.On("GetByID", "1").Return(hostListFixture()[0], nil)
+	mockHostsService.On("GetExportersState", "host1").Return(make(map[string]string), nil)
 
 	deps := setupTestDependencies()
 	deps.subscriptionsService = subscriptionsMocks

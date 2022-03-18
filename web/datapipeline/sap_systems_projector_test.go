@@ -168,3 +168,20 @@ func (s *SAPSystemsProjectorTestSuite) Test_SAPSystemDiscoveryHandler_Applicatio
 	s.Equal(50213, projectedSAPSystemInstance.HttpPort)
 	s.Equal(50214, projectedSAPSystemInstance.HttpsPort)
 }
+
+func (s *SAPSystemsProjectorTestSuite) Test_SAPSystemDiscoveryHandler_Diagnostics() {
+	discoveredSAPSystemMock := mocks.NewDiscoveredSAPSystemDiagnosticsMock()
+
+	requestBody, _ := json.Marshal(discoveredSAPSystemMock)
+	SAPSystemsProjector_SAPSystemsDiscoveryHandler(&DataCollectedEvent{
+		ID:            1,
+		AgentID:       "agent_id",
+		DiscoveryType: SAPsystemDiscovery,
+		Payload:       requestBody,
+	}, s.tx)
+
+	var projectedSAPSystemInstance entities.SAPSystemInstance
+	result := s.tx.First(&projectedSAPSystemInstance)
+
+	s.Equal(int64(0), result.RowsAffected)
+}

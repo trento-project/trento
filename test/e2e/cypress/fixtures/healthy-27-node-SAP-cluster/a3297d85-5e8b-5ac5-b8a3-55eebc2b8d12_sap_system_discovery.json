@@ -6,6 +6,7 @@
       "Id": "97a1e70aeff3c0685d65c4c3d32d533b",
       "SID": "NWP",
       "Type": 2,
+      "DBAddress": "10.80.1.13",
       "Profile": {
         "SAPDBHOST": "10.80.1.13",
         "dbms/name": "HDP",

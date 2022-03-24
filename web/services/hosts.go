@@ -3,14 +3,18 @@ package services
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/lib/pq"
+	log "github.com/sirupsen/logrus"
 	"github.com/trento-project/trento/internal"
 	"github.com/trento-project/trento/web/entities"
 	"github.com/trento-project/trento/web/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+
+	prometheusModel "github.com/prometheus/common/model"
 )
 
 const HeartbeatTreshold = internal.HeartbeatInterval * 2
@@ -26,6 +30,7 @@ type HostsService interface {
 	GetAllSIDs() ([]string, error)
 	GetAllTags() ([]string, error)
 	Heartbeat(agentID string) error
+	GetExportersState(hostname string) (map[string]string, error)
 }
 
 type HostsFilter struct {
@@ -36,11 +41,12 @@ type HostsFilter struct {
 }
 
 type hostsService struct {
-	db *gorm.DB
+	db                *gorm.DB
+	prometheusService PrometheusService
 }
 
-func NewHostsService(db *gorm.DB) *hostsService {
-	return &hostsService{db}
+func NewHostsService(db *gorm.DB, promService PrometheusService) *hostsService {
+	return &hostsService{db, promService}
 }
 
 func (s *hostsService) GetAll(filter *HostsFilter, page *Page) (models.HostList, error) {
@@ -222,6 +228,44 @@ func (s *hostsService) Heartbeat(agentID string) error {
 		},
 		DoUpdates: clause.AssignmentColumns([]string{"updated_at"}),
 	}).Create(heartbeat).Error
+}
+
+func initJobsStates() map[string]string {
+	states := make(map[string]string)
+	states[nodeExporterName] = models.HostHealthUnknown
+	return states
+}
+
+func (s *hostsService) GetExportersState(hostname string) (map[string]string, error) {
+	jobsState := initJobsStates()
+	result, err := s.prometheusService.Query(fmt.Sprintf("up{hostname=\"%s\"}", hostname), time.Now())
+	if err != nil {
+		log.Warnf("error querying to prometheus: %s", err)
+		return jobsState, err
+	}
+
+	resultVector := result.(prometheusModel.Vector)
+
+	if len(resultVector) == 0 {
+		return jobsState, nil
+	}
+
+	for _, r := range resultVector {
+		if _, ok := r.Metric["exporter_name"]; !ok {
+			continue
+		}
+		name := string(r.Metric["exporter_name"])
+		switch int(r.Value) {
+		case 0:
+			jobsState[name] = models.HostHealthCritical
+		case 1:
+			jobsState[name] = models.HostHealthPassing
+		default:
+			jobsState[name] = models.HostHealthUnknown
+		}
+	}
+
+	return jobsState, nil
 }
 
 func computeHealth(host *entities.Host) string {

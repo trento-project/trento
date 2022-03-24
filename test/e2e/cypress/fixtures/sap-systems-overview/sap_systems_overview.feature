@@ -60,3 +60,9 @@ Feature: SAP Systems Overview
         And the page is refreshed
         Then the status of the 1st HANA instance in this SAP system is RED
         And the SAP system state is RED
+
+    Scenario: SAP diagnostic agent discoveries are not displayed
+        Given I navigate to the SAP Systems overview page
+        When a new SAP discovery with a SAP diagnostics agent is received
+        And the page is refreshed
+        Then the discovery with the SAP diagnostics agent is not displayed

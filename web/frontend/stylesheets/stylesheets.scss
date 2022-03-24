@@ -236,3 +236,35 @@ td i.critical {
 .w-30 {
   width: 30%;
 }
+
+.health-summary {
+  margin-top: 64px;
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 20px;
+}
+
+.health-summary-header {
+  font-weight: bold;
+}
+
+.health-summary-row {
+  margin-top: 14px;
+  font-size: 16px;
+}
+
+.health-summary-cell {
+  min-width: 200px;
+  text-align: center;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.health-summary-icon {
+  font-size: 24px;
+  width: 24px;
+}
+
+.health-summary-id {
+  text-align: left;
+}

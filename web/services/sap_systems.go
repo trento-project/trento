@@ -2,9 +2,11 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"net"
 
 	"github.com/lib/pq"
+	log "github.com/sirupsen/logrus"
 	"github.com/trento-project/trento/web/entities"
 	"github.com/trento-project/trento/web/models"
 	"gorm.io/gorm"
@@ -197,7 +199,7 @@ func (s *sapSystemsService) getAllByType(sapSystemType string, tagResourceType s
 	}
 
 	sapSystemList := instances.ToModel()
-	err = s.ernichSAPSystemList(sapSystemList)
+	err = s.enrichSAPSystemList(sapSystemList)
 	if err != nil {
 		return nil, err
 	}
@@ -205,19 +207,19 @@ func (s *sapSystemsService) getAllByType(sapSystemType string, tagResourceType s
 	return sapSystemList, nil
 }
 
-func (s *sapSystemsService) getAttachedDatabase(dbName string, dbHost string) (*models.SAPSystem, error) {
+func (s *sapSystemsService) getAttachedDatabase(dbName string, dbAddress string) (*models.SAPSystem, error) {
 	var primaryInstance entities.SAPSystemInstance
 
 	db := s.db.
 		Model(&entities.SAPSystemInstance{}).
 		Joins("JOIN hosts ON sap_system_instances.agent_id = hosts.agent_id")
 
-	ip := net.ParseIP(dbHost)
+	ip := net.ParseIP(dbAddress)
 	if ip.To4() == nil {
-		db = db.Where("hosts.name = ?", dbHost)
-	} else {
-		db = db.Where("hosts.ip_addresses && ?", pq.Array([]string{dbHost}))
+		return nil, fmt.Errorf("received database address is not valid: %s", dbAddress)
 	}
+
+	db = db.Where("hosts.ip_addresses && ?", pq.Array([]string{dbAddress}))
 
 	err := db.Where("tenants && ?", pq.Array([]string{dbName})).
 		Select("id").
@@ -244,15 +246,18 @@ func (s *sapSystemsService) getAttachedDatabase(dbName string, dbHost string) (*
 		return nil, err
 	}
 
-	return instances.ToModel()[0], nil
+	sapSystem := instances.ToModel()[0]
+	s.computeHealth(sapSystem)
+
+	return sapSystem, nil
 }
 
-func (s *sapSystemsService) ernichSAPSystemList(sapSystemList models.SAPSystemList) error {
+func (s *sapSystemsService) enrichSAPSystemList(sapSystemList models.SAPSystemList) error {
 	sids := make(map[string]int)
 	for _, sapSystem := range sapSystemList {
 		err := s.attachDatabase(sapSystem)
 		if err != nil {
-			return err
+			log.Warnf("could not attach database: %s", err)
 		}
 		s.computeHealth(sapSystem)
 		// Store already found SIDs to find duplicates
@@ -270,7 +275,7 @@ func (s *sapSystemsService) ernichSAPSystemList(sapSystemList models.SAPSystemLi
 
 func (s *sapSystemsService) attachDatabase(sapSystem *models.SAPSystem) error {
 	if sapSystem.Type == models.SAPSystemTypeApplication {
-		attachedDatabase, err := s.getAttachedDatabase(sapSystem.DBName, sapSystem.DBHost)
+		attachedDatabase, err := s.getAttachedDatabase(sapSystem.DBName, sapSystem.DBAddress)
 		if err != nil {
 			return err
 		}

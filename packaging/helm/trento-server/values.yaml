@@ -9,6 +9,8 @@ global:
     servicePort: 5432
   grafana:
     name: grafana
+  prometheus:
+    name: prometheus-server
 
 ### Sub Charts Specific Values ###
 trento-web:
@@ -49,6 +51,8 @@ prometheus:
 
 grafana:
   enabled: true
+  persistence:
+    enabled: true
   admin:
     existingSecret: trento-server-grafana-secret
   grafana.ini:

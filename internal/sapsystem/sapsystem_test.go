@@ -45,6 +45,11 @@ func fakeNewWebService(instNumber string) sapcontrol.WebService {
 				Propertytype: "string",
 				Value:        instance,
 			},
+			{
+				Property:     "SAPLOCALHOST",
+				Propertytype: "string",
+				Value:        "host",
+			},
 		},
 	}, nil)
 
@@ -112,7 +117,7 @@ func TestNewSAPSystem(t *testing.T) {
 
 	system, err := NewSAPSystem(appFS, "/usr/sap/DEV")
 
-	assert.Equal(t, Application, system.Type)
+	assert.Equal(t, Unknown, system.Type)
 	assert.Contains(t, system.Instances, "ASCS01")
 	assert.Contains(t, system.Instances, "ERS02")
 	assert.Equal(t, system.Profile, expectedProfile)
@@ -199,6 +204,27 @@ func TestSetSystemIdOther(t *testing.T) {
 	assert.Equal(t, "-", system.Id)
 }
 
+func TestSetSystemIdDiagnostics(t *testing.T) {
+	appFS := afero.NewMemMapFs()
+	appFS.MkdirAll("/etc", 0755)
+
+	machineIdContent := []byte(`dummy-machine-id`)
+
+	afero.WriteFile(
+		appFS, "/etc/machine-id",
+		machineIdContent, 0644)
+
+	system := &SAPSystem{
+		Type: DiagnosticsAgent,
+		SID:  "DAA",
+	}
+
+	system, err := setSystemId(appFS, system)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "d3d5dd5ec501127e0011a2531e3b11ff", system.Id)
+}
+
 func TestGetDatabases(t *testing.T) {
 	appFS := afero.NewMemMapFs()
 	appFS.MkdirAll("/usr/sap/DEV/SYS/global/hdb/mdc/", 0755)
@@ -247,6 +273,19 @@ ERR:::
 	assert.ElementsMatch(t, expectedDbs, dbs)
 }
 
+func TestGetDBAddress(t *testing.T) {
+	s := &SAPSystem{Profile: SAPProfile{"SAPDBHOST": "localhost"}}
+	addr, err := getDBAddress(s)
+	assert.NoError(t, err)
+	assert.Equal(t, "127.0.0.1", addr)
+}
+
+func TestGetDBAddress_ResolveError(t *testing.T) {
+	s := &SAPSystem{Profile: SAPProfile{"SAPDBHOST": "other"}}
+	_, err := getDBAddress(s)
+	assert.EqualError(t, err, "could not resolve \"other\" hostname")
+}
+
 func TestNewSAPInstanceDatabase(t *testing.T) {
 	mockWebService := new(sapControlMocks.WebService)
 	mockCommand := new(sapSystemMocks.CustomCommand)
@@ -266,9 +305,9 @@ func TestNewSAPInstanceDatabase(t *testing.T) {
 				Value:        "PRD",
 			},
 			{
-				Property:     "HANA Roles",
-				Propertytype: "type3",
-				Value:        "some hana value",
+				Property:     "SAPLOCALHOST",
+				Propertytype: "string",
+				Value:        "host1",
 			},
 			{
 				Property:     "INSTANCE_NAME",
@@ -309,7 +348,7 @@ func TestNewSAPInstanceDatabase(t *testing.T) {
 				HttpPort:      50013,
 				HttpsPort:     50014,
 				StartPriority: "0.3",
-				Features:      "some features",
+				Features:      "HDB|HDB_WORKER",
 				Dispstatus:    sapcontrol.STATECOLOR_GREEN,
 			},
 			{
@@ -318,7 +357,7 @@ func TestNewSAPInstanceDatabase(t *testing.T) {
 				HttpPort:      50113,
 				HttpsPort:     50114,
 				StartPriority: "0.3",
-				Features:      "some other features",
+				Features:      "HDB|HDB_WORKER",
 				Dispstatus:    sapcontrol.STATECOLOR_YELLOW,
 			},
 		},
@@ -381,10 +420,10 @@ func TestNewSAPInstanceDatabase(t *testing.T) {
 					Propertytype: "string",
 					Value:        "HDB00",
 				},
-				"HANA Roles": &sapcontrol.InstanceProperty{
-					Property:     "HANA Roles",
-					Propertytype: "type3",
-					Value:        "some hana value",
+				"SAPLOCALHOST": &sapcontrol.InstanceProperty{
+					Property:     "SAPLOCALHOST",
+					Propertytype: "string",
+					Value:        "host1",
 				},
 			},
 			Instances: map[string]*sapcontrol.SAPInstance{
@@ -394,7 +433,7 @@ func TestNewSAPInstanceDatabase(t *testing.T) {
 					HttpPort:      50013,
 					HttpsPort:     50014,
 					StartPriority: "0.3",
-					Features:      "some features",
+					Features:      "HDB|HDB_WORKER",
 					Dispstatus:    sapcontrol.STATECOLOR_GREEN,
 				},
 				"host2": &sapcontrol.SAPInstance{
@@ -403,7 +442,7 @@ func TestNewSAPInstanceDatabase(t *testing.T) {
 					HttpPort:      50113,
 					HttpsPort:     50114,
 					StartPriority: "0.3",
-					Features:      "some other features",
+					Features:      "HDB|HDB_WORKER",
 					Dispstatus:    sapcontrol.STATECOLOR_YELLOW,
 				},
 			},
@@ -519,6 +558,11 @@ func TestNewSAPInstanceApp(t *testing.T) {
 				Propertytype: "string",
 				Value:        "HDB00",
 			},
+			{
+				Property:     "SAPLOCALHOST",
+				Propertytype: "string",
+				Value:        "host1",
+			},
 		},
 	}, nil)
 
@@ -553,7 +597,7 @@ func TestNewSAPInstanceApp(t *testing.T) {
 				HttpPort:      50013,
 				HttpsPort:     50014,
 				StartPriority: "0.3",
-				Features:      "some features",
+				Features:      "MESSAGESERVER|ENQUE",
 				Dispstatus:    sapcontrol.STATECOLOR_GREEN,
 			},
 			{
@@ -613,6 +657,11 @@ func TestNewSAPInstanceApp(t *testing.T) {
 					Propertytype: "string",
 					Value:        "HDB00",
 				},
+				"SAPLOCALHOST": &sapcontrol.InstanceProperty{
+					Property:     "SAPLOCALHOST",
+					Propertytype: "string",
+					Value:        "host1",
+				},
 			},
 			Instances: map[string]*sapcontrol.SAPInstance{
 				"host1": &sapcontrol.SAPInstance{
@@ -621,7 +670,7 @@ func TestNewSAPInstanceApp(t *testing.T) {
 					HttpPort:      50013,
 					HttpsPort:     50014,
 					StartPriority: "0.3",
-					Features:      "some features",
+					Features:      "MESSAGESERVER|ENQUE",
 					Dispstatus:    sapcontrol.STATECOLOR_GREEN,
 				},
 				"host2": &sapcontrol.SAPInstance{
@@ -758,4 +807,128 @@ func TestFindInstances(t *testing.T) {
 		{"ERS10", "10"},
 	}
 	assert.ElementsMatch(t, expectedInstance, instances)
+}
+
+func TestDetectType_Database(t *testing.T) {
+	sapControl := &SAPControl{
+		Properties: map[string]*sapcontrol.InstanceProperty{
+			"SAPLOCALHOST": &sapcontrol.InstanceProperty{
+				Property:     "SAPLOCALHOST",
+				Propertytype: "string",
+				Value:        "host2",
+			},
+		},
+		Instances: map[string]*sapcontrol.SAPInstance{
+			"host1": &sapcontrol.SAPInstance{
+				Hostname: "host1",
+				Features: "other",
+			},
+			"host2": &sapcontrol.SAPInstance{
+				Hostname: "host2",
+				Features: "HDB|HDB_WORKER",
+			},
+		},
+	}
+
+	instanceType, err := detectType(sapControl)
+
+	assert.NoError(t, err)
+	assert.Equal(t, Database, instanceType)
+}
+
+func TestDetectType_Application(t *testing.T) {
+	sapControl := &SAPControl{
+		Properties: map[string]*sapcontrol.InstanceProperty{
+			"SAPLOCALHOST": &sapcontrol.InstanceProperty{
+				Property:     "SAPLOCALHOST",
+				Propertytype: "string",
+				Value:        "host1",
+			},
+		},
+		Instances: map[string]*sapcontrol.SAPInstance{
+			"host1": &sapcontrol.SAPInstance{
+				Hostname: "host1",
+				Features: "MESSAGESERVER|ENQUE",
+			},
+		},
+	}
+
+	instanceType, err := detectType(sapControl)
+
+	assert.NoError(t, err)
+	assert.Equal(t, Application, instanceType)
+
+	sapControl.Instances = map[string]*sapcontrol.SAPInstance{
+		"host1": &sapcontrol.SAPInstance{
+			Hostname: "host1",
+			Features: "ENQREP",
+		},
+	}
+
+	instanceType, err = detectType(sapControl)
+
+	assert.NoError(t, err)
+	assert.Equal(t, Application, instanceType)
+
+	sapControl.Instances = map[string]*sapcontrol.SAPInstance{
+		"host1": &sapcontrol.SAPInstance{
+			Hostname: "host1",
+			Features: "ABAP|GATEWAY|ICMAN|IGS",
+		},
+	}
+
+	instanceType, err = detectType(sapControl)
+
+	assert.NoError(t, err)
+	assert.Equal(t, Application, instanceType)
+}
+
+func TestDetectType_Diagnostics(t *testing.T) {
+	sapControl := &SAPControl{
+		Properties: map[string]*sapcontrol.InstanceProperty{
+			"SAPLOCALHOST": &sapcontrol.InstanceProperty{
+				Property:     "SAPLOCALHOST",
+				Propertytype: "string",
+				Value:        "host1",
+			},
+		},
+		Instances: map[string]*sapcontrol.SAPInstance{
+			"host1": &sapcontrol.SAPInstance{
+				Hostname: "host1",
+				Features: "SMDAGENT",
+			},
+		},
+	}
+
+	instanceType, err := detectType(sapControl)
+
+	assert.NoError(t, err)
+	assert.Equal(t, DiagnosticsAgent, instanceType)
+}
+
+func TestDetectType_Unknown(t *testing.T) {
+	sapControl := &SAPControl{
+		Properties: map[string]*sapcontrol.InstanceProperty{
+			"SAPLOCALHOST": &sapcontrol.InstanceProperty{
+				Property:     "SAPLOCALHOST",
+				Propertytype: "string",
+				Value:        "host2",
+			},
+		},
+		Instances: map[string]*sapcontrol.SAPInstance{
+			"host1": &sapcontrol.SAPInstance{
+				Hostname: "host1",
+				Features: "other",
+			},
+			"host2": &sapcontrol.SAPInstance{
+				Hostname: "host2",
+				Features: "another",
+			},
+		},
+	}
+
+	instanceType, err := detectType(sapControl)
+
+	assert.NoError(t, err)
+	assert.Equal(t, Unknown, instanceType)
 }

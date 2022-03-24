@@ -1,5 +1,117 @@
 # Changelog
 
+## [0.9.1](https://github.com/trento-project/trento/tree/0.9.1) (2022-03-11)
+
+[Full Changelog](https://github.com/trento-project/trento/compare/0.9.0...0.9.1)
+
+### Fixed
+
+- Add /usr/sbin to the PATH for the execution [\#858](https://github.com/trento-project/trento/pull/858) (@arbulu89)
+- Associate attached database properly when the database name is resolved [\#854](https://github.com/trento-project/trento/pull/854) (@arbulu89)
+- Exclude diagnostics service sap systems [\#849](https://github.com/trento-project/trento/pull/849) (@arbulu89)
+
+### Other Changes
+
+- Bump github.com/spf13/cobra from 1.3.0 to 1.4.0 [\#859](https://github.com/trento-project/trento/pull/859) (@dependabot[bot])
+- Bump axios from 0.26.0 to 0.26.1 in /web/frontend [\#857](https://github.com/trento-project/trento/pull/857) (@dependabot[bot])
+- Bump css-loader from 6.7.0 to 6.7.1 in /web/frontend [\#856](https://github.com/trento-project/trento/pull/856) (@dependabot[bot])
+- Bump css-loader from 6.6.0 to 6.7.0 in /web/frontend [\#853](https://github.com/trento-project/trento/pull/853) (@dependabot[bot])
+- Bump eslint-plugin-react from 7.29.2 to 7.29.3 in /web/frontend [\#852](https://github.com/trento-project/trento/pull/852) (@dependabot[bot])
+- Bump webpack from 5.69.1 to 5.70.0 in /web/frontend [\#851](https://github.com/trento-project/trento/pull/851) (@dependabot[bot])
+- Bump docker/login-action from 1.14.0 to 1.14.1 [\#848](https://github.com/trento-project/trento/pull/848) (@dependabot[bot])
+- Bump actions/checkout from 2 to 3 [\#847](https://github.com/trento-project/trento/pull/847) (@dependabot[bot])
+- Bump docker/login-action from 1.13.0 to 1.14.0 [\#845](https://github.com/trento-project/trento/pull/845) (@dependabot[bot])
+- Bump actions/setup-python from 2.3.2 to 3 [\#844](https://github.com/trento-project/trento/pull/844) (@dependabot[bot])
+- Bump eslint-plugin-react from 7.28.0 to 7.29.2 in /web/frontend [\#842](https://github.com/trento-project/trento/pull/842) (@dependabot[bot])
+- Bump eslint from 8.9.0 to 8.10.0 in /web/frontend [\#841](https://github.com/trento-project/trento/pull/841) (@dependabot[bot])
+
+## [0.9.0](https://github.com/trento-project/trento/tree/0.9.0) (2022-02-25)
+
+[Full Changelog](https://github.com/trento-project/trento/compare/0.8.1...0.9.0)
+
+### Added
+
+- Pin specific container image versions in the helm chart values [\#656](https://github.com/trento-project/trento/issues/656)
+- review values for SUSE infrastructure [\#827](https://github.com/trento-project/trento/pull/827) (@pirat013)
+- Add health summary api endpoint [\#816](https://github.com/trento-project/trento/pull/816) (@fabriziosestito)
+- Homepage UI component [\#809](https://github.com/trento-project/trento/pull/809) (@dottorblaster)
+- Embed cpu and memory usage dashboards in host detail [\#808](https://github.com/trento-project/trento/pull/808) (@nelsonkopliku)
+- Sap system health computation [\#807](https://github.com/trento-project/trento/pull/807) (@arbulu89)
+- Attach system replication status badge on secondary node [\#796](https://github.com/trento-project/trento/pull/796) (@nelsonkopliku)
+- Add remediation command to the corosync token timeouts checks [\#787](https://github.com/trento-project/trento/pull/787) (@diegoakechi)
+- Add node exporter state in the frontend [\#782](https://github.com/trento-project/trento/pull/782) (@arbulu89)
+- Add prometheus grafana to helm chart [\#780](https://github.com/trento-project/trento/pull/780) (@fabriziosestito)
+- Prometheus HTTP service discovery API [\#779](https://github.com/trento-project/trento/pull/779) (@arbulu89)
+- Adds feedback collector [\#768](https://github.com/trento-project/trento/pull/768) (@nelsonkopliku)
+- Add connection retry when starting Web and Runner [\#753](https://github.com/trento-project/trento/pull/753) (@flaviodsr)
+- CI: add install-helm-charts job [\#749](https://github.com/trento-project/trento/pull/749) (@flaviodsr)
+
+### Fixed
+
+- Web serve command not stopped correctly during database initializaion tries [\#815](https://github.com/trento-project/trento/issues/815)
+- Links in compressed sidebar don't work [\#772](https://github.com/trento-project/trento/issues/772)
+- CD process doesn't clean up old node module tgz files [\#761](https://github.com/trento-project/trento/issues/761)
+- Aligns Overview [\#832](https://github.com/trento-project/trento/pull/832) (@nelsonkopliku)
+- Use context correctly during db initialization [\#828](https://github.com/trento-project/trento/pull/828) (@arbulu89)
+- Compute attached database health [\#824](https://github.com/trento-project/trento/pull/824) (@arbulu89)
+- Fix dump scenario script clean-up command [\#806](https://github.com/trento-project/trento/pull/806) (@fabriziosestito)
+- Push catalog info after the checks [\#804](https://github.com/trento-project/trento/pull/804) (@dottorblaster)
+- Show all sbd devices [\#801](https://github.com/trento-project/trento/pull/801) (@arbulu89)
+- Do not make assumptions about the shape of the payload of checks catalog [\#793](https://github.com/trento-project/trento/pull/793) (@dottorblaster)
+- Remove mention of Blue Horizon from landing page [\#786](https://github.com/trento-project/trento/pull/786) (@ajaeger)
+- Links in compressed sidebar are working again [\#774](https://github.com/trento-project/trento/pull/774) (@MMuschner)
+
+### Closed Issues
+
+- Checks catalog empty [\#706](https://github.com/trento-project/trento/issues/706)
+- Settings button missing in Pacemaker Clusters details view [\#705](https://github.com/trento-project/trento/issues/705)
+
+### Other Changes
+
+- Bump actions/setup-node from 2 to 3.0.0 [\#839](https://github.com/trento-project/trento/pull/839) (@dependabot[bot])
+- Bump sass from 1.49.8 to 1.49.9 in /web/frontend [\#838](https://github.com/trento-project/trento/pull/838) (@dependabot[bot])
+- Bump github.com/prometheus/common from 0.9.1 to 0.32.1 [\#837](https://github.com/trento-project/trento/pull/837) (@dependabot[bot])
+- Bump github.com/prometheus/client\_golang from 1.4.0 to 1.12.1 [\#836](https://github.com/trento-project/trento/pull/836) (@dependabot[bot])
+- Bump github.com/swaggo/swag from 1.7.9 to 1.8.0 [\#831](https://github.com/trento-project/trento/pull/831) (@dependabot[bot])
+- Bump helm chart build tag version [\#830](https://github.com/trento-project/trento/pull/830) (@fabriziosestito)
+- Enable Grafana persistence [\#829](https://github.com/trento-project/trento/pull/829) (@fabriziosestito)
+- Fix health summary api [\#823](https://github.com/trento-project/trento/pull/823) (@fabriziosestito)
+- Fix grafana secret  [\#822](https://github.com/trento-project/trento/pull/822) (@fabriziosestito)
+- Fix grafana embedding [\#820](https://github.com/trento-project/trento/pull/820) (@nelsonkopliku)
+- Implement cluster heatlh computation projection [\#817](https://github.com/trento-project/trento/pull/817) (@arbulu89)
+- Bump docker/login-action from 1.12.0 to 1.13.0 [\#814](https://github.com/trento-project/trento/pull/814) (@dependabot[bot])
+- Bump sass from 1.49.7 to 1.49.8 in /web/frontend [\#813](https://github.com/trento-project/trento/pull/813) (@dependabot[bot])
+- Bump webpack from 5.69.0 to 5.69.1 in /web/frontend [\#812](https://github.com/trento-project/trento/pull/812) (@dependabot[bot])
+- Bump @babel/core from 7.17.4 to 7.17.5 in /web/frontend [\#811](https://github.com/trento-project/trento/pull/811) (@dependabot[bot])
+- refresh zypper repo before installing node exporter [\#803](https://github.com/trento-project/trento/pull/803) (@nelsonkopliku)
+- Add Grafana initialization [\#802](https://github.com/trento-project/trento/pull/802) (@fabriziosestito)
+- Run prometheus installation as root [\#800](https://github.com/trento-project/trento/pull/800) (@nelsonkopliku)
+- Bump @babel/core from 7.17.2 to 7.17.4 in /web/frontend [\#799](https://github.com/trento-project/trento/pull/799) (@dependabot[bot])
+- Bump webpack from 5.68.0 to 5.69.0 in /web/frontend [\#798](https://github.com/trento-project/trento/pull/798) (@dependabot[bot])
+- Do not add bitnami charts repo from the installer if it's not needed [\#797](https://github.com/trento-project/trento/pull/797) (@rtorrero)
+- Bump react-toastify from 8.1.1 to 8.2.0 in /web/frontend [\#795](https://github.com/trento-project/trento/pull/795) (@dependabot[bot])
+- Fix dependabot auto-merge workflow [\#792](https://github.com/trento-project/trento/pull/792) (@fabriziosestito)
+- Change trento path in the Dockerfile [\#791](https://github.com/trento-project/trento/pull/791) (@fabriziosestito)
+- Bump @yaireo/tagify from 4.9.6 to 4.9.7 in /web/frontend [\#790](https://github.com/trento-project/trento/pull/790) (@dependabot[bot])
+- Bump axios from 0.25.0 to 0.26.0 in /web/frontend [\#789](https://github.com/trento-project/trento/pull/789) (@dependabot[bot])
+- Bump eslint from 8.8.0 to 8.9.0 in /web/frontend [\#788](https://github.com/trento-project/trento/pull/788) (@dependabot[bot])
+- It's 2022 [\#785](https://github.com/trento-project/trento/pull/785) (@ajaeger)
+- Allows Grafana dashboards to be embedded [\#784](https://github.com/trento-project/trento/pull/784) (@nelsonkopliku)
+- Add exporter deps [\#783](https://github.com/trento-project/trento/pull/783) (@rtorrero)
+- Bump @babel/core from 7.17.0 to 7.17.2 in /web/frontend [\#781](https://github.com/trento-project/trento/pull/781) (@dependabot[bot])
+- Bump github.com/spf13/afero from 1.8.0 to 1.8.1 [\#778](https://github.com/trento-project/trento/pull/778) (@dependabot[bot])
+- Bump actions/setup-python from 2.3.1 to 2.3.2 [\#777](https://github.com/trento-project/trento/pull/777) (@dependabot[bot])
+- Bump @yaireo/tagify from 4.9.5 to 4.9.6 in /web/frontend [\#776](https://github.com/trento-project/trento/pull/776) (@dependabot[bot])
+- Bump github.com/swaggo/gin-swagger from 1.4.0 to 1.4.1 [\#775](https://github.com/trento-project/trento/pull/775) (@dependabot[bot])
+- Add hana cluster details e2e test [\#773](https://github.com/trento-project/trento/pull/773) (@fabriziosestito)
+- Bump css-loader from 6.5.1 to 6.6.0 in /web/frontend [\#767](https://github.com/trento-project/trento/pull/767) (@dependabot[bot])
+- Bump @babel/core from 7.16.12 to 7.17.0 in /web/frontend [\#766](https://github.com/trento-project/trento/pull/766) (@dependabot[bot])
+- Bump react-toastify from 8.1.0 to 8.1.1 in /web/frontend [\#765](https://github.com/trento-project/trento/pull/765) (@dependabot[bot])
+- Bump sass from 1.49.3 to 1.49.7 in /web/frontend [\#764](https://github.com/trento-project/trento/pull/764) (@dependabot[bot])
+- Bump github.com/avast/retry-go/v4 from 4.0.2 to 4.0.3 [\#763](https://github.com/trento-project/trento/pull/763) (@dependabot[bot])
+- E2e test cluster overview [\#762](https://github.com/trento-project/trento/pull/762) (@rtorrero)
+- Switch to the SLE BCI images [\#703](https://github.com/trento-project/trento/pull/703) (@dcermak)
+
 ## [0.8.1](https://github.com/trento-project/trento/tree/0.8.1) (2022-02-01)
 
 [Full Changelog](https://github.com/trento-project/trento/compare/0.8.0...0.8.1)

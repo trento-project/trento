@@ -44,9 +44,10 @@ func (suite *AgentCmdTestSuite) TearDownTest() {
 	suite.cmd.Execute()
 
 	expectedConfig := &agent.Config{
-		InstanceName:    "some-hostname",
-		SSHAddress:      "some-ssh-address",
-		DiscoveryPeriod: 10 * time.Second,
+		InstanceName:                "some-hostname",
+		SSHAddress:                  "some-ssh-address",
+		DiscoveryPeriod:             10 * time.Second,
+		SubscriptionDiscoveryPeriod: 900 * time.Second,
 		CollectorConfig: &collector.Config{
 			CollectorHost: "localhost",
 			CollectorPort: 1337,

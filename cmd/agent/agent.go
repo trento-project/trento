@@ -18,6 +18,7 @@ import (
 func NewAgentCmd() *cobra.Command {
 	var sshAddress string
 	var discoveryPeriod int
+	var subscriptionDiscoveryPeriod int
 
 	var collectorHost string
 	var collectorPort int
@@ -48,6 +49,8 @@ func NewAgentCmd() *cobra.Command {
 	startCmd.Flags().StringVar(&sshAddress, "ssh-address", "", "The address to which the trento-agent should be reachable for ssh connection by the runner for check execution.")
 
 	startCmd.Flags().IntVarP(&discoveryPeriod, "discovery-period", "", 10, "Discovery mechanism loop period in seconds")
+	startCmd.Flags().IntVarP(&subscriptionDiscoveryPeriod, "subscription-discovery-period", "", 900, "Subscription discovery mechanism loop period in seconds")
+	startCmd.Flags().MarkHidden("subscription-discovery-period")
 
 	startCmd.Flags().StringVar(&collectorHost, "collector-host", "localhost", "Data Collector host")
 	startCmd.Flags().IntVar(&collectorPort, "collector-port", 8081, "Data Collector port")

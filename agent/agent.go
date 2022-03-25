@@ -18,18 +18,20 @@ import (
 const trentoAgentCheckId = "trentoAgent"
 
 type Agent struct {
-	config          *Config
-	collectorClient collector.Client
-	discoveries     []discovery.Discovery
-	ctx             context.Context
-	ctxCancel       context.CancelFunc
+	config                *Config
+	collectorClient       collector.Client
+	discoveries           []discovery.Discovery
+	subscriptionDiscovery discovery.Discovery
+	ctx                   context.Context
+	ctxCancel             context.CancelFunc
 }
 
 type Config struct {
-	InstanceName    string
-	SSHAddress      string
-	DiscoveryPeriod time.Duration
-	CollectorConfig *collector.Config
+	InstanceName                string
+	SSHAddress                  string
+	DiscoveryPeriod             time.Duration
+	SubscriptionDiscoveryPeriod time.Duration
+	CollectorConfig             *collector.Config
 }
 
 // NewAgent returns a new instance of Agent with the given configuration
@@ -49,9 +51,9 @@ func NewAgent(config *Config) (*Agent, error) {
 			discovery.NewClusterDiscovery(collectorClient),
 			discovery.NewSAPSystemsDiscovery(collectorClient),
 			discovery.NewCloudDiscovery(collectorClient),
-			discovery.NewSubscriptionDiscovery(collectorClient),
 			discovery.NewHostDiscovery(config.SSHAddress, collectorClient),
 		},
+		subscriptionDiscovery: discovery.NewSubscriptionDiscovery(collectorClient),
 	}
 	return agent, nil
 }
@@ -66,6 +68,14 @@ func (a *Agent) Start() error {
 		defer wg.Done()
 		a.startDiscoverTicker()
 		log.Info("Discover loop stopped.")
+	}(&wg)
+
+	wg.Add(1)
+	go func(wg *sync.WaitGroup) {
+		log.Info("Starting Subscription Discover loop...")
+		defer wg.Done()
+		a.startSubscriptionDiscoverTicker()
+		log.Info("Subscription Discover loop stopped.")
 	}(&wg)
 
 	wg.Add(1)
@@ -103,6 +113,26 @@ func (a *Agent) startDiscoverTicker() {
 
 	interval := a.config.DiscoveryPeriod
 	internal.Repeat("agent.discovery", tick, interval, a.ctx)
+}
+
+// Start another ticker loop for the subscription discovery
+func (a *Agent) startSubscriptionDiscoverTicker() {
+	tick := func() {
+		var output []string
+
+		result, err := a.subscriptionDiscovery.Discover()
+		if err != nil {
+			result = fmt.Sprintf("Error while running subscription discovery '%s': %s", a.subscriptionDiscovery.GetId(), err)
+
+			log.Errorln(result)
+		}
+		output = append(output, result)
+
+		log.Infof("Subscription discovery tick output: %s", strings.Join(output, "\n\n"))
+	}
+
+	interval := a.config.SubscriptionDiscoveryPeriod
+	internal.Repeat("agent.subscriptionDiscovery", tick, interval, a.ctx)
 }
 
 func (a *Agent) startHeartbeatTicker() {

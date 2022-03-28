@@ -2,6 +2,7 @@ package discovery
 
 import (
 	"os"
+	"time"
 
 	"github.com/trento-project/trento/agent/discovery/collector"
 )
@@ -11,12 +12,15 @@ type Discovery interface {
 	GetId() string
 	// Execute the discovery mechanism
 	Discover() (string, error)
+	// Get interval
+	GetInterval() time.Duration
 }
 
 type BaseDiscovery struct {
 	id              string
 	collectorClient collector.Client
 	host            string
+	interval        time.Duration
 }
 
 func (d BaseDiscovery) GetId() string {
@@ -29,11 +33,16 @@ func (d BaseDiscovery) Discover() (string, error) {
 	return "Basic discovery example", nil
 }
 
+func (d BaseDiscovery) GetInterval() time.Duration {
+	return d.interval
+}
+
 // NewDiscovery Return a new base discovery with the support for data collector endpoint
-func NewDiscovery(collectorClient collector.Client) BaseDiscovery {
+func NewDiscovery(collectorClient collector.Client, interval time.Duration) BaseDiscovery {
 	d := BaseDiscovery{}
 	d.id = ""
 	d.collectorClient = collectorClient
 	d.host, _ = os.Hostname()
+	d.interval = interval
 	return d
 }

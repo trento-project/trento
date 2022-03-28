@@ -2,6 +2,7 @@ package discovery
 
 import (
 	"fmt"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/trento-project/trento/agent/discovery/collector"
@@ -15,15 +16,19 @@ type SAPSystemsDiscovery struct {
 	discovery BaseDiscovery
 }
 
-func NewSAPSystemsDiscovery(collectorClient collector.Client) SAPSystemsDiscovery {
+func NewSAPSystemsDiscovery(collectorClient collector.Client, interval time.Duration) SAPSystemsDiscovery {
 	r := SAPSystemsDiscovery{}
 	r.id = SAPDiscoveryId
-	r.discovery = NewDiscovery(collectorClient)
+	r.discovery = NewDiscovery(collectorClient, interval)
 	return r
 }
 
 func (d SAPSystemsDiscovery) GetId() string {
 	return d.id
+}
+
+func (d SAPSystemsDiscovery) GetInterval() time.Duration {
+	return d.discovery.interval
 }
 
 func (d SAPSystemsDiscovery) Discover() (string, error) {

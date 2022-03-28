@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"strconv"
+	"time"
 
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/host"
@@ -22,16 +23,20 @@ type HostDiscovery struct {
 	discovery  BaseDiscovery
 }
 
-func NewHostDiscovery(sshAddress string, collectorClient collector.Client) HostDiscovery {
+func NewHostDiscovery(sshAddress string, collectorClient collector.Client, interval time.Duration) HostDiscovery {
 	d := HostDiscovery{}
 	d.id = HostDiscoveryId
 	d.sshAddress = sshAddress
-	d.discovery = NewDiscovery(collectorClient)
+	d.discovery = NewDiscovery(collectorClient, interval)
 	return d
 }
 
 func (h HostDiscovery) GetId() string {
 	return h.id
+}
+
+func (d HostDiscovery) GetInterval() time.Duration {
+	return d.discovery.interval
 }
 
 // Execute one iteration of a discovery and publish to the collector

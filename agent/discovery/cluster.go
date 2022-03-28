@@ -2,6 +2,7 @@ package discovery
 
 import (
 	"fmt"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/trento-project/trento/agent/discovery/collector"
@@ -16,15 +17,19 @@ type ClusterDiscovery struct {
 	discovery BaseDiscovery
 }
 
-func NewClusterDiscovery(collectorClient collector.Client) ClusterDiscovery {
+func NewClusterDiscovery(collectorClient collector.Client, interval time.Duration) ClusterDiscovery {
 	d := ClusterDiscovery{}
 	d.id = ClusterDiscoveryId
-	d.discovery = NewDiscovery(collectorClient)
+	d.discovery = NewDiscovery(collectorClient, interval)
 	return d
 }
 
 func (c ClusterDiscovery) GetId() string {
 	return c.id
+}
+
+func (d ClusterDiscovery) GetInterval() time.Duration {
+	return d.discovery.interval
 }
 
 // Execute one iteration of a discovery and publish the results to the collector

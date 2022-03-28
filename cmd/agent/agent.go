@@ -17,7 +17,11 @@ import (
 
 func NewAgentCmd() *cobra.Command {
 	var sshAddress string
-	var discoveryPeriod int
+
+	var clusterDiscoveryPeriod int
+	var sapSystemDiscoveryPeriod int
+	var cloudDiscoveryPeriod int
+	var hostDiscoveryPeriod int
 	var subscriptionDiscoveryPeriod int
 
 	var collectorHost string
@@ -48,8 +52,12 @@ func NewAgentCmd() *cobra.Command {
 
 	startCmd.Flags().StringVar(&sshAddress, "ssh-address", "", "The address to which the trento-agent should be reachable for ssh connection by the runner for check execution.")
 
-	startCmd.Flags().IntVarP(&discoveryPeriod, "discovery-period", "", 10, "Discovery mechanism loop period in seconds")
+	startCmd.Flags().IntVarP(&clusterDiscoveryPeriod, "cluster-discovery-period", "", 10, "Cluster discovery mechanism loop period in seconds")
+	startCmd.Flags().IntVarP(&sapSystemDiscoveryPeriod, "sapsystem-discovery-period", "", 10, "SAP systems discovery mechanism loop period in seconds")
+	startCmd.Flags().IntVarP(&cloudDiscoveryPeriod, "cloud-discovery-period", "", 10, "Cloud discovery mechanism loop period in seconds")
+	startCmd.Flags().IntVarP(&hostDiscoveryPeriod, "host-discovery-period", "", 10, "Host discovery mechanism loop period in seconds")
 	startCmd.Flags().IntVarP(&subscriptionDiscoveryPeriod, "subscription-discovery-period", "", 900, "Subscription discovery mechanism loop period in seconds")
+
 	startCmd.Flags().MarkHidden("subscription-discovery-period")
 
 	startCmd.Flags().StringVar(&collectorHost, "collector-host", "localhost", "Data Collector host")

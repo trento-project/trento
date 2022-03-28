@@ -3,7 +3,6 @@ package agent
 import (
 	"context"
 	"fmt"
-	"strings"
 	"sync"
 	"time"
 
@@ -18,18 +17,20 @@ import (
 const trentoAgentCheckId = "trentoAgent"
 
 type Agent struct {
-	config                *Config
-	collectorClient       collector.Client
-	discoveries           []discovery.Discovery
-	subscriptionDiscovery discovery.Discovery
-	ctx                   context.Context
-	ctxCancel             context.CancelFunc
+	config          *Config
+	collectorClient collector.Client
+	discoveries     []discovery.Discovery
+	ctx             context.Context
+	ctxCancel       context.CancelFunc
 }
 
 type Config struct {
 	InstanceName                string
 	SSHAddress                  string
-	DiscoveryPeriod             time.Duration
+	ClusterDiscoveryPeriod      time.Duration
+	SAPSystemDiscoveryPeriod    time.Duration
+	CloudDiscoveryPeriod        time.Duration
+	HostDiscoveryPeriod         time.Duration
 	SubscriptionDiscoveryPeriod time.Duration
 	CollectorConfig             *collector.Config
 }
@@ -48,12 +49,12 @@ func NewAgent(config *Config) (*Agent, error) {
 		ctx:             ctx,
 		ctxCancel:       ctxCancel,
 		discoveries: []discovery.Discovery{
-			discovery.NewClusterDiscovery(collectorClient),
-			discovery.NewSAPSystemsDiscovery(collectorClient),
-			discovery.NewCloudDiscovery(collectorClient),
-			discovery.NewHostDiscovery(config.SSHAddress, collectorClient),
+			discovery.NewClusterDiscovery(collectorClient, config.ClusterDiscoveryPeriod),
+			discovery.NewSAPSystemsDiscovery(collectorClient, config.SAPSystemDiscoveryPeriod),
+			discovery.NewCloudDiscovery(collectorClient, config.CloudDiscoveryPeriod),
+			discovery.NewHostDiscovery(config.SSHAddress, collectorClient, config.HostDiscoveryPeriod),
+			discovery.NewSubscriptionDiscovery(collectorClient, config.SubscriptionDiscoveryPeriod),
 		},
-		subscriptionDiscovery: discovery.NewSubscriptionDiscovery(collectorClient),
 	}
 	return agent, nil
 }
@@ -62,21 +63,15 @@ func NewAgent(config *Config) (*Agent, error) {
 func (a *Agent) Start() error {
 	var wg sync.WaitGroup
 
-	wg.Add(1)
-	go func(wg *sync.WaitGroup) {
-		log.Info("Starting Discover loop...")
-		defer wg.Done()
-		a.startDiscoverTicker()
-		log.Info("Discover loop stopped.")
-	}(&wg)
-
-	wg.Add(1)
-	go func(wg *sync.WaitGroup) {
-		log.Info("Starting Subscription Discover loop...")
-		defer wg.Done()
-		a.startSubscriptionDiscoverTicker()
-		log.Info("Subscription Discover loop stopped.")
-	}(&wg)
+	for _, d := range a.discoveries {
+		wg.Add(1)
+		go func(wg *sync.WaitGroup, d discovery.Discovery) {
+			log.Infof("Starting %s loop...", d.GetId())
+			defer wg.Done()
+			a.startDiscoverTicker(d)
+			log.Infof("%s discover loop stopped.", d.GetId())
+		}(&wg, d)
+	}
 
 	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
@@ -96,43 +91,18 @@ func (a *Agent) Stop() {
 }
 
 // Start a Ticker loop that will iterate over the hardcoded list of Discovery backends and execute them.
-func (a *Agent) startDiscoverTicker() {
+func (a *Agent) startDiscoverTicker(d discovery.Discovery) {
+
 	tick := func() {
-		var output []string
-		for _, d := range a.discoveries {
-			result, err := d.Discover()
-			if err != nil {
-				result = fmt.Sprintf("Error while running discovery '%s': %s", d.GetId(), err)
-
-				log.Errorln(result)
-			}
-			output = append(output, result)
-		}
-		log.Infof("Discovery tick output: %s", strings.Join(output, "\n\n"))
-	}
-
-	interval := a.config.DiscoveryPeriod
-	internal.Repeat("agent.discovery", tick, interval, a.ctx)
-}
-
-// Start another ticker loop for the subscription discovery
-func (a *Agent) startSubscriptionDiscoverTicker() {
-	tick := func() {
-		var output []string
-
-		result, err := a.subscriptionDiscovery.Discover()
+		result, err := d.Discover()
 		if err != nil {
-			result = fmt.Sprintf("Error while running subscription discovery '%s': %s", a.subscriptionDiscovery.GetId(), err)
-
+			result = fmt.Sprintf("Error while running discovery '%s': %s", d.GetId(), err)
 			log.Errorln(result)
 		}
-		output = append(output, result)
-
-		log.Infof("Subscription discovery tick output: %s", strings.Join(output, "\n\n"))
+		log.Infof("%s discovery tick output: %s", d.GetId(), result)
 	}
+	internal.Repeat(d.GetId(), tick, time.Duration(d.GetInterval()), a.ctx)
 
-	interval := a.config.SubscriptionDiscoveryPeriod
-	internal.Repeat("agent.subscriptionDiscovery", tick, interval, a.ctx)
 }
 
 func (a *Agent) startHeartbeatTicker() {

@@ -2,6 +2,7 @@ package discovery
 
 import (
 	"fmt"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/trento-project/trento/agent/discovery/collector"
@@ -15,15 +16,19 @@ type SubscriptionDiscovery struct {
 	discovery BaseDiscovery
 }
 
-func NewSubscriptionDiscovery(collectorClient collector.Client) SubscriptionDiscovery {
+func NewSubscriptionDiscovery(collectorClient collector.Client, interval time.Duration) SubscriptionDiscovery {
 	r := SubscriptionDiscovery{}
 	r.id = SubscriptionDiscoveryId
-	r.discovery = NewDiscovery(collectorClient)
+	r.discovery = NewDiscovery(collectorClient, interval)
 	return r
 }
 
 func (d SubscriptionDiscovery) GetId() string {
 	return d.id
+}
+
+func (d SubscriptionDiscovery) GetInterval() time.Duration {
+	return d.discovery.interval
 }
 
 func (d SubscriptionDiscovery) Discover() (string, error) {

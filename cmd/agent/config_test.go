@@ -44,13 +44,16 @@ func (suite *AgentCmdTestSuite) TearDownTest() {
 	suite.cmd.Execute()
 
 	expectedConfig := &agent.Config{
-		InstanceName:                "some-hostname",
-		SSHAddress:                  "some-ssh-address",
-		ClusterDiscoveryPeriod:      10 * time.Second,
-		SAPSystemDiscoveryPeriod:    10 * time.Second,
-		CloudDiscoveryPeriod:        10 * time.Second,
-		HostDiscoveryPeriod:         10 * time.Second,
-		SubscriptionDiscoveryPeriod: 900 * time.Second,
+		InstanceName: "some-hostname",
+		SSHAddress:   "some-ssh-address",
+		DiscoveryPeriodsConfig: &agent.DiscoveryPeriodConfig{
+			Cluster:      10 * time.Second,
+			SAPSystem:    10 * time.Second,
+			Cloud:        10 * time.Second,
+			Host:         10 * time.Second,
+			Subscription: 900 * time.Second,
+		},
+
 		CollectorConfig: &collector.Config{
 			CollectorHost: "localhost",
 			CollectorPort: 1337,

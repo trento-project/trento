@@ -53,12 +53,14 @@ func LoadConfig() (*agent.Config, error) {
 			Key:           key,
 			CA:            ca,
 		},
-		InstanceName:                hostname,
-		SSHAddress:                  sshAddress,
-		ClusterDiscoveryPeriod:      time.Duration(viper.GetInt("cluster-discovery-period")) * time.Second,
-		SAPSystemDiscoveryPeriod:    time.Duration(viper.GetInt("sapsystem-discovery-period")) * time.Second,
-		CloudDiscoveryPeriod:        time.Duration(viper.GetInt("cloud-discovery-period")) * time.Second,
-		HostDiscoveryPeriod:         time.Duration(viper.GetInt("host-discovery-period")) * time.Second,
-		SubscriptionDiscoveryPeriod: time.Duration(viper.GetInt("subscription-discovery-period")) * time.Second,
+		InstanceName: hostname,
+		SSHAddress:   sshAddress,
+		DiscoveryPeriodsConfig: &agent.DiscoveryPeriodConfig{
+			Cluster:      time.Duration(viper.GetInt("cluster-discovery-period")) * time.Second,
+			SAPSystem:    time.Duration(viper.GetInt("sapsystem-discovery-period")) * time.Second,
+			Cloud:        time.Duration(viper.GetInt("cloud-discovery-period")) * time.Second,
+			Host:         time.Duration(viper.GetInt("host-discovery-period")) * time.Second,
+			Subscription: time.Duration(viper.GetInt("subscription-discovery-period")) * time.Second,
+		},
 	}, nil
 }

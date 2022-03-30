@@ -24,15 +24,19 @@ type Agent struct {
 	ctxCancel       context.CancelFunc
 }
 
+type DiscoveryPeriodConfig struct {
+	Cluster      time.Duration
+	SAPSystem    time.Duration
+	Cloud        time.Duration
+	Host         time.Duration
+	Subscription time.Duration
+}
+
 type Config struct {
-	InstanceName                string
-	SSHAddress                  string
-	ClusterDiscoveryPeriod      time.Duration
-	SAPSystemDiscoveryPeriod    time.Duration
-	CloudDiscoveryPeriod        time.Duration
-	HostDiscoveryPeriod         time.Duration
-	SubscriptionDiscoveryPeriod time.Duration
-	CollectorConfig             *collector.Config
+	InstanceName           string
+	SSHAddress             string
+	DiscoveryPeriodsConfig *DiscoveryPeriodConfig
+	CollectorConfig        *collector.Config
 }
 
 // NewAgent returns a new instance of Agent with the given configuration
@@ -49,11 +53,11 @@ func NewAgent(config *Config) (*Agent, error) {
 		ctx:             ctx,
 		ctxCancel:       ctxCancel,
 		discoveries: []discovery.Discovery{
-			discovery.NewClusterDiscovery(collectorClient, config.ClusterDiscoveryPeriod),
-			discovery.NewSAPSystemsDiscovery(collectorClient, config.SAPSystemDiscoveryPeriod),
-			discovery.NewCloudDiscovery(collectorClient, config.CloudDiscoveryPeriod),
-			discovery.NewHostDiscovery(config.SSHAddress, collectorClient, config.HostDiscoveryPeriod),
-			discovery.NewSubscriptionDiscovery(collectorClient, config.SubscriptionDiscoveryPeriod),
+			discovery.NewClusterDiscovery(collectorClient, config.DiscoveryPeriodsConfig.Cluster),
+			discovery.NewSAPSystemsDiscovery(collectorClient, config.DiscoveryPeriodsConfig.SAPSystem),
+			discovery.NewCloudDiscovery(collectorClient, config.DiscoveryPeriodsConfig.Cloud),
+			discovery.NewHostDiscovery(config.SSHAddress, collectorClient, config.DiscoveryPeriodsConfig.Host),
+			discovery.NewSubscriptionDiscovery(collectorClient, config.DiscoveryPeriodsConfig.Subscription),
 		},
 	}
 	return agent, nil

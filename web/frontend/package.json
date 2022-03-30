@@ -14,9 +14,9 @@
     "eos-ds": "^5.0.0",
     "eos-icons": "^5.4.0",
     "jquery": "^3.6.0",
-    "react": "^17.0.2",
+    "react": "^18.0.0",
     "react-bootstrap": "^1.6.4",
-    "react-dom": "^17.0.2",
+    "react-dom": "^18.0.0",
     "react-toastify": "^8.2.0",
     "sass": "^1.49.9"
   },

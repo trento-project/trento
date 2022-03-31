@@ -30,13 +30,10 @@ type Discovery interface {
 }
 
 type DiscoveryList []Discovery
-type DiscoveryInitializer func(collector.Client, DiscoveriesConfig) (Discovery, error)
+type DiscoveryInitializer func(collector.Client, DiscoveriesConfig) Discovery
 
-func (d DiscoveryList) AddDiscovery(f DiscoveryInitializer, collectorClient collector.Client, config DiscoveriesConfig) (DiscoveryList, error) {
-	discovery, err := f(collectorClient, config)
-	if err != nil {
-		return d, err
-	}
+func (d DiscoveryList) AddDiscovery(f DiscoveryInitializer, collectorClient collector.Client, config DiscoveriesConfig) DiscoveryList {
+	discovery := f(collectorClient, config)
 
-	return append(d, discovery), nil
+	return append(d, discovery)
 }

@@ -68,16 +68,6 @@
 
 ###############################################################################
 
-## Subscription discovery period configures the tick interval for the
-## subscription discovery loop. Note that the minimal allowed value for this
-## variable is 500 seconds.
-## Time unit is seconds
-## Defaults to 900.
-
-# subscription-discovery-period: 900
-
-###############################################################################
-
 ## Application log level
 ## Allowed values: error, warn, info, debug
 ## defaults to info

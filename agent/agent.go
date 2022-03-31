@@ -46,10 +46,7 @@ func NewAgent(config *Config) (*Agent, error) {
 	var discoveries discovery.DiscoveryList
 
 	for _, initializer := range discoveryInitializers {
-		discoveries, err = discoveries.AddDiscovery(initializer, collectorClient, *config.DiscoveriesConfig)
-		if err != nil {
-			return nil, errors.Wrap(err, "could not create a discovery")
-		}
+		discoveries = discoveries.AddDiscovery(initializer, collectorClient, *config.DiscoveriesConfig)
 	}
 
 	ctx, ctxCancel := context.WithCancel(context.Background())

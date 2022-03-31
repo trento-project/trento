@@ -18,6 +18,8 @@ of existing clusters, rather than deploying new one.
 
 # Table of contents
 
+- [Trento](#trento)
+- [Table of contents](#table-of-contents)
 - [Features](#features)
 - [Introduction](#introduction)
 - [Installation](#installation)
@@ -35,18 +37,29 @@ of existing clusters, rather than deploying new one.
     - [Install K3S](#install-k3s)
     - [Install Helm and chart dependencies](#install-helm-and-chart-dependencies)
     - [Install the Trento Server Helm chart](#install-the-trento-server-helm-chart)
-    - [Other Helm chart usage examples:](#other-helm-chart-usage-examples-)
+    - [Other Helm chart usage examples:](#other-helm-chart-usage-examples)
   - [Manually running Trento](#manually-running-trento)
     - [Trento Agents](#trento-agents)
+      - [Publishing discovery data](#publishing-discovery-data)
+      - [Server](#server)
+      - [Agent](#agent)
     - [Trento Runner](#trento-runner)
       - [Starting the Trento Runner](#starting-the-trento-runner)
     - [Trento Web UI](#trento-web-ui)
 - [Configuration](#configuration)
+  - [Locations](#locations)
+  - [Formats](#formats)
+  - [Naming conventions](#naming-conventions)
+  - [Examples](#examples)
+  - [Environment Variables](#environment-variables)
 - [Development](#development)
   - [Helm development chart](#helm-development-chart)
   - [Build system](#build-system)
   - [Development dependencies](#development-dependencies)
   - [Docker](#docker)
+  - [End-to-end testing](#end-to-end-testing)
+    - [Adjusting environment variables to suit your own needs](#adjusting-environment-variables-to-suit-your-own-needs)
+    - [Further questions about E2E testing?](#further-questions-about-e2e-testing)
   - [Dump a scenario from a running cluster](#dump-a-scenario-from-a-running-cluster)
   - [SAPControl web service](#sapcontrol-web-service)
 - [Support](#support)
@@ -323,7 +336,7 @@ systemctl start trento-agent.service
 ```
 
 > If the discovery loop is being executed too frequently, and this impacts the Web interface performance, the agent
-> has the option to configure the discovery loop mechanism using the `--discovery-period` flag. Increasing this value improves the overall performance of the application
+> has the option to configure the discovery loop mechanism using the various `--<cloud,cluster,host,sapsystem>-discovery-period` flags. Increasing these value improves the overall performance of the application
 
 #### Publishing discovery data
 

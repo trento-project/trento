@@ -18,13 +18,13 @@ type CloudDiscovery struct {
 	interval        time.Duration
 }
 
-func NewCloudDiscovery(collectorClient collector.Client, config DiscoveriesConfig) (Discovery, error) {
+func NewCloudDiscovery(collectorClient collector.Client, config DiscoveriesConfig) Discovery {
 	d := CloudDiscovery{}
 	d.collectorClient = collectorClient
 	d.id = CloudDiscoveryId
 	d.interval = config.DiscoveriesPeriodsConfig.Cloud
 
-	return d, nil
+	return d
 }
 
 func (d CloudDiscovery) GetId() string {

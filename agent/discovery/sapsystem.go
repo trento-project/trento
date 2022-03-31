@@ -18,13 +18,13 @@ type SAPSystemsDiscovery struct {
 	interval        time.Duration
 }
 
-func NewSAPSystemsDiscovery(collectorClient collector.Client, config DiscoveriesConfig) (Discovery, error) {
+func NewSAPSystemsDiscovery(collectorClient collector.Client, config DiscoveriesConfig) Discovery {
 	d := SAPSystemsDiscovery{}
 	d.id = SAPDiscoveryId
 	d.collectorClient = collectorClient
 	d.interval = config.DiscoveriesPeriodsConfig.SAPSystem
 
-	return d, nil
+	return d
 }
 
 func (d SAPSystemsDiscovery) GetId() string {

@@ -67,8 +67,8 @@ func (suite *AgentCmdTestSuite) TearDownTest() {
 	}
 
 	config, err := LoadConfig()
-	config.InstanceName = "some-hostname"
 	suite.NoError(err)
+	config.InstanceName = "some-hostname"
 
 	suite.EqualValues(expectedConfig, config)
 }
@@ -77,7 +77,11 @@ func (suite *AgentCmdTestSuite) TestConfigFromFlags() {
 	suite.cmd.SetArgs([]string{
 		"start",
 		"--ssh-address=some-ssh-address",
-		"--discovery-period=10",
+		"--cloud-discovery-period=10s",
+		"--cluster-discovery-period=10s",
+		"--sapsystem-discovery-period=10s",
+		"--host-discovery-period=10s",
+		"--subscription-discovery-period=900s",
 		"--collector-host=localhost",
 		"--collector-port=1337",
 		"--enable-mtls",
@@ -89,7 +93,11 @@ func (suite *AgentCmdTestSuite) TestConfigFromFlags() {
 
 func (suite *AgentCmdTestSuite) TestConfigFromEnv() {
 	os.Setenv("TRENTO_SSH_ADDRESS", "some-ssh-address")
-	os.Setenv("TRENTO_DISCOVERY_PERIOD", "10")
+	os.Setenv("TRENTO_CLOUD_DISCOVERY_PERIOD", "10s")
+	os.Setenv("TRENTO_CLUSTER_DISCOVERY_PERIOD", "10s")
+	os.Setenv("TRENTO_SAPSYSTEM_DISCOVERY_PERIOD", "10s")
+	os.Setenv("TRENTO_HOST_DISCOVERY_PERIOD", "10s")
+	os.Setenv("TRENTO_SUBSCRIPTION_DISCOVERY_PERIOD", "900s")
 	os.Setenv("TRENTO_COLLECTOR_HOST", "localhost")
 	os.Setenv("TRENTO_COLLECTOR_PORT", "1337")
 	os.Setenv("TRENTO_ENABLE_MTLS", "true")

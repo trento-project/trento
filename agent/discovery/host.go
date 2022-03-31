@@ -27,14 +27,14 @@ type HostDiscovery struct {
 	interval        time.Duration
 }
 
-func NewHostDiscovery(collectorClient collector.Client, config DiscoveriesConfig) (Discovery, error) {
+func NewHostDiscovery(collectorClient collector.Client, config DiscoveriesConfig) Discovery {
 	d := HostDiscovery{}
 	d.id = HostDiscoveryId
 	d.collectorClient = collectorClient
 	d.host, _ = os.Hostname()
 	d.interval = config.DiscoveriesPeriodsConfig.Host
 	d.sshAddress = config.SSHAddress
-	return d, nil
+	return d
 }
 
 func (d HostDiscovery) GetId() string {

@@ -11,7 +11,7 @@ import (
 )
 
 const SubscriptionDiscoveryId string = "subscription_discovery"
-const SubscriptionDiscoveryMinPeriod time.Duration = 500 * time.Second
+const SubscriptionDiscoveryMinPeriod time.Duration = 20 * time.Second
 
 type SubscriptionDiscovery struct {
 	id              string
@@ -20,14 +20,14 @@ type SubscriptionDiscovery struct {
 	interval        time.Duration
 }
 
-func NewSubscriptionDiscovery(collectorClient collector.Client, config DiscoveriesConfig) (Discovery, error) {
-	r := SubscriptionDiscovery{}
-	r.id = SubscriptionDiscoveryId
-	r.collectorClient = collectorClient
-	r.host, _ = os.Hostname()
-	r.interval = config.DiscoveriesPeriodsConfig.Subscription
+func NewSubscriptionDiscovery(collectorClient collector.Client, config DiscoveriesConfig) Discovery {
+	d := SubscriptionDiscovery{}
+	d.id = SubscriptionDiscoveryId
+	d.collectorClient = collectorClient
+	d.host, _ = os.Hostname()
+	d.interval = config.DiscoveriesPeriodsConfig.Subscription
 
-	return r, nil
+	return d
 }
 
 func (d SubscriptionDiscovery) GetId() string {

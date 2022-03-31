@@ -19,13 +19,13 @@ type ClusterDiscovery struct {
 	interval        time.Duration
 }
 
-func NewClusterDiscovery(collectorClient collector.Client, config DiscoveriesConfig) (Discovery, error) {
+func NewClusterDiscovery(collectorClient collector.Client, config DiscoveriesConfig) Discovery {
 	d := ClusterDiscovery{}
 	d.collectorClient = collectorClient
 	d.id = ClusterDiscoveryId
 	d.interval = config.DiscoveriesPeriodsConfig.Cluster
 
-	return d, nil
+	return d
 }
 
 func (c ClusterDiscovery) GetId() string {

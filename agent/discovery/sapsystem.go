@@ -24,13 +24,13 @@ func NewSAPSystemsDiscovery(collectorClient collector.Client, config Discoveries
 		return nil, fmt.Errorf("invalid interval %s", config.DiscoveriesPeriodsConfig.SAPSystem)
 	}
 
-	r := SAPSystemsDiscovery{}
-	r.id = SAPDiscoveryId
-	r.collectorClient = collectorClient
-	r.host, _ = os.Hostname()
-	r.interval = config.DiscoveriesPeriodsConfig.SAPSystem
+	d := SAPSystemsDiscovery{}
+	d.id = SAPDiscoveryId
+	d.collectorClient = collectorClient
+	d.host, _ = os.Hostname()
+	d.interval = config.DiscoveriesPeriodsConfig.SAPSystem
 
-	return r, nil
+	return d, nil
 }
 
 func (d SAPSystemsDiscovery) GetId() string {

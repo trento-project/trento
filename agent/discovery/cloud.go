@@ -24,13 +24,13 @@ func NewCloudDiscovery(collectorClient collector.Client, config DiscoveriesConfi
 		return nil, fmt.Errorf("invalid interval %s", config.DiscoveriesPeriodsConfig.Cloud)
 	}
 
-	r := CloudDiscovery{}
-	r.collectorClient = collectorClient
-	r.id = CloudDiscoveryId
-	r.host, _ = os.Hostname()
-	r.interval = config.DiscoveriesPeriodsConfig.Cloud
+	d := CloudDiscovery{}
+	d.collectorClient = collectorClient
+	d.id = CloudDiscoveryId
+	d.host, _ = os.Hostname()
+	d.interval = config.DiscoveriesPeriodsConfig.Cloud
 
-	return r, nil
+	return d, nil
 }
 
 func (d CloudDiscovery) GetId() string {

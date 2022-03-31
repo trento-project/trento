@@ -40,8 +40,8 @@ func NewHostDiscovery(collectorClient collector.Client, config DiscoveriesConfig
 	return d, nil
 }
 
-func (h HostDiscovery) GetId() string {
-	return h.id
+func (d HostDiscovery) GetId() string {
+	return d.id
 }
 
 func (d HostDiscovery) GetInterval() time.Duration {
@@ -49,30 +49,30 @@ func (d HostDiscovery) GetInterval() time.Duration {
 }
 
 // Execute one iteration of a discovery and publish to the collector
-func (h HostDiscovery) Discover() (string, error) {
+func (d HostDiscovery) Discover() (string, error) {
 	ipAddresses, err := getHostIpAddresses()
 	if err != nil {
 		return "", err
 	}
 
 	host := hosts.DiscoveredHost{
-		SSHAddress:      h.sshAddress,
+		SSHAddress:      d.sshAddress,
 		OSVersion:       getOSVersion(),
 		HostIpAddresses: ipAddresses,
-		HostName:        h.host,
+		HostName:        d.host,
 		CPUCount:        getLogicalCPUs(),
 		SocketCount:     getCPUSocketCount(),
 		TotalMemoryMB:   getTotalMemoryMB(),
 		AgentVersion:    version.Version,
 	}
 
-	err = h.collectorClient.Publish(h.id, host)
+	err = d.collectorClient.Publish(d.id, host)
 	if err != nil {
 		log.Debugf("Error while sending host discovery to data collector: %s", err)
 		return "", err
 	}
 
-	return fmt.Sprintf("Host with name: %s successfully discovered", h.host), nil
+	return fmt.Sprintf("Host with name: %s successfully discovered", d.host), nil
 }
 
 func getHostIpAddresses() ([]string, error) {

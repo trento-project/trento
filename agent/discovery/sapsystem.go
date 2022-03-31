@@ -2,7 +2,6 @@ package discovery
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -15,7 +14,6 @@ const SAPDiscoveryId string = "sap_system_discovery"
 type SAPSystemsDiscovery struct {
 	id              string
 	collectorClient collector.Client
-	host            string
 	interval        time.Duration
 }
 
@@ -27,7 +25,6 @@ func NewSAPSystemsDiscovery(collectorClient collector.Client, config Discoveries
 	d := SAPSystemsDiscovery{}
 	d.id = SAPDiscoveryId
 	d.collectorClient = collectorClient
-	d.host, _ = os.Hostname()
 	d.interval = config.DiscoveriesPeriodsConfig.SAPSystem
 
 	return d, nil

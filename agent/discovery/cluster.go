@@ -2,7 +2,6 @@ package discovery
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -16,7 +15,6 @@ const ClusterDiscoveryId string = "ha_cluster_discovery"
 type ClusterDiscovery struct {
 	id              string
 	collectorClient collector.Client
-	host            string
 	interval        time.Duration
 }
 
@@ -28,7 +26,6 @@ func NewClusterDiscovery(collectorClient collector.Client, config DiscoveriesCon
 	d := ClusterDiscovery{}
 	d.collectorClient = collectorClient
 	d.id = ClusterDiscoveryId
-	d.host, _ = os.Hostname()
 	d.interval = config.DiscoveriesPeriodsConfig.Cluster
 
 	return d, nil

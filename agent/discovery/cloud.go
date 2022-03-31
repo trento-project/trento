@@ -2,7 +2,6 @@ package discovery
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -15,7 +14,6 @@ const CloudDiscoveryId string = "cloud_discovery"
 type CloudDiscovery struct {
 	id              string
 	collectorClient collector.Client
-	host            string
 	interval        time.Duration
 }
 
@@ -27,7 +25,6 @@ func NewCloudDiscovery(collectorClient collector.Client, config DiscoveriesConfi
 	d := CloudDiscovery{}
 	d.collectorClient = collectorClient
 	d.id = CloudDiscoveryId
-	d.host, _ = os.Hostname()
 	d.interval = config.DiscoveriesPeriodsConfig.Cloud
 
 	return d, nil

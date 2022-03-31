@@ -10,6 +10,7 @@ import (
 )
 
 const CloudDiscoveryId string = "cloud_discovery"
+const CloudDiscoveryMinInterval time.Duration = 1
 
 type CloudDiscovery struct {
 	id              string
@@ -18,8 +19,8 @@ type CloudDiscovery struct {
 }
 
 func NewCloudDiscovery(collectorClient collector.Client, config DiscoveriesConfig) (Discovery, error) {
-	if config.DiscoveriesPeriodsConfig.Cloud < 1 {
-		return nil, fmt.Errorf("invalid interval %s", config.DiscoveriesPeriodsConfig.Cloud)
+	if config.DiscoveriesPeriodsConfig.Cloud < CloudDiscoveryMinInterval {
+		return nil, fmt.Errorf("invalid interval %s: should be at least %s", config.DiscoveriesPeriodsConfig.Cloud, CloudDiscoveryMinInterval)
 	}
 
 	d := CloudDiscovery{}

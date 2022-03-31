@@ -10,6 +10,7 @@ import (
 )
 
 const ClusterDiscoveryId string = "ha_cluster_discovery"
+const ClusterDiscoveryMinInterval time.Duration = 1
 
 // This Discover handles any Pacemaker Cluster type
 type ClusterDiscovery struct {
@@ -19,8 +20,8 @@ type ClusterDiscovery struct {
 }
 
 func NewClusterDiscovery(collectorClient collector.Client, config DiscoveriesConfig) (Discovery, error) {
-	if config.DiscoveriesPeriodsConfig.Cluster < 1 {
-		return nil, fmt.Errorf("invalid interval %s", config.DiscoveriesPeriodsConfig.Cluster)
+	if config.DiscoveriesPeriodsConfig.Cluster < ClusterDiscoveryMinInterval {
+		return nil, fmt.Errorf("invalid interval %s: should be at least %s", config.DiscoveriesPeriodsConfig.Cluster, ClusterDiscoveryMinInterval)
 	}
 
 	d := ClusterDiscovery{}

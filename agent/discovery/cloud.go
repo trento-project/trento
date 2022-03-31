@@ -2,6 +2,7 @@ package discovery
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -12,15 +13,24 @@ import (
 const CloudDiscoveryId string = "cloud_discovery"
 
 type CloudDiscovery struct {
-	id        string
-	discovery BaseDiscovery
+	id              string
+	collectorClient collector.Client
+	host            string
+	interval        time.Duration
 }
 
-func NewCloudDiscovery(collectorClient collector.Client, interval time.Duration) CloudDiscovery {
+func NewCloudDiscovery(collectorClient collector.Client, config DiscoveriesConfig) (Discovery, error) {
+	if config.DiscoveriesPeriodsConfig.Cloud < 1 {
+		return nil, fmt.Errorf("invalid interval %s", config.DiscoveriesPeriodsConfig.Cloud)
+	}
+
 	r := CloudDiscovery{}
+	r.collectorClient = collectorClient
 	r.id = CloudDiscoveryId
-	r.discovery = NewDiscovery(collectorClient, interval)
-	return r
+	r.host, _ = os.Hostname()
+	r.interval = config.DiscoveriesPeriodsConfig.Cloud
+
+	return r, nil
 }
 
 func (d CloudDiscovery) GetId() string {
@@ -28,7 +38,7 @@ func (d CloudDiscovery) GetId() string {
 }
 
 func (d CloudDiscovery) GetInterval() time.Duration {
-	return d.discovery.interval
+	return d.interval
 }
 
 func (d CloudDiscovery) Discover() (string, error) {
@@ -37,7 +47,7 @@ func (d CloudDiscovery) Discover() (string, error) {
 		return "", err
 	}
 
-	err = d.discovery.collectorClient.Publish(d.id, cloudData)
+	err = d.collectorClient.Publish(d.id, cloudData)
 	if err != nil {
 		log.Debugf("Error while sending cloud discovery to data collector: %s", err)
 		return "", err

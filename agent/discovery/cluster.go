@@ -2,6 +2,7 @@ package discovery
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -13,15 +14,24 @@ const ClusterDiscoveryId string = "ha_cluster_discovery"
 
 // This Discover handles any Pacemaker Cluster type
 type ClusterDiscovery struct {
-	id        string
-	discovery BaseDiscovery
+	id              string
+	collectorClient collector.Client
+	host            string
+	interval        time.Duration
 }
 
-func NewClusterDiscovery(collectorClient collector.Client, interval time.Duration) ClusterDiscovery {
+func NewClusterDiscovery(collectorClient collector.Client, config DiscoveriesConfig) (Discovery, error) {
+	if config.DiscoveriesPeriodsConfig.Cluster < 1 {
+		return nil, fmt.Errorf("invalid interval %s", config.DiscoveriesPeriodsConfig.Cluster)
+	}
+
 	d := ClusterDiscovery{}
+	d.collectorClient = collectorClient
 	d.id = ClusterDiscoveryId
-	d.discovery = NewDiscovery(collectorClient, interval)
-	return d
+	d.host, _ = os.Hostname()
+	d.interval = config.DiscoveriesPeriodsConfig.Cluster
+
+	return d, nil
 }
 
 func (c ClusterDiscovery) GetId() string {
@@ -29,7 +39,7 @@ func (c ClusterDiscovery) GetId() string {
 }
 
 func (d ClusterDiscovery) GetInterval() time.Duration {
-	return d.discovery.interval
+	return d.interval
 }
 
 // Execute one iteration of a discovery and publish the results to the collector
@@ -39,7 +49,7 @@ func (d ClusterDiscovery) Discover() (string, error) {
 		return "No HA cluster discovered on this host", nil
 	}
 
-	err = d.discovery.collectorClient.Publish(d.id, cluster)
+	err = d.collectorClient.Publish(d.id, cluster)
 	if err != nil {
 		log.Debugf("Error while sending cluster discovery to data collector: %s", err)
 		return "", err

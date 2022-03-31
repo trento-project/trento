@@ -24,41 +24,33 @@ type Agent struct {
 	ctxCancel       context.CancelFunc
 }
 
-type DiscoveryPeriodConfig struct {
-	Cluster      time.Duration
-	SAPSystem    time.Duration
-	Cloud        time.Duration
-	Host         time.Duration
-	Subscription time.Duration
-}
-
 type Config struct {
-	InstanceName           string
-	SSHAddress             string
-	DiscoveryPeriodsConfig *DiscoveryPeriodConfig
-	CollectorConfig        *collector.Config
+	InstanceName      string
+	DiscoveriesConfig *discovery.DiscoveriesConfig
 }
 
 // NewAgent returns a new instance of Agent with the given configuration
 func NewAgent(config *Config) (*Agent, error) {
-	collectorClient, err := collector.NewCollectorClient(config.CollectorConfig)
+	collectorClient, err := collector.NewCollectorClient(config.DiscoveriesConfig.CollectorConfig)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create a collector client")
 	}
 
 	ctx, ctxCancel := context.WithCancel(context.Background())
+
+	var discoveries discovery.DiscoveryList
+	discoveries, err = discoveries.AddDiscovery(discovery.NewClusterDiscovery, collectorClient, *config.DiscoveriesConfig)
+	discoveries, err = discoveries.AddDiscovery(discovery.NewSAPSystemsDiscovery, collectorClient, *config.DiscoveriesConfig)
+	discoveries, err = discoveries.AddDiscovery(discovery.NewCloudDiscovery, collectorClient, *config.DiscoveriesConfig)
+	discoveries, err = discoveries.AddDiscovery(discovery.NewSubscriptionDiscovery, collectorClient, *config.DiscoveriesConfig)
+	discoveries, err = discoveries.AddDiscovery(discovery.NewHostDiscovery, collectorClient, *config.DiscoveriesConfig)
+
 	agent := &Agent{
 		config:          config,
 		collectorClient: collectorClient,
 		ctx:             ctx,
 		ctxCancel:       ctxCancel,
-		discoveries: []discovery.Discovery{
-			discovery.NewClusterDiscovery(collectorClient, config.DiscoveryPeriodsConfig.Cluster),
-			discovery.NewSAPSystemsDiscovery(collectorClient, config.DiscoveryPeriodsConfig.SAPSystem),
-			discovery.NewCloudDiscovery(collectorClient, config.DiscoveryPeriodsConfig.Cloud),
-			discovery.NewHostDiscovery(config.SSHAddress, collectorClient, config.DiscoveryPeriodsConfig.Host),
-			discovery.NewSubscriptionDiscovery(collectorClient, config.DiscoveryPeriodsConfig.Subscription),
-		},
+		discoveries:     discoveries,
 	}
 	return agent, nil
 }

@@ -3,6 +3,7 @@ package discovery
 import (
 	"fmt"
 	"net"
+	"os"
 	"strconv"
 	"time"
 
@@ -18,17 +19,25 @@ import (
 const HostDiscoveryId string = "host_discovery"
 
 type HostDiscovery struct {
-	id         string
-	sshAddress string
-	discovery  BaseDiscovery
+	id              string
+	sshAddress      string
+	collectorClient collector.Client
+	host            string
+	interval        time.Duration
 }
 
-func NewHostDiscovery(sshAddress string, collectorClient collector.Client, interval time.Duration) HostDiscovery {
+func NewHostDiscovery(collectorClient collector.Client, config DiscoveriesConfig) (Discovery, error) {
+	if config.DiscoveriesPeriodsConfig.Host < 1 {
+		return nil, fmt.Errorf("invalid interval %s", config.DiscoveriesPeriodsConfig.Host)
+	}
+
 	d := HostDiscovery{}
 	d.id = HostDiscoveryId
-	d.sshAddress = sshAddress
-	d.discovery = NewDiscovery(collectorClient, interval)
-	return d
+	d.collectorClient = collectorClient
+	d.host, _ = os.Hostname()
+	d.interval = config.DiscoveriesPeriodsConfig.Host
+	d.sshAddress = config.SSHAddress
+	return d, nil
 }
 
 func (h HostDiscovery) GetId() string {
@@ -36,7 +45,7 @@ func (h HostDiscovery) GetId() string {
 }
 
 func (d HostDiscovery) GetInterval() time.Duration {
-	return d.discovery.interval
+	return d.interval
 }
 
 // Execute one iteration of a discovery and publish to the collector
@@ -50,20 +59,20 @@ func (h HostDiscovery) Discover() (string, error) {
 		SSHAddress:      h.sshAddress,
 		OSVersion:       getOSVersion(),
 		HostIpAddresses: ipAddresses,
-		HostName:        h.discovery.host,
+		HostName:        h.host,
 		CPUCount:        getLogicalCPUs(),
 		SocketCount:     getCPUSocketCount(),
 		TotalMemoryMB:   getTotalMemoryMB(),
 		AgentVersion:    version.Version,
 	}
 
-	err = h.discovery.collectorClient.Publish(h.id, host)
+	err = h.collectorClient.Publish(h.id, host)
 	if err != nil {
 		log.Debugf("Error while sending host discovery to data collector: %s", err)
 		return "", err
 	}
 
-	return fmt.Sprintf("Host with name: %s successfully discovered", h.discovery.host), nil
+	return fmt.Sprintf("Host with name: %s successfully discovered", h.host), nil
 }
 
 func getHostIpAddresses() ([]string, error) {

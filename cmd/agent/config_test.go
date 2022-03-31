@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/suite"
 	"github.com/trento-project/trento/agent"
+	"github.com/trento-project/trento/agent/discovery"
 	"github.com/trento-project/trento/agent/discovery/collector"
 )
 
@@ -45,22 +46,23 @@ func (suite *AgentCmdTestSuite) TearDownTest() {
 
 	expectedConfig := &agent.Config{
 		InstanceName: "some-hostname",
-		SSHAddress:   "some-ssh-address",
-		DiscoveryPeriodsConfig: &agent.DiscoveryPeriodConfig{
-			Cluster:      10 * time.Second,
-			SAPSystem:    10 * time.Second,
-			Cloud:        10 * time.Second,
-			Host:         10 * time.Second,
-			Subscription: 900 * time.Second,
-		},
-
-		CollectorConfig: &collector.Config{
-			CollectorHost: "localhost",
-			CollectorPort: 1337,
-			EnablemTLS:    true,
-			Cert:          "some-cert",
-			Key:           "some-key",
-			CA:            "some-ca",
+		DiscoveriesConfig: &discovery.DiscoveriesConfig{
+			SSHAddress: "some-ssh-address",
+			DiscoveriesPeriodsConfig: &discovery.DiscoveriesPeriodConfig{
+				Cluster:      10 * time.Second,
+				SAPSystem:    10 * time.Second,
+				Cloud:        10 * time.Second,
+				Host:         10 * time.Second,
+				Subscription: 900 * time.Second,
+			},
+			CollectorConfig: &collector.Config{
+				CollectorHost: "localhost",
+				CollectorPort: 1337,
+				EnablemTLS:    true,
+				Cert:          "some-cert",
+				Key:           "some-key",
+				CA:            "some-ca",
+			},
 		},
 	}
 

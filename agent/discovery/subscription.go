@@ -2,6 +2,7 @@ package discovery
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -12,15 +13,24 @@ import (
 const SubscriptionDiscoveryId string = "subscription_discovery"
 
 type SubscriptionDiscovery struct {
-	id        string
-	discovery BaseDiscovery
+	id              string
+	collectorClient collector.Client
+	host            string
+	interval        time.Duration
 }
 
-func NewSubscriptionDiscovery(collectorClient collector.Client, interval time.Duration) SubscriptionDiscovery {
+func NewSubscriptionDiscovery(collectorClient collector.Client, config DiscoveriesConfig) (Discovery, error) {
+	if config.DiscoveriesPeriodsConfig.Subscription < 1 {
+		return nil, fmt.Errorf("invalid interval %s", config.DiscoveriesPeriodsConfig.Subscription)
+	}
+
 	r := SubscriptionDiscovery{}
 	r.id = SubscriptionDiscoveryId
-	r.discovery = NewDiscovery(collectorClient, interval)
-	return r
+	r.collectorClient = collectorClient
+	r.host, _ = os.Hostname()
+	r.interval = config.DiscoveriesPeriodsConfig.Subscription
+
+	return r, nil
 }
 
 func (d SubscriptionDiscovery) GetId() string {
@@ -28,7 +38,7 @@ func (d SubscriptionDiscovery) GetId() string {
 }
 
 func (d SubscriptionDiscovery) GetInterval() time.Duration {
-	return d.discovery.interval
+	return d.interval
 }
 
 func (d SubscriptionDiscovery) Discover() (string, error) {
@@ -37,7 +47,7 @@ func (d SubscriptionDiscovery) Discover() (string, error) {
 		return "", err
 	}
 
-	err = d.discovery.collectorClient.Publish(d.id, subsData)
+	err = d.collectorClient.Publish(d.id, subsData)
 	if err != nil {
 		log.Debugf("Error while sending subscription discovery to data collector: %s", err)
 		return "", err

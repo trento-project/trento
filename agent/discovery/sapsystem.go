@@ -2,6 +2,7 @@ package discovery
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -12,15 +13,24 @@ import (
 const SAPDiscoveryId string = "sap_system_discovery"
 
 type SAPSystemsDiscovery struct {
-	id        string
-	discovery BaseDiscovery
+	id              string
+	collectorClient collector.Client
+	host            string
+	interval        time.Duration
 }
 
-func NewSAPSystemsDiscovery(collectorClient collector.Client, interval time.Duration) SAPSystemsDiscovery {
+func NewSAPSystemsDiscovery(collectorClient collector.Client, config DiscoveriesConfig) (Discovery, error) {
+	if config.DiscoveriesPeriodsConfig.SAPSystem < 1 {
+		return nil, fmt.Errorf("invalid interval %s", config.DiscoveriesPeriodsConfig.SAPSystem)
+	}
+
 	r := SAPSystemsDiscovery{}
 	r.id = SAPDiscoveryId
-	r.discovery = NewDiscovery(collectorClient, interval)
-	return r
+	r.collectorClient = collectorClient
+	r.host, _ = os.Hostname()
+	r.interval = config.DiscoveriesPeriodsConfig.SAPSystem
+
+	return r, nil
 }
 
 func (d SAPSystemsDiscovery) GetId() string {
@@ -28,7 +38,7 @@ func (d SAPSystemsDiscovery) GetId() string {
 }
 
 func (d SAPSystemsDiscovery) GetInterval() time.Duration {
-	return d.discovery.interval
+	return d.interval
 }
 
 func (d SAPSystemsDiscovery) Discover() (string, error) {
@@ -38,7 +48,7 @@ func (d SAPSystemsDiscovery) Discover() (string, error) {
 		return "", err
 	}
 
-	err = d.discovery.collectorClient.Publish(d.id, systems)
+	err = d.collectorClient.Publish(d.id, systems)
 	if err != nil {
 		log.Debugf("Error while sending sapsystem discovery to data collector: %s", err)
 		return "", err

@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"github.com/trento-project/trento/agent"
+	"github.com/trento-project/trento/agent/discovery"
 	"github.com/trento-project/trento/agent/discovery/collector"
 )
 
@@ -44,23 +45,31 @@ func LoadConfig() (*agent.Config, error) {
 		return nil, errors.New("ssh-address is required, cannot start agent")
 	}
 
+	collectorConfig := &collector.Config{
+		CollectorHost: viper.GetString("collector-host"),
+		CollectorPort: viper.GetInt("collector-port"),
+		EnablemTLS:    enablemTLS,
+		Cert:          cert,
+		Key:           key,
+		CA:            ca,
+	}
+
+	discoveryPeriodsConfig := &discovery.DiscoveriesPeriodConfig{
+		Cluster:      time.Duration(viper.GetInt("cluster-discovery-period")) * time.Second,
+		SAPSystem:    time.Duration(viper.GetInt("sapsystem-discovery-period")) * time.Second,
+		Cloud:        time.Duration(viper.GetInt("cloud-discovery-period")) * time.Second,
+		Host:         time.Duration(viper.GetInt("host-discovery-period")) * time.Second,
+		Subscription: time.Duration(viper.GetInt("subscription-discovery-period")) * time.Second,
+	}
+
+	discoveriesConfig := &discovery.DiscoveriesConfig{
+		SSHAddress:               sshAddress,
+		CollectorConfig:          collectorConfig,
+		DiscoveriesPeriodsConfig: discoveryPeriodsConfig,
+	}
+
 	return &agent.Config{
-		CollectorConfig: &collector.Config{
-			CollectorHost: viper.GetString("collector-host"),
-			CollectorPort: viper.GetInt("collector-port"),
-			EnablemTLS:    enablemTLS,
-			Cert:          cert,
-			Key:           key,
-			CA:            ca,
-		},
-		InstanceName: hostname,
-		SSHAddress:   sshAddress,
-		DiscoveryPeriodsConfig: &agent.DiscoveryPeriodConfig{
-			Cluster:      time.Duration(viper.GetInt("cluster-discovery-period")) * time.Second,
-			SAPSystem:    time.Duration(viper.GetInt("sapsystem-discovery-period")) * time.Second,
-			Cloud:        time.Duration(viper.GetInt("cloud-discovery-period")) * time.Second,
-			Host:         time.Duration(viper.GetInt("host-discovery-period")) * time.Second,
-			Subscription: time.Duration(viper.GetInt("subscription-discovery-period")) * time.Second,
-		},
+		InstanceName:      hostname,
+		DiscoveriesConfig: discoveriesConfig,
 	}, nil
 }

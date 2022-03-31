@@ -17,7 +17,7 @@ import (
 )
 
 const HostDiscoveryId string = "host_discovery"
-const HostDiscoveryMinInterval time.Duration = 1
+const HostDiscoveryMinPeriod time.Duration = 1 * time.Second
 
 type HostDiscovery struct {
 	id              string
@@ -28,10 +28,6 @@ type HostDiscovery struct {
 }
 
 func NewHostDiscovery(collectorClient collector.Client, config DiscoveriesConfig) (Discovery, error) {
-	if config.DiscoveriesPeriodsConfig.Host < HostDiscoveryMinInterval {
-		return nil, fmt.Errorf("invalid interval %s: should be at least %s", config.DiscoveriesPeriodsConfig.Host, HostDiscoveryMinInterval)
-	}
-
 	d := HostDiscovery{}
 	d.id = HostDiscoveryId
 	d.collectorClient = collectorClient

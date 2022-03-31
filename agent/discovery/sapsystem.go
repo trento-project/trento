@@ -10,7 +10,7 @@ import (
 )
 
 const SAPDiscoveryId string = "sap_system_discovery"
-const SAPDiscoveryMinInterval time.Duration = 1
+const SAPDiscoveryMinPeriod time.Duration = 1 * time.Second
 
 type SAPSystemsDiscovery struct {
 	id              string
@@ -19,10 +19,6 @@ type SAPSystemsDiscovery struct {
 }
 
 func NewSAPSystemsDiscovery(collectorClient collector.Client, config DiscoveriesConfig) (Discovery, error) {
-	if config.DiscoveriesPeriodsConfig.SAPSystem < SAPDiscoveryMinInterval {
-		return nil, fmt.Errorf("invalid interval %s: should be at least %s", config.DiscoveriesPeriodsConfig.SAPSystem, SAPDiscoveryMinInterval)
-	}
-
 	d := SAPSystemsDiscovery{}
 	d.id = SAPDiscoveryId
 	d.collectorClient = collectorClient

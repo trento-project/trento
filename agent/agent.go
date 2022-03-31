@@ -36,14 +36,23 @@ func NewAgent(config *Config) (*Agent, error) {
 		return nil, errors.Wrap(err, "could not create a collector client")
 	}
 
-	ctx, ctxCancel := context.WithCancel(context.Background())
-
+	discoveryInitializers := []discovery.DiscoveryInitializer{
+		discovery.NewClusterDiscovery,
+		discovery.NewSAPSystemsDiscovery,
+		discovery.NewCloudDiscovery,
+		discovery.NewSubscriptionDiscovery,
+		discovery.NewHostDiscovery,
+	}
 	var discoveries discovery.DiscoveryList
-	discoveries, err = discoveries.AddDiscovery(discovery.NewClusterDiscovery, collectorClient, *config.DiscoveriesConfig)
-	discoveries, err = discoveries.AddDiscovery(discovery.NewSAPSystemsDiscovery, collectorClient, *config.DiscoveriesConfig)
-	discoveries, err = discoveries.AddDiscovery(discovery.NewCloudDiscovery, collectorClient, *config.DiscoveriesConfig)
-	discoveries, err = discoveries.AddDiscovery(discovery.NewSubscriptionDiscovery, collectorClient, *config.DiscoveriesConfig)
-	discoveries, err = discoveries.AddDiscovery(discovery.NewHostDiscovery, collectorClient, *config.DiscoveriesConfig)
+
+	for _, initializer := range discoveryInitializers {
+		discoveries, err = discoveries.AddDiscovery(initializer, collectorClient, *config.DiscoveriesConfig)
+		if err != nil {
+			return nil, errors.Wrap(err, "could not create a discovery")
+		}
+	}
+
+	ctx, ctxCancel := context.WithCancel(context.Background())
 
 	agent := &Agent{
 		config:          config,

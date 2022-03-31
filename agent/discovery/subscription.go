@@ -11,7 +11,7 @@ import (
 )
 
 const SubscriptionDiscoveryId string = "subscription_discovery"
-const SubscriptionDiscoveryMinInterval time.Duration = 500
+const SubscriptionDiscoveryMinPeriod time.Duration = 500 * time.Second
 
 type SubscriptionDiscovery struct {
 	id              string
@@ -21,10 +21,6 @@ type SubscriptionDiscovery struct {
 }
 
 func NewSubscriptionDiscovery(collectorClient collector.Client, config DiscoveriesConfig) (Discovery, error) {
-	if config.DiscoveriesPeriodsConfig.Subscription < SubscriptionDiscoveryMinInterval {
-		return nil, fmt.Errorf("invalid interval %s: should be at least %s", config.DiscoveriesPeriodsConfig.Subscription, SubscriptionDiscoveryMinInterval)
-	}
-
 	r := SubscriptionDiscovery{}
 	r.id = SubscriptionDiscoveryId
 	r.collectorClient = collectorClient

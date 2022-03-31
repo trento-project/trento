@@ -69,7 +69,8 @@
 ###############################################################################
 
 ## Subscription discovery period configures the tick interval for the
-## subscription discovery loop.
+## subscription discovery loop. Note that the minimal allowed value for this
+## variable is 500 seconds.
 ## Time unit is seconds
 ## Defaults to 900.
 

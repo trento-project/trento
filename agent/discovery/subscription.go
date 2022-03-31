@@ -20,7 +20,7 @@ type SubscriptionDiscovery struct {
 }
 
 func NewSubscriptionDiscovery(collectorClient collector.Client, config DiscoveriesConfig) (Discovery, error) {
-	if config.DiscoveriesPeriodsConfig.Subscription < 1 {
+	if config.DiscoveriesPeriodsConfig.Subscription < 500 {
 		return nil, fmt.Errorf("invalid interval %s", config.DiscoveriesPeriodsConfig.Subscription)
 	}
 

@@ -2,6 +2,7 @@ package discovery
 
 import (
 	"fmt"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/trento-project/trento/agent/discovery/collector"
@@ -9,21 +10,29 @@ import (
 )
 
 const SAPDiscoveryId string = "sap_system_discovery"
+const SAPDiscoveryMinPeriod time.Duration = 1 * time.Second
 
 type SAPSystemsDiscovery struct {
-	id        string
-	discovery BaseDiscovery
+	id              string
+	collectorClient collector.Client
+	interval        time.Duration
 }
 
-func NewSAPSystemsDiscovery(collectorClient collector.Client) SAPSystemsDiscovery {
-	r := SAPSystemsDiscovery{}
-	r.id = SAPDiscoveryId
-	r.discovery = NewDiscovery(collectorClient)
-	return r
+func NewSAPSystemsDiscovery(collectorClient collector.Client, config DiscoveriesConfig) Discovery {
+	d := SAPSystemsDiscovery{}
+	d.id = SAPDiscoveryId
+	d.collectorClient = collectorClient
+	d.interval = config.DiscoveriesPeriodsConfig.SAPSystem
+
+	return d
 }
 
 func (d SAPSystemsDiscovery) GetId() string {
 	return d.id
+}
+
+func (d SAPSystemsDiscovery) GetInterval() time.Duration {
+	return d.interval
 }
 
 func (d SAPSystemsDiscovery) Discover() (string, error) {
@@ -33,7 +42,7 @@ func (d SAPSystemsDiscovery) Discover() (string, error) {
 		return "", err
 	}
 
-	err = d.discovery.collectorClient.Publish(d.id, systems)
+	err = d.collectorClient.Publish(d.id, systems)
 	if err != nil {
 		log.Debugf("Error while sending sapsystem discovery to data collector: %s", err)
 		return "", err

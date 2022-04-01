@@ -8,14 +8,39 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"github.com/trento-project/trento/agent"
+	"github.com/trento-project/trento/agent/discovery"
 	"github.com/trento-project/trento/agent/discovery/collector"
 )
+
+func validatePeriod(durationFlag string, minValue time.Duration) error {
+	period := viper.GetDuration(durationFlag)
+	if period < minValue {
+		return errors.Errorf("%s: invalid interval %s, should be at least %s", durationFlag, period, minValue)
+	}
+
+	return nil
+}
 
 func LoadConfig() (*agent.Config, error) {
 	enablemTLS := viper.GetBool("enable-mtls")
 	cert := viper.GetString("cert")
 	key := viper.GetString("key")
 	ca := viper.GetString("ca")
+
+	minPeriodValues := map[string]time.Duration{
+		"cluster-discovery-period":      discovery.ClusterDiscoveryMinPeriod,
+		"sapsystem-discovery-period":    discovery.SAPDiscoveryMinPeriod,
+		"cloud-discovery-period":        discovery.CloudDiscoveryMinPeriod,
+		"host-discovery-period":         discovery.HostDiscoveryMinPeriod,
+		"subscription-discovery-period": discovery.SubscriptionDiscoveryMinPeriod,
+	}
+
+	for flagName, minPeriodValue := range minPeriodValues {
+		err := validatePeriod(flagName, minPeriodValue)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	if enablemTLS {
 		var err error
@@ -44,17 +69,31 @@ func LoadConfig() (*agent.Config, error) {
 		return nil, errors.New("ssh-address is required, cannot start agent")
 	}
 
+	collectorConfig := &collector.Config{
+		CollectorHost: viper.GetString("collector-host"),
+		CollectorPort: viper.GetInt("collector-port"),
+		EnablemTLS:    enablemTLS,
+		Cert:          cert,
+		Key:           key,
+		CA:            ca,
+	}
+
+	discoveryPeriodsConfig := &discovery.DiscoveriesPeriodConfig{
+		Cluster:      viper.GetDuration("cluster-discovery-period"),
+		SAPSystem:    viper.GetDuration("sapsystem-discovery-period"),
+		Cloud:        viper.GetDuration("cloud-discovery-period"),
+		Host:         viper.GetDuration("host-discovery-period"),
+		Subscription: viper.GetDuration("subscription-discovery-period"),
+	}
+
+	discoveriesConfig := &discovery.DiscoveriesConfig{
+		SSHAddress:               sshAddress,
+		CollectorConfig:          collectorConfig,
+		DiscoveriesPeriodsConfig: discoveryPeriodsConfig,
+	}
+
 	return &agent.Config{
-		CollectorConfig: &collector.Config{
-			CollectorHost: viper.GetString("collector-host"),
-			CollectorPort: viper.GetInt("collector-port"),
-			EnablemTLS:    enablemTLS,
-			Cert:          cert,
-			Key:           key,
-			CA:            ca,
-		},
-		InstanceName:    hostname,
-		SSHAddress:      sshAddress,
-		DiscoveryPeriod: time.Duration(viper.GetInt("discovery-period")) * time.Second,
+		InstanceName:      hostname,
+		DiscoveriesConfig: discoveriesConfig,
 	}, nil
 }

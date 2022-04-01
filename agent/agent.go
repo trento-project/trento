@@ -3,7 +3,6 @@ package agent
 import (
 	"context"
 	"fmt"
-	"strings"
 	"sync"
 	"time"
 
@@ -26,32 +25,33 @@ type Agent struct {
 }
 
 type Config struct {
-	InstanceName    string
-	SSHAddress      string
-	DiscoveryPeriod time.Duration
-	CollectorConfig *collector.Config
+	InstanceName      string
+	DiscoveriesConfig *discovery.DiscoveriesConfig
 }
 
 // NewAgent returns a new instance of Agent with the given configuration
 func NewAgent(config *Config) (*Agent, error) {
-	collectorClient, err := collector.NewCollectorClient(config.CollectorConfig)
+	collectorClient, err := collector.NewCollectorClient(config.DiscoveriesConfig.CollectorConfig)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create a collector client")
 	}
 
+	discoveries := []discovery.Discovery{
+		discovery.NewClusterDiscovery(collectorClient, *config.DiscoveriesConfig),
+		discovery.NewSAPSystemsDiscovery(collectorClient, *config.DiscoveriesConfig),
+		discovery.NewCloudDiscovery(collectorClient, *config.DiscoveriesConfig),
+		discovery.NewSubscriptionDiscovery(collectorClient, *config.DiscoveriesConfig),
+		discovery.NewHostDiscovery(collectorClient, *config.DiscoveriesConfig),
+	}
+
 	ctx, ctxCancel := context.WithCancel(context.Background())
+
 	agent := &Agent{
 		config:          config,
 		collectorClient: collectorClient,
 		ctx:             ctx,
 		ctxCancel:       ctxCancel,
-		discoveries: []discovery.Discovery{
-			discovery.NewClusterDiscovery(collectorClient),
-			discovery.NewSAPSystemsDiscovery(collectorClient),
-			discovery.NewCloudDiscovery(collectorClient),
-			discovery.NewSubscriptionDiscovery(collectorClient),
-			discovery.NewHostDiscovery(config.SSHAddress, collectorClient),
-		},
+		discoveries:     discoveries,
 	}
 	return agent, nil
 }
@@ -60,13 +60,15 @@ func NewAgent(config *Config) (*Agent, error) {
 func (a *Agent) Start() error {
 	var wg sync.WaitGroup
 
-	wg.Add(1)
-	go func(wg *sync.WaitGroup) {
-		log.Info("Starting Discover loop...")
-		defer wg.Done()
-		a.startDiscoverTicker()
-		log.Info("Discover loop stopped.")
-	}(&wg)
+	for _, d := range a.discoveries {
+		wg.Add(1)
+		go func(wg *sync.WaitGroup, d discovery.Discovery) {
+			log.Infof("Starting %s loop...", d.GetId())
+			defer wg.Done()
+			a.startDiscoverTicker(d)
+			log.Infof("%s discover loop stopped.", d.GetId())
+		}(&wg, d)
+	}
 
 	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
@@ -86,23 +88,18 @@ func (a *Agent) Stop() {
 }
 
 // Start a Ticker loop that will iterate over the hardcoded list of Discovery backends and execute them.
-func (a *Agent) startDiscoverTicker() {
+func (a *Agent) startDiscoverTicker(d discovery.Discovery) {
+
 	tick := func() {
-		var output []string
-		for _, d := range a.discoveries {
-			result, err := d.Discover()
-			if err != nil {
-				result = fmt.Sprintf("Error while running discovery '%s': %s", d.GetId(), err)
-
-				log.Errorln(result)
-			}
-			output = append(output, result)
+		result, err := d.Discover()
+		if err != nil {
+			result = fmt.Sprintf("Error while running discovery '%s': %s", d.GetId(), err)
+			log.Errorln(result)
 		}
-		log.Infof("Discovery tick output: %s", strings.Join(output, "\n\n"))
+		log.Infof("%s discovery tick output: %s", d.GetId(), result)
 	}
+	internal.Repeat(d.GetId(), tick, time.Duration(d.GetInterval()), a.ctx)
 
-	interval := a.config.DiscoveryPeriod
-	internal.Repeat("agent.discovery", tick, interval, a.ctx)
 }
 
 func (a *Agent) startHeartbeatTicker() {

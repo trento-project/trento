@@ -3,7 +3,9 @@ package discovery
 import (
 	"fmt"
 	"net"
+	"os"
 	"strconv"
+	"time"
 
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/host"
@@ -15,50 +17,59 @@ import (
 )
 
 const HostDiscoveryId string = "host_discovery"
+const HostDiscoveryMinPeriod time.Duration = 1 * time.Second
 
 type HostDiscovery struct {
-	id         string
-	sshAddress string
-	discovery  BaseDiscovery
+	id              string
+	sshAddress      string
+	collectorClient collector.Client
+	host            string
+	interval        time.Duration
 }
 
-func NewHostDiscovery(sshAddress string, collectorClient collector.Client) HostDiscovery {
+func NewHostDiscovery(collectorClient collector.Client, config DiscoveriesConfig) Discovery {
 	d := HostDiscovery{}
 	d.id = HostDiscoveryId
-	d.sshAddress = sshAddress
-	d.discovery = NewDiscovery(collectorClient)
+	d.collectorClient = collectorClient
+	d.host, _ = os.Hostname()
+	d.interval = config.DiscoveriesPeriodsConfig.Host
+	d.sshAddress = config.SSHAddress
 	return d
 }
 
-func (h HostDiscovery) GetId() string {
-	return h.id
+func (d HostDiscovery) GetId() string {
+	return d.id
+}
+
+func (d HostDiscovery) GetInterval() time.Duration {
+	return d.interval
 }
 
 // Execute one iteration of a discovery and publish to the collector
-func (h HostDiscovery) Discover() (string, error) {
+func (d HostDiscovery) Discover() (string, error) {
 	ipAddresses, err := getHostIpAddresses()
 	if err != nil {
 		return "", err
 	}
 
 	host := hosts.DiscoveredHost{
-		SSHAddress:      h.sshAddress,
+		SSHAddress:      d.sshAddress,
 		OSVersion:       getOSVersion(),
 		HostIpAddresses: ipAddresses,
-		HostName:        h.discovery.host,
+		HostName:        d.host,
 		CPUCount:        getLogicalCPUs(),
 		SocketCount:     getCPUSocketCount(),
 		TotalMemoryMB:   getTotalMemoryMB(),
 		AgentVersion:    version.Version,
 	}
 
-	err = h.discovery.collectorClient.Publish(h.id, host)
+	err = d.collectorClient.Publish(d.id, host)
 	if err != nil {
 		log.Debugf("Error while sending host discovery to data collector: %s", err)
 		return "", err
 	}
 
-	return fmt.Sprintf("Host with name: %s successfully discovered", h.discovery.host), nil
+	return fmt.Sprintf("Host with name: %s successfully discovered", d.host), nil
 }
 
 func getHostIpAddresses() ([]string, error) {

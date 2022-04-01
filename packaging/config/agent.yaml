@@ -32,11 +32,39 @@
 
 ###############################################################################
 
-## Discovery period configures the tick interval for the discovery loops.
-## Time unit is minutes
-## Defaults to 2.
+## Cloud discovery period configures the tick interval for the cloud discovery
+## loop.
+## Time unit is seconds
+## Defaults to 10.
 
-# discovery-period: 2
+# cloud-discovery-period: 10
+
+###############################################################################
+
+## Cluster discovery period configures the tick interval for the cluster
+##  discovery loop.
+## Time unit is seconds
+## Defaults to 10.
+
+# cluster-discovery-period: 10
+
+###############################################################################
+
+## Host discovery period configures the tick interval for the host discovery
+## loop.
+## Time unit is seconds
+## Defaults to 10.
+
+# host-discovery-period: 10
+
+###############################################################################
+
+## SAP system discovery period configures the tick interval for the SAP system
+## discovery loop.
+## Time unit is seconds
+## Defaults to 10.
+
+# sapsystem-discovery-period: 10
 
 ###############################################################################
 

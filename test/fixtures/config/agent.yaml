@@ -1,5 +1,8 @@
 ssh-address: some-ssh-address
-discovery-period: 10
+cloud-discovery-period: 10s
+cluster-discovery-period: 10s
+host-discovery-period: 10s
+sapsystem-discovery-period: 10s
 collector-host: localhost
 collector-port: 1337
 enable-mtls: true

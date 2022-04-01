@@ -2,6 +2,7 @@ package discovery
 
 import (
 	"fmt"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/trento-project/trento/agent/discovery/collector"
@@ -9,21 +10,29 @@ import (
 )
 
 const CloudDiscoveryId string = "cloud_discovery"
+const CloudDiscoveryMinPeriod time.Duration = 1 * time.Second
 
 type CloudDiscovery struct {
-	id        string
-	discovery BaseDiscovery
+	id              string
+	collectorClient collector.Client
+	interval        time.Duration
 }
 
-func NewCloudDiscovery(collectorClient collector.Client) CloudDiscovery {
-	r := CloudDiscovery{}
-	r.id = CloudDiscoveryId
-	r.discovery = NewDiscovery(collectorClient)
-	return r
+func NewCloudDiscovery(collectorClient collector.Client, config DiscoveriesConfig) Discovery {
+	d := CloudDiscovery{}
+	d.collectorClient = collectorClient
+	d.id = CloudDiscoveryId
+	d.interval = config.DiscoveriesPeriodsConfig.Cloud
+
+	return d
 }
 
 func (d CloudDiscovery) GetId() string {
 	return d.id
+}
+
+func (d CloudDiscovery) GetInterval() time.Duration {
+	return d.interval
 }
 
 func (d CloudDiscovery) Discover() (string, error) {
@@ -32,7 +41,7 @@ func (d CloudDiscovery) Discover() (string, error) {
 		return "", err
 	}
 
-	err = d.discovery.collectorClient.Publish(d.id, cloudData)
+	err = d.collectorClient.Publish(d.id, cloudData)
 	if err != nil {
 		log.Debugf("Error while sending cloud discovery to data collector: %s", err)
 		return "", err

@@ -21,7 +21,7 @@ Arguments:
   --ca              The path to the TLS CA file. Required if --enable-mtls is set.
   --rolling         Use the rolling version instead of the stable one.
   --use-tgz         Use the trento tar.gz file from GH releases rather than the RPM.
-  --interval        The polling interval in seconds for the discovery.
+  --interval        The polling interval in seconds for the discoveries.
   --help            Print this help.
 END
 }
@@ -124,7 +124,10 @@ enable-mtls: @ENABLE_MTLS@
 cert: @CERT@
 key: @KEY@
 ca: @CA@
-discovery-period: @INTERVAL@
+cloud-discovery-period: @INTERVAL@
+cluster-discovery-period: @INTERVAL@
+host-discovery-period: @INTERVAL@
+sapsystem-discovery-period: @INTERVAL@
 '
 
 . /etc/os-release

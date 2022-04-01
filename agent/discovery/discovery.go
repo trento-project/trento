@@ -28,12 +28,3 @@ type Discovery interface {
 	// Get interval
 	GetInterval() time.Duration
 }
-
-type DiscoveryList []Discovery
-type DiscoveryInitializer func(collector.Client, DiscoveriesConfig) Discovery
-
-func (d DiscoveryList) AddDiscovery(f DiscoveryInitializer, collectorClient collector.Client, config DiscoveriesConfig) DiscoveryList {
-	discovery := f(collectorClient, config)
-
-	return append(d, discovery)
-}

@@ -37,7 +37,7 @@
 ## Time unit is seconds
 ## Defaults to 10.
 
-# cloud-discovery-period: 10
+# cloud-discovery-period: 10s
 
 ###############################################################################
 
@@ -46,7 +46,7 @@
 ## Time unit is seconds
 ## Defaults to 10.
 
-# cluster-discovery-period: 10
+# cluster-discovery-period: 10s
 
 ###############################################################################
 
@@ -55,7 +55,7 @@
 ## Time unit is seconds
 ## Defaults to 10.
 
-# host-discovery-period: 10
+# host-discovery-period: 10s
 
 ###############################################################################
 
@@ -64,7 +64,7 @@
 ## Time unit is seconds
 ## Defaults to 10.
 
-# sapsystem-discovery-period: 10
+# sapsystem-discovery-period: 10s
 
 ###############################################################################
 

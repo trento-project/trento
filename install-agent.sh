@@ -124,10 +124,10 @@ enable-mtls: @ENABLE_MTLS@
 cert: @CERT@
 key: @KEY@
 ca: @CA@
-cloud-discovery-period: @INTERVAL@
-cluster-discovery-period: @INTERVAL@
-host-discovery-period: @INTERVAL@
-sapsystem-discovery-period: @INTERVAL@
+cloud-discovery-period: @INTERVAL@s
+cluster-discovery-period: @INTERVAL@s
+host-discovery-period: @INTERVAL@s
+sapsystem-discovery-period: @INTERVAL@s
 '
 
 . /etc/os-release

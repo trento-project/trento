@@ -25,11 +25,11 @@ require (
 	github.com/stretchr/testify v1.7.1
 	github.com/swaggo/files v0.0.0-20210815190702-a29dd2bc99b2
 	github.com/swaggo/gin-swagger v1.4.1
-	github.com/swaggo/swag v1.8.0
+	github.com/swaggo/swag v1.8.1
 	github.com/tdewolff/minify/v2 v2.10.0
 	github.com/tklauser/go-sysconf v0.3.9 // indirect
 	github.com/ugorji/go v1.1.13 // indirect
-	github.com/vektra/mockery/v2 v2.10.0
+	github.com/vektra/mockery/v2 v2.10.4
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	gorm.io/datatypes v1.0.2

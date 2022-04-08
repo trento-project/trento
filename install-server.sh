@@ -19,6 +19,8 @@ usage() {
         -k, --key             The path to the TLS key file. Required if --enable-mtls is set.
         -a, --ca              The path to the TLS CA file. Required if --enable-mtls is set.
         -r, --rolling         Use the rolling version instead of the stable one.
+        -e, --existing-k8s    Deploy to an existing kubernetes cluster (don't deploy k3s)
+        -u, --use-registry    Container registry to pull the images from
         -h, --help            Print this help.
 
     Example:
@@ -38,6 +40,8 @@ cmdline() {
         --key) args="${args}-k " ;;
         --ca) args="${args}-a " ;;
         --help) args="${args}-h " ;;
+        --use-registry) args="${args}-u " ;;
+        --existing-k8s) args="${args}-e " ;;
 
         # pass through anything else
         *)
@@ -49,7 +53,7 @@ cmdline() {
 
     eval set -- "$args"
 
-    while getopts "p:c:k:a:mrh" OPTION; do
+    while getopts "p:c:k:a:mrhu:e" OPTION; do
         case $OPTION in
         h)
             usage
@@ -78,6 +82,14 @@ cmdline() {
 
         r)
             ROLLING=true
+            ;;
+
+        u)
+            TRENTO_REGISTRY=$OPTARG
+            ;;
+
+        e)
+            EXISTING_K8S=true
             ;;
 
         *)
@@ -204,8 +216,9 @@ update_helm_dependencies() {
 install_trento_server_chart() {
     local download_chart=${DOWNLOAD_CHART:-true}
     local repo_owner=${TRENTO_REPO_OWNER:-"trento-project"}
-    local runner_image=${TRENTO_RUNNER_IMAGE:-"ghcr.io/$repo_owner/trento-runner"}
-    local web_image=${TRENTO_WEB_IMAGE:-"ghcr.io/$repo_owner/trento-web"}
+    local registry=${TRENTO_REGISTRY:-"ghcr.io/$repo_owner"}
+    local runner_image=${TRENTO_RUNNER_IMAGE:-"$registry/trento-runner"}
+    local web_image=${TRENTO_WEB_IMAGE:-"$registry/trento-web"}
     local private_key=${PRIVATE_KEY:-"./id_rsa_runner"}
     local trento_source_zip="${TRENTO_VERSION}"
     local trento_chart_path=${TRENTO_CHART_PATH:-"/tmp/trento-${trento_source_zip}/packaging/helm/trento-server"}
@@ -253,10 +266,12 @@ install_trento_server_chart() {
 main() {
     cmdline "${ARGS[@]}"
     load_conf
-    echo "Installing trento-server on k3s..."
-    check_requirements
-    install_k3s
-    install_helm
+    if [[ "$EXISTING_K8S" != "true" ]]; then
+        echo "Installing trento-server on k3s..."
+        check_requirements
+        install_k3s
+        install_helm
+    fi
     update_helm_dependencies
     install_trento_server_chart
 }

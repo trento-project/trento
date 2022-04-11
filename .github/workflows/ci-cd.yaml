@@ -137,7 +137,7 @@ jobs:
           wait-on-timeout: 30
           config: baseUrl=http://localhost:8080,chromeWebSecurity=false
       - name: Upload cypress test videos
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: e2e-videos
@@ -221,7 +221,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           outputs: type=docker,dest=/tmp/${{ matrix.image }}.tar
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.image }}
           path: /tmp/${{ matrix.image }}.tar
@@ -299,7 +299,7 @@ jobs:
         run: |
           set -x
           find ./build -maxdepth 1 -mindepth 1 -type d -exec sh -c 'tar -zcf build/trento-$(basename {}).tgz -C {} trento -C $(pwd) packaging/systemd/trento-agent.service' \;
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: trento-binaries
           path: |

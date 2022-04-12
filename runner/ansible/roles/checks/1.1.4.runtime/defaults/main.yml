@@ -14,13 +14,21 @@ remediation: |
 
   ## References
   AZURE:
+
     - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#install-the-cluster
+
   AWS:
+
     - https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/#id-example-for-etccorosynccorosync-conf
+
   GCP:
+
     - https://cloud.google.com/solutions/sap/docs/sap-hana-ha-config-sles
+
   SUSE / KVM:
+
     - https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/#id-example-for-etccorosynccorosync-conf
+
 implementation: "{{ lookup('file', 'roles/checks/'+name+'/tasks/main.yml') }}"
 
 # check id. This value must not be changed over the life of this check

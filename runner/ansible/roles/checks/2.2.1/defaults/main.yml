@@ -14,13 +14,21 @@ remediation: |
 
   ## Reference
   Azure:
+
     - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability
+
   AWS:
+
     - https://docs.aws.amazon.com/sap/latest/sap-hana/sap-hana-on-aws-ha-cluster-configuration-on-sles.html
+
   GCP:
+
     - https://cloud.google.com/solutions/sap/docs/sap-hana-os-support
+
   SUSE / KVM:
+
     - https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/#id-planning-the-installation
+
 implementation: "{{ lookup('file', 'roles/checks/'+name+'/tasks/main.yml') }}"
 
 # check id. This value must not be changed over the life of this check

@@ -11,11 +11,17 @@ remediation: |
 
   ## References
   Azure:
+
     -  https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#set-up-sbd-device
+
   AWS:
+
   GCP:
+
   SUSE / KVM:
+
     - https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/#cha.hana-sr.scenario
+
 implementation: "{{ lookup('file', 'roles/checks/'+name+'/tasks/main.yml') }}"
 on_failure: warning
 

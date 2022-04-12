@@ -11,14 +11,22 @@ remediation: |
 
   ## References
   Azure:
+
     - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-high-availability-architecture-scenarios#multiple-instances-of-virtual-machines-in-the-same-availability-set
     - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#use-an-sbd-device
+
   AWS:
+
     - https://docs.aws.amazon.com/sap/latest/sap-hana/sap-hana-on-aws-aws-infrastructure-operating-system-setup-and-hana-installation.html
+
   GCP:
+
     - https://cloud.google.com/solutions/sap/docs/sap-hana-ha-config-sles#deploying_the_vms_and_sap_hana
+
   SUSE / KVM:
+
     - https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/#cha.hana-sr.scenario
+
 implementation: "{{ lookup('file', 'roles/checks/'+name+'/tasks/main.yml') }}"
 
 # check id. This value must not be changed over the life of this check

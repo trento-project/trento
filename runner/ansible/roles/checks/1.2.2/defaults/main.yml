@@ -18,13 +18,21 @@ remediation: |
 
   ## References
   Azure:
+
     - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-pacemaker#create-a-stonith-device-on-the-pacemaker-cluster
+
   AWS:
+
     - https://docs.aws.amazon.com/sap/latest/sap-hana/sap-hana-on-aws-cluster-resources.html
+
   GCP:
+
     - https://cloud.google.com/solutions/sap/docs/sap-hana-ha-config-sles#configure_the_general_cluster_properties
+
   SUSE / KVM:
+
     - https://documentation.suse.com/sbp/all/single-html/SLES4SAP-hana-sr-guide-PerfOpt-15/#id-cluster-bootstrap-and-more
+
 implementation: "{{ lookup('file', 'roles/checks/'+name+'/tasks/main.yml') }}"
 
 # check id. This value must not be changed over the life of this check

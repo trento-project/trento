@@ -172,3 +172,12 @@ web/frontend/assets/images:
 .PHONY: helm-lint
 helm-lint:
 	docker run --rm -ti --name trento-chart-test -w /workdir -v $(shell pwd):/workdir quay.io/helmpack/chart-testing:v3.4.0 ct lint
+
+.PHONY: install-wwhrd
+install-wwhrd:
+	which wwhrd || go install github.com/frapposelli/wwhrd@latest
+
+.PHONY: check-licenses
+check-licenses: install-wwhrd
+	go mod vendor
+	wwhrd check -q -f .wwhrd.yaml
